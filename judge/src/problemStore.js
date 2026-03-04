@@ -5,11 +5,22 @@ const problemsDir = path.join(__dirname, "problems");
 const problemsCache = new Map();
 
 /**
- * Recursively collect all .js files under a directory.
+ * Recursively collect all .js files under a directory, sorted so that
+ * stage folders come in numeric order and files within each stage come
+ * in filename order (s01-p01-…, s01-p02-…, etc.).
  */
 function collectJsFiles(dir) {
   let results = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+
+  const entries = fs.readdirSync(dir, { withFileTypes: true }).sort((a, b) => {
+    // Numeric sort for "Stage N" directories; lexicographic for files
+    const numA = parseInt(a.name.replace(/\D/g, ''), 10);
+    const numB = parseInt(b.name.replace(/\D/g, ''), 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.name.localeCompare(b.name);
+  });
+
+  for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       results = results.concat(collectJsFiles(fullPath));
