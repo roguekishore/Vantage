@@ -11,5 +11,10 @@ public record RewardSummaryDTO(
     int level,
     String title,
     boolean accuracyBonus,
-    boolean speedBonus
+    boolean speedBonus,
+    /* ── Phase 1: Streak fields ── */
+    int streakDay,
+    double streakMultiplier,
+    int streakMilestoneCoins,
+    int streakMilestoneXp
 ) {}

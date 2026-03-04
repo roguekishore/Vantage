@@ -37,18 +37,21 @@ const TopicPage = ({
       <div className="home-shell pt-24 md:pt-28">
         <div className="home-content">
           {/* Back Navigation */}
-          <nav className="category-nav">
-            <button onClick={() => navigate(-1)} className="category-nav__back">
-              <ArrowLeft className="category-nav__icon" />
+          <nav className="mb-6">
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <ArrowLeft size={16} />
               Back
             </button>
           </nav>
 
           {/* Hero Section */}
-          <section className="home-hero">
-            <span className="home-hero__eyebrow">{eyebrow}</span>
-            <h1 className="home-title">{title}</h1>
-            <p className="home-lede">{description}</p>
+          <section className="mb-8">
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-card border border-border/50 text-xs font-medium text-muted-foreground mb-3">{eyebrow}</span>
+            <h1 className="text-2xl sm:text-3xl font-semibold text-foreground tracking-tight">{title}</h1>
+            <p className="text-sm text-muted-foreground mt-2 max-w-lg leading-relaxed">{description}</p>
           </section>
 
           {/* Problem List */}

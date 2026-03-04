@@ -50,6 +50,10 @@ public class PlayerStats {
     @Column
     private LocalDate lastActivityDate;
 
+    /** Date the last Streak Shield was consumed by the midnight job (Phase 3). */
+    @Column
+    private LocalDate lastShieldUsedDate;
+
     /* ── Battle fields (Phase 5 will use this) ── */
 
     @Column(nullable = false, columnDefinition = "int default 1200")

@@ -1,4 +1,4 @@
-import React, { lazy, Suspense, useState, useEffect } from "react";
+import React, { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import ZentryNavbar from "./components/zentry/ZentryNavbar";
@@ -8,6 +8,20 @@ import WorldMap from "./map/WorldMap";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
+import StorePage from "./pages/StorePage";
+import InventoryPage from "./pages/InventoryPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
+import BattleLobbyPage from "./pages/BattleLobbyPage";
+import BattleArenaPage from "./pages/BattleArenaPage";
+import BattleResultPage from "./pages/BattleResultPage";
+import AchievementsPage from "./pages/AchievementsPage";
+import GroupLobbyPage from "./pages/GroupLobbyPage";
+import GroupArenaPage from "./pages/GroupArenaPage";
+import GroupResultPage from "./pages/GroupResultPage";
+import useUserStore from "./stores/useUserStore";
+import useGamificationStore from "./stores/useGamificationStore";
+import useAchievementStore from "./stores/useAchievementStore";
+import useProgressStore from "./map/useProgressStore";
 
 const ProblemsPage = lazy(() => import("./pages/judge/ProblemsPage"));
 const JudgePage = lazy(() => import("./pages/judge/JudgePage"));
@@ -17,6 +31,8 @@ const NAVBAR_HIDDEN_PATHS = [
   '/map',
   '/login',
   '/signup',
+  '/battle/match',
+  '/group/match',
 ];
 
 const TRANSPARENT_NAVBAR_PATHS = [
@@ -31,9 +47,55 @@ function ScrollToTop() {
   return null;
 }
 
+/**
+ * Global app initialisation hook.
+ *
+ * Runs whenever the authenticated user changes (login / logout).
+ * On login  → loads gamification stats, achievements, and problem progress.
+ * On logout → clears all stores so no stale data leaks between sessions.
+ *
+ * This is the SINGLE place that bootstraps the universal state layer —
+ * individual pages / components no longer need to kick off their own fetches
+ * for the core data (coins, XP, streak, badges, solved problems).
+ */
+function useAppInit() {
+  const user = useUserStore((s) => s.user);
+  const uid = user?.uid ?? null;
+
+  // Keep a ref to the previous uid so we can detect genuine changes
+  const prevUidRef = useRef(undefined);
+
+  useEffect(() => {
+    const prev = prevUidRef.current;
+    prevUidRef.current = uid;
+
+    if (uid) {
+      // ── User logged in (or app just mounted with an existing session) ──
+      // Fire all store loaders in parallel; each store guards against
+      // redundant fetches internally.
+      useGamificationStore.getState().loadStats(uid);
+      useAchievementStore.getState().loadAchievements(uid);
+      useProgressStore.getState().loadProgress(uid);
+      // Subscribe to SSE globally so live updates (e.g. LC sync right after
+      // registration) update coins/XP everywhere, not only on the map page.
+      const sseCleanup = useProgressStore.getState().subscribeToLiveUpdates(uid);
+      return sseCleanup;
+    } else if (prev !== undefined && prev !== null) {
+      // ── User just logged out (prev was a real uid, now null) ──
+      useGamificationStore.getState().clearStats();
+      useAchievementStore.getState().clearAchievements();
+      useProgressStore.getState().clearForLogout();
+    }
+  }, [uid]);
+}
+
 function AppContent() {
   const location = useLocation();
-  
+
+  // Bootstrap all global stores (gamification, achievements, progress)
+  // whenever the logged-in user changes.
+  useAppInit();
+
   const [scrollDirection, setScrollDirection] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -44,10 +106,10 @@ function AppContent() {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
-      
+
       setScrollDirection(currentScrollY > lastScrollY ? 1 : -1);
       setScrollProgress(maxScroll > 0 ? currentScrollY / maxScroll : 0);
-      
+
       lastScrollY = currentScrollY;
     };
 
@@ -56,12 +118,12 @@ function AppContent() {
   }, []);
 
   // Check if navbar should be shown for current path
-  const showNavbar = !NAVBAR_HIDDEN_PATHS.some(path => 
+  const showNavbar = !NAVBAR_HIDDEN_PATHS.some(path =>
     location.pathname === path || location.pathname.startsWith(path + '/')
   ) && !location.pathname.startsWith('/judge/');
 
   // Check if navbar should allow transparency at top
-  const allowTransparency = TRANSPARENT_NAVBAR_PATHS.some(path => 
+  const allowTransparency = TRANSPARENT_NAVBAR_PATHS.some(path =>
     location.pathname === path
   );
 
@@ -86,6 +148,17 @@ function AppContent() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/store" element={<StorePage />} />
+          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/battle" element={<BattleLobbyPage />} />
+          <Route path="/battle/match/:battleId" element={<BattleArenaPage />} />
+          <Route path="/battle/result/:battleId" element={<BattleResultPage />} />
+          <Route path="/achievements" element={<AchievementsPage />} />
+          <Route path="/group" element={<GroupLobbyPage />} />
+          <Route path="/group/:roomCode" element={<GroupLobbyPage />} />
+          <Route path="/group/match/:battleId" element={<GroupArenaPage />} />
+          <Route path="/group/result/:battleId" element={<GroupResultPage />} />
           <Route path="/map" element={<WorldMap />} />
           <Route path="/problems" element={<ProblemListPage />} />
           <Route path="/judge" element={<ProblemsPage />} />
@@ -122,7 +195,7 @@ function AppContent() {
         }}
       >
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
     </div>

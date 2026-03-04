@@ -39,7 +39,7 @@ const SearchBar = ({
           onFocus={() => setOpen(true)}
           onBlur={() => setTimeout(() => setOpen(false), 150)}
           placeholder="Search problems or topics..."
-          className="h-12 pl-11 pr-10 text-sm rounded-xl border-border bg-card shadow-sm focus-visible:ring-1 focus-visible:ring-ring"
+          className="h-11 pl-11 pr-10 text-sm rounded-xl border-border/50 bg-card shadow-sm focus-visible:ring-1 focus-visible:ring-[#5542FF]/30"
           aria-label="Search problems or topics"
         />
         {query && (
@@ -54,7 +54,7 @@ const SearchBar = ({
       </form>
 
       {open && query && (
-        <div className="absolute top-full mt-2 left-0 right-0 bg-card border border-border rounded-xl shadow-lg overflow-hidden max-h-80 overflow-y-auto z-50" role="listbox">
+        <div className="absolute top-full mt-2 left-0 right-0 bg-card border border-border/50 rounded-xl shadow-lg overflow-hidden max-h-80 overflow-y-auto z-50" role="listbox">
           {results.length === 0 ? (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
               No matches found for "<span className="font-medium text-foreground">{query}</span>"
@@ -163,15 +163,15 @@ const TopicsPage = () => {
     <div className="relative min-h-screen w-screen bg-background pt-24 md:pt-28">
       <div className="home-content">
         {/* ── Hero ── */}
-        <section className="flex flex-col items-center gap-4 pt-4 pb-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-secondary border border-border text-xs font-medium text-muted-foreground">
+        <section className="flex flex-col items-center gap-3 pt-4 pb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-card border border-border/50 text-xs font-medium text-muted-foreground">
             <Layers className="h-3 w-3" />
             {topics.length} topics available
           </div>
-          <h1 className="font-zentry font-black uppercase text-3xl sm:text-5xl md:text-6xl text-foreground text-center tracking-tight">
-            Expl<b className="special-font">o</b>re Topics
+          <h1 className="text-2xl sm:text-3xl font-semibold text-foreground text-center tracking-tight">
+            Explore Topics
           </h1>
-          <p className="max-w-lg text-center text-muted-foreground text-sm sm:text-base leading-relaxed">
+          <p className="max-w-lg text-center text-muted-foreground text-sm leading-relaxed">
             Pick a topic and dive into interactive algorithm visualizations.
           </p>
         </section>

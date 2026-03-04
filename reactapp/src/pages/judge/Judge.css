@@ -18,18 +18,18 @@
   --judge-radius-sm: 6px;
   --judge-radius-xs: 4px;
   --judge-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
-  --judge-shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.06);
-  --judge-shadow-md: 0 2px 4px rgba(0,0,0,0.04), 0 4px 8px rgba(0,0,0,0.08);
-  --judge-shadow-lg: 0 4px 12px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.1);
+  --judge-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --judge-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.08);
+  --judge-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.1);
   --judge-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .dark .judge-root {
   --judge-surface: color-mix(in oklch, var(--background) 97%, var(--foreground) 3%);
   --judge-surface-elevated: color-mix(in oklch, var(--card) 97%, var(--foreground) 3%);
-  --judge-shadow-sm: 0 1px 2px rgba(0,0,0,0.15), 0 1px 3px rgba(0,0,0,0.2);
-  --judge-shadow-md: 0 2px 4px rgba(0,0,0,0.15), 0 4px 8px rgba(0,0,0,0.25);
-  --judge-shadow-lg: 0 4px 12px rgba(0,0,0,0.2), 0 8px 24px rgba(0,0,0,0.3);
+  --judge-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.2);
+  --judge-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.25);
+  --judge-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 /* ── Header bar ── */
@@ -56,9 +56,11 @@
   gap: 0.5rem;
   letter-spacing: 0.01em;
 }
+
 .judge-tab-trigger:hover {
   color: var(--foreground);
 }
+
 .judge-tab-trigger[data-state="active"] {
   color: var(--judge-accent) !important;
   border-bottom-color: var(--judge-accent) !important;
@@ -81,6 +83,7 @@
 .judge-resize-handle {
   transition: background-color var(--judge-transition);
 }
+
 .judge-resize-handle:hover,
 .judge-resize-handle:active {
   background-color: var(--judge-accent) !important;
@@ -91,6 +94,7 @@
 .judge-root .overflow-guard {
   border-radius: 0 !important;
 }
+
 .judge-root .monaco-editor .margin {
   background: transparent !important;
 }
@@ -100,17 +104,21 @@
   width: 6px;
   height: 6px;
 }
+
 .judge-root ::-webkit-scrollbar-track {
   background: transparent;
 }
+
 .judge-root ::-webkit-scrollbar-thumb {
   background: var(--judge-border);
   border-radius: 9999px;
   transition: background var(--judge-transition);
 }
+
 .judge-root ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
+
 .judge-root ::-webkit-scrollbar-corner {
   background: transparent;
 }
@@ -119,9 +127,17 @@
 [data-slot="select-content"] {
   animation: judge-dropdown-in 0.15s ease-out;
 }
+
 @keyframes judge-dropdown-in {
-  from { opacity: 0; transform: translateY(-4px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* ── Test case pill ── */
@@ -141,24 +157,29 @@
   user-select: none;
   background: transparent;
 }
+
 .judge-tc-pill:hover {
   background: var(--secondary);
   color: var(--foreground);
   border-color: var(--judge-border-subtle);
 }
+
 .judge-tc-pill[data-active="true"] {
   background: var(--judge-accent-subtle);
   color: var(--judge-accent);
   font-weight: 600;
   border-color: color-mix(in oklch, var(--judge-accent) 25%, transparent);
 }
+
 .judge-tc-pill-custom {
   padding-right: 1.5rem;
 }
+
 .judge-tc-pill-add {
   border: 1px dashed var(--judge-border);
   gap: 0.25rem;
 }
+
 .judge-tc-pill-add:hover {
   border-color: var(--judge-accent);
   color: var(--judge-accent);
@@ -180,11 +201,13 @@
   color: var(--foreground);
   transition: border-color var(--judge-transition), box-shadow var(--judge-transition);
 }
+
 .judge-input:focus {
   outline: none;
   border-color: var(--judge-accent);
   box-shadow: 0 0 0 3px var(--judge-accent-subtle), var(--judge-shadow-sm);
 }
+
 .judge-input::placeholder {
   color: var(--muted-foreground);
   opacity: 0.5;
@@ -204,6 +227,7 @@
   overflow-x: auto;
   color: var(--foreground);
 }
+
 .judge-codeblock--error {
   background: var(--color-danger-light);
   border-color: color-mix(in oklch, var(--color-danger) 25%, transparent);
@@ -221,14 +245,17 @@
   background: var(--judge-panel-bg);
   box-shadow: var(--judge-shadow-sm);
 }
+
 .judge-status-banner--accepted {
   border-color: color-mix(in oklch, var(--color-success) 35%, transparent);
   background: color-mix(in oklch, var(--color-success) 6%, var(--judge-panel-bg));
 }
+
 .judge-status-banner--failed {
   border-color: color-mix(in oklch, var(--color-danger) 35%, transparent);
   background: color-mix(in oklch, var(--color-danger) 6%, var(--judge-panel-bg));
 }
+
 .judge-status-banner--warning {
   border-color: color-mix(in oklch, var(--color-warning) 35%, transparent);
   background: color-mix(in oklch, var(--color-warning) 6%, var(--judge-panel-bg));
@@ -241,6 +268,7 @@
   background: var(--secondary);
   overflow: hidden;
 }
+
 .judge-progress-fill {
   height: 100%;
   border-radius: 9999px;
@@ -280,6 +308,7 @@
   overflow: hidden;
   box-shadow: var(--judge-shadow-sm);
 }
+
 .judge-failed-card-header {
   display: flex;
   align-items: center;
@@ -296,14 +325,17 @@
   overflow: hidden;
   transition: border-color var(--judge-transition);
 }
+
 .judge-example-card:hover {
   border-color: color-mix(in oklch, var(--judge-accent) 40%, var(--judge-border));
 }
+
 .judge-example-header {
   background: var(--judge-surface);
   padding: 0.5rem 0.875rem;
   border-bottom: 1px solid var(--judge-border);
 }
+
 .judge-example-body {
   padding: 0.875rem;
 }
@@ -315,6 +347,7 @@
   gap: 0.5rem;
   padding: 0.375rem 0;
 }
+
 .judge-constraint-dot {
   margin-top: 0.5rem;
   height: 4px;
@@ -334,6 +367,7 @@
   color: var(--muted-foreground);
   gap: 0.75rem;
 }
+
 .judge-empty-state-icon {
   width: 2.5rem;
   height: 2.5rem;
@@ -352,6 +386,7 @@
   align-items: center;
   gap: 0.5rem;
 }
+
 .judge-section-heading::after {
   content: '';
   flex: 1;
@@ -376,10 +411,12 @@
   transition: all var(--judge-transition);
   height: 1.75rem;
 }
+
 .judge-lang-trigger:hover {
   background: var(--judge-surface-elevated);
   border-color: var(--judge-accent);
 }
+
 .judge-lang-trigger[data-state="open"] {
   border-color: var(--judge-accent);
   box-shadow: 0 0 0 2px var(--judge-accent-subtle);
@@ -401,10 +438,12 @@
   cursor: pointer;
   transition: all var(--judge-transition);
 }
+
 .judge-btn-run:hover:not(:disabled) {
   background: var(--judge-surface-elevated);
   border-color: var(--muted-foreground);
 }
+
 .judge-btn-run:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -426,11 +465,13 @@
   transition: all var(--judge-transition);
   box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
 }
+
 .judge-btn-submit:hover:not(:disabled) {
   background: var(--color-success-hover);
   box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
   transform: translateY(-0.5px);
 }
+
 .judge-btn-submit:disabled {
   opacity: 0.5;
   cursor: not-allowed;
@@ -456,6 +497,7 @@
   text-decoration: none;
   white-space: nowrap;
 }
+
 .judge-btn-login:hover {
   background: var(--judge-accent-hover);
   box-shadow: 0 2px 8px color-mix(in oklch, var(--judge-accent) 50%, transparent 50%);
@@ -476,6 +518,7 @@
   cursor: pointer;
   transition: all var(--judge-transition);
 }
+
 .judge-icon-btn:hover {
   background: var(--secondary);
   color: var(--foreground);
@@ -489,10 +532,12 @@
   border-radius: 9999px;
   margin-left: 0.375rem;
 }
+
 .judge-result-dot--success {
   background: var(--color-success);
   box-shadow: 0 0 4px var(--color-success-light);
 }
+
 .judge-result-dot--error {
   background: var(--color-danger);
   box-shadow: 0 0 4px var(--color-danger-light);
@@ -500,16 +545,20 @@
 
 /* ── Loading skeleton ── */
 @keyframes judge-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
+
 .judge-skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--secondary) 25%,
-    var(--judge-surface-elevated) 50%,
-    var(--secondary) 75%
-  );
+  background: linear-gradient(90deg,
+      var(--secondary) 25%,
+      var(--judge-surface-elevated) 50%,
+      var(--secondary) 75%);
   background-size: 200% 100%;
   animation: judge-shimmer 1.5s ease-in-out infinite;
   border-radius: var(--judge-radius-sm);
@@ -517,9 +566,17 @@
 
 /* ── Pulse animation for running state ── */
 @keyframes judge-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
 }
+
 .judge-pulsing {
   animation: judge-pulse 1.5s ease-in-out infinite;
 }

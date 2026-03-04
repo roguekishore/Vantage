@@ -1,4 +1,4 @@
-package com.backend.springapp.gamification;
+package com.backend.springapp.gamification.coins;
 
 /**
  * Categorises every coin movement for analytics and audit.
@@ -9,5 +9,6 @@ public enum TransactionSource {
     STREAK_BONUS,
     MISSION,
     STORE_PURCHASE,
-    DAILY_LOGIN
+    DAILY_LOGIN,
+    ACHIEVEMENT_REWARD
 }

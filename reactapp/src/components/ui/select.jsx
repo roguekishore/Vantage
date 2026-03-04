@@ -37,7 +37,7 @@ const SelectTrigger = React.forwardRef(({ className, _value, _open, _setOpen, ch
     ref={ref}
     data-slot="select-trigger"
     className={cn(
-      "flex h-8 items-center justify-between gap-2 rounded-md border border-input bg-background px-3 py-1.5 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+      "flex h-9 items-center justify-between gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-background px-3 py-1.5 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
       className
     )}
     onClick={() => _setOpen?.(!_open)}

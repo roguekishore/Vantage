@@ -64,7 +64,7 @@ export default function TopicPixelCard({ topic }) {
       gap={7}
       speed={30}
       colors={getPixelColors(topic.spotlightColor)}
-      className="!w-full !aspect-auto group cursor-pointer"
+      className="!w-full !aspect-auto group cursor-pointer rounded-xl border border-border/50 transition-all duration-300 hover:border-[#5542FF]/30 hover:shadow-lg hover:shadow-[#5542FF]/5"
     >
       {/* Content flows normally to define card height; canvas is behind as absolute bg */}
       <div
@@ -94,10 +94,10 @@ export default function TopicPixelCard({ topic }) {
             />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-[15px] font-semibold text-zinc-800 dark:text-zinc-100 leading-tight tracking-tight truncate group-hover:text-zinc-900 dark:group-hover:text-white transition-colors">
+            <h3 className="text-[15px] font-medium text-foreground leading-tight tracking-tight truncate transition-colors">
               {topic.name}
             </h3>
-            <p className="text-[11px] text-zinc-600 dark:text-zinc-400 mt-0.5 line-clamp-2 leading-relaxed group-hover:text-zinc-700 dark:group-hover:text-zinc-300 transition-colors">
+            <p className="text-[11px] text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed transition-colors">
               {topic.description}
             </p>
           </div>
@@ -126,7 +126,7 @@ export default function TopicPixelCard({ topic }) {
         />
 
         {/* ── Problem list ── */}
-        <div className="flex-1 space-y-1.5 min-h-0 overflow-hidden rounded-xl bg-white/40 dark:bg-zinc-900/60 backdrop-blur-md p-2 border border-white/70 dark:border-white/[0.06] shadow-inner shadow-white/50 dark:shadow-none">
+        <div className="flex-1 space-y-1.5 min-h-0 overflow-hidden rounded-xl bg-background/60 backdrop-blur-md p-2 border border-border/30">
           {topicProblems.map((problem, idx) => {
             const styles = difficultyStyles[problem.difficulty] || difficultyStyles.Medium;
             return (
@@ -134,8 +134,8 @@ export default function TopicPixelCard({ topic }) {
                 key={problem.subpage}
                 className={cn(
                   "flex items-center gap-2 px-2.5 py-1.5 rounded-lg",
-                  "bg-white/60 dark:bg-white/[0.06] hover:bg-white/90 dark:hover:bg-white/[0.1]",
-                  "border border-white/80 dark:border-white/[0.06] hover:border-zinc-200/80 dark:hover:border-white/[0.12]",
+                  "bg-card/60 hover:bg-card",
+                  "border border-border/30 hover:border-border/60",
                   "transition-all duration-200 group/problem"
                 )}
                 style={{
@@ -155,7 +155,7 @@ export default function TopicPixelCard({ topic }) {
                 />
 
                 {/* Problem name */}
-                <span className="flex-1 text-[11px] text-zinc-700 dark:text-zinc-300 truncate group-hover/problem:text-zinc-900 dark:group-hover/problem:text-zinc-100 transition-colors">
+                <span className="flex-1 text-[11px] text-muted-foreground truncate group-hover/problem:text-foreground transition-colors">
                   {problem.label}
                 </span>
 
@@ -170,14 +170,14 @@ export default function TopicPixelCard({ topic }) {
                   {problem.difficulty}
                 </span>
 
-                <ChevronRight className="flex-shrink-0 w-3 h-3 text-zinc-400 dark:text-zinc-600 group-hover/problem:text-zinc-600 dark:group-hover/problem:text-zinc-400 transition-colors" />
+                <ChevronRight className="flex-shrink-0 w-3 h-3 text-muted-foreground/40 group-hover/problem:text-muted-foreground transition-colors" />
               </div>
             );
           })}
 
           {remaining > 0 && (
             <div className="flex items-center justify-center pt-1">
-              <span className="text-[10px] text-zinc-500 dark:text-zinc-500">
+              <span className="text-[10px] text-muted-foreground">
                 +{remaining} more problem{remaining !== 1 ? "s" : ""}
               </span>
             </div>
@@ -189,12 +189,12 @@ export default function TopicPixelCard({ topic }) {
           <div
             className={cn(
               "flex items-center justify-center gap-2 py-2 px-3 rounded-xl",
-              "bg-white/40 dark:bg-zinc-900/60 backdrop-blur-md hover:bg-white/70 dark:hover:bg-white/[0.1]",
-              "border border-white/70 dark:border-white/[0.06] hover:border-zinc-200/80 dark:hover:border-white/[0.12]",
+              "bg-card/60 backdrop-blur-md hover:bg-card",
+              "border border-border/30 hover:border-border/60",
               "transition-all duration-300 group/cta"
             )}
           >
-            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 group-hover/cta:text-zinc-900 dark:group-hover/cta:text-white transition-colors">
+            <span className="text-xs font-medium text-muted-foreground group-hover/cta:text-foreground transition-colors">
               Explore {topic.name}
             </span>
             <ArrowRight

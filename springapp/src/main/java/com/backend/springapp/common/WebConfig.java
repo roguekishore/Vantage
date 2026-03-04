@@ -2,11 +2,13 @@ package com.backend.springapp.common;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
- * CORS configuration to allow the React frontend to call the API.
+ * CORS + HTTP client configuration.
  */
 @Configuration
 public class WebConfig {
@@ -29,5 +31,18 @@ public class WebConfig {
                         .allowCredentials(true);
             }
         };
+    }
+
+    /**
+     * Shared RestTemplate for internal service calls (e.g. Spring Boot → Judge).
+     * Connect timeout: 5 s — fail fast if judge is unreachable.
+     * Read timeout:   30 s — generous enough for slow Java compilations.
+     */
+    @Bean
+    public RestTemplate judgeRestTemplate() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(5_000);   // 5 seconds
+        factory.setReadTimeout(30_000);     // 30 seconds
+        return new RestTemplate(factory);
     }
 }

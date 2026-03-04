@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { fetchPlayerStats } from "@/services/gamificationApi";
+import { fetchPlayerStats, fetchStreak } from "@/services/gamificationApi";
 import { getStoredUser } from "@/services/userApi";
 
 /**
@@ -10,8 +10,11 @@ import { getStoredUser } from "@/services/userApi";
 const useGamificationStore = create((set, get) => ({
   /* ── state ── */
   stats: null,       // PlayerStatsDTO from backend
+  streak: null,      // StreakDTO from backend
   loading: false,
   error: null,
+  /** One-time toast: set when a streak shield was used today */
+  shieldToast: null,
 
   /* ── actions ── */
 
@@ -21,11 +24,36 @@ const useGamificationStore = create((set, get) => ({
     if (!uid) return;
     set({ loading: true, error: null });
     try {
-      const data = await fetchPlayerStats(uid);
-      set({ stats: data, loading: false });
+      const [data, streakData] = await Promise.all([
+        fetchPlayerStats(uid),
+        fetchStreak(uid).catch(() => null),
+      ]);
+
+      // Phase 3: Detect if a Streak Shield saved the streak today
+      let shieldToast = null;
+      if (streakData?.shieldUsedToday && streakData.currentStreak > 0) {
+        shieldToast = `🛡️ Your Streak Shield saved your ${streakData.currentStreak}-day streak!`;
+      }
+
+      set({ stats: data, streak: streakData, loading: false, shieldToast });
     } catch (err) {
       console.warn("Failed to load gamification stats:", err);
       set({ error: err.message, loading: false });
+    }
+  },
+
+  /** Clear the shield toast after it has been shown. */
+  dismissShieldToast: () => set({ shieldToast: null }),
+
+  /** Reload only streak data (lighter call after a solve). */
+  loadStreak: async (userId) => {
+    const uid = userId ?? getStoredUser()?.uid;
+    if (!uid) return;
+    try {
+      const streakData = await fetchStreak(uid);
+      set({ streak: streakData });
+    } catch (err) {
+      console.warn("Failed to load streak:", err);
     }
   },
 
@@ -35,7 +63,7 @@ const useGamificationStore = create((set, get) => ({
    * The next loadStats() call will reconcile with the real backend values.
    */
   optimisticSolve: (tag, isFirstAttempt = false) => {
-    const { stats } = get();
+    const { stats, streak } = get();
     if (!stats) return;
 
     const coinTable = { BASIC: 3, EASY: 5, MEDIUM: 15, HARD: 30 };
@@ -48,6 +76,11 @@ const useGamificationStore = create((set, get) => ({
       coins = Math.ceil(coins * 1.2);
     }
 
+    // Apply streak multiplier if available
+    if (streak) {
+      coins = Math.ceil(coins * streak.multiplier);
+    }
+
     set({
       stats: {
         ...stats,
@@ -58,7 +91,7 @@ const useGamificationStore = create((set, get) => ({
   },
 
   /** Clear store on logout. */
-  clearStats: () => set({ stats: null, loading: false, error: null }),
+  clearStats: () => set({ stats: null, streak: null, loading: false, error: null, shieldToast: null }),
 }));
 
 export default useGamificationStore;

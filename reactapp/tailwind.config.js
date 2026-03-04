@@ -7,10 +7,18 @@ module.exports = {
   theme: {
     extend: {
       fontFamily: {
+        inter: ["Inter", "sans-serif"],
         general: ["general", "sans-serif"],
         zentry: ["zentry", "sans-serif"],
       },
       colors: {
+        brand: {
+          primary: "#2563eb", // Electric Blue
+          secondary: "#7c3aed", // Purple
+        },
+        zinc: {
+          950: "#09090b",
+        },
         // Zentry color palette
         blue: {
           50: "#DFDFF0",
@@ -194,6 +202,16 @@ module.exports = {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',
         sm: 'calc(var(--radius) - 4px)',
+      },
+      keyframes: {
+        shine: {
+          '0%': { backgroundPosition: '0% 0%' },
+          '50%': { backgroundPosition: '100% 100%' },
+          '100%': { backgroundPosition: '0% 0%' },
+        },
+      },
+      animation: {
+        shine: 'shine var(--duration, 14s) infinite linear',
       },
     },
   },

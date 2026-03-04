@@ -1,5 +1,17 @@
 import { create } from 'zustand';
 
+// Lazy-import sibling stores to avoid circular deps at module init time.
+// We call them only inside event handlers, by which point all modules are loaded.
+function getGamificationStore() {
+  return require('../stores/useGamificationStore').default;
+}
+function getAchievementStore() {
+  return require('../stores/useAchievementStore').default;
+}
+function getUserStore() {
+  return require('../stores/useUserStore').default;
+}
+
 /**
  * ============================================
  * DSA CONQUEST MAP - PROGRESS STORE
@@ -182,8 +194,14 @@ const useProgressStore = create((set, get) => ({
   subscribeToLiveUpdates: (userId) => {
     if (!userId) return () => {};
 
-    // Tear down any previous connection
-    get()._eventSource?.close();
+    // If already connected for this same user, don't tear down and reconnect.
+    const existing = get()._eventSource;
+    if (existing && existing.readyState !== EventSource.CLOSED) {
+      return () => {}; // caller gets a no-op cleanup; the global connection stays alive
+    }
+
+    // Tear down any stale / closed connection before creating a new one
+    existing?.close();
 
     const es = new EventSource(`${API_BASE}/progress/stream?userId=${userId}`);
     set({ _eventSource: es });
@@ -195,36 +213,51 @@ const useProgressStore = create((set, get) => ({
     es.addEventListener('progress-update', (e) => {
       try {
         const event = JSON.parse(e.data);
-        const frontendId = toFrontendId(event.pid);
-        if (!frontendId) return;
-
-        const { completedProblems } = get();
 
         if (event.status === 'SOLVED') {
-          // Add to completed if not already there
-          if (!completedProblems.includes(frontendId)) {
-            console.log('[ProgressStore] Live update: SOLVED', frontendId, event.slug);
-            set({ completedProblems: [...completedProblems, frontendId] });
+          // ── Always refresh gamification (coins/XP/streak) and achievements ──
+          // This must run for EVERY solved event, regardless of whether the
+          // problem is in the conquest map or was already known as solved.
+          // The backend already committed before this SSE fires (deferred publish),
+          // so loadStats will read the updated values.
+          try {
+            const user = getUserStore().getState().user;
+            if (user?.uid) {
+              getGamificationStore().getState().loadStats(user.uid);
+              getAchievementStore().getState().refresh(user.uid);
+            }
+          } catch { /* non-critical */ }
 
-            // Also refresh user rating in localStorage
-            try {
-              const user = JSON.parse(localStorage.getItem('user'));
-              if (user?.uid) {
-                fetch(`${API_BASE}/users/${user.uid}`)
-                  .then(r => r.ok ? r.json() : null)
-                  .then(profile => {
-                    if (profile) {
-                      localStorage.setItem('user', JSON.stringify({ ...user, rating: profile.rating }));
-                    }
-                  })
-                  .catch(() => {});
-              }
-            } catch { /* non-critical */ }
+          // ── Update conquest map progress (only for problems in the map) ──
+          const frontendId = toFrontendId(event.pid);
+          if (frontendId) {
+            const { completedProblems } = get();
+            if (!completedProblems.includes(frontendId)) {
+              console.log('[ProgressStore] Live update: SOLVED', frontendId, event.slug);
+              set({ completedProblems: [...completedProblems, frontendId] });
+            }
           }
+
+          // ── Refresh user rating in localStorage ──
+          try {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (user?.uid) {
+              fetch(`${API_BASE}/users/${user.uid}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(profile => {
+                  if (profile) {
+                    localStorage.setItem('user', JSON.stringify({ ...user, rating: profile.rating }));
+                  }
+                })
+                .catch(() => {});
+            }
+          } catch { /* non-critical */ }
+
         } else if (event.status === 'ATTEMPTED') {
-          console.log('[ProgressStore] Live update: ATTEMPTED', frontendId, event.slug, 'x' + event.attemptCount);
-          // ATTEMPTED doesn't add to completedProblems (only SOLVED does),
-          // but components can listen to the store's state if we want to show attempt badges later.
+          const frontendId = toFrontendId(event.pid);
+          if (frontendId) {
+            console.log('[ProgressStore] Live update: ATTEMPTED', frontendId, event.slug, 'x' + event.attemptCount);
+          }
         }
       } catch (err) {
         console.warn('[ProgressStore] Failed to parse SSE event:', err);
@@ -269,7 +302,7 @@ const useProgressStore = create((set, get) => ({
 
     // Get user
     let user = null;
-    try { user = JSON.parse(localStorage.getItem('user')); } catch { /* ignore */ }
+    try { user = getUserStore().getState().user ?? JSON.parse(localStorage.getItem('user')); } catch { /* ignore */ }
     if (!user?.uid) return { success: false, nextProblem: null };
 
     const backendPid = toBackendPid(problemId);
@@ -280,6 +313,12 @@ const useProgressStore = create((set, get) => ({
 
       // Update local cache
       set({ completedProblems: [...completedProblems, problemId] });
+
+      // Refresh gamification stats and achievements so navbar updates instantly
+      try {
+        getGamificationStore().getState().loadStats(user.uid);
+        getAchievementStore().getState().refresh(user.uid);
+      } catch { /* non-critical */ }
 
       // Refresh user rating in localStorage
       try {
