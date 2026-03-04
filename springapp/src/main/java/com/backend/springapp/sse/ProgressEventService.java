@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
@@ -68,16 +70,35 @@ public class ProgressEventService {
 
     /**
      * Broadcast a progress event to all open SSE connections for a user.
-     * Uses a simple JSON string to avoid Jackson dependency issues.
+     *
+     * If called from within an active database transaction, the publish is
+     * deferred until AFTER the transaction commits. This prevents a race where
+     * the frontend calls GET /api/me/stats immediately upon receiving the event
+     * but the DB read sees pre-commit (stale) data.
      */
     public void publish(Long userId, ProgressEvent event) {
+        if (TransactionSynchronizationManager.isActualTransactionActive()) {
+            // Capture values for use in the lambda (must be effectively final)
+            TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        doPublish(userId, event);
+                    }
+                }
+            );
+        } else {
+            doPublish(userId, event);
+        }
+    }
+
+    private void doPublish(Long userId, ProgressEvent event) {
         List<SseEmitter> list = emitters.get(userId);
         if (list == null || list.isEmpty()) {
             log.debug("No SSE subscribers for userId={}, skipping event", userId);
             return;
         }
 
-        // Build JSON manually to avoid ObjectMapper dependency issues
         String json;
         try {
             json = objectMapper.writeValueAsString(event);

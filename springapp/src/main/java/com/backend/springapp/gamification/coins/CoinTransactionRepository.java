@@ -1,4 +1,4 @@
-package com.backend.springapp.gamification;
+package com.backend.springapp.gamification.coins;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

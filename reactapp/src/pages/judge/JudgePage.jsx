@@ -58,6 +58,7 @@ import {
   Hash,
   Braces,
   LogIn,
+  Sparkles,
 } from "lucide-react";
 import "./Judge.css";
 import VisualizerDrawer, { VisualizerToggleButton } from "./VisualizerDrawer";
@@ -371,6 +372,33 @@ export default function JudgePage() {
               <TabsContent value="description" className="flex-1 overflow-hidden m-0">
                 <ScrollArea className="h-full">
                   <div className="p-5 space-y-6">
+
+                    {/* Stage intro (shown once per stage, on first problem) */}
+                    {problem.stageIntro && (
+                      <div className="rounded-lg border border-[var(--color-accent-primary)]/20 bg-[var(--color-accent-primary)]/[0.04] p-3.5 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-[var(--color-accent-primary)]">
+                          <Zap className="h-3 w-3" />
+                          Prologue
+                        </div>
+                        <p className="text-[12px] leading-relaxed text-foreground/70 italic">
+                          {problem.stageIntro}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Story briefing (per-problem flavor text) */}
+                    {problem.storyBriefing && (
+                      <div className="rounded-lg border border-amber-500/20 bg-amber-500/[0.04] p-3.5 space-y-1.5">
+                        <div className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-widest text-amber-500">
+                          <Sparkles className="h-3 w-3" />
+                          Story
+                        </div>
+                        <p className="text-[12px] leading-relaxed text-foreground/70 italic">
+                          {problem.storyBriefing}
+                        </p>
+                      </div>
+                    )}
+
                     {/* Problem statement */}
                     <div className="text-[13px] leading-relaxed text-foreground/90 space-y-2">
                       {problem.description.split("\n").map((line, i) => (

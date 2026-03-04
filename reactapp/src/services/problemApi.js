@@ -14,7 +14,8 @@ function getCurrentUserId() {
   try {
     const raw = localStorage.getItem("user");
     const user = raw ? JSON.parse(raw) : null;
-    return user?.id ?? null;
+    // Backend UserResponseDTO uses 'uid'; fall back to 'id' for safety
+    return user?.uid ?? user?.id ?? null;
   } catch {
     return null;
   }

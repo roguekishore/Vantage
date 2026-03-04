@@ -1,6 +1,6 @@
 package com.backend.springapp.user;
 
-import com.backend.springapp.leaderboard.Institution;
+import com.backend.springapp.gamification.leaderboard.Institution;
 
 import jakarta.persistence.*;
 import lombok.*;

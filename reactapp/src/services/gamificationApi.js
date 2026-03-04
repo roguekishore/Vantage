@@ -28,3 +28,13 @@ export async function fetchCoinHistory(userId, page = 0, size = 20) {
   if (!res.ok) throw new Error("Failed to fetch coin history");
   return res.json();
 }
+
+/**
+ * Fetch current player's streak info.
+ * Returns: { currentStreak, longestStreak, multiplier, solvedToday, nextMilestone, nextMilestoneCoins, nextMilestoneXp, lastActivityDate }
+ */
+export async function fetchStreak(userId) {
+  const res = await fetch(`${API_BASE}/me/streak?userId=${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch streak data");
+  return res.json();
+}

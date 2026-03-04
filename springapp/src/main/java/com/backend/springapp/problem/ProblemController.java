@@ -104,8 +104,9 @@ public class ProblemController {
     @GetMapping("/search")
     public ResponseEntity<Page<ProblemResponseDTO>> searchProblems(
             @RequestParam String keyword,
+            @RequestParam(required = false) Long userId,
             Pageable pageable) {
-        Page<ProblemResponseDTO> problems = problemService.searchProblems(keyword, pageable);
+        Page<ProblemResponseDTO> problems = problemService.searchProblems(keyword, userId, pageable);
         return ResponseEntity.ok(problems);
     }
 }

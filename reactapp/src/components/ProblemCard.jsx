@@ -53,9 +53,9 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
       style={{ animationDelay: `${index * 40}ms` }}
     >
       <MagicCard
-        className="w-full rounded-2xl"
-        background="bg-white dark:bg-zinc-900"
-        gradientSize={300}
+        className="w-full rounded-xl border border-border/50 transition-all duration-300 group-hover/card:border-[#5542FF]/30 group-hover/card:shadow-lg group-hover/card:shadow-[#5542FF]/5"
+        background="bg-white dark:bg-zinc-950"
+        gradientSize={200}
         gradientColor={gradientColor}
         gradientFrom={diff.gradientFrom}
         gradientTo={diff.gradientTo}
@@ -75,10 +75,10 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
 
           {/* ── Title + Description ── */}
           <div className="flex-1 min-w-0">
-            <h3 className="text-[14px] font-semibold text-zinc-800 dark:text-zinc-100 leading-tight tracking-tight group-hover/card:text-zinc-900 dark:group-hover/card:text-white transition-colors truncate">
+            <h3 className="text-[14px] font-medium text-foreground leading-tight tracking-tight transition-colors truncate">
               {algo.label}
             </h3>
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mt-0.5 leading-relaxed line-clamp-1 group-hover/card:text-zinc-600 dark:group-hover/card:text-zinc-300 transition-colors">
+            <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed line-clamp-1 transition-colors">
               {algo.description}
             </p>
           </div>
@@ -86,7 +86,7 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
           {/* ── Tags ── */}
           <div className="hidden md:flex items-center gap-1.5 flex-shrink-0">
             {algo.technique && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-violet-500/8 text-violet-600 dark:bg-violet-500/12 dark:text-violet-400 border border-violet-500/15 dark:border-violet-500/20 whitespace-nowrap">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-medium bg-[#5542FF]/8 text-[#5542FF] border border-[#5542FF]/15 whitespace-nowrap">
                 <Zap className="w-2.5 h-2.5" />
                 {algo.technique}
               </span>
@@ -94,7 +94,7 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
             {(algo.tags || []).slice(0, 2).map((tag) => (
               <span
                 key={tag}
-                className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200/60 dark:border-zinc-700/60 whitespace-nowrap"
+                className="hidden lg:inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-muted text-muted-foreground border border-border/50 whitespace-nowrap"
               >
                 {tag}
               </span>
@@ -104,7 +104,7 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
           {/* ── Meta: number + difficulty + tier ── */}
           <div className="hidden sm:flex items-center gap-1.5 flex-shrink-0">
             {algo.number && (
-              <span className="text-[10px] font-mono text-zinc-400 dark:text-zinc-500">
+              <span className="text-[10px] font-mono text-muted-foreground">
                 #{algo.number}
               </span>
             )}
@@ -120,7 +120,7 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
               </span>
             )}
             {algo.tier && (
-              <span className="hidden xl:inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 border border-zinc-200 dark:border-zinc-700">
+              <span className="hidden xl:inline-flex text-[10px] font-medium px-2 py-0.5 rounded-full bg-muted text-muted-foreground border border-border/50">
                 {algo.tier}
               </span>
             )}
@@ -128,14 +128,14 @@ export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon,
 
           {/* ── Time complexity ── */}
           {algo.timeComplexity && (
-            <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-zinc-400 dark:text-zinc-500 font-mono flex-shrink-0">
+            <span className="hidden lg:inline-flex items-center gap-1 text-[10px] text-muted-foreground font-mono flex-shrink-0">
               <Clock className="w-3 h-3" />
               {algo.timeComplexity}
             </span>
           )}
 
           {/* ── Explore CTA ── */}
-          <span className="flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-zinc-400 dark:text-zinc-500 group-hover/card:text-zinc-700 dark:group-hover/card:text-zinc-200 transition-colors">
+          <span className="flex-shrink-0 inline-flex items-center gap-1 text-[11px] font-medium text-muted-foreground group-hover/card:text-foreground transition-colors">
             Explore
             <ChevronRight className="w-3.5 h-3.5 transition-transform duration-300 group-hover/card:translate-x-0.5" />
           </span>

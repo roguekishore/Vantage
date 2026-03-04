@@ -1,5 +1,8 @@
 package com.backend.springapp.gamification;
 
+import com.backend.springapp.gamification.coins.CoinHistoryDTO;
+import com.backend.springapp.gamification.coins.InsufficientCoinsException;
+import com.backend.springapp.gamification.streak.StreakDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +54,15 @@ public class GamificationController {
     @GetMapping("/api/users/{id}/stats")
     public ResponseEntity<PlayerStatsDTO> publicStats(@PathVariable("id") Long userId) {
         return ResponseEntity.ok(gamificationService.getPlayerStatsDTO(userId));
+    }
+
+    /**
+     * Current player's streak info.
+     * GET /api/me/streak?userId=1
+     */
+    @GetMapping("/api/me/streak")
+    public ResponseEntity<StreakDTO> myStreak(@RequestParam Long userId) {
+        return ResponseEntity.ok(gamificationService.getStreakDTO(userId));
     }
 
     /**

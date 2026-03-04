@@ -1,7 +1,7 @@
 package com.backend.springapp.user;
 
-import com.backend.springapp.leaderboard.Institution;
-import com.backend.springapp.leaderboard.InstitutionRepository;
+import com.backend.springapp.gamification.leaderboard.Institution;
+import com.backend.springapp.gamification.leaderboard.InstitutionRepository;
 import com.backend.springapp.user.dto.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;

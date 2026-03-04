@@ -1,9 +1,9 @@
-package com.backend.springapp.gamification;
+package com.backend.springapp.gamification.coins;
 
 import java.time.LocalDateTime;
 
 /**
- * DTO for paginated coin history.
+ * DTO for paginated coin history (GET /api/me/coin-history).
  */
 public record CoinHistoryDTO(
     Long id,

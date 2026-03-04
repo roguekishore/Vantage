@@ -138,10 +138,11 @@ public class ProblemService {
 
     /**
      * Search problems by title keyword.
+     * If userId is provided, each result includes userStatus.
      */
-    public Page<ProblemResponseDTO> searchProblems(String keyword, Pageable pageable) {
+    public Page<ProblemResponseDTO> searchProblems(String keyword, Long userId, Pageable pageable) {
         Page<Problem> problems = problemRepository.searchByTitleKeyword(keyword, pageable);
-        return mapPageToDTO(problems, null);
+        return mapPageToDTO(problems, userId);
     }
 
     /**

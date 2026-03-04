@@ -1,6 +1,7 @@
 package com.backend.springapp.user;
 
 import com.backend.springapp.gamification.GamificationService;
+import com.backend.springapp.gamification.achievement.AchievementService;
 import com.backend.springapp.problem.Problem;
 import com.backend.springapp.problem.ProblemRepository;
 import com.backend.springapp.problem.Tag;
@@ -30,6 +31,7 @@ public class UserProgressService {
     private final UserRepository userRepository;
     private final ProgressEventService progressEventService;
     private final GamificationService gamificationService;
+    private final AchievementService achievementService;
 
     /**
      * Get all progress for a user (for app startup).
@@ -133,6 +135,10 @@ public class UserProgressService {
             //    which evicts ALL managed entities from the persistence context) ──
             boolean isFirstAttempt = saved.getAttemptCount() != null && saved.getAttemptCount() <= 1;
             gamificationService.rewardProblemSolve(uid, pid, problem.getTag(), isFirstAttempt);
+
+            // ── Phase 7: Check problem + streak achievements ──
+            achievementService.checkProblemAchievements(uid);
+            achievementService.checkStreakAchievements(uid);
 
             int points = switch (problem.getTag()) {
                 case HARD   -> 3;

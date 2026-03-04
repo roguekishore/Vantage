@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
+import useUserStore from "@/stores/useUserStore"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -120,7 +121,8 @@ export function SignupForm({ className, ...props }) {
         setError(data.error || "Signup failed")
         return
       }
-      localStorage.setItem("user", JSON.stringify(data))
+      // Store user in localStorage AND update the reactive auth store.
+      useUserStore.getState().setUser(data)
       // Signal the Chrome extension (if installed) to update its linked lcusername
       window.postMessage({
         type: 'VANTAGE_LOGIN',
@@ -138,11 +140,11 @@ export function SignupForm({ className, ...props }) {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Create an account</CardTitle>
-          <CardDescription>
-            Enter your information below to create your account
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="space-y-1 pb-4">
+          <CardTitle className="text-xl font-semibold tracking-tight">Create account</CardTitle>
+          <CardDescription className="text-[13px]">
+            Fill in your details to get started
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -156,7 +158,7 @@ export function SignupForm({ className, ...props }) {
               <button
                 type="button"
                 onClick={fillDemo}
-                className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground border border-dashed border-border rounded-md py-1.5 hover:border-[#5542FF]/50 hover:text-[#5542FF] transition-colors"
+                className="flex items-center justify-center gap-1.5 w-full text-xs text-muted-foreground border border-dashed border-border rounded-lg py-2 hover:border-[#5542FF]/40 hover:text-[#5542FF] transition-colors"
               >
                 <Wand2 size={12} />
                 Fill demo account
@@ -164,8 +166,7 @@ export function SignupForm({ className, ...props }) {
 
               {/* Username */}
               <div className="grid gap-2">
-                <Label htmlFor="username" className="flex items-center gap-1.5">
-                  <User size={14} className="text-muted-foreground" />
+                <Label htmlFor="username" className="text-[13px] font-medium">
                   Username
                 </Label>
                 <Input
@@ -175,29 +176,29 @@ export function SignupForm({ className, ...props }) {
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
+                  className="h-10"
                 />
               </div>
 
               {/* Email */}
               <div className="grid gap-2">
-                <Label htmlFor="email" className="flex items-center gap-1.5">
-                  <Mail size={14} className="text-muted-foreground" />
+                <Label htmlFor="email" className="text-[13px] font-medium">
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-10"
                 />
               </div>
 
               {/* Password */}
               <div className="grid gap-2">
-                <Label htmlFor="password" className="flex items-center gap-1.5">
-                  <KeyRound size={14} className="text-muted-foreground" />
+                <Label htmlFor="password" className="text-[13px] font-medium">
                   Password
                 </Label>
                 <Input
@@ -206,16 +207,16 @@ export function SignupForm({ className, ...props }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-10"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 8 characters long.
+                <p className="text-[11px] text-muted-foreground">
+                  Must be at least 8 characters.
                 </p>
               </div>
 
               {/* Confirm Password */}
               <div className="grid gap-2">
-                <Label htmlFor="confirm-password" className="flex items-center gap-1.5">
-                  <ShieldCheck size={14} className="text-muted-foreground" />
+                <Label htmlFor="confirm-password" className="text-[13px] font-medium">
                   Confirm Password
                 </Label>
                 <Input
@@ -224,13 +225,13 @@ export function SignupForm({ className, ...props }) {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
+                  className="h-10"
                 />
               </div>
 
               {/* LeetCode Username (optional) */}
               <div className="grid gap-2">
-                <Label htmlFor="lcusername" className="flex items-center gap-1.5">
-                  <Code2 size={14} className="text-muted-foreground" />
+                <Label htmlFor="lcusername" className="text-[13px] font-medium">
                   LeetCode Username{" "}
                   <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
@@ -240,16 +241,16 @@ export function SignupForm({ className, ...props }) {
                   placeholder="e.g. john_doe"
                   value={lcusername}
                   onChange={(e) => setLcusername(e.target.value)}
+                  className="h-10"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Links your account for one-click LeetCode sync via the browser extension.
+                <p className="text-[11px] text-muted-foreground">
+                  Links your account for LeetCode sync via the browser extension.
                 </p>
               </div>
 
-              {/* Institution – autocomplete combobox (optional) */}
+              {/* Institution */}
               <div className="grid gap-2">
-                <Label className="flex items-center gap-1.5">
-                  <Building2 size={14} className="text-muted-foreground" />
+                <Label className="text-[13px] font-medium">
                   Institution{" "}
                   <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
@@ -335,10 +336,9 @@ export function SignupForm({ className, ...props }) {
                 )}
               </div>
 
-              {/* Graduation Year (optional) */}
+              {/* Graduation Year */}
               <div className="grid gap-2">
-                <Label htmlFor="grad-year" className="flex items-center gap-1.5">
-                  <GraduationCap size={14} className="text-muted-foreground" />
+                <Label htmlFor="grad-year" className="text-[13px] font-medium">
                   Graduation Year{" "}
                   <span className="text-muted-foreground font-normal">(optional)</span>
                 </Label>
@@ -350,19 +350,18 @@ export function SignupForm({ className, ...props }) {
                   max="2040"
                   value={graduationYear}
                   onChange={(e) => setGraduationYear(e.target.value)}
+                  className="h-10"
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating account…" : (
-                  <span className="flex items-center gap-2"><UserPlus size={16} /> Create Account</span>
-                )}
+              <Button type="submit" className="w-full h-10 bg-[#5542FF] hover:bg-[#4433DD] text-white font-medium" disabled={loading}>
+                {loading ? "Creating account…" : "Create account"}
               </Button>
             </div>
 
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-6 text-center text-[13px] text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/login" className="underline underline-offset-4">
+              <Link to="/login" className="text-[#5542FF] hover:text-[#4433DD] font-medium">
                 Sign in
               </Link>
             </div>

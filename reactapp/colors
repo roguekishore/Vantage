@@ -5,7 +5,7 @@ body {
     --rui-colors-grey: #DFDFF2;
     --rui-colors-red: #FF264E;
     --rui-colors-orange: #FF6F2F;
-    --rui-colors-black: #000000;
+    --rui-colors-black: #09090B;
     --rui-fonts-base-size: 10px;
     --rui-fonts-sans-serif: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, sans-serif;
     --rui-fonts-serif: ui-serif, serif;
@@ -21,9 +21,9 @@ body {
     --rui-z-index-layer4: 40;
     --rui-z-index-layer5: 50;
     --rui-z-index-important: 2147483647;
-    --rui-bgColor: #000000;
-    --rui-textColor: #DFDFF2;
-    --rui-textColorInverted: #000000;
-    --rui-accentColor: #EDFF66;
+    --rui-bgColor: #09090B;
+    --rui-textColor: #FAFAFA;
+    --rui-textColorInverted: #09090B;
+    --rui-accentColor: #5542FF;
     --rui-themeName: black;
 }

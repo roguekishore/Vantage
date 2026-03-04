@@ -1,4 +1,4 @@
-package com.backend.springapp.gamification;
+package com.backend.springapp.gamification.coins;
 
 import jakarta.persistence.*;
 import lombok.*;

@@ -437,7 +437,7 @@ const WorldMap = () => {
           >
             {stagesOpen
               ? <ChevronDown size={18} className="wm-icon" />
-              : <ChevronUp   size={18} className="wm-icon" />}
+              : <ChevronUp size={18} className="wm-icon" />}
           </DockIcon>
         </Dock>
       </div>

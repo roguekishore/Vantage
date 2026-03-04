@@ -1,6 +1,7 @@
 package com.backend.springapp.sync;
 
 import com.backend.springapp.gamification.GamificationService;
+import com.backend.springapp.gamification.achievement.AchievementService;
 import com.backend.springapp.problem.Problem;
 import com.backend.springapp.problem.ProblemRepository;
 import com.backend.springapp.sse.ProgressEvent;
@@ -34,6 +35,7 @@ public class SyncService {
     private final ProblemRepository problemRepository;
     private final ProgressEventService progressEventService;
     private final GamificationService gamificationService;
+    private final AchievementService achievementService;
 
     @Transactional
     public SyncResponseDTO syncProgress(String lcusername, List<String> slugs) {
@@ -106,6 +108,18 @@ public class SyncService {
 
             updated++;
             log.info("Synced: user={} problem={} ({})", lcusername, slug, problem.getTag());
+        }
+
+        // ── 7. Check achievements once after all problems are processed ────
+        // Must run after the loop so that all UserProgress records are committed
+        // before the achievement conditions are evaluated.
+        if (updated > 0) {
+            try {
+                achievementService.checkProblemAchievements(user.getUid());
+                achievementService.checkStreakAchievements(user.getUid());
+            } catch (Exception e) {
+                log.warn("Achievement check failed after sync for user {}: {}", lcusername, e.getMessage());
+            }
         }
 
         log.info("Sync complete for {}: matched={}, updated={}, notFound={}", lcusername, matched, updated, notFound.size());

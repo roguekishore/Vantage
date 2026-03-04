@@ -73,4 +73,7 @@ public interface ProblemRepository extends JpaRepository<Problem, Long> {
     @Query("SELECT p FROM Problem p JOIN UserProgress up ON p.pid = up.problem.pid " +
            "WHERE up.user.uid = :uid AND up.status = 'SOLVED'")
     Page<Problem> findSolvedByUser(@Param("uid") Long uid, Pageable pageable);
+
+    /** Count problems by difficulty tag. Used by AchievementService for ALL_EASY / ALL_MEDIUM checks. */
+    long countByTag(Tag tag);
 }

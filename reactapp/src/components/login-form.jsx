@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { cn } from "@/lib/utils"
+import useUserStore from "@/stores/useUserStore"
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -35,8 +36,9 @@ export function LoginForm({ className, ...props }) {
         setError(data.error || "Login failed")
         return
       }
-      // Store user in localStorage for the session
-      localStorage.setItem("user", JSON.stringify(data))
+      // Store user in localStorage AND update the reactive auth store
+      // so the navbar and all subscribers update without a page refresh.
+      useUserStore.getState().setUser(data)
       // Signal the Chrome extension (if installed) to update its linked lcusername
       window.postMessage({
         type: 'VANTAGE_LOGIN',
@@ -54,36 +56,37 @@ export function LoginForm({ className, ...props }) {
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl">Login</CardTitle>
-          <CardDescription>
-            Enter your email below to login to your account
+      <Card className="border-border/50 shadow-sm">
+        <CardHeader className="space-y-1 pb-4">
+          <CardTitle className="text-xl font-semibold tracking-tight">Sign in</CardTitle>
+          <CardDescription className="text-[13px]">
+            Enter your credentials to access your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-5">
               {error && (
-                <p className="text-sm text-destructive text-center">{error}</p>
+                <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-3 py-2">
+                  <p className="text-sm text-destructive">{error}</p>
+                </div>
               )}
               <div className="grid gap-2">
-                <Label htmlFor="email" className="flex items-center gap-1.5">
-                  <Mail size={14} className="text-muted-foreground" />
+                <Label htmlFor="email" className="text-[13px] font-medium">
                   Email
                 </Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="you@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
+                  className="h-10"
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="password" className="flex items-center gap-1.5">
-                  <KeyRound size={14} className="text-muted-foreground" />
+                <Label htmlFor="password" className="text-[13px] font-medium">
                   Password
                 </Label>
                 <Input
@@ -92,17 +95,16 @@ export function LoginForm({ className, ...props }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="h-10"
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Logging in..." : (
-                  <span className="flex items-center gap-2"><LogIn size={16} /> Login</span>
-                )}
+              <Button type="submit" className="w-full h-10 bg-[#5542FF] hover:bg-[#4433DD] text-white font-medium" disabled={loading}>
+                {loading ? "Signing in…" : "Continue"}
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-6 text-center text-[13px] text-muted-foreground">
               Don&apos;t have an account?{" "}
-              <Link to="/signup" className="underline underline-offset-4">
+              <Link to="/signup" className="text-[#5542FF] hover:text-[#4433DD] font-medium">
                 Sign up
               </Link>
             </div>

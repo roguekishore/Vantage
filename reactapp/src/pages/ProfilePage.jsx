@@ -4,15 +4,17 @@ import {
   User, Trophy, Target, CheckCircle, BarChart3,
   GraduationCap, Building2, Star, ArrowLeft, LogOut,
   Flame, Zap, TrendingUp, BookOpen, Lock, Clock,
-  Coins, Sparkles, ChevronLeft, ChevronRight,
+  Coins, Sparkles, ChevronLeft, ChevronRight, Shield,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { getStoredUser, fetchUserStats, fetchUserProfile } from "@/services/userApi";
-import { fetchPlayerStats, fetchCoinHistory } from "@/services/gamificationApi";
+import { fetchUserStats, fetchUserProfile } from "@/services/userApi";
+import { fetchCoinHistory } from "@/services/gamificationApi";
 import useGamificationStore from "@/stores/useGamificationStore";
+import useUserStore from "@/stores/useUserStore";
+import useAchievementStore from "@/stores/useAchievementStore";
 import useProgressStore, {
   STAGES,
   STAGE_ORDER,
@@ -24,7 +26,7 @@ import useProgressStore, {
 const getRatingTier = (rating) => {
   if (rating >= 500) return { label: "Grandmaster", color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/30", icon: Flame };
   if (rating >= 300) return { label: "Master", color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/30", icon: Zap };
-  if (rating >= 150) return { label: "Expert", color: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/30", icon: Star };
+  if (rating >= 150) return { label: "Expert", color: "text-[#5542FF]", bg: "bg-[#5542FF]/10", border: "border-[#5542FF]/30", icon: Star };
   if (rating >= 50) return { label: "Intermediate", color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/30", icon: TrendingUp };
   return { label: "Beginner", color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/30", icon: BookOpen };
 };
@@ -44,16 +46,19 @@ const ProfilePage = () => {
   const [profile, setProfile] = useState(null);
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [gamStats, setGamStats] = useState(null);
   const [coinHistory, setCoinHistory] = useState(null);
   const [coinPage, setCoinPage] = useState(0);
+
+  // ── Global stores (already populated by useAppInit in App.jsx) ──
+  const user = useUserStore(s => s.user);
+  const gamStats = useGamificationStore(s => s.stats);
+  const streakData = useGamificationStore(s => s.streak);
 
   const completedProblems = useProgressStore(s => s.completedProblems);
   const getStageProgress = useProgressStore(s => s.getStageProgress);
   const getTotalProgress = useProgressStore(s => s.getTotalProgress);
   const loadProgress = useProgressStore(s => s.loadProgress);
 
-  const user = getStoredUser();
   const totalProgress = getTotalProgress();
   const diffBreakdown = useMemo(() => getDifficultyBreakdown(completedProblems), [completedProblems]);
 
@@ -65,24 +70,28 @@ const ProfilePage = () => {
 
     async function load() {
       try {
-        // Always fetch fresh from backend — no caching
-        const [profileData, statsData, gamData, coinData] = await Promise.all([
+        // Fetch profile metadata + solve stats + coin history in parallel.
+        // Gamification stats (coins, XP, streak) are already in the global
+        // stores courtesy of useAppInit — no need to re-fetch them here.
+        const [profileData, statsData, coinData] = await Promise.all([
           fetchUserProfile(user.uid),
           fetchUserStats(user.uid),
-          fetchPlayerStats(user.uid).catch(() => null),
           fetchCoinHistory(user.uid, 0, 10).catch(() => null),
           loadProgress(user.uid),
         ]);
         setProfile(profileData);
         setStats(statsData);
-        setGamStats(gamData);
         setCoinHistory(coinData);
-        // Update global store for navbar
-        if (gamData) useGamificationStore.getState().loadStats(user.uid);
+
+        // If the global gamification store hasn't loaded yet (edge case),
+        // kick it off now.
+        if (!gamStats) {
+          useGamificationStore.getState().loadStats(user.uid);
+        }
       } catch (err) {
         // If backend returns 404 / error, the user no longer exists (DB recreated)
         console.warn("Failed to load profile:", err);
-        localStorage.removeItem("user");
+        useUserStore.getState().clearUser();
         navigate("/login");
         return;
       } finally {
@@ -90,12 +99,11 @@ const ProfilePage = () => {
       }
     }
     load();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [user?.uid]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleLogout = () => {
-    localStorage.removeItem("user");
-    useProgressStore.getState().clearForLogout();
-    useGamificationStore.getState().clearStats();
+    // clearUser removes localStorage + triggers useAppInit to clear all stores
+    useUserStore.getState().clearUser();
     // Signal the Chrome extension (if installed) to drop its cached lcusername
     // so the next person who logs in doesn't see a stale "App Linked" value.
     window.postMessage({ type: "VANTAGE_LOGOUT" }, "*");
@@ -118,8 +126,8 @@ const ProfilePage = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* ── Top bar ── */}
-      <header className=" top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
+      <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-5xl mx-auto flex items-center justify-between px-6 py-4">
           <button
             onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
@@ -127,26 +135,30 @@ const ProfilePage = () => {
             <ArrowLeft size={16} />
             Back
           </button>
-          <h1 className="text-sm font-semibold">Profile</h1>
+          <h1 className="text-sm font-medium text-foreground">Profile</h1>
           <button
             onClick={handleLogout}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-destructive transition-colors"
           >
             <LogOut size={14} />
-            Logout
+            Sign out
           </button>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
         {/* ═══════════ HERO CARD ═══════════ */}
-        <Card className="overflow-hidden">
-          <div className="h-24 bg-gradient-to-r from-[#5542FF] to-[#B28EF2]" />
+        <Card className="overflow-hidden border-border/50">
+          <div className="h-28 bg-gradient-to-r from-[#5542FF] to-[#B28EF2] relative">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2260%22%20height%3D%2260%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cdefs%3E%3Cpattern%20id%3D%22grid%22%20width%3D%2260%22%20height%3D%2260%22%20patternUnits%3D%22userSpaceOnUse%22%3E%3Cpath%20d%3D%22M60%200H0v60%22%20fill%3D%22none%22%20stroke%3D%22rgba(255%2C255%2C255%2C0.08)%22%20stroke-width%3D%221%22%2F%3E%3C%2Fpattern%3E%3C%2Fdefs%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22url(%23grid)%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
+          </div>
           <CardContent className="relative pt-0 pb-6">
             {/* Avatar */}
             <div className="absolute -top-10 left-6">
-              <div className="w-20 h-20 rounded-xl bg-background border-4 border-background shadow-lg grid place-items-center">
-                <User size={32} className="text-muted-foreground" />
+              <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-[#5542FF] to-[#B28EF2] border-4 border-background shadow-xl grid place-items-center">
+                <span className="text-white text-2xl font-bold uppercase">
+                  {displayUser?.username?.charAt(0) || "U"}
+                </span>
               </div>
             </div>
 
@@ -201,36 +213,34 @@ const ProfilePage = () => {
             label="Not Started"
             value={stats?.notStarted ?? (totalProgress.total - totalProgress.completed)}
             color="text-muted-foreground"
-            bg="bg-muted/50"
+            bg="bg-muted"
           />
           <StatCard
             icon={Target}
             label="Total"
             value={stats?.total ?? totalProgress.total}
-            color="text-blue-500"
-            bg="bg-blue-500/10"
+            color="text-[#5542FF]"
+            bg="bg-[#5542FF]/8"
           />
         </div>
 
         {/* ═══════════ GAMIFICATION STATS ═══════════ */}
         {gamStats && (
-          <Card className="overflow-hidden">
+          <Card className="overflow-hidden border-border/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
-                <Sparkles size={16} className="text-violet-500" />
-                Gamification
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Sparkles size={16} className="text-[#B28EF2]" />
+                Progression
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
                 {/* Level */}
                 <div className="text-center space-y-2">
-                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-violet-500/10 border border-violet-500/20">
-                    <Sparkles size={28} className="text-violet-500" />
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#5542FF]/10 border border-[#5542FF]/20">
+                    <Sparkles size={28} className="text-[#5542FF]" />
                   </div>
-                  <p className="text-3xl font-bold tabular-nums text-violet-600 dark:text-violet-400">
-                    {gamStats.level}
-                  </p>
+                  <p className="text-3xl font-bold tabular-nums text-[#5542FF]">{gamStats.level}</p>
                   <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
                     {gamStats.title}
                   </p>
@@ -251,7 +261,7 @@ const ProfilePage = () => {
                         width: `${Math.min(100, gamStats.xpForNextLevel > gamStats.xpForCurrentLevel
                           ? ((gamStats.xp - gamStats.xpForCurrentLevel) / (gamStats.xpForNextLevel - gamStats.xpForCurrentLevel)) * 100
                           : 100)}%`,
-                        background: "linear-gradient(to right, #8b5cf6, #a78bfa)",
+                        background: "linear-gradient(to right, #5542FF, #B28EF2)",
                       }}
                     />
                   </div>
@@ -279,10 +289,100 @@ const ProfilePage = () => {
           </Card>
         )}
 
+        {/* ═══════════ STREAK ═══════════ */}
+        {streakData && (
+          <Card className="overflow-hidden border-border/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Flame size={16} className={
+                  streakData.currentStreak >= 100 ? "text-yellow-500 animate-pulse"
+                    : streakData.currentStreak >= 30 ? "text-purple-500"
+                      : streakData.currentStreak >= 7 ? "text-blue-500"
+                        : "text-orange-500"
+                } />
+                Daily Streak
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-6">
+                {/* Current Streak */}
+                <div className="text-center space-y-1">
+                  <p className={cn(
+                    "text-3xl font-bold tabular-nums",
+                    streakData.currentStreak >= 100 ? "text-yellow-500"
+                      : streakData.currentStreak >= 30 ? "text-purple-500"
+                        : streakData.currentStreak >= 7 ? "text-blue-500"
+                          : "text-orange-500"
+                  )}>
+                    {streakData.currentStreak}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Current</p>
+                </div>
+                {/* Longest Streak */}
+                <div className="text-center space-y-1">
+                  <p className="text-3xl font-bold tabular-nums text-foreground">
+                    {streakData.longestStreak}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Longest</p>
+                </div>
+                {/* Coin Multiplier */}
+                <div className="text-center space-y-1">
+                  <p className="text-3xl font-bold tabular-nums text-emerald-500">
+                    {streakData.multiplier.toFixed(2)}×
+                  </p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Multiplier</p>
+                </div>
+                {/* Streak Shields */}
+                <div className="text-center space-y-1">
+                  <p className="text-3xl font-bold tabular-nums text-cyan-500 flex items-center justify-center gap-1">
+                    <Shield size={20} className="text-cyan-500" />
+                    {streakData.shieldCount ?? 0}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">Shields</p>
+                </div>
+                {/* Next Milestone */}
+                <div className="text-center space-y-1">
+                  <p className="text-3xl font-bold tabular-nums text-muted-foreground">
+                    {streakData.nextMilestone > 0 ? streakData.nextMilestone : "🏆"}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                    {streakData.nextMilestone > 0 ? "Next Goal" : "All Done!"}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status message */}
+              <div className="mt-4 text-center">
+                {streakData.solvedToday ? (
+                  <p className="text-xs text-emerald-500 font-medium">
+                    ✅ You've solved a problem today — streak safe!
+                  </p>
+                ) : streakData.currentStreak > 0 && streakData.shieldCount > 0 ? (
+                  <p className="text-xs text-cyan-500 font-medium">
+                    🛡️ {streakData.shieldCount} Streak Shield{streakData.shieldCount > 1 ? "s" : ""} protecting your {streakData.currentStreak}-day streak
+                  </p>
+                ) : (
+                  <p className="text-xs text-orange-500 font-medium">
+                    🔥 Solve a problem today to {streakData.currentStreak > 0 ? "keep your streak" : "start a streak"}!
+                  </p>
+                )}
+                {streakData.nextMilestone > 0 && streakData.currentStreak > 0 && (
+                  <p className="text-[11px] text-muted-foreground mt-1">
+                    {streakData.nextMilestone - streakData.currentStreak} day{streakData.nextMilestone - streakData.currentStreak !== 1 ? "s" : ""} until {streakData.nextMilestone}-day milestone
+                    {streakData.nextMilestoneCoins > 0 && ` (+${streakData.nextMilestoneCoins} coins`}
+                    {streakData.nextMilestoneXp > 0 && `, +${streakData.nextMilestoneXp} XP`}
+                    {(streakData.nextMilestoneCoins > 0 || streakData.nextMilestoneXp > 0) && ")"}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* ═══════════ DIFFICULTY BREAKDOWN ═══════════ */}
-        <Card>
+        <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
               <BarChart3 size={16} className="text-muted-foreground" />
               Difficulty Breakdown
             </CardTitle>
@@ -312,11 +412,11 @@ const ProfilePage = () => {
         </Card>
 
         {/* ═══════════ OVERALL PROGRESS BAR ═══════════ */}
-        <Card>
+        <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
-              <Trophy size={16} className="text-amber-500" />
-              Overall Conquest Progress
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <Trophy size={16} className="text-[#B28EF2]" />
+              Overall Progress
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -342,9 +442,9 @@ const ProfilePage = () => {
 
         {/* ═══════════ COIN HISTORY ═══════════ */}
         {coinHistory && coinHistory.content && coinHistory.content.length > 0 && (
-          <Card>
+          <Card className="border-border/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Coins size={16} className="text-amber-500" />
                 Coin History
               </CardTitle>
@@ -426,9 +526,9 @@ const ProfilePage = () => {
         )}
 
         {/* ═══════════ STAGE PROGRESS ═══════════ */}
-        <Card>
+        <Card className="border-border/50">
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold flex items-center gap-2">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
               <Target size={16} className="text-muted-foreground" />
               Stage Progress
             </CardTitle>
@@ -486,7 +586,7 @@ const ProfilePage = () => {
 /* ─── Stat Card ─── */
 function StatCard({ icon: Icon, label, value, color, bg }) {
   return (
-    <Card>
+    <Card className="border-border/50">
       <CardContent className="flex items-center gap-3 p-4">
         <div className={cn("grid place-items-center w-10 h-10 rounded-lg", bg)}>
           <Icon size={20} className={color} />

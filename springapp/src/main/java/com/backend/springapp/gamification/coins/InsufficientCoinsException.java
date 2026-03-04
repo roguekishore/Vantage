@@ -1,4 +1,4 @@
-package com.backend.springapp.gamification;
+package com.backend.springapp.gamification.coins;
 
 /**
  * Thrown when a user tries to spend more coins than they have.
