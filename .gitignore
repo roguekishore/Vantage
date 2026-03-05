@@ -200,4 +200,4 @@ application-*.yml
 secrets/
 
 # Zentry demo folder (excluded from commits)
-zentry/
+/zentry/

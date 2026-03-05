@@ -36,9 +36,30 @@
         window.dispatchEvent(new CustomEvent('lc-vantage-result', { detail }));
     }
 
+    // Cache the latest user data so the isolated-world content-script can
+    // read it from the DOM even if it missed the initial CustomEvent
+    // (injected.js fires at document_start; content-script.js at document_idle).
+    let _lastUserDetail = null;
+
     function dispatchUser(detail) {
+        _lastUserDetail = detail;
         window.dispatchEvent(new CustomEvent('lc-vantage-user', { detail }));
+        // Persist to a DOM data attribute so the content-script can read it
+        // after loading — the ISOLATED world shares the DOM with MAIN.
+        try {
+            document.documentElement.dataset.lcVantageUser = JSON.stringify(detail);
+        } catch { /* ignored — DOM not ready yet at document_start */ }
     }
+
+    // ── Re-request listener ──────────────────────────────────────────────────
+    // The content-script (ISOLATED world) can ask us to re-dispatch the user
+    // data by firing this event.  This covers the race where the initial
+    // event was dispatched before the content-script registered its listener.
+    window.addEventListener('lc-vantage-user-request', () => {
+        if (_lastUserDetail) {
+            dispatchUser(_lastUserDetail);
+        }
+    });
 
     function isCheckUrl(url) {
         return CHECK_RE_OLD.test(url) || CHECK_RE_NEW.test(url);
@@ -103,6 +124,7 @@
         .then(json => {
             const s = json?.data?.userStatus;
             if (s) dispatchUser({ username: s.username || null, isSignedIn: !!s.isSignedIn });
+            else   dispatchUser({ username: null, isSignedIn: false });
         })
         .catch(() => dispatchUser({ username: null, isSignedIn: false }));
     })();

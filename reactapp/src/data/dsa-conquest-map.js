@@ -167,70 +167,70 @@ export const ALL_PROBLEMS = [
   // Countries: Southern South America
   // =================================================================
   { id: 'stage4-1', title: 'Two Sum', route: '/arrays/TwoSum', stage: 4, order: 1, lcNumber: 1, lcSlug: 'two-sum', countryId: 'PE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'TwoSum', judgeId: 'two-sum', note: 'Classic problem #1' },
-  { id: 'stage4-2', title: '3Sum', route: '/arrays/ThreeSum', stage: 4, order: 2, lcNumber: 15, lcSlug: '3sum', countryId: 'BO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ThreeSum' },
-  { id: 'stage4-3', title: '4Sum', route: '/arrays/4-Sum', stage: 4, order: 3, lcNumber: 18, lcSlug: '4sum', countryId: 'PY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FourSum' },
-  { id: 'stage4-4', title: 'Container With Most Water', route: '/arrays/ContainerWithMostWater', stage: 4, order: 4, lcNumber: 11, lcSlug: 'container-with-most-water', countryId: 'AR', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ContainerWithMostWater' },
-  { id: 'stage4-5', title: 'Trapping Rain Water', route: '/arrays/TrappingRainWater', stage: 4, order: 5, lcNumber: 42, lcSlug: 'trapping-rain-water', countryId: 'CL', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'TrappingRainWater', note: 'Iconic Hard Problem' },
+  { id: 'stage4-2', title: '3Sum', route: '/arrays/ThreeSum', stage: 4, order: 2, lcNumber: 15, lcSlug: '3sum', countryId: 'BO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ThreeSum', judgeId: '3sum' },
+  { id: 'stage4-3', title: '4Sum', route: '/arrays/4-Sum', stage: 4, order: 3, lcNumber: 18, lcSlug: '4sum', countryId: 'PY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FourSum', judgeId: '4sum' },
+  { id: 'stage4-4', title: 'Container With Most Water', route: '/arrays/ContainerWithMostWater', stage: 4, order: 4, lcNumber: 11, lcSlug: 'container-with-most-water', countryId: 'AR', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ContainerWithMostWater', judgeId: 'container-with-most-water' },
+  { id: 'stage4-5', title: 'Trapping Rain Water', route: '/arrays/TrappingRainWater', stage: 4, order: 5, lcNumber: 42, lcSlug: 'trapping-rain-water', countryId: 'CL', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'TrappingRainWater', note: 'Iconic Hard Problem', judgeId: 'trapping-rain-water' },
 
   // =================================================================
   // STAGE 5: Sliding Window (5 problems)
   // Pattern: Window Expansion/Contraction
   // Countries: West Africa coast
   // =================================================================
-  { id: 'stage5-1', title: 'Max Consecutive Ones III', route: '/arrays/MaxConsecutiveOnesIII', stage: 5, order: 1, lcNumber: 1004, lcSlug: 'max-consecutive-ones-iii', countryId: 'SN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MaxConsecutiveOnesIII' },
-  { id: 'stage5-2', title: 'Longest Substring Without Repeating Characters', route: '/sliding-window/LongestSubstring', stage: 5, order: 2, lcNumber: 3, lcSlug: 'longest-substring-without-repeating-characters', countryId: 'GH', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LongestSubstring' },
-  { id: 'stage5-3', title: 'Fruit Into Baskets', route: '/sliding-window/FruitsIntoBaskets', stage: 5, order: 3, lcNumber: 904, lcSlug: 'fruit-into-baskets', countryId: 'CI', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FruitsIntoBaskets' },
-  { id: 'stage5-4', title: 'Minimum Window Substring', route: '/sliding-window/MinimumWindow', stage: 5, order: 4, lcNumber: 76, lcSlug: 'minimum-window-substring', countryId: 'NG', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'MinimumWindow' },
-  { id: 'stage5-5', title: 'Sliding Window Maximum', route: '/sliding-window/SlidingWindowMaximum', stage: 5, order: 5, lcNumber: 239, lcSlug: 'sliding-window-maximum', countryId: 'CM', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'SlidingWindowMaximum' },
+  { id: 'stage5-1', title: 'Max Consecutive Ones III', route: '/arrays/MaxConsecutiveOnesIII', stage: 5, order: 1, lcNumber: 1004, lcSlug: 'max-consecutive-ones-iii', countryId: 'SN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MaxConsecutiveOnesIII', judgeId: 'max-consecutive-ones-iii' },
+  { id: 'stage5-2', title: 'Longest Substring Without Repeating Characters', route: '/sliding-window/LongestSubstring', stage: 5, order: 2, lcNumber: 3, lcSlug: 'longest-substring-without-repeating-characters', countryId: 'GH', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LongestSubstring', judgeId: 'longest-substring-without-repeating-characters' },
+  { id: 'stage5-3', title: 'Fruit Into Baskets', route: '/sliding-window/FruitsIntoBaskets', stage: 5, order: 3, lcNumber: 904, lcSlug: 'fruit-into-baskets', countryId: 'CI', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FruitsIntoBaskets', judgeId: 'fruit-into-baskets' },
+  { id: 'stage5-4', title: 'Minimum Window Substring', route: '/sliding-window/MinimumWindow', stage: 5, order: 4, lcNumber: 76, lcSlug: 'minimum-window-substring', countryId: 'NG', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'MinimumWindow', judgeId: 'minimum-window-substring' },
+  { id: 'stage5-5', title: 'Sliding Window Maximum', route: '/sliding-window/SlidingWindowMaximum', stage: 5, order: 5, lcNumber: 239, lcSlug: 'sliding-window-maximum', countryId: 'CM', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'SlidingWindowMaximum', judgeId: 'sliding-window-maximum' },
 
   // =================================================================
   // STAGE 6: String Fundamentals (5 problems)
   // Pattern: Character-level Operations
   // Countries: Central/East Africa
   // =================================================================
-  { id: 'stage6-1', title: 'Palindrome Check', route: '/strings/PalindromeCheck', stage: 6, order: 1, lcNumber: 125, lcSlug: 'valid-palindrome', countryId: 'GA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'PalindromeCheck' },
-  { id: 'stage6-2', title: 'Reverse String', route: '/strings/ReverseString', stage: 6, order: 2, lcNumber: 344, lcSlug: 'reverse-string', countryId: 'CG', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ReverseString' },
-  { id: 'stage6-3', title: 'Count Vowels', route: '/strings/CountVowels', stage: 6, order: 3, lcNumber: null, lcSlug: null, countryId: 'CD', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'CountVowels' },
-  { id: 'stage6-4', title: 'Valid Anagram', route: '/hashing/ValidAnagram', stage: 6, order: 4, lcNumber: 242, lcSlug: 'valid-anagram', countryId: 'AO', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ValidAnagram' },
-  { id: 'stage6-5', title: 'First Unique Character', route: '/strings/FirstUniqueCharacter', stage: 6, order: 5, lcNumber: 387, lcSlug: 'first-unique-character-in-a-string', countryId: 'ZM', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
+  { id: 'stage6-1', title: 'Palindrome Check', route: '/strings/PalindromeCheck', stage: 6, order: 1, lcNumber: 125, lcSlug: 'valid-palindrome', countryId: 'GA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'PalindromeCheck', judgeId: 'palindrome-check' },
+  { id: 'stage6-2', title: 'Reverse String', route: '/strings/ReverseString', stage: 6, order: 2, lcNumber: 344, lcSlug: 'reverse-string', countryId: 'CG', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ReverseString', judgeId: 'reverse-string' },
+  { id: 'stage6-3', title: 'Count Vowels', route: '/strings/CountVowels', stage: 6, order: 3, lcNumber: null, lcSlug: null, countryId: 'CD', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'CountVowels', judgeId: 'count-vowels' },
+  { id: 'stage6-4', title: 'Valid Anagram', route: '/hashing/ValidAnagram', stage: 6, order: 4, lcNumber: 242, lcSlug: 'valid-anagram', countryId: 'AO', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ValidAnagram', judgeId: 'valid-anagram' },
+  { id: 'stage6-5', title: 'First Unique Character', route: '/strings/FirstUniqueCharacter', stage: 6, order: 5, lcNumber: 387, lcSlug: 'first-unique-character-in-a-string', countryId: 'ZM', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'first-unique-character' },
 
   // =================================================================
   // STAGE 7: Advanced Strings (6 problems)
   // Pattern: String Transformation
   // Countries: Southern/Eastern Africa
   // =================================================================
-  { id: 'stage7-1', title: 'Longest Common Prefix', route: '/strings/LongestCP', stage: 7, order: 1, lcNumber: 14, lcSlug: 'longest-common-prefix', countryId: 'ZW', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'LongestCommonPrefix' },
-  { id: 'stage7-2', title: 'String Compression', route: '/strings/StringCompression', stage: 7, order: 2, lcNumber: 443, lcSlug: 'string-compression', countryId: 'BW', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'StringCompression' },
-  { id: 'stage7-3', title: 'Reverse Words in a String', route: '/strings/ReverseWords', stage: 7, order: 3, lcNumber: 151, lcSlug: 'reverse-words-in-a-string', countryId: 'NA', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ReverseWords' },
-  { id: 'stage7-4', title: 'Is Subsequence', route: '/strings/IsSubSequence', stage: 7, order: 4, lcNumber: 392, lcSlug: 'is-subsequence', countryId: 'ZA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'IsSubsequence' },
-  { id: 'stage7-5', title: 'Group Anagrams', route: '/strings/GroupAnagrams', stage: 7, order: 5, lcNumber: 49, lcSlug: 'group-anagrams', countryId: 'MZ', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true },
-  { id: 'stage7-6', title: 'Longest Palindromic Substring', route: '/strings/LongestPalindrome', stage: 7, order: 6, lcNumber: 5, lcSlug: 'longest-palindromic-substring', countryId: 'MG', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true },
+  { id: 'stage7-1', title: 'Longest Common Prefix', route: '/strings/LongestCP', stage: 7, order: 1, lcNumber: 14, lcSlug: 'longest-common-prefix', countryId: 'ZW', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'LongestCommonPrefix', judgeId: 'longest-common-prefix' },
+  { id: 'stage7-2', title: 'String Compression', route: '/strings/StringCompression', stage: 7, order: 2, lcNumber: 443, lcSlug: 'string-compression', countryId: 'BW', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'StringCompression', judgeId: 'string-compression' },
+  { id: 'stage7-3', title: 'Reverse Words in a String', route: '/strings/ReverseWords', stage: 7, order: 3, lcNumber: 151, lcSlug: 'reverse-words-in-a-string', countryId: 'NA', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ReverseWords', judgeId: 'reverse-words-in-a-string' },
+  { id: 'stage7-4', title: 'Is Subsequence', route: '/strings/IsSubSequence', stage: 7, order: 4, lcNumber: 392, lcSlug: 'is-subsequence', countryId: 'ZA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'IsSubsequence', judgeId: 'is-subsequence' },
+  { id: 'stage7-5', title: 'Group Anagrams', route: '/strings/GroupAnagrams', stage: 7, order: 5, lcNumber: 49, lcSlug: 'group-anagrams', countryId: 'MZ', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true, judgeId: 'group-anagrams' },
+  { id: 'stage7-6', title: 'Longest Palindromic Substring', route: '/strings/LongestPalindrome', stage: 7, order: 6, lcNumber: 5, lcSlug: 'longest-palindromic-substring', countryId: 'MG', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true, judgeId: 'longest-palindromic-substring' },
 
   // =================================================================
   // STAGE 8: Binary Search – Core (5 problems)
   // Pattern: Divide and Conquer (Search)
   // Countries: North Africa + Mediterranean
   // =================================================================
-  { id: 'stage8-1', title: 'Binary Search Basic', route: '/binary-search/BinarySearchBasic', stage: 8, order: 1, lcNumber: 704, lcSlug: 'binary-search', countryId: 'MA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BinarySearch' },
-  { id: 'stage8-2', title: 'Peak Index in Mountain Array', route: '/binary-search/PeakIndexInMountainArray', stage: 8, order: 2, lcNumber: 852, lcSlug: 'peak-index-in-a-mountain-array', countryId: 'DZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PeakMountain' },
-  { id: 'stage8-3', title: 'Find First and Last Position', route: '/binary-search/FindFirstAndLastPosition', stage: 8, order: 3, lcNumber: 34, lcSlug: 'find-first-and-last-position-of-element-in-sorted-array', countryId: 'TN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FirstLastPosition' },
-  { id: 'stage8-4', title: 'Kth Missing Positive Number', route: '/searching/KthMissingNumber', stage: 8, order: 4, lcNumber: 1539, lcSlug: 'kth-missing-positive-number', countryId: 'LY', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'KthMissingNumber' },
-  { id: 'stage8-5', title: 'Find Smallest Letter Greater Than Target', route: '/searching/SmallestLetter', stage: 8, order: 5, lcNumber: 744, lcSlug: 'find-smallest-letter-greater-than-target', countryId: 'EG', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SmallestLetter' },
+  { id: 'stage8-1', title: 'Binary Search Basic', route: '/binary-search/BinarySearchBasic', stage: 8, order: 1, lcNumber: 704, lcSlug: 'binary-search', countryId: 'MA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BinarySearch', judgeId: 'binary-search-basic' },
+  { id: 'stage8-2', title: 'Peak Index in Mountain Array', route: '/binary-search/PeakIndexInMountainArray', stage: 8, order: 2, lcNumber: 852, lcSlug: 'peak-index-in-a-mountain-array', countryId: 'DZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PeakMountain', judgeId: 'peak-index-in-mountain-array' },
+  { id: 'stage8-3', title: 'Find First and Last Position', route: '/binary-search/FindFirstAndLastPosition', stage: 8, order: 3, lcNumber: 34, lcSlug: 'find-first-and-last-position-of-element-in-sorted-array', countryId: 'TN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FirstLastPosition', judgeId: 'find-first-and-last-position' },
+  { id: 'stage8-4', title: 'Kth Missing Positive Number', route: '/searching/KthMissingNumber', stage: 8, order: 4, lcNumber: 1539, lcSlug: 'kth-missing-positive-number', countryId: 'LY', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'KthMissingNumber', judgeId: 'kth-missing-positive-number' },
+  { id: 'stage8-5', title: 'Find Smallest Letter Greater Than Target', route: '/searching/SmallestLetter', stage: 8, order: 5, lcNumber: 744, lcSlug: 'find-smallest-letter-greater-than-target', countryId: 'EG', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SmallestLetter', judgeId: 'find-smallest-letter-greater-than-target' },
 
   // =================================================================
   // STAGE 9: Binary Search – Advanced (9 problems)
   // Pattern: Search Space Reduction
   // Countries: Middle East + Eastern Mediterranean
   // =================================================================
-  { id: 'stage9-1', title: 'Search in Rotated Sorted Array', route: '/binary-search/SearchInRotatedSortedArray', stage: 9, order: 1, lcNumber: 33, lcSlug: 'search-in-rotated-sorted-array', countryId: 'SD', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SearchRotatedArray' },
-  { id: 'stage9-2', title: 'Find Minimum in Rotated Sorted Array', route: '/binary-search/FindMinimumInRotatedSortedArray', stage: 9, order: 2, lcNumber: 153, lcSlug: 'find-minimum-in-rotated-sorted-array', countryId: 'ET', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MinRotatedArray' },
-  { id: 'stage9-3', title: 'Find Peak Element', route: '/binary-search/FindPeakElement', stage: 9, order: 3, lcNumber: 162, lcSlug: 'find-peak-element', countryId: 'ER', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FindPeakElement' },
-  { id: 'stage9-4', title: 'Search a 2D Matrix', route: '/binary-search/Search2DMatrix', stage: 9, order: 4, lcNumber: 74, lcSlug: 'search-a-2d-matrix', countryId: 'DJ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Search2DMatrix' },
-  { id: 'stage9-5', title: 'Min Speed to Arrive on Time', route: '/binary-search/MinSpeedToArriveOnTime', stage: 9, order: 5, lcNumber: 1870, lcSlug: 'minimum-speed-to-arrive-on-time', countryId: 'SO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MinSpeed' },
-  { id: 'stage9-6', title: 'Median of Two Sorted Arrays', route: '/binary-search/MedianOfTwoSortedArrays', stage: 9, order: 6, lcNumber: 4, lcSlug: 'median-of-two-sorted-arrays', countryId: 'SA', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'MedianTwoArrays' },
-  { id: 'stage9-7', title: 'Special Array With X Elements', route: '/searching/SpecialArray', stage: 9, order: 7, lcNumber: 1608, lcSlug: 'special-array-with-x-elements-greater-than-or-equal-x', countryId: 'YE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SpecialArray' },
-  { id: 'stage9-8', title: 'Search in Sorted Array of Unknown Size', route: '/searching/UnknownSizeSearch', stage: 9, order: 8, lcNumber: 702, lcSlug: 'search-in-a-sorted-array-of-unknown-size', countryId: 'OM', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'UnknownSizeSearch' },
-  { id: 'stage9-9', title: 'Exponential Search', route: '/searching/ExponentialSearch', stage: 9, order: 9, lcNumber: null, lcSlug: null, countryId: 'AE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ExponentialSearch' },
+  { id: 'stage9-1', title: 'Search in Rotated Sorted Array', route: '/binary-search/SearchInRotatedSortedArray', stage: 9, order: 1, lcNumber: 33, lcSlug: 'search-in-rotated-sorted-array', countryId: 'SD', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SearchRotatedArray', judgeId: 'search-in-rotated-sorted-array' },
+  { id: 'stage9-2', title: 'Find Minimum in Rotated Sorted Array', route: '/binary-search/FindMinimumInRotatedSortedArray', stage: 9, order: 2, lcNumber: 153, lcSlug: 'find-minimum-in-rotated-sorted-array', countryId: 'ET', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MinRotatedArray', judgeId: 'find-minimum-in-rotated-sorted-array' },
+  { id: 'stage9-3', title: 'Find Peak Element', route: '/binary-search/FindPeakElement', stage: 9, order: 3, lcNumber: 162, lcSlug: 'find-peak-element', countryId: 'ER', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FindPeakElement', judgeId: 'find-peak-element' },
+  { id: 'stage9-4', title: 'Search a 2D Matrix', route: '/binary-search/Search2DMatrix', stage: 9, order: 4, lcNumber: 74, lcSlug: 'search-a-2d-matrix', countryId: 'DJ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Search2DMatrix', judgeId: 'search-a-2d-matrix' },
+  { id: 'stage9-5', title: 'Min Speed to Arrive on Time', route: '/binary-search/MinSpeedToArriveOnTime', stage: 9, order: 5, lcNumber: 1870, lcSlug: 'minimum-speed-to-arrive-on-time', countryId: 'SO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MinSpeed', judgeId: 'min-speed-to-arrive-on-time' },
+  { id: 'stage9-6', title: 'Median of Two Sorted Arrays', route: '/binary-search/MedianOfTwoSortedArrays', stage: 9, order: 6, lcNumber: 4, lcSlug: 'median-of-two-sorted-arrays', countryId: 'SA', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'MedianTwoArrays', judgeId: 'median-of-two-sorted-arrays' },
+  { id: 'stage9-7', title: 'Special Array With X Elements', route: '/searching/SpecialArray', stage: 9, order: 7, lcNumber: 1608, lcSlug: 'special-array-with-x-elements-greater-than-or-equal-x', countryId: 'YE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SpecialArray', judgeId: 'special-array-with-x-elements' },
+  { id: 'stage9-8', title: 'Search in Sorted Array of Unknown Size', route: '/searching/UnknownSizeSearch', stage: 9, order: 8, lcNumber: 702, lcSlug: 'search-in-a-sorted-array-of-unknown-size', countryId: 'OM', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'UnknownSizeSearch', judgeId: 'search-in-sorted-array-of-unknown-size' },
+  { id: 'stage9-9', title: 'Exponential Search', route: '/searching/ExponentialSearch', stage: 9, order: 9, lcNumber: null, lcSlug: null, countryId: 'AE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ExponentialSearch', judgeId: 'exponential-search' },
 
   // =================================================================
   // STAGE 10: Linked List – Construction (7 problems)
@@ -238,24 +238,24 @@ export const ALL_PROBLEMS = [
   // Countries: Arabian Peninsula + Iran
   // INCLUDES 6 NEW BASIC PROBLEMS
   // =================================================================
-  { id: 'stage10-1', title: 'Build Linked List from Array', route: '/linked-list/BuildLinkedList', stage: 10, order: 1, lcNumber: null, lcSlug: null, countryId: 'QA', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage10-2', title: 'Insert at Head', route: '/linked-list/InsertAtHead', stage: 10, order: 2, lcNumber: null, lcSlug: null, countryId: 'BH', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage10-3', title: 'Insert at Tail', route: '/linked-list/InsertAtTail', stage: 10, order: 3, lcNumber: null, lcSlug: null, countryId: 'KW', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage10-4', title: 'Insert at Position', route: '/linked-list/InsertAtPosition', stage: 10, order: 4, lcNumber: null, lcSlug: null, countryId: 'JO', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage10-5', title: 'Delete Node in Linked List', route: '/linked-list/DeleteNode', stage: 10, order: 5, lcNumber: null, lcSlug: null, countryId: 'IL', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage10-6', title: 'Search in Linked List', route: '/linked-list/SearchLinkedList', stage: 10, order: 6, lcNumber: null, lcSlug: null, countryId: 'LB', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage10-7', title: 'Design Linked List', route: '/design/DesignLinkedList', stage: 10, order: 7, lcNumber: 707, lcSlug: 'design-linked-list', countryId: 'IR', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'DesignLinkedList' },
+  { id: 'stage10-1', title: 'Build Linked List from Array', route: '/linked-list/BuildLinkedList', stage: 10, order: 1, lcNumber: null, lcSlug: null, countryId: 'QA', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'build-linked-list-from-array' },
+  { id: 'stage10-2', title: 'Insert at Head', route: '/linked-list/InsertAtHead', stage: 10, order: 2, lcNumber: null, lcSlug: null, countryId: 'BH', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'insert-at-head' },
+  { id: 'stage10-3', title: 'Insert at Tail', route: '/linked-list/InsertAtTail', stage: 10, order: 3, lcNumber: null, lcSlug: null, countryId: 'KW', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'insert-at-tail' },
+  { id: 'stage10-4', title: 'Insert at Position', route: '/linked-list/InsertAtPosition', stage: 10, order: 4, lcNumber: null, lcSlug: null, countryId: 'JO', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'insert-at-position' },
+  { id: 'stage10-5', title: 'Delete Node in Linked List', route: '/linked-list/DeleteNode', stage: 10, order: 5, lcNumber: null, lcSlug: null, countryId: 'IL', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'delete-node-in-linked-list' },
+  { id: 'stage10-6', title: 'Search in Linked List', route: '/linked-list/SearchLinkedList', stage: 10, order: 6, lcNumber: null, lcSlug: null, countryId: 'LB', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'search-in-linked-list' },
+  { id: 'stage10-7', title: 'Design Linked List', route: '/design/DesignLinkedList', stage: 10, order: 7, lcNumber: 707, lcSlug: 'design-linked-list', countryId: 'IR', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'DesignLinkedList', judgeId: 'design-linked-list' },
 
   // =================================================================
   // STAGE 11: Linked List – LC Problems (5 problems)
   // Pattern: Fast/Slow Pointers & Reversal
   // Countries: Turkey + Caucasus
   // =================================================================
-  { id: 'stage11-1', title: 'Reverse Linked List', route: '/linked-list/ReverseLinkedList', stage: 11, order: 1, lcNumber: 206, lcSlug: 'reverse-linked-list', countryId: 'TR', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ReverseLinkedList' },
-  { id: 'stage11-2', title: 'Linked List Cycle', route: '/linked-list/LinkedListCycle', stage: 11, order: 2, lcNumber: 141, lcSlug: 'linked-list-cycle', countryId: 'GE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'LinkedListCycle' },
-  { id: 'stage11-3', title: 'Merge Two Sorted Lists', route: '/linked-list/MergeTwoSortedLists', stage: 11, order: 3, lcNumber: 21, lcSlug: 'merge-two-sorted-lists', countryId: 'AM', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'MergeTwoSortedLists' },
-  { id: 'stage11-4', title: 'Sort List', route: '/linked-list/SortList', stage: 11, order: 4, lcNumber: 148, lcSlug: 'sort-list', countryId: 'AZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SortList' },
-  { id: 'stage11-5', title: 'Swap Nodes in Pairs', route: '/linked-list/SwapPairs', stage: 11, order: 5, lcNumber: 24, lcSlug: 'swap-nodes-in-pairs', countryId: 'SY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SwapNodesInPairs' },
+  { id: 'stage11-1', title: 'Reverse Linked List', route: '/linked-list/ReverseLinkedList', stage: 11, order: 1, lcNumber: 206, lcSlug: 'reverse-linked-list', countryId: 'TR', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ReverseLinkedList', judgeId: 'reverse-linked-list' },
+  { id: 'stage11-2', title: 'Linked List Cycle', route: '/linked-list/LinkedListCycle', stage: 11, order: 2, lcNumber: 141, lcSlug: 'linked-list-cycle', countryId: 'GE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'LinkedListCycle', judgeId: 'linked-list-cycle' },
+  { id: 'stage11-3', title: 'Merge Two Sorted Lists', route: '/linked-list/MergeTwoSortedLists', stage: 11, order: 3, lcNumber: 21, lcSlug: 'merge-two-sorted-lists', countryId: 'AM', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'MergeTwoSortedLists', judgeId: 'merge-two-sorted-lists' },
+  { id: 'stage11-4', title: 'Sort List', route: '/linked-list/SortList', stage: 11, order: 4, lcNumber: 148, lcSlug: 'sort-list', countryId: 'AZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SortList', judgeId: 'sort-list' },
+  { id: 'stage11-5', title: 'Swap Nodes in Pairs', route: '/linked-list/SwapPairs', stage: 11, order: 5, lcNumber: 24, lcSlug: 'swap-nodes-in-pairs', countryId: 'SY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SwapNodesInPairs', judgeId: 'swap-nodes-in-pairs' },
 
   // =================================================================
   // STAGE 12: Stack – Fundamentals (4 problems)
@@ -263,20 +263,20 @@ export const ALL_PROBLEMS = [
   // Countries: Central Asia
   // INCLUDES 2 NEW BASIC PROBLEMS
   // =================================================================
-  { id: 'stage12-1', title: 'Stack Push / Pop / Peek', route: '/stack/StackBasics', stage: 12, order: 1, lcNumber: null, lcSlug: null, countryId: 'TM', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage12-2', title: 'Stack Operations', route: '/stack/StackOperation', stage: 12, order: 2, lcNumber: null, lcSlug: null, countryId: 'UZ', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'StackOperations' },
-  { id: 'stage12-3', title: 'Valid Parentheses', route: '/stack/ValidParentheses', stage: 12, order: 3, lcNumber: 20, lcSlug: 'valid-parentheses', countryId: 'TJ', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage12-4', title: 'Min Stack', route: '/design/MinStack', stage: 12, order: 4, lcNumber: 155, lcSlug: 'min-stack', countryId: 'KG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MinStack' },
+  { id: 'stage12-1', title: 'Stack Push / Pop / Peek', route: '/stack/StackBasics', stage: 12, order: 1, lcNumber: null, lcSlug: null, countryId: 'TM', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'stack-operations-push-pop-peek' },
+  { id: 'stage12-2', title: 'Stack Operations', route: '/stack/StackOperation', stage: 12, order: 2, lcNumber: null, lcSlug: null, countryId: 'UZ', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'StackOperations', judgeId: 'stack-operations-advanced' },
+  { id: 'stage12-3', title: 'Valid Parentheses', route: '/stack/ValidParentheses', stage: 12, order: 3, lcNumber: 20, lcSlug: 'valid-parentheses', countryId: 'TJ', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'valid-parentheses' },
+  { id: 'stage12-4', title: 'Min Stack', route: '/design/MinStack', stage: 12, order: 4, lcNumber: 155, lcSlug: 'min-stack', countryId: 'KG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MinStack', judgeId: 'min-stack' },
 
   // =================================================================
   // STAGE 13: Stack – Applications (4 problems)
   // Pattern: Monotonic Stack
   // Countries: Kazakhstan + Afghanistan + Pakistan + India
   // =================================================================
-  { id: 'stage13-1', title: 'Next Greater Element', route: '/stack/NextGreaterElement', stage: 13, order: 1, lcNumber: 496, lcSlug: 'next-greater-element-i', countryId: 'KZ', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'NextGreaterElement' },
-  { id: 'stage13-2', title: 'Remove K Digits', route: '/stack/RemoveKDigits', stage: 13, order: 2, lcNumber: 402, lcSlug: 'remove-k-digits', countryId: 'AF', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'RemoveKDigits' },
-  { id: 'stage13-3', title: 'Largest Rectangle in Histogram', route: '/stack/LargestRectangleHistogram', stage: 13, order: 3, lcNumber: 84, lcSlug: 'largest-rectangle-in-histogram', countryId: 'PK', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'LargestRectangleHistogram' },
-  { id: 'stage13-4', title: 'Sum of Subarray Ranges (Stack)', route: '/stack/SubarrayRanges', stage: 13, order: 4, lcNumber: 2104, lcSlug: 'sum-of-subarray-ranges', countryId: 'IN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SubarrayRangesStack', note: 'Monotonic stack application' },
+  { id: 'stage13-1', title: 'Next Greater Element', route: '/stack/NextGreaterElement', stage: 13, order: 1, lcNumber: 496, lcSlug: 'next-greater-element-i', countryId: 'KZ', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'NextGreaterElement', judgeId: 'next-greater-element' },
+  { id: 'stage13-2', title: 'Remove K Digits', route: '/stack/RemoveKDigits', stage: 13, order: 2, lcNumber: 402, lcSlug: 'remove-k-digits', countryId: 'AF', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'RemoveKDigits', judgeId: 'remove-k-digits' },
+  { id: 'stage13-3', title: 'Largest Rectangle in Histogram', route: '/stack/LargestRectangleHistogram', stage: 13, order: 3, lcNumber: 84, lcSlug: 'largest-rectangle-in-histogram', countryId: 'PK', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'LargestRectangleHistogram', judgeId: 'largest-rectangle-in-histogram' },
+  { id: 'stage13-4', title: 'Sum of Subarray Ranges (Stack)', route: '/stack/SubarrayRanges', stage: 13, order: 4, lcNumber: 2104, lcSlug: 'sum-of-subarray-ranges', countryId: 'IN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SubarrayRangesStack', note: 'Monotonic stack application', judgeId: 'sum-of-subarray-ranges-stack' },
 
   // =================================================================
   // STAGE 14: Queue (4 problems)
@@ -284,34 +284,34 @@ export const ALL_PROBLEMS = [
   // Countries: South Asia (Nepal, Bangladesh, Sri Lanka, Myanmar)
   // INCLUDES 1 NEW BASIC PROBLEM
   // =================================================================
-  { id: 'stage14-1', title: 'Queue using Array (Enqueue/Dequeue)', route: '/queue/QueueBasics', stage: 14, order: 1, lcNumber: null, lcSlug: null, countryId: 'NP', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage14-2', title: 'Basic Queue', route: '/queue/BasicQueue', stage: 14, order: 2, lcNumber: null, lcSlug: null, countryId: 'BD', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BasicQueue' },
-  { id: 'stage14-3', title: 'Circular Queue', route: '/queue/CircularQueue', stage: 14, order: 3, lcNumber: 622, lcSlug: 'design-circular-queue', countryId: 'LK', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CircularQueue' },
-  { id: 'stage14-4', title: 'Implement Queue using Stacks', route: '/queue/QueueUsingStacks', stage: 14, order: 4, lcNumber: 232, lcSlug: 'implement-queue-using-stacks', countryId: 'MM', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'QueueUsingStacks' },
+  { id: 'stage14-1', title: 'Queue using Array (Enqueue/Dequeue)', route: '/queue/QueueBasics', stage: 14, order: 1, lcNumber: null, lcSlug: null, countryId: 'NP', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'queue-using-array' },
+  { id: 'stage14-2', title: 'Basic Queue', route: '/queue/BasicQueue', stage: 14, order: 2, lcNumber: null, lcSlug: null, countryId: 'BD', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BasicQueue', judgeId: 'basic-queue-ops' },
+  { id: 'stage14-3', title: 'Circular Queue', route: '/queue/CircularQueue', stage: 14, order: 3, lcNumber: 622, lcSlug: 'design-circular-queue', countryId: 'LK', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CircularQueue', judgeId: 'circular-queue' },
+  { id: 'stage14-4', title: 'Implement Queue using Stacks', route: '/queue/QueueUsingStacks', stage: 14, order: 4, lcNumber: 232, lcSlug: 'implement-queue-using-stacks', countryId: 'MM', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'QueueUsingStacks', judgeId: 'implement-queue-using-stacks' },
 
   // =================================================================
   // STAGE 15: Sorting (8 problems)
   // Pattern: Ordering & Comparison
   // Countries: Southeast Asia
   // =================================================================
-  { id: 'stage15-1', title: 'Quadratic Sorting (Bubble, Selection, Insertion)', route: '/sorting/QuadraticSorting', stage: 15, order: 1, lcNumber: null, lcSlug: null, countryId: 'TH', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, note: 'Compressed: O(n²) algorithms' },
-  { id: 'stage15-2', title: 'Efficient Sorting (Merge, Quick, Heap)', route: '/sorting/EfficientSorting', stage: 15, order: 2, lcNumber: 912, lcSlug: 'sort-an-array', countryId: 'VN', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true, note: 'Compressed: O(n log n) algorithms' },
-  { id: 'stage15-3', title: 'Counting Sort', route: '/sorting/CountingSort', stage: 15, order: 3, lcNumber: null, lcSlug: null, countryId: 'LA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'CountingSort' },
-  { id: 'stage15-4', title: 'Radix Sort', route: '/sorting/RadixSort', stage: 15, order: 4, lcNumber: null, lcSlug: null, countryId: 'KH', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'RadixSort' },
-  { id: 'stage15-5', title: 'Bucket Sort', route: '/sorting/BucketSort', stage: 15, order: 5, lcNumber: null, lcSlug: null, countryId: 'MY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BucketSort' },
-  { id: 'stage15-6', title: 'Shell Sort', route: '/sorting/ShellSort', stage: 15, order: 6, lcNumber: null, lcSlug: null, countryId: 'SG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ShellSort' },
-  { id: 'stage15-7', title: 'Comb Sort', route: '/sorting/CombSort', stage: 15, order: 7, lcNumber: null, lcSlug: null, countryId: 'BN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CombSort' },
-  { id: 'stage15-8', title: 'Pancake Sort', route: '/sorting/PancakeSort', stage: 15, order: 8, lcNumber: 969, lcSlug: 'pancake-sorting', countryId: 'ID', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PancakeSort' },
+  { id: 'stage15-1', title: 'Quadratic Sorting (Bubble, Selection, Insertion)', route: '/sorting/QuadraticSorting', stage: 15, order: 1, lcNumber: null, lcSlug: null, countryId: 'TH', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, note: 'Compressed: O(n²) algorithms', judgeId: 'quadratic-sorting' },
+  { id: 'stage15-2', title: 'Efficient Sorting (Merge, Quick, Heap)', route: '/sorting/EfficientSorting', stage: 15, order: 2, lcNumber: 912, lcSlug: 'sort-an-array', countryId: 'VN', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true, note: 'Compressed: O(n log n) algorithms', judgeId: 'efficient-sorting' },
+  { id: 'stage15-3', title: 'Counting Sort', route: '/sorting/CountingSort', stage: 15, order: 3, lcNumber: null, lcSlug: null, countryId: 'LA', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'CountingSort', judgeId: 'counting-sort' },
+  { id: 'stage15-4', title: 'Radix Sort', route: '/sorting/RadixSort', stage: 15, order: 4, lcNumber: null, lcSlug: null, countryId: 'KH', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'RadixSort', judgeId: 'radix-sort' },
+  { id: 'stage15-5', title: 'Bucket Sort', route: '/sorting/BucketSort', stage: 15, order: 5, lcNumber: null, lcSlug: null, countryId: 'MY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BucketSort', judgeId: 'bucket-sort' },
+  { id: 'stage15-6', title: 'Shell Sort', route: '/sorting/ShellSort', stage: 15, order: 6, lcNumber: null, lcSlug: null, countryId: 'SG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ShellSort', judgeId: 'shell-sort' },
+  { id: 'stage15-7', title: 'Comb Sort', route: '/sorting/CombSort', stage: 15, order: 7, lcNumber: null, lcSlug: null, countryId: 'BN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CombSort', judgeId: 'comb-sort' },
+  { id: 'stage15-8', title: 'Pancake Sort', route: '/sorting/PancakeSort', stage: 15, order: 8, lcNumber: 969, lcSlug: 'pancake-sorting', countryId: 'ID', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PancakeSort', judgeId: 'pancake-sort' },
 
   // =================================================================
   // STAGE 16: Heaps & Priority Queues (4 problems)
   // Pattern: Heap Property Maintenance
   // Countries: Philippines + Taiwan + East Timor + Papua New Guinea
   // =================================================================
-  { id: 'stage16-1', title: 'Heapify (Build Heap)', route: '/heaps/Heapify', stage: 16, order: 1, lcNumber: null, lcSlug: null, countryId: 'PH', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Heapify' },
-  { id: 'stage16-2', title: 'Top K Frequent Elements', route: '/heaps/TopKFrequent', stage: 16, order: 2, lcNumber: 347, lcSlug: 'top-k-frequent-elements', countryId: 'TW', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TopKFrequent' },
-  { id: 'stage16-3', title: 'Task Scheduler', route: '/heaps/TaskScheduler', stage: 16, order: 3, lcNumber: 621, lcSlug: 'task-scheduler', countryId: 'TL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TaskScheduler' },
-  { id: 'stage16-4', title: 'Maximum Gap', route: '/arrays/MaximumGap', stage: 16, order: 4, lcNumber: 164, lcSlug: 'maximum-gap', countryId: 'PG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MaximumGap' },
+  { id: 'stage16-1', title: 'Heapify (Build Heap)', route: '/heaps/Heapify', stage: 16, order: 1, lcNumber: null, lcSlug: null, countryId: 'PH', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Heapify', judgeId: 'build-heap-heapify' },
+  { id: 'stage16-2', title: 'Top K Frequent Elements', route: '/heaps/TopKFrequent', stage: 16, order: 2, lcNumber: 347, lcSlug: 'top-k-frequent-elements', countryId: 'TW', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TopKFrequent', judgeId: 'top-k-frequent' },
+  { id: 'stage16-3', title: 'Task Scheduler', route: '/heaps/TaskScheduler', stage: 16, order: 3, lcNumber: 621, lcSlug: 'task-scheduler', countryId: 'TL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TaskScheduler', judgeId: 'task-scheduler' },
+  { id: 'stage16-4', title: 'Maximum Gap', route: '/arrays/MaximumGap', stage: 16, order: 4, lcNumber: 164, lcSlug: 'maximum-gap', countryId: 'PG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MaximumGap', judgeId: 'maximum-gap' },
 
   // =================================================================
   // STAGE 17: Trees – Construction (5 problems)
@@ -319,32 +319,32 @@ export const ALL_PROBLEMS = [
   // Countries: China + Mongolia + Korea + Japan
   // INCLUDES 4 NEW BASIC PROBLEMS
   // =================================================================
-  { id: 'stage17-1', title: 'Build Binary Tree (Level Order)', route: '/trees/BuildBinaryTree', stage: 17, order: 1, lcNumber: null, lcSlug: null, countryId: 'MN', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage17-2', title: 'Search in Binary Tree', route: '/trees/SearchBinaryTree', stage: 17, order: 2, lcNumber: null, lcSlug: null, countryId: 'KP', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage17-3', title: 'Insert in Binary Search Tree', route: '/trees/InsertBST', stage: 17, order: 3, lcNumber: null, lcSlug: null, countryId: 'KR', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage17-4', title: 'Search in Binary Search Tree', route: '/trees/SearchBST', stage: 17, order: 4, lcNumber: null, lcSlug: null, countryId: 'JP', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage17-5', title: 'Construct Binary Tree from Preorder and Inorder', route: '/trees/ConstructBinaryTree', stage: 17, order: 5, lcNumber: 105, lcSlug: 'construct-binary-tree-from-preorder-and-inorder-traversal', countryId: 'CN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ConstructBinaryTree' },
+  { id: 'stage17-1', title: 'Build Binary Tree (Level Order)', route: '/trees/BuildBinaryTree', stage: 17, order: 1, lcNumber: null, lcSlug: null, countryId: 'MN', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'build-tree-level-order' },
+  { id: 'stage17-2', title: 'Search in Binary Tree', route: '/trees/SearchBinaryTree', stage: 17, order: 2, lcNumber: null, lcSlug: null, countryId: 'KP', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'search-binary-tree' },
+  { id: 'stage17-3', title: 'Insert in Binary Search Tree', route: '/trees/InsertBST', stage: 17, order: 3, lcNumber: null, lcSlug: null, countryId: 'KR', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'insert-into-bst' },
+  { id: 'stage17-4', title: 'Search in Binary Search Tree', route: '/trees/SearchBST', stage: 17, order: 4, lcNumber: null, lcSlug: null, countryId: 'JP', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'search-in-bst' },
+  { id: 'stage17-5', title: 'Construct Binary Tree from Preorder and Inorder', route: '/trees/ConstructBinaryTree', stage: 17, order: 5, lcNumber: 105, lcSlug: 'construct-binary-tree-from-preorder-and-inorder-traversal', countryId: 'CN', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ConstructBinaryTree', judgeId: 'construct-tree-pre-in' },
 
   // =================================================================
   // STAGE 18: Trees – Traversals & Properties (5 problems)
   // Pattern: Recursive Tree Processing
   // Countries: Russia (west) + Eastern Europe
   // =================================================================
-  { id: 'stage18-1', title: 'Morris Traversal (Inorder)', route: '/trees/MorrisTraversal', stage: 18, order: 1, lcNumber: 94, lcSlug: 'binary-tree-inorder-traversal', countryId: 'BY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MorrisTraversal' },
-  { id: 'stage18-2', title: 'Validate Binary Search Tree', route: '/trees/ValidateBST', stage: 18, order: 2, lcNumber: 98, lcSlug: 'validate-binary-search-tree', countryId: 'UA', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ValidateBST' },
-  { id: 'stage18-3', title: 'AVL Tree Visualizer', route: '/trees/AVLTree', stage: 18, order: 3, lcNumber: 110, lcSlug: 'balanced-binary-tree', countryId: 'PL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'AVLTree' },
-  { id: 'stage18-4', title: 'Symmetric Tree', route: '/trees/SymmetricTree', stage: 18, order: 4, lcNumber: 101, lcSlug: 'symmetric-tree', countryId: 'MD', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SymmetricTree' },
-  { id: 'stage18-5', title: 'Implement Trie (Prefix Tree)', route: '/design/ImplementTrie', stage: 18, order: 5, lcNumber: 208, lcSlug: 'implement-trie-prefix-tree', countryId: 'RO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ImplementTrie' },
+  { id: 'stage18-1', title: 'Morris Traversal (Inorder)', route: '/trees/MorrisTraversal', stage: 18, order: 1, lcNumber: 94, lcSlug: 'binary-tree-inorder-traversal', countryId: 'BY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MorrisTraversal', judgeId: 'morris-traversal-inorder' },
+  { id: 'stage18-2', title: 'Validate Binary Search Tree', route: '/trees/ValidateBST', stage: 18, order: 2, lcNumber: 98, lcSlug: 'validate-binary-search-tree', countryId: 'UA', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ValidateBST', judgeId: 'validate-bst' },
+  { id: 'stage18-3', title: 'AVL Tree Visualizer', route: '/trees/AVLTree', stage: 18, order: 3, lcNumber: 110, lcSlug: 'balanced-binary-tree', countryId: 'PL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'AVLTree', judgeId: 'avl-tree-visualizer' },
+  { id: 'stage18-4', title: 'Symmetric Tree', route: '/trees/SymmetricTree', stage: 18, order: 4, lcNumber: 101, lcSlug: 'symmetric-tree', countryId: 'MD', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SymmetricTree', judgeId: 'symmetric-tree' },
+  { id: 'stage18-5', title: 'Implement Trie (Prefix Tree)', route: '/design/ImplementTrie', stage: 18, order: 5, lcNumber: 208, lcSlug: 'implement-trie-prefix-tree', countryId: 'RO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ImplementTrie', judgeId: 'implement-trie' },
 
   // =================================================================
   // STAGE 19: Trees – Views & Transformations (4 problems)
   // Pattern: Level-wise & Path Processing
   // Countries: Central Europe (Balkans + Hungary + Czech)
   // =================================================================
-  { id: 'stage19-1', title: 'Binary Tree Right Side View', route: '/trees/BinaryTreeRightSideView', stage: 19, order: 1, lcNumber: 199, lcSlug: 'binary-tree-right-side-view', countryId: 'HU', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BinaryTreeRightSideView' },
-  { id: 'stage19-2', title: 'Print Binary Tree', route: '/trees/PrintBinaryTree', stage: 19, order: 2, lcNumber: 655, lcSlug: 'print-binary-tree', countryId: 'CZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PrintBinaryTree' },
-  { id: 'stage19-3', title: 'LCA of Deepest Leaves', route: '/trees/LCAofDeepestLeaves', stage: 19, order: 3, lcNumber: 1123, lcSlug: 'lowest-common-ancestor-of-deepest-leaves', countryId: 'SK', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LCAofDeepestLeaves' },
-  { id: 'stage19-4', title: 'Flatten Binary Tree to Linked List', route: '/trees/FlattenBinaryTree', stage: 19, order: 4, lcNumber: 114, lcSlug: 'flatten-binary-tree-to-linked-list', countryId: 'AT', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FlattenBinaryTree' },
+  { id: 'stage19-1', title: 'Binary Tree Right Side View', route: '/trees/BinaryTreeRightSideView', stage: 19, order: 1, lcNumber: 199, lcSlug: 'binary-tree-right-side-view', countryId: 'HU', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BinaryTreeRightSideView', judgeId: 'binary-tree-right-side-view' },
+  { id: 'stage19-2', title: 'Print Binary Tree', route: '/trees/PrintBinaryTree', stage: 19, order: 2, lcNumber: 655, lcSlug: 'print-binary-tree', countryId: 'CZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PrintBinaryTree', judgeId: 'print-binary-tree' },
+  { id: 'stage19-3', title: 'LCA of Deepest Leaves', route: '/trees/LCAofDeepestLeaves', stage: 19, order: 3, lcNumber: 1123, lcSlug: 'lowest-common-ancestor-of-deepest-leaves', countryId: 'SK', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LCAofDeepestLeaves', judgeId: 'lca-deepest-leaves' },
+  { id: 'stage19-4', title: 'Flatten Binary Tree to Linked List', route: '/trees/FlattenBinaryTree', stage: 19, order: 4, lcNumber: 114, lcSlug: 'flatten-binary-tree-to-linked-list', countryId: 'AT', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FlattenBinaryTree', judgeId: 'flatten-binary-tree' },
 
   // =================================================================
   // STAGE 20: Graphs & Grids (9 problems)
