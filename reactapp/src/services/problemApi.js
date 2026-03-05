@@ -92,3 +92,15 @@ export async function fetchAllProgress() {
   if (!res.ok) throw new Error("Failed to fetch user progress");
   return res.json();
 }
+
+/**
+ * Fetch aggregate problem stats for the current user.
+ * Returns { solved, attempted, notStarted, total } or null if not logged in.
+ */
+export async function fetchProgressStats() {
+  const userId = getCurrentUserId();
+  if (!userId) return null;
+  const res = await fetch(`${API_BASE_URL}/api/progress/stats?userId=${userId}`);
+  if (!res.ok) throw new Error("Failed to fetch progress stats");
+  return res.json();
+}

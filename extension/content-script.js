@@ -225,18 +225,53 @@ if (location.hostname !== 'localhost') {
 // ── Auth state (populated from injected.js via lc-vantage-user) ──────────────
 let currentLcUser = null; // current LC session username (live from page)
 
-window.addEventListener('lc-vantage-user', (e) => {
-    currentLcUser = e.detail.isSignedIn ? (e.detail.username || null) : null;
+/** Process a user-status payload (from event or DOM fallback). */
+function handleLcUser(detail) {
+    if (!detail) return;
+    currentLcUser = detail.isSignedIn ? (detail.username || null) : null;
     console.log('[Vantage] LC session:', currentLcUser ?? '(not signed in)');
 
-    // Persist to chrome.storage so the popup can read it reliably.
-    // The popup runs in the extension's own origin and cannot reliably
-    // attach LeetCode cookies to its own fetch calls, so we bridge the
-    // session info through storage instead.
     if (currentLcUser) {
         safeStorageSet({ lcSessionUser: currentLcUser });
     } else {
         safeStorageRemove(['lcSessionUser']);
+    }
+}
+
+window.addEventListener('lc-vantage-user', (e) => {
+    handleLcUser(e.detail);
+});
+
+// ── Recover from the injected.js ↔ content-script race condition ─────────────
+// injected.js (document_start, MAIN world) may have dispatched lc-vantage-user
+// BEFORE this script (document_idle, ISOLATED world) registered the listener
+// above.  Two recovery strategies:
+//   1. Read the data attribute that injected.js persisted to the DOM.
+//   2. Dispatch a re-request event so injected.js re-emits lc-vantage-user.
+(function recoverMissedUserEvent() {
+    if (currentLcUser) return; // already have it
+    try {
+        const raw = document.documentElement.dataset.lcVantageUser;
+        if (raw) {
+            const detail = JSON.parse(raw);
+            handleLcUser(detail);
+            console.log('[Vantage] Recovered LC user from DOM data attribute.');
+            return;
+        }
+    } catch { /* malformed JSON — fall through */ }
+
+    // Ask injected.js (MAIN world) to re-dispatch the event
+    window.dispatchEvent(new CustomEvent('lc-vantage-user-request'));
+})();
+
+// ── Message handler: let the popup query the LC session from this tab ────────
+// The popup can't reliably send credentialed requests to leetcode.com in MV3,
+// so it asks the content-script running inside a real LeetCode tab instead.
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (_contextDead) return false;
+    if (msg.action === 'getLcSessionUser') {
+        sendResponse({ lcSessionUser: currentLcUser });
+        return false; // synchronous
     }
 });
 

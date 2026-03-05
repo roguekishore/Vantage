@@ -143,6 +143,33 @@ async function fetchUserFromContentScript() {
     return null;
 }
 
+/**
+ * Ask the content-script running inside a LeetCode tab for the current
+ * LC session user.  This is far more reliable than the popup making a
+ * direct GraphQL query (which often fails in MV3 because cookies from
+ * leetcode.com aren't attached to requests from the extension's origin).
+ */
+async function fetchLcSessionFromContentScript() {
+    try {
+        const tabs = await chrome.tabs.query({ url: 'https://leetcode.com/*' });
+        for (const tab of tabs) {
+            try {
+                const resp = await chrome.tabs.sendMessage(
+                    tab.id, { action: 'getLcSessionUser' });
+                if (resp && resp.lcSessionUser) {
+                    console.log('[Vantage] Got LC session from content-script:', resp.lcSessionUser);
+                    // Update chrome.storage so future opens are instant
+                    chrome.storage.local.set({ lcSessionUser: resp.lcSessionUser });
+                    return resp.lcSessionUser;
+                }
+            } catch { /* content-script not ready in this tab */ }
+        }
+    } catch (err) {
+        console.warn('[Vantage] LC tab query failed:', err);
+    }
+    return null;
+}
+
 async function checkAuthStatus() {
     // chrome.storage now stores uid, lcusername, and sessionToken, kept fresh
     // by the content-script running on localhost:3000.
@@ -213,10 +240,10 @@ async function checkAuthStatus() {
     }
 
     // ── Detect the live LeetCode session ─────────────────────────────────
-    // Primary: read the cached value written by the content-script running
-    // inside an actual LeetCode tab (has full cookie access → reliable).
-    // Fallback: try a direct GraphQL query from the popup (unreliable in
-    // MV3 because the popup's origin can't always attach LC cookies).
+    // Priority chain (most → least reliable):
+    //   1. Cached lcSessionUser in chrome.storage (written by LeetCode content-script)
+    //   2. Ask a LeetCode tab's content-script directly (new — reliable in MV3)
+    //   3. Direct GraphQL query from the popup (least reliable — MV3 cookie issues)
     let lcSessionUser = null;
     try {
         const { lcSessionUser: cached } =
@@ -224,11 +251,18 @@ async function checkAuthStatus() {
         if (cached) {
             lcSessionUser = cached;
         } else {
-            // No cached value — try direct query as a fallback
-            const data = await lcQuery(
-                `query userStatus { userStatus { username isSignedIn } }`);
-            const { username, isSignedIn } = data.data.userStatus;
-            if (isSignedIn && username) lcSessionUser = username;
+            // Ask a live LeetCode tab's content-script (much more reliable
+            // than a direct GraphQL query from the popup in MV3).
+            const fromTab = await fetchLcSessionFromContentScript();
+            if (fromTab) {
+                lcSessionUser = fromTab;
+            } else {
+                // Last resort: direct query (cookies may not be attached)
+                const data = await lcQuery(
+                    `query userStatus { userStatus { username isSignedIn } }`);
+                const { username, isSignedIn } = data.data.userStatus;
+                if (isSignedIn && username) lcSessionUser = username;
+            }
         }
     } catch { /* LeetCode unreachable and nothing cached */ }
     setSessionUser(lcSessionUser);

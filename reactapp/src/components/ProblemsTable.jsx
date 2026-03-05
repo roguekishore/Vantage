@@ -28,6 +28,7 @@ import {
 import {
   Dialog, DialogContent,
 } from "./ui/dialog";
+import { fetchProgressStats } from "../services/problemApi";
 
 /* ── Constants ────────────────────────────────────────────────────── */
 
@@ -139,6 +140,9 @@ export default function ProblemsTable({
   const [detailLoading, setDetailLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
+  /* ── Server-side stats (solved / attempted counts) ───────────── */
+  const [userStats, setUserStats] = useState(null);
+
   /* ── Judge-only: client-side filter state ─────────────────────── */
   const [judgeDiffFilter, setJudgeDiffFilter] = useState("All");
 
@@ -219,6 +223,12 @@ export default function ProblemsTable({
     if (fetchStagesFn) fetchStagesFn().then(setStages).catch(() => { });
   }, [fetchStagesFn]);
 
+  /* ── Fetch user stats once (spring only) ─────────────────────── */
+  useEffect(() => {
+    if (source !== "spring") return;
+    fetchProgressStats().then(setUserStats).catch(() => { });
+  }, [source]);
+
   /* ── Judge: client-filtered list ──────────────────────────────── */
   const filteredJudge = useMemo(() => {
     if (source !== "judge") return [];
@@ -286,25 +296,28 @@ export default function ProblemsTable({
   /* ── Stats for header ──────────────────────────────────────────── */
   const solvedCount = useMemo(() => {
     if (source === "spring") {
-      return Object.values(progressMap).filter(v => (v?.status || v) === "SOLVED").length;
+      // Use the server-side aggregate count (covers all problems, not just loaded page)
+      if (userStats) return Number(userStats.solved ?? 0);
+      return 0;
     }
     return problems.filter(p => {
       const id = p.pid ?? p.id;
       const s = progressMap[id];
       return (s?.status || s) === "SOLVED";
     }).length;
-  }, [source, problems, progressMap]);
+  }, [source, problems, progressMap, userStats]);
 
   const attemptedCount = useMemo(() => {
     if (source === "spring") {
-      return Object.values(progressMap).filter(v => (v?.status || v) === "ATTEMPTED").length;
+      if (userStats) return Number(userStats.attempted ?? 0);
+      return 0;
     }
     return problems.filter(p => {
       const id = p.pid ?? p.id;
       const s = progressMap[id];
       return (s?.status || s) === "ATTEMPTED";
     }).length;
-  }, [source, problems, progressMap]);
+  }, [source, problems, progressMap, userStats]);
 
   /* ═══════════════════════════════════════════════════════════════════
      RENDER
