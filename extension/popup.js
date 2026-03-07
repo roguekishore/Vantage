@@ -173,8 +173,8 @@ async function fetchLcSessionFromContentScript() {
 async function checkAuthStatus() {
     // chrome.storage now stores uid, lcusername, and sessionToken, kept fresh
     // by the content-script running on localhost:3000.
-    let { lcusername: storedLc, uid: storedUid, sessionToken: storedToken } =
-        await chrome.storage.local.get(['lcusername', 'uid', 'sessionToken']);
+    let { lcusername: storedLc, uid: storedUid, sessionToken: storedToken, token: storedJwt } =
+        await chrome.storage.local.get(['lcusername', 'uid', 'sessionToken', 'token']);
 
     // ── Fallback: if chrome.storage is empty, ask the content-script directly
     if (storedUid == null) {
@@ -183,10 +183,12 @@ async function checkAuthStatus() {
             storedUid   = direct.uid;
             storedLc    = direct.lcusername;
             storedToken = direct.sessionToken;
+            storedJwt   = direct.token;
             // Persist to chrome.storage so future opens are instant
             const update = { uid: storedUid };
             if (storedLc) update.lcusername = storedLc;
             if (storedToken) update.sessionToken = storedToken;
+            if (storedJwt) update.token = storedJwt;
             chrome.storage.local.set(update);
         }
     }
@@ -214,7 +216,7 @@ async function checkAuthStatus() {
                 }
             } else {
                 // User doesn't exist in backend (deleted?) — clear everything
-                chrome.storage.local.remove(['lcusername', 'uid', 'sessionToken']);
+                chrome.storage.local.remove(['lcusername', 'uid', 'sessionToken', 'token']);
             }
         } catch {
             backendOnline = false;
@@ -232,7 +234,7 @@ async function checkAuthStatus() {
             if (res.ok) {
                 linked = storedLc;
             } else {
-                chrome.storage.local.remove(['lcusername', 'uid', 'sessionToken']);
+                chrome.storage.local.remove(['lcusername', 'uid', 'sessionToken', 'token']);
             }
         } catch {
             backendOnline = false;
@@ -323,7 +325,7 @@ async function checkAuthStatus() {
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && (
         changes.lcusername || changes.uid ||
-        changes.sessionToken || changes.lcSessionUser
+        changes.sessionToken || changes.token || changes.lcSessionUser
     )) {
         checkAuthStatus();
     }
@@ -387,9 +389,10 @@ document.getElementById("syncBtn").addEventListener("click", async () => {
 
         // 3. Push directly to our backend (with Bearer token for authentication)
         try {
-            const { sessionToken } = await chrome.storage.local.get(['sessionToken']);
+            const { token: jwtToken, sessionToken } = await chrome.storage.local.get(['token', 'sessionToken']);
             const headers = { "Content-Type": "application/json" };
-            if (sessionToken) headers["Authorization"] = `Bearer ${sessionToken}`;
+            const authToken = jwtToken || sessionToken;
+            if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
 
             const backendRes = await fetch(SPRING_BOOT_URL, {
                 method: "POST",
@@ -399,11 +402,12 @@ document.getElementById("syncBtn").addEventListener("click", async () => {
 
             if (backendRes.ok) {
                 // Backend confirmed — now persist lcusername to chrome.storage.
-                const { uid: existingUid, sessionToken: existingToken } =
-                    await chrome.storage.local.get(['uid', 'sessionToken']);
+                const { uid: existingUid, sessionToken: existingToken, token: existingJwt } =
+                    await chrome.storage.local.get(['uid', 'sessionToken', 'token']);
                 const storageUpdate = { lcusername: username };
                 if (existingUid != null) storageUpdate.uid = existingUid;
                 if (existingToken) storageUpdate.sessionToken = existingToken;
+                if (existingJwt) storageUpdate.token = existingJwt;
                 chrome.storage.local.set(storageUpdate);
 
                 setLinkedUser(username);

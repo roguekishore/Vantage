@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.backend.springapp.common.JwtUtil;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -19,16 +22,27 @@ public class UserService {
     private final UserRepository userRepository;
     private final InstitutionRepository institutionRepository;
     private final UserProgressRepository progressRepository;
+    private final JwtUtil jwtUtil;
+
+    /** BCrypt encoder for password hashing (Phase 1). */
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
     // ─── Mapping ─────────────────────────────────────────────────────────────
 
+    /** Map User → response DTO (no JWT token). Used by CRUD endpoints. */
     private UserResponseDTO toResponse(User user) {
+        return toResponse(user, null);
+    }
+
+    /** Map User → response DTO with optional JWT token. Used by login/signup. */
+    private UserResponseDTO toResponse(User user, String jwtToken) {
         UserResponseDTO dto = new UserResponseDTO();
         dto.setUid(user.getUid());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setLcusername(user.getLcusername());
         dto.setSessionToken(user.getSessionToken());
+        dto.setToken(jwtToken); // Phase 2: null for non-auth calls, populated for login/signup
         dto.setGraduationYear(user.getGraduationYear());
         dto.setRating(user.getRating());
         if (user.getInstitution() != null) {
@@ -65,7 +79,7 @@ public class UserService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setLcusername(dto.getLcusername());
         user.setGraduationYear(dto.getGraduationYear());
         if (dto.getInstitutionId() != null) {
@@ -92,7 +106,7 @@ public class UserService {
 
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setLcusername(dto.getLcusername());
         user.setGraduationYear(dto.getGraduationYear());
         if (dto.getInstitutionId() != null) {
@@ -122,7 +136,12 @@ public class UserService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
-        if (!user.getPassword().equals(dto.getPassword())) {
+        if (passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            // Already BCrypt-hashed — good
+        } else if (user.getPassword().equals(dto.getPassword())) {
+            // Legacy plain-text password — hash it now (auto-migration)
+            user.setPassword(passwordEncoder.encode(dto.getPassword()));
+        } else {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
@@ -130,7 +149,9 @@ public class UserService {
         user.setSessionToken(UUID.randomUUID().toString());
         userRepository.save(user);
 
-        return toResponse(user);
+        // Phase 2: dual-issue JWT alongside the legacy sessionToken
+        String jwt = jwtUtil.generateToken(user.getUid(), user.getUsername(), user.getEmail());
+        return toResponse(user, jwt);
     }
 
     /**
@@ -158,7 +179,7 @@ public class UserService {
         User user = new User();
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
-        user.setPassword(dto.getPassword());
+        user.setPassword(passwordEncoder.encode(dto.getPassword()));
         user.setSessionToken(UUID.randomUUID().toString());
         if (dto.getLcusername() != null && !dto.getLcusername().isBlank()) {
             user.setLcusername(dto.getLcusername().trim());
@@ -170,6 +191,9 @@ public class UserService {
             user.setInstitution(institution);
         }
 
-        return toResponse(userRepository.save(user));
+        User saved = userRepository.save(user);
+        // Phase 2: dual-issue JWT alongside the legacy sessionToken
+        String jwt = jwtUtil.generateToken(saved.getUid(), saved.getUsername(), saved.getEmail());
+        return toResponse(saved, jwt);
     }
 }

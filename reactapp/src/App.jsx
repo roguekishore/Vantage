@@ -22,6 +22,7 @@ import useUserStore from "./stores/useUserStore";
 import useGamificationStore from "./stores/useGamificationStore";
 import useAchievementStore from "./stores/useAchievementStore";
 import useProgressStore from "./map/useProgressStore";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const ProblemsPage = lazy(() => import("./pages/judge/ProblemsPage"));
 const JudgePage = lazy(() => import("./pages/judge/JudgePage"));
@@ -147,19 +148,19 @@ function AppContent() {
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/store" element={<StorePage />} />
-          <Route path="/inventory" element={<InventoryPage />} />
+          <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/store" element={<ProtectedRoute><StorePage /></ProtectedRoute>} />
+          <Route path="/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
           <Route path="/leaderboard" element={<LeaderboardPage />} />
-          <Route path="/battle" element={<BattleLobbyPage />} />
-          <Route path="/battle/match/:battleId" element={<BattleArenaPage />} />
-          <Route path="/battle/result/:battleId" element={<BattleResultPage />} />
-          <Route path="/achievements" element={<AchievementsPage />} />
-          <Route path="/group" element={<GroupLobbyPage />} />
-          <Route path="/group/:roomCode" element={<GroupLobbyPage />} />
-          <Route path="/group/match/:battleId" element={<GroupArenaPage />} />
-          <Route path="/group/result/:battleId" element={<GroupResultPage />} />
-          <Route path="/map" element={<WorldMap />} />
+          <Route path="/battle" element={<ProtectedRoute><BattleLobbyPage /></ProtectedRoute>} />
+          <Route path="/battle/match/:battleId" element={<ProtectedRoute><BattleArenaPage /></ProtectedRoute>} />
+          <Route path="/battle/result/:battleId" element={<ProtectedRoute><BattleResultPage /></ProtectedRoute>} />
+          <Route path="/achievements" element={<ProtectedRoute><AchievementsPage /></ProtectedRoute>} />
+          <Route path="/group" element={<ProtectedRoute><GroupLobbyPage /></ProtectedRoute>} />
+          <Route path="/group/:roomCode" element={<ProtectedRoute><GroupLobbyPage /></ProtectedRoute>} />
+          <Route path="/group/match/:battleId" element={<ProtectedRoute><GroupArenaPage /></ProtectedRoute>} />
+          <Route path="/group/result/:battleId" element={<ProtectedRoute><GroupResultPage /></ProtectedRoute>} />
+          <Route path="/map" element={<ProtectedRoute><WorldMap /></ProtectedRoute>} />
           <Route path="/problems" element={<ProblemListPage />} />
           <Route path="/judge" element={<ProblemsPage />} />
           <Route path="/judge/:problemId" element={<JudgePage />} />

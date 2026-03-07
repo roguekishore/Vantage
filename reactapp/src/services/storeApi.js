@@ -1,15 +1,11 @@
-const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api";
+import { authFetch, API_BASE } from "./api";
 
 /**
  * Fetch all active store items.
- * Optionally includes owned count when userId is provided.
- * Returns: StoreItemDTO[]
+ * JWT identifies the current user for owned-count enrichment.
  */
 export async function fetchStoreItems(userId) {
-  const url = userId
-    ? `${API_BASE}/store?userId=${userId}`
-    : `${API_BASE}/store`;
-  const res = await fetch(url);
+  const res = await authFetch(`${API_BASE}/store`);
   if (!res.ok) throw new Error("Failed to fetch store items");
   return res.json();
 }
@@ -19,7 +15,7 @@ export async function fetchStoreItems(userId) {
  * Returns: BuyItemResponse { itemName, quantityBought, totalOwned, coinsSpent, coinsRemaining }
  */
 export async function buyItem(userId, itemId, quantity = 1) {
-  const res = await fetch(`${API_BASE}/store/buy?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/store/buy`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ itemId, quantity }),
@@ -36,7 +32,7 @@ export async function buyItem(userId, itemId, quantity = 1) {
  * Returns: InventoryItemDTO[]
  */
 export async function fetchInventory(userId) {
-  const res = await fetch(`${API_BASE}/inventory?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/inventory`);
   if (!res.ok) throw new Error("Failed to fetch inventory");
   return res.json();
 }

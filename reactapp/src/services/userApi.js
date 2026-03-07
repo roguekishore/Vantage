@@ -1,4 +1,4 @@
-const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api";
+import { authFetch, API_BASE } from "./api";
 
 /**
  * Get the current logged-in user from localStorage.
@@ -17,7 +17,7 @@ export function getStoredUser() {
  * Fetch user stats (solved, attempted, notStarted, total).
  */
 export async function fetchUserStats(userId) {
-  const res = await fetch(`${API_BASE}/progress/stats?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/progress/stats`);
   if (!res.ok) throw new Error("Failed to fetch user stats");
   return res.json();
 }
@@ -26,7 +26,7 @@ export async function fetchUserStats(userId) {
  * Fetch user profile by ID.
  */
 export async function fetchUserProfile(userId) {
-  const res = await fetch(`${API_BASE}/users/${userId}`);
+  const res = await authFetch(`${API_BASE}/users/${userId}`);
   if (!res.ok) throw new Error("Failed to fetch user profile");
   return res.json();
 }

@@ -1,10 +1,13 @@
+import { authFetch } from "./api";
+
 const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api/battle";
 
 /**
  * Join the matchmaking queue.
+ * Body still includes userId for backward compat; JWT authenticates the request.
  */
 export async function joinQueue({ userId, mode, difficulty, problemCount }) {
-  const res = await fetch(`${API_BASE}/queue`, {
+  const res = await authFetch(`${API_BASE}/queue`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, mode, difficulty, problemCount }),
@@ -20,7 +23,7 @@ export async function joinQueue({ userId, mode, difficulty, problemCount }) {
  * Poll queue status.
  */
 export async function fetchQueueStatus(userId) {
-  const res = await fetch(`${API_BASE}/queue/status?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/queue/status`);
   if (!res.ok) throw new Error("Failed to fetch queue status");
   return res.json();
 }
@@ -29,7 +32,7 @@ export async function fetchQueueStatus(userId) {
  * Leave the matchmaking queue.
  */
 export async function leaveQueue(userId) {
-  const res = await fetch(`${API_BASE}/queue?userId=${userId}`, { method: "DELETE" });
+  const res = await authFetch(`${API_BASE}/queue`, { method: "DELETE" });
   if (!res.ok) throw new Error("Failed to leave queue");
 }
 
@@ -37,7 +40,7 @@ export async function leaveQueue(userId) {
  * Get battle lobby details.
  */
 export async function fetchBattle(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/${battleId}`);
   if (!res.ok) throw new Error("Failed to fetch battle");
   return res.json();
 }
@@ -46,7 +49,7 @@ export async function fetchBattle(battleId, userId) {
  * Ready up in lobby.
  */
 export async function readyUp(battleId, { userId, language }) {
-  const res = await fetch(`${API_BASE}/${battleId}/ready`, {
+  const res = await authFetch(`${API_BASE}/${battleId}/ready`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, language }),
@@ -62,7 +65,7 @@ export async function readyUp(battleId, { userId, language }) {
  * Poll battle state during active battle.
  */
 export async function fetchBattleState(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}/state?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/${battleId}/state`);
   if (!res.ok) throw new Error("Failed to fetch battle state");
   return res.json();
 }
@@ -71,7 +74,7 @@ export async function fetchBattleState(battleId, userId) {
  * Submit code in a battle.
  */
 export async function submitBattleCode(battleId, { userId, problemIndex, language, code }) {
-  const res = await fetch(`${API_BASE}/${battleId}/submit`, {
+  const res = await authFetch(`${API_BASE}/${battleId}/submit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, problemIndex, language, code }),
@@ -87,7 +90,7 @@ export async function submitBattleCode(battleId, { userId, problemIndex, languag
  * Get battle results.
  */
 export async function fetchBattleResult(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}/result?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/${battleId}/result`);
   if (!res.ok) throw new Error("Failed to fetch battle result");
   return res.json();
 }
@@ -96,7 +99,7 @@ export async function fetchBattleResult(battleId, userId) {
  * Forfeit a battle.
  */
 export async function forfeitBattle(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}/forfeit?userId=${userId}`, { method: "POST" });
+  const res = await authFetch(`${API_BASE}/${battleId}/forfeit`, { method: "POST" });
   if (!res.ok) throw new Error("Failed to forfeit");
 }
 
@@ -104,7 +107,7 @@ export async function forfeitBattle(battleId, userId) {
  * Abandon a stuck/stale battle (force-complete it).
  */
 export async function abandonBattle(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}/abandon?userId=${userId}`, { method: "POST" });
+  const res = await authFetch(`${API_BASE}/${battleId}/abandon`, { method: "POST" });
   if (!res.ok) throw new Error("Failed to abandon battle");
 }
 
@@ -115,7 +118,7 @@ export async function abandonBattle(battleId, userId) {
  * @param {number} size - items per page
  */
 export async function fetchBattleHistory(userId, page = 0, size = 20) {
-  const res = await fetch(`${API_BASE}/history?userId=${userId}&page=${page}&size=${size}`);
+  const res = await authFetch(`${API_BASE}/history?page=${page}&size=${size}`);
   if (!res.ok) throw new Error("Failed to fetch battle history");
   return res.json();
 }

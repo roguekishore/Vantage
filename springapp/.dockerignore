@@ -1,0 +1,20 @@
+# Build outputs (rebuilt inside the container)
+target/
+
+# IDE / editor
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Docs (not needed in the image)
+*.md

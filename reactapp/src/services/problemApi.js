@@ -4,22 +4,7 @@
  * filtering, pagination, sorting, detail retrieval, and user progress.
  */
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:8080";
-
-/**
- * Get the current logged-in user's ID from localStorage.
- * Returns null if not logged in.
- */
-function getCurrentUserId() {
-  try {
-    const raw = localStorage.getItem("user");
-    const user = raw ? JSON.parse(raw) : null;
-    // Backend UserResponseDTO uses 'uid'; fall back to 'id' for safety
-    return user?.uid ?? user?.id ?? null;
-  } catch {
-    return null;
-  }
-}
+import { authFetch, API_BASE, getCurrentUserId } from "./api";
 
 /**
  * Fetch paginated problems with optional filters.
@@ -37,24 +22,20 @@ function getCurrentUserId() {
  * @returns {Promise<Object>} Spring Boot Page response
  */
 export async function fetchProblems({ page = 0, size = 20, sort = "pid,asc", stage, tag, status, keyword } = {}) {
-  const userId = getCurrentUserId();
-
   // If keyword is provided, use the search endpoint
   if (keyword && keyword.trim()) {
     const params = new URLSearchParams({ keyword: keyword.trim(), page, size, sort });
-    if (userId) params.append("userId", userId);
-    const res = await fetch(`${API_BASE_URL}/api/problems/search?${params}`);
+    const res = await authFetch(`${API_BASE}/problems/search?${params}`);
     if (!res.ok) throw new Error("Failed to search problems");
     return res.json();
   }
 
   const params = new URLSearchParams({ page, size, sort });
-  if (userId) params.append("userId", userId);
   if (stage) params.append("stage", stage);
   if (tag) params.append("tag", tag);
   if (status) params.append("status", status);
 
-  const res = await fetch(`${API_BASE_URL}/api/problems?${params}`);
+  const res = await authFetch(`${API_BASE}/problems?${params}`);
   if (!res.ok) throw new Error("Failed to fetch problems");
   return res.json();
 }
@@ -65,7 +46,7 @@ export async function fetchProblems({ page = 0, size = 20, sort = "pid,asc", sta
  * @returns {Promise<Object>} ProblemResponseDTO
  */
 export async function fetchProblemById(id) {
-  const res = await fetch(`${API_BASE_URL}/api/problems/${id}`);
+  const res = await authFetch(`${API_BASE}/problems/${id}`);
   if (!res.ok) throw new Error(`Failed to fetch problem: ${id}`);
   return res.json();
 }
@@ -75,7 +56,7 @@ export async function fetchProblemById(id) {
  * @returns {Promise<string[]>} Sorted list of stage names
  */
 export async function fetchStages() {
-  const res = await fetch(`${API_BASE_URL}/api/stages`);
+  const res = await authFetch(`${API_BASE}/stages`);
   if (!res.ok) throw new Error("Failed to fetch stages");
   return res.json();
 }
@@ -88,7 +69,7 @@ export async function fetchStages() {
 export async function fetchAllProgress() {
   const userId = getCurrentUserId();
   if (!userId) return {};
-  const res = await fetch(`${API_BASE_URL}/api/progress?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/progress`);
   if (!res.ok) throw new Error("Failed to fetch user progress");
   return res.json();
 }
@@ -100,7 +81,7 @@ export async function fetchAllProgress() {
 export async function fetchProgressStats() {
   const userId = getCurrentUserId();
   if (!userId) return null;
-  const res = await fetch(`${API_BASE_URL}/api/progress/stats?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/progress/stats`);
   if (!res.ok) throw new Error("Failed to fetch progress stats");
   return res.json();
 }

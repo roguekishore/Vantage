@@ -27,11 +27,11 @@ function flashBadge(text, color, ms = 4000) {
 
 // ── Backend calls ─────────────────────────────────────────────────────────────
 
-/** Read the session token from chrome.storage.local. */
+/** Read the auth token from chrome.storage.local (JWT preferred, sessionToken fallback). */
 function getSessionToken() {
     return new Promise(resolve => {
-        chrome.storage.local.get(['sessionToken'], ({ sessionToken }) => {
-            resolve(sessionToken || null);
+        chrome.storage.local.get(['token', 'sessionToken'], ({ token, sessionToken }) => {
+            resolve(token || sessionToken || null);
         });
     });
 }
