@@ -41,10 +41,15 @@ const useUserStore = create((set) => ({
    * Call on logout.
    * Removes the user from localStorage AND the store so all subscribers
    * see the logged-out state without a page refresh.
+   * Also signals the Chrome extension to clear its stored credentials.
    */
   clearUser: () => {
     localStorage.removeItem("user");
     set({ user: null });
+    // Notify the Chrome extension (content-script listens for this)
+    try {
+      window.postMessage({ type: 'VANTAGE_LOGOUT' }, '*');
+    } catch { /* SSR / non-browser */ }
   },
 
   /**

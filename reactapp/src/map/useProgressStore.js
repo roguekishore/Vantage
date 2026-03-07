@@ -66,6 +66,8 @@ import {
   STATS,
 } from '../data/dsa-conquest-map';
 
+import { authFetch, getToken } from '../services/api';
+
 // Re-export everything from the data source for backward compatibility
 export {
   ALL_PROBLEMS,
@@ -125,13 +127,13 @@ export const toFrontendId = (backendPid) => _pidToFrontendId[backendPid] ?? null
 const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:8080') + '/api';
 
 async function apiFetchProgress(userId) {
-  const res = await fetch(`${API_BASE}/progress?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/progress`);
   if (!res.ok) throw new Error('Failed to fetch progress');
   return res.json();
 }
 
 async function apiMarkSolved(userId, backendPid) {
-  const res = await fetch(`${API_BASE}/progress/${backendPid}/solve?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/progress/${backendPid}/solve`, {
     method: 'POST',
   });
   if (!res.ok) throw new Error('Failed to mark solved');
@@ -139,7 +141,7 @@ async function apiMarkSolved(userId, backendPid) {
 }
 
 async function apiMarkAttempted(userId, backendPid) {
-  const res = await fetch(`${API_BASE}/progress/${backendPid}/attempt?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/progress/${backendPid}/attempt`, {
     method: 'POST',
   });
   if (!res.ok) throw new Error('Failed to mark attempted');
@@ -203,7 +205,7 @@ const useProgressStore = create((set, get) => ({
     // Tear down any stale / closed connection before creating a new one
     existing?.close();
 
-    const es = new EventSource(`${API_BASE}/progress/stream?userId=${userId}`);
+    const es = new EventSource(`${API_BASE}/progress/stream?token=${encodeURIComponent(getToken() || '')}`);
     set({ _eventSource: es });
 
     es.addEventListener('connected', () => {
@@ -242,7 +244,7 @@ const useProgressStore = create((set, get) => ({
           try {
             const user = JSON.parse(localStorage.getItem('user'));
             if (user?.uid) {
-              fetch(`${API_BASE}/users/${user.uid}`)
+              authFetch(`${API_BASE}/users/${user.uid}`)
                 .then(r => r.ok ? r.json() : null)
                 .then(profile => {
                   if (profile) {
@@ -322,7 +324,7 @@ const useProgressStore = create((set, get) => ({
 
       // Refresh user rating in localStorage
       try {
-        const profileRes = await fetch(`${API_BASE.replace('/api', '')}/api/users/${user.uid}`);
+        const profileRes = await authFetch(`${API_BASE}/users/${user.uid}`);
         if (profileRes.ok) {
           const profile = await profileRes.json();
           localStorage.setItem('user', JSON.stringify({ ...user, rating: profile.rating }));

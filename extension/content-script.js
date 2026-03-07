@@ -81,7 +81,7 @@ function safeSendMessage(msg) {
     catch { markContextDead(); }
 }
 
-const STORAGE_KEYS = ['lcusername', 'uid', 'sessionToken'];
+const STORAGE_KEYS = ['lcusername', 'uid', 'sessionToken', 'token'];
 
 // ── Localhost-only: keep chrome.storage in sync with the React ──────────────
 // app's localStorage so the popup always shows the correct linked user.
@@ -98,13 +98,14 @@ if (location.hostname === 'localhost') {
     async function syncLcUsernameFromApp() {
         if (_contextDead) return;
 
-        let lcusername, uid, sessionToken;
+        let lcusername, uid, sessionToken, token;
         try {
             const raw = localStorage.getItem('user');
             const user = raw ? JSON.parse(raw) : null;
             lcusername   = user?.lcusername   || null;
             uid          = user?.uid          ?? null;
             sessionToken = user?.sessionToken || null;
+            token        = user?.token        || null;
         } catch {
             return; // localStorage not available / corrupt JSON
         }
@@ -115,10 +116,13 @@ if (location.hostname === 'localhost') {
         // Only write when the value actually changed
         if (prev.lcusername === lcusername &&
             prev.uid === uid &&
-            prev.sessionToken === sessionToken) return;
+            prev.sessionToken === sessionToken &&
+            prev.token === token) return;
 
-        if (uid != null && sessionToken) {
-            const update = { uid, sessionToken };
+        if (uid != null && (token || sessionToken)) {
+            const update = { uid };
+            if (sessionToken) update.sessionToken = sessionToken;
+            if (token) update.token = token;
             if (lcusername) update.lcusername = lcusername;
             safeStorageSet(update);
             // If lcusername was removed (e.g. cleared in profile), drop it from storage
@@ -139,9 +143,12 @@ if (location.hostname === 'localhost') {
         if (e.data?.type === 'VANTAGE_LOGIN') {
             const lc    = e.data.lcusername  || null;
             const uid   = e.data.uid         ?? null;
-            const token = e.data.sessionToken || null;
-            if (uid != null && token) {
-                const update = { uid, sessionToken: token };
+            const sToken = e.data.sessionToken || null;
+            const jwtToken = e.data.token || null;
+            if (uid != null && (jwtToken || sToken)) {
+                const update = { uid };
+                if (sToken) update.sessionToken = sToken;
+                if (jwtToken) update.token = jwtToken;
                 if (lc) update.lcusername = lc;
                 safeStorageSet(update);
                 // If signup had no lcusername, make sure stale key is removed

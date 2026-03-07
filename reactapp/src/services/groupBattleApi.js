@@ -1,3 +1,5 @@
+import { authFetch } from "./api";
+
 const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api/battle";
 
 /* ── Room management ── */
@@ -8,7 +10,7 @@ const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/
  * @param {{ mode, difficulty, problemCount, maxPlayers, durationMinutes }} opts
  */
 export async function createRoom(userId, opts) {
-  const res = await fetch(`${API_BASE}/room?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/room`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(opts),
@@ -25,7 +27,7 @@ export async function createRoom(userId, opts) {
  * @param {string} code
  */
 export async function fetchRoomByCode(code) {
-  const res = await fetch(`${API_BASE}/room/${code.toUpperCase()}`);
+  const res = await authFetch(`${API_BASE}/room/${code.toUpperCase()}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.message || err.error || "Room not found");
@@ -39,7 +41,7 @@ export async function fetchRoomByCode(code) {
  * @param {number} userId
  */
 export async function joinRoom(code, userId) {
-  const res = await fetch(`${API_BASE}/room/${code.toUpperCase()}/join?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/room/${code.toUpperCase()}/join`, {
     method: "POST",
   });
   if (!res.ok) {
@@ -55,7 +57,7 @@ export async function joinRoom(code, userId) {
  * @param {number} userId
  */
 export async function leaveRoom(code, userId) {
-  const res = await fetch(`${API_BASE}/room/${code.toUpperCase()}/leave?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/room/${code.toUpperCase()}/leave`, {
     method: "POST",
   });
   if (res.status === 204) return null;
@@ -73,8 +75,8 @@ export async function leaveRoom(code, userId) {
  * @param {number} targetUserId
  */
 export async function kickFromRoom(code, kickerId, targetUserId) {
-  const res = await fetch(
-    `${API_BASE}/room/${code.toUpperCase()}/kick/${targetUserId}?kickerId=${kickerId}`,
+  const res = await authFetch(
+    `${API_BASE}/room/${code.toUpperCase()}/kick/${targetUserId}`,
     { method: "POST" }
   );
   if (!res.ok) {
@@ -90,7 +92,7 @@ export async function kickFromRoom(code, kickerId, targetUserId) {
  * @param {number} userId
  */
 export async function startGroupBattle(code, userId) {
-  const res = await fetch(`${API_BASE}/room/${code.toUpperCase()}/start?userId=${userId}`, {
+  const res = await authFetch(`${API_BASE}/room/${code.toUpperCase()}/start`, {
     method: "POST",
   });
   if (!res.ok) {
@@ -108,7 +110,7 @@ export async function startGroupBattle(code, userId) {
  * @param {number} userId
  */
 export async function fetchGroupBattleState(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}/group-state?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/${battleId}/group-state`);
   if (!res.ok) throw new Error("Failed to fetch group battle state");
   return res.json();
 }
@@ -119,7 +121,7 @@ export async function fetchGroupBattleState(battleId, userId) {
  * @param {{ userId, problemIndex, language, code }} opts
  */
 export async function submitGroupBattleCode(battleId, opts) {
-  const res = await fetch(`${API_BASE}/${battleId}/submit`, {
+  const res = await authFetch(`${API_BASE}/${battleId}/submit`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(opts),
@@ -137,7 +139,7 @@ export async function submitGroupBattleCode(battleId, opts) {
  * @param {number} userId
  */
 export async function fetchGroupBattleResult(battleId, userId) {
-  const res = await fetch(`${API_BASE}/${battleId}/group-result?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/${battleId}/group-result`);
   if (!res.ok) throw new Error("Failed to fetch group result");
   return res.json();
 }

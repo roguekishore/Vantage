@@ -45,6 +45,7 @@ export function LoginForm({ className, ...props }) {
         lcusername: data.lcusername ?? null,
         uid: data.uid ?? null,
         sessionToken: data.sessionToken ?? null,
+        token: data.token ?? null,
       }, '*')
       navigate("/")
     } catch {

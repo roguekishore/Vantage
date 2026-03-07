@@ -1,5 +1,6 @@
 package com.backend.springapp.common;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
@@ -9,26 +10,40 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 /**
  * CORS + HTTP client configuration.
+ *
+ * Set the ALLOWED_ORIGINS env var on EC2 to your CloudFront + frontend URLs:
+ *   ALLOWED_ORIGINS=https://d1234abcd.cloudfront.net,https://yourdomain.com
  */
 @Configuration
 public class WebConfig {
+
+    @Value("${cors.allowed-origins:http://localhost:3000}")
+    private String allowedOriginsRaw;
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Allow all origins for the sync endpoint (used by the browser extension)
+                String[] origins = allowedOriginsRaw.split(",");
+
+                // Chrome extension sync — wide open (extension has no origin header)
                 registry.addMapping("/api/sync/**")
                         .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
 
+                // All other API endpoints — restricted to configured origins
                 registry.addMapping("/api/**")
-                        .allowedOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:5173")
+                        .allowedOrigins(origins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
+
+                // Actuator — allow health checks from anywhere
+                registry.addMapping("/actuator/**")
+                        .allowedOriginPatterns("*")
+                        .allowedMethods("GET");
             }
         };
     }

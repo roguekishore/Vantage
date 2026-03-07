@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { getToken } from "../services/api";
 import {
   joinQueue as apiJoinQueue,
   fetchQueueStatus,
@@ -62,6 +63,7 @@ const useBattleStore = create((set, get) => ({
 
       const client = new Client({
         webSocketFactory: () => new SockJS(WS_URL),
+        connectHeaders: { Authorization: `Bearer ${getToken() || ''}` },
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,

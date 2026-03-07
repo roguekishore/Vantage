@@ -1,11 +1,11 @@
-const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api";
+import { authFetch, API_BASE } from "./api";
 
 /**
  * Fetch current player's gamification stats.
- * Returns: { userId, coins, xp, level, title, xpForCurrentLevel, xpForNextLevel, currentStreak, longestStreak, battleRating }
+ * JWT identifies the current user; userId param kept for call-site compat.
  */
 export async function fetchPlayerStats(userId) {
-  const res = await fetch(`${API_BASE}/me/stats?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/me/stats`);
   if (!res.ok) throw new Error("Failed to fetch player stats");
   return res.json();
 }
@@ -14,7 +14,7 @@ export async function fetchPlayerStats(userId) {
  * Fetch public gamification stats for any user.
  */
 export async function fetchPublicPlayerStats(userId) {
-  const res = await fetch(`${API_BASE}/users/${userId}/stats`);
+  const res = await authFetch(`${API_BASE}/users/${userId}/stats`);
   if (!res.ok) throw new Error("Failed to fetch player stats");
   return res.json();
 }
@@ -24,7 +24,7 @@ export async function fetchPublicPlayerStats(userId) {
  * Returns a Spring Page object: { content: [...], totalPages, totalElements, ... }
  */
 export async function fetchCoinHistory(userId, page = 0, size = 20) {
-  const res = await fetch(`${API_BASE}/me/coin-history?userId=${userId}&page=${page}&size=${size}`);
+  const res = await authFetch(`${API_BASE}/me/coin-history?page=${page}&size=${size}`);
   if (!res.ok) throw new Error("Failed to fetch coin history");
   return res.json();
 }
@@ -34,7 +34,7 @@ export async function fetchCoinHistory(userId, page = 0, size = 20) {
  * Returns: { currentStreak, longestStreak, multiplier, solvedToday, nextMilestone, nextMilestoneCoins, nextMilestoneXp, lastActivityDate }
  */
 export async function fetchStreak(userId) {
-  const res = await fetch(`${API_BASE}/me/streak?userId=${userId}`);
+  const res = await authFetch(`${API_BASE}/me/streak`);
   if (!res.ok) throw new Error("Failed to fetch streak data");
   return res.json();
 }
