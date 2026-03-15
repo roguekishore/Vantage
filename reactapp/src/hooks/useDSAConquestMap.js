@@ -39,7 +39,7 @@ export function useProblem(problemId) {
   );
 
   const judgeRoute = useMemo(
-    () => (problem?.judgeId ? `/judge/${problem.judgeId}` : null),
+    () => (problem?.judgeId ? `/problem/${problem.judgeId}` : null),
     [problem]
   );
 

@@ -5,6 +5,7 @@ import {
   GraduationCap, Building2, Star, ArrowLeft, LogOut,
   Flame, Zap, TrendingUp, BookOpen, Lock, Clock,
   Coins, Sparkles, ChevronLeft, ChevronRight, Shield,
+  VolumeX,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +16,7 @@ import { fetchCoinHistory } from "@/services/gamificationApi";
 import useGamificationStore from "@/stores/useGamificationStore";
 import useUserStore from "@/stores/useUserStore";
 import useAchievementStore from "@/stores/useAchievementStore";
+import useFriendsStore from "@/stores/useFriendsStore";
 import useProgressStore, {
   STAGES,
   STAGE_ORDER,
@@ -58,6 +60,10 @@ const ProfilePage = () => {
   const getStageProgress = useProgressStore(s => s.getStageProgress);
   const getTotalProgress = useProgressStore(s => s.getTotalProgress);
   const loadProgress = useProgressStore(s => s.loadProgress);
+  const challengeMuteUntil = useFriendsStore(s => s.challengeMuteUntil);
+  const loadChallengeMuteStatus = useFriendsStore(s => s.loadChallengeMuteStatus);
+  const unmuteChallenges = useFriendsStore(s => s.unmuteChallenges);
+  const friendsActionLoading = useFriendsStore(s => s.actionLoading);
 
   const totalProgress = getTotalProgress();
   const diffBreakdown = useMemo(() => getDifficultyBreakdown(completedProblems), [completedProblems]);
@@ -78,6 +84,7 @@ const ProfilePage = () => {
           fetchUserStats(user.uid),
           fetchCoinHistory(user.uid, 0, 10).catch(() => null),
           loadProgress(user.uid),
+          loadChallengeMuteStatus(),
         ]);
         setProfile(profileData);
         setStats(statsData);
@@ -119,6 +126,16 @@ const ProfilePage = () => {
   }
 
   const displayUser = profile || user;
+  const mutedUntilTs = challengeMuteUntil ? new Date(challengeMuteUntil).getTime() : 0;
+  const isDndMuted = Boolean(mutedUntilTs && mutedUntilTs > Date.now());
+  const mutedUntilLabel = isDndMuted
+    ? new Date(challengeMuteUntil).toLocaleString([], {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : null;
   const rating = displayUser?.rating ?? 0;
   const tier = getRatingTier(rating);
   const TierIcon = tier.icon;
@@ -189,6 +206,38 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* ═══════════ DND MUTE CONTROL ═══════════ */}
+        <Card className="border-border/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-sm font-medium flex items-center gap-2">
+              <VolumeX size={16} className={isDndMuted ? "text-[#B28EF2]" : "text-muted-foreground"} />
+              Match Request Do Not Disturb
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div>
+              <p className={cn("text-sm font-medium", isDndMuted ? "text-[#B28EF2]" : "text-muted-foreground")}>
+                {isDndMuted ? "DND mode is ON" : "DND mode is OFF"}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                {isDndMuted
+                  ? `You will not receive friend challenge popups until ${mutedUntilLabel}.`
+                  : "You are currently receiving friend challenge requests normally."}
+              </p>
+            </div>
+
+            {isDndMuted && (
+              <button
+                onClick={unmuteChallenges}
+                disabled={friendsActionLoading}
+                className="h-9 px-3 rounded-lg border border-border text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-50"
+              >
+                Cancel DND mute
+              </button>
+            )}
           </CardContent>
         </Card>
 

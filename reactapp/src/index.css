@@ -10,10 +10,7 @@
 
 /* ========== FONT DEFINITIONS ========== */
 @layer base {
-  @font-face {
-    font-family: "general";
-    src: url("../public/fonts/general.woff2") format("woff2");
-  }
+  /* Removed 'general' font face - using Inter as default */
 
   @font-face {
     font-family: "zentry";
@@ -906,6 +903,7 @@ html {
 
 .battle-fade-up-delay-2 {
   animation-delay: 0.2s;
+  
 }
 
 .battle-fade-up-delay-3 {
@@ -991,6 +989,7 @@ html {
   position: relative;
   transition: all 0.3s ease;
 }
+
 .border-glow-hover::before {
   content: "";
   position: absolute;
@@ -1001,6 +1000,7 @@ html {
   transition: opacity 0.3s ease;
   z-index: -1;
 }
+
 .border-glow-hover:hover::before {
   opacity: 1;
 }
@@ -1020,38 +1020,55 @@ html {
 
 /* Animated gradient border */
 @keyframes gradient-rotate {
-  0% { --angle: 0deg; }
-  100% { --angle: 360deg; }
+  0% {
+    --angle: 0deg;
+  }
+
+  100% {
+    --angle: 360deg;
+  }
 }
 
 /* Premium shimmer for loading states */
 @keyframes premium-shimmer {
-  0% { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
 }
 
 .shimmer-premium {
   background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(85, 66, 255, 0.06) 25%,
-    rgba(178, 142, 242, 0.08) 50%,
-    rgba(85, 66, 255, 0.06) 75%,
-    transparent 100%
-  );
+      transparent 0%,
+      rgba(85, 66, 255, 0.06) 25%,
+      rgba(178, 142, 242, 0.08) 50%,
+      rgba(85, 66, 255, 0.06) 75%,
+      transparent 100%);
   background-size: 200% 100%;
   animation: premium-shimmer 2s ease-in-out infinite;
 }
 
 /* Subtle floating animation */
 @keyframes float-subtle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-4px);
+  }
 }
 
 /* Row highlight bar (left accent) */
 .row-accent-bar {
   position: relative;
 }
+
 .row-accent-bar::before {
   content: "";
   position: absolute;
@@ -1064,6 +1081,7 @@ html {
   opacity: 0;
   transition: opacity 0.25s ease, top 0.25s ease, bottom 0.25s ease;
 }
+
 .row-accent-bar:hover::before {
   opacity: 1;
   top: 15%;
@@ -1078,4 +1096,274 @@ html {
 
 .light .dot-pattern {
   background-image: radial-gradient(rgba(85, 66, 255, 0.06) 1px, transparent 1px);
+}
+
+/* ============================================
+   ACHIEVEMENTS PAGE — ZENTRY DESIGN
+   ============================================ */
+
+/* ── Keyframes ── */
+@keyframes badge-glow-pulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes badge-float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes badge-shimmer-sweep {
+  0% {
+    transform: translateX(-150%) rotate(-25deg);
+  }
+
+  100% {
+    transform: translateX(250%) rotate(-25deg);
+  }
+}
+
+@keyframes badge-progress-fill {
+  0% {
+    width: 0%;
+  }
+}
+
+@keyframes badge-fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes badge-hero-gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes badge-orb-float {
+
+  0%,
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    opacity: 0.5;
+  }
+}
+
+/* ── Glassmorphic card surface ── */
+.badge-glass {
+  background: rgba(17, 17, 19, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.badge-glass:hover {
+  border-color: rgba(85, 66, 255, 0.2);
+  box-shadow:
+    0 0 30px rgba(85, 66, 255, 0.08),
+    0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.light .badge-glass {
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.light .badge-glass:hover {
+  border-color: rgba(85, 66, 255, 0.15);
+  box-shadow:
+    0 0 30px rgba(85, 66, 255, 0.06),
+    0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Earned card shine sweep ── */
+.badge-earned-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.badge-earned-shine::after {
+  content: "";
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 80%;
+  height: 300%;
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 42%,
+      rgba(255, 255, 255, 0.18) 50%,
+      rgba(255, 255, 255, 0.08) 58%,
+      transparent 100%);
+  animation: badge-shimmer-sweep 8s ease-in-out infinite;
+  /* Slowed down to 8s */
+  pointer-events: none;
+}
+
+.light .badge-earned-shine::after {
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(85, 66, 255, 0.04) 40%,
+      rgba(85, 66, 255, 0.08) 50%,
+      rgba(85, 66, 255, 0.04) 60%,
+      transparent 100%);
+}
+
+/* ── Stat glow ── */
+.badge-stat-glow {
+  text-shadow: 0 0 20px rgba(85, 66, 255, 0.4);
+}
+
+/* ── Progress bar glow endpoint ── */
+.badge-progress-glow {
+  position: relative;
+}
+
+.badge-progress-glow::after {
+  content: "";
+  position: absolute;
+  right: -4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #B28EF2;
+  box-shadow: 0 0 12px rgba(178, 142, 242, 0.6), 0 0 24px rgba(85, 66, 255, 0.3);
+  animation: badge-glow-pulse 2s ease-in-out infinite;
+}
+
+/* ── Hero gradient text ── */
+.badge-hero-text {
+  background: linear-gradient(135deg, #5542FF 0%, #00F0FF 50%, #B28EF2 100%);
+  /* Brand blue to cyan to purple */
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: badge-hero-gradient 8s ease infinite;
+  font-size: clamp(3rem, 15vw, 10rem);
+  /* Restored massive scale */
+  line-height: 0.8;
+  letter-spacing: -0.02em;
+}
+
+.light .badge-hero-text {
+  background: linear-gradient(135deg, #5542FF 0%, #7C6BFF 40%, #5542FF 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: badge-hero-gradient 6s ease infinite;
+}
+
+/* ── Floating decorative orb ── */
+.badge-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  animation: badge-orb-float 8s ease-in-out infinite;
+}
+
+/* ── Tab active clip-path ── */
+.badge-tab-active {
+  background: linear-gradient(135deg, #5542FF, #7C6BFF);
+  border-radius: 8px;
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-tab-inactive {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.badge-tab-inactive:hover {
+  background: rgba(85, 66, 255, 0.08);
+  transform: scale(1.04);
+}
+
+.light .badge-tab-inactive:hover {
+  background: rgba(85, 66, 255, 0.06);
+}
+
+/* ── Card entrance animation ── */
+.badge-card-enter {
+  animation: badge-fade-in-up 0.5s ease both;
+}
+
+/* ── Hidden badge blur overlay ── */
+.badge-hidden-blur {
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  background: rgba(9, 9, 11, 0.6);
+}
+
+.light .badge-hidden-blur {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+/* ── Icon ring for earned badges ── */
+.badge-icon-ring-earned {
+  box-shadow:
+    0 0 0 2px rgba(85, 66, 255, 0.3),
+    0 0 16px rgba(85, 66, 255, 0.15);
+}
+
+/* ── Progress track ── */
+.badge-progress-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.light .badge-progress-track {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.badge-progress-bar {
+  background: linear-gradient(90deg, #5542FF, #B28EF2);
+  border-radius: 999px;
+  height: 100%;
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
 }

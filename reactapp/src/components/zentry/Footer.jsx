@@ -107,7 +107,6 @@ const Footer = () => {
     { name: "Home", link: "/" },
     { name: "Visualizer", link: "/sorting" },
     { name: "Problems", link: "/problems" },
-    { name: "Judge", link: "/judge" },
     { name: "Map", link: "/map" },
   ];
 

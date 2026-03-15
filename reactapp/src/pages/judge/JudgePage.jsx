@@ -276,7 +276,7 @@ export default function JudgePage() {
       <div className="flex h-screen items-center justify-center bg-background text-foreground">
         <div className="text-center">
           <p className="text-lg font-medium mb-2">Problem not found</p>
-          <Link to="/judge" className="text-sm text-[var(--color-accent-primary)] hover:underline">
+          <Link to="/problems" className="text-sm text-[var(--color-accent-primary)] hover:underline">
             ← Back to problems
           </Link>
         </div>
@@ -300,7 +300,7 @@ export default function JudgePage() {
           <Tooltip>
             <TooltipTrigger asChild>
               <Link
-                to="/judge"
+                to="/problems"
                 className="flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />

@@ -2,13 +2,15 @@ import { useRef, useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Sun, Moon, Eye, BookOpen, Scale, Map as MapIcon,
-  Swords, Trophy, Award,
-  Coins, Sparkles, Flame, Shield, Menu, X,
+  Swords, Trophy, Award, Bell, UserRoundPlus,
+  Coins, Sparkles, Flame, Shield, Menu, X, VolumeX,
 } from "lucide-react";
 import { useTheme } from "../theme-provider";
 import useUserStore from "@/stores/useUserStore";
 import useGamificationStore from "@/stores/useGamificationStore";
 import useAchievementStore from "@/stores/useAchievementStore";
+import useFriendsStore from "@/stores/useFriendsStore";
+import AppToast from "@/components/ui/app-toast";
 
 const ZentryNavbar = ({ controls, allowTransparency = false }) => {
   const { scrollProgress } = controls;
@@ -24,6 +26,16 @@ const ZentryNavbar = ({ controls, allowTransparency = false }) => {
   const shieldToast = useGamificationStore((s) => s.shieldToast);
   const dismissShieldToast = useGamificationStore((s) => s.dismissShieldToast);
   const earnedCount = useAchievementStore((s) => s.earnedCount);
+  const incomingFriendCount = useFriendsStore((s) => s.incomingCount);
+  const friendNotification = useFriendsStore((s) => s.lastNotification);
+  const challengeMuteUntil = useFriendsStore((s) => s.challengeMuteUntil);
+  const clearFriendNotification = useFriendsStore((s) => s.clearNotification);
+
+  const mutedUntilTs = challengeMuteUntil ? new Date(challengeMuteUntil).getTime() : 0;
+  const isDndMuted = Boolean(mutedUntilTs && mutedUntilTs > Date.now());
+  const mutedUntilLabel = isDndMuted
+    ? new Date(challengeMuteUntil).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : null;
 
   useEffect(() => {
     if (shieldToast) {
@@ -51,8 +63,8 @@ const ZentryNavbar = ({ controls, allowTransparency = false }) => {
   const navItems = [
     { label: "Visualize", path: "/visualizers" },
     { label: "Problems", path: "/problems" },
-    { label: "Judge", path: "/judge" },
     { label: "Battle", path: "/battle" },
+    { label: "Friends", path: "/friends", badge: currentUser && incomingFriendCount > 0 ? incomingFriendCount : null },
     { label: "Ranks", path: "/leaderboard" },
     { label: "Badges", path: "/achievements", badge: currentUser && earnedCount > 0 ? earnedCount : null },
     { label: "Map", path: "/map" },
@@ -61,8 +73,8 @@ const ZentryNavbar = ({ controls, allowTransparency = false }) => {
   const mobileNavItems = [
     { label: "Visualize", path: "/visualizers", icon: Eye },
     { label: "Problems", path: "/problems", icon: BookOpen },
-    { label: "Judge", path: "/judge", icon: Scale },
     { label: "Battle", path: "/battle", icon: Swords },
+    { label: "Friends", path: "/friends", icon: UserRoundPlus, badge: currentUser && incomingFriendCount > 0 ? incomingFriendCount : null },
     { label: "Ranks", path: "/leaderboard", icon: Trophy },
     { label: "Badges", path: "/achievements", icon: Award},
     { label: "Map", path: "/map", icon: MapIcon },
@@ -149,6 +161,16 @@ const ZentryNavbar = ({ controls, allowTransparency = false }) => {
             )}
 
             {/* Theme toggle */}
+            {currentUser && isDndMuted && (
+              <div className="relative group hidden sm:flex items-center justify-center w-8 h-8 rounded-lg text-[#B28EF2] bg-[#5542FF]/15 border border-[#5542FF]/30">
+                <VolumeX size={14} />
+                <div className="pointer-events-none absolute top-full right-0 mt-2 opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-150 px-3 py-2 rounded-lg bg-card border border-border shadow-lg min-w-max">
+                  <p className="text-xs font-medium text-foreground">DND mode enabled</p>
+                  <p className="text-[11px] text-muted-foreground">Muted until {mutedUntilLabel}</p>
+                </div>
+              </div>
+            )}
+
             <button
               onClick={toggleTheme}
               className="relative flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
@@ -157,6 +179,22 @@ const ZentryNavbar = ({ controls, allowTransparency = false }) => {
               <Sun className="h-[15px] w-[15px] rotate-0 scale-100 transition-all duration-300 dark:-rotate-90 dark:scale-0" />
               <Moon className="absolute h-[15px] w-[15px] rotate-90 scale-0 transition-all duration-300 dark:rotate-0 dark:scale-100" />
             </button>
+
+            {currentUser && (
+              <Link
+                to="/friends"
+                className="relative flex items-center justify-center w-8 h-8 rounded-lg text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Friend requests"
+                title="Friend requests"
+              >
+                <Bell size={15} />
+                {incomingFriendCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-[#5542FF] text-[9px] font-bold text-white flex items-center justify-center leading-none">
+                    {incomingFriendCount > 99 ? "99+" : incomingFriendCount}
+                  </span>
+                )}
+              </Link>
+            )}
 
             {/* Auth */}
             {currentUser ? (
@@ -233,11 +271,22 @@ const ZentryNavbar = ({ controls, allowTransparency = false }) => {
       </header>
 
       {/* Shield toast */}
-      {shieldToast && (
-        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg z-50 animate-in fade-in slide-in-from-top-2">
-          <p className="text-sm font-medium text-foreground whitespace-nowrap">{shieldToast}</p>
-        </div>
-      )}
+      <AppToast
+        message={shieldToast}
+        onDismiss={dismissShieldToast}
+        className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-4 py-2.5 rounded-xl bg-card border border-border shadow-lg z-50 animate-in fade-in slide-in-from-top-2 min-w-[240px] max-w-[90vw]"
+        messageClassName="text-sm font-medium text-foreground pr-1 break-words"
+        dismissButtonClassName="shrink-0 h-6 w-6 rounded-md border border-border text-muted-foreground hover:text-foreground hover:bg-muted/40 inline-flex items-center justify-center"
+      />
+
+      <AppToast
+        message={friendNotification}
+        onDismiss={clearFriendNotification}
+        className="fixed top-20 left-1/2 -translate-x-1/2 px-4 py-3 rounded-xl bg-[#5542FF] border border-[#5542FF] shadow-xl shadow-[#5542FF]/45 z-[140] animate-in fade-in slide-in-from-top-2 min-w-[320px] max-w-[92vw]"
+        messageClassName="text-sm font-semibold text-white pr-1 break-words"
+        dismissButtonClassName="shrink-0 h-6 w-6 rounded-md border border-white/35 text-white hover:bg-white/15 inline-flex items-center justify-center"
+        dismissLabel="Dismiss notification"
+      />
     </div>
   );
 };

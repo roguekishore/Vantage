@@ -510,7 +510,7 @@ export const hasJudgeProblem = (problemId) => {
 // Get judge route for a problem
 export const getJudgeRoute = (problemId) => {
   const problem = getProblemById(problemId);
-  return problem?.judgeId ? `/judge/${problem.judgeId}` : null;
+  return problem?.judgeId ? `/problem/${problem.judgeId}` : null;
 };
 
 // Get judgeId for a problem
