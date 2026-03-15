@@ -3,6 +3,8 @@ package com.backend.springapp.user;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByLcusername(String lcusername);
 
     Optional<User> findBySessionToken(String sessionToken);
+
+    Page<User> findByUsernameContainingIgnoreCaseAndUidNot(String username, Long uid, Pageable pageable);
 
     boolean existsByEmail(String email);
 

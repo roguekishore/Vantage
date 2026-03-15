@@ -125,6 +125,11 @@ public class BattleService {
         return Optional.empty();
     }
 
+    @Transactional(readOnly = true)
+    public boolean hasActiveOrWaitingBattle(Long userId) {
+        return findRecentBattleForUser(userId).isPresent();
+    }
+
     @Transactional
     public void leaveQueue(Long userId) {
         queueRepo.deleteByUserId(userId);
@@ -225,6 +230,41 @@ public class BattleService {
         log.info("⚔️ Battle {} created: user {} vs user {} (mode={}, diff={}, problems={})",
                 battle.getId(), a.getUserId(), b.getUserId(),
                 a.getMode(), a.getDifficulty(), problemCount);
+
+        return battle;
+    }
+
+    @Transactional
+    public Battle createDirectChallengeBattle(Long challengerId, Long challengeeId,
+                                              BattleMode mode, Tag difficulty, int problemCount) {
+        if (mode != BattleMode.CASUAL_1V1 && mode != BattleMode.RANKED_1V1) {
+            throw new IllegalArgumentException("Friend challenge supports only 1v1 modes");
+        }
+        if (problemCount < 1 || problemCount > 3) {
+            throw new IllegalArgumentException("problemCount must be between 1 and 3");
+        }
+
+        if (hasActiveOrWaitingBattle(challengerId) || hasActiveOrWaitingBattle(challengeeId)) {
+            throw new IllegalStateException("One of the players is already in an active battle");
+        }
+
+        Battle battle = new Battle();
+        battle.setMode(mode);
+        battle.setDifficulty(difficulty);
+        battle.setProblemCount(problemCount);
+        battle.setDurationMinutes(problemCount * 15);
+        battle.setState(BattleState.WAITING);
+        battleRepo.saveAndFlush(battle);
+
+        PlayerStats challengerStats = gamificationService.getOrCreateStats(challengerId);
+        PlayerStats challengeeStats = gamificationService.getOrCreateStats(challengeeId);
+        createParticipant(battle.getId(), challengerId, challengerStats.getBattleRating());
+        createParticipant(battle.getId(), challengeeId, challengeeStats.getBattleRating());
+
+        selectProblems(battle.getId(), difficulty, problemCount, List.of(challengerId, challengeeId));
+
+        log.info("⚔️ Friend challenge battle {} created: {} vs {} (mode={}, diff={}, problems={})",
+                battle.getId(), challengerId, challengeeId, mode, difficulty, problemCount);
 
         return battle;
     }

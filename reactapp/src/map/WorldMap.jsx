@@ -238,7 +238,7 @@ const WorldMap = () => {
   const goToProblem = useCallback(() => { if (selectedProblem) navigate(selectedProblem.route); }, [selectedProblem, navigate]);
 
   const goToJudge = useCallback(() => {
-    if (selectedProblem?.judgeId) navigate(`/judge/${selectedProblem.judgeId}`);
+    if (selectedProblem?.judgeId) navigate(`/problem/${selectedProblem.judgeId}`);
   }, [selectedProblem, navigate]);
 
   const goToLeetCode = useCallback(() => {

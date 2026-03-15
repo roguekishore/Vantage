@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useBattleStore from "../stores/useBattleStore";
+import useFriendsStore from "../stores/useFriendsStore";
 import { getStoredUser } from "../services/userApi";
 import { fetchPlayerStats } from "../services/gamificationApi";
 import { fetchBattleHistory } from "../services/battleApi";
@@ -10,7 +11,7 @@ import {
   Swords, Loader2, X, Check,
   Trophy, ArrowLeft, Zap, Crosshair, Crown,
   Clock, ArrowUp, ArrowDown, Minus, Shield,
-  ChevronRight, History, AlertTriangle, RotateCcw, Users,
+  ChevronRight, History, AlertTriangle, RotateCcw, Users, Search,
 } from "lucide-react";
 
 /* ── Constants ── */
@@ -56,6 +57,15 @@ export default function BattleLobbyPage() {
     joinQueue, leaveQueue, fetchLobby, readyUp, reset, stopPolling, abandon,
   } = useBattleStore();
 
+  const {
+    friends,
+    friendsPresence,
+    loadOverview: loadFriendsOverview,
+    loadFriendsPresence,
+    sendChallenge,
+    actionLoading: friendActionLoading,
+  } = useFriendsStore();
+
   const [mode, setMode] = useState("RANKED_1V1");
   const [difficulty, setDifficulty] = useState("MEDIUM");
   const [problemCount, setProblemCount] = useState(2);
@@ -63,6 +73,8 @@ export default function BattleLobbyPage() {
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [friendQuery, setFriendQuery] = useState("");
+  const [sendingFriendId, setSendingFriendId] = useState(null);
 
   useEffect(() => {
     if (userId) {
@@ -72,8 +84,11 @@ export default function BattleLobbyPage() {
         .then(setHistory)
         .catch(() => {})
         .finally(() => setHistoryLoading(false));
+
+      loadFriendsOverview();
+      loadFriendsPresence();
     }
-  }, [userId]);
+  }, [userId, loadFriendsOverview, loadFriendsPresence]);
 
   useEffect(() => () => stopPolling(), [stopPolling]);
 
@@ -102,6 +117,26 @@ export default function BattleLobbyPage() {
     await abandon(battleId, userId);
     // Refresh history after abandon
     fetchBattleHistory(userId, 0, 20).then(setHistory).catch(() => {});
+  };
+
+  const onlineFriends = (friends || []).filter((f) => !!friendsPresence?.[f.uid]?.online);
+  const filteredOnlineFriends = onlineFriends.filter((f) =>
+    !friendQuery.trim() || f.username.toLowerCase().includes(friendQuery.trim().toLowerCase())
+  );
+
+  const handleChallengeFriend = async (friend) => {
+    if (!friend?.uid) return;
+    setSendingFriendId(friend.uid);
+    try {
+      await sendChallenge({
+        targetUserId: friend.uid,
+        mode,
+        difficulty,
+        problemCount,
+      });
+    } finally {
+      setSendingFriendId(null);
+    }
   };
 
   /* ── Not logged in ── */
@@ -512,6 +547,57 @@ export default function BattleLobbyPage() {
                     ? <><Loader2 className="w-4 h-4 animate-spin" /> Joining queue…</>
                     : <><Swords className="w-4 h-4" /> Find Battle</>}
                 </button>
+
+                {/* Challenge Friend */}
+                <div className="space-y-2.5 pt-1">
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Challenge a Friend
+                  </label>
+
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      value={friendQuery}
+                      onChange={(e) => setFriendQuery(e.target.value)}
+                      placeholder="Search online friends..."
+                      className="w-full h-9 rounded-lg border border-border/50 bg-background/60 pl-9 pr-3 text-xs text-foreground placeholder:text-muted-foreground/80 focus:outline-none focus:border-foreground/30"
+                    />
+                  </div>
+
+                  <div className="max-h-44 overflow-y-auto rounded-lg border border-border/50 divide-y divide-border/40">
+                    {filteredOnlineFriends.length === 0 ? (
+                      <div className="px-3 py-3 text-xs text-muted-foreground">
+                        {onlineFriends.length === 0
+                          ? "No online friends available right now."
+                          : "No friends match your search."}
+                      </div>
+                    ) : (
+                      filteredOnlineFriends.slice(0, 8).map((f) => {
+                        const busy = sendingFriendId === f.uid && friendActionLoading;
+                        return (
+                          <div key={f.uid} className="px-3 py-2 flex items-center justify-between gap-2 bg-background/30">
+                            <div className="min-w-0">
+                              <p className="text-xs font-semibold text-foreground truncate">{f.username}</p>
+                              <p className="text-[10px] text-emerald-500">Online</p>
+                            </div>
+                            <button
+                              onClick={() => handleChallengeFriend(f)}
+                              disabled={friendActionLoading}
+                              className="h-7 px-2.5 rounded-md text-[11px] font-semibold bg-[#5542FF] text-white hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1"
+                            >
+                              {busy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Swords className="w-3 h-3" />}
+                              Challenge
+                            </button>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  <p className="text-[10px] text-muted-foreground">
+                    Sends a direct friend challenge using your selected mode, difficulty, and problem count.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
