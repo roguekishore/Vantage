@@ -7,7 +7,11 @@
   "host_permissions": [
     "https://leetcode.com/*",
     "http://localhost:8080/*",
-    "http://localhost:3000/*"
+    "http://localhost:3000/*",
+    "https://api.vantagecode.tech/*",
+    "https://judge.vantagecode.tech/*",
+    "https://vantagecode.tech/*",
+    "https://www.vantagecode.tech/*"
   ],
   "action": {
     "default_popup": "popup.html"
@@ -30,12 +34,16 @@
         "https://leetcode.com/problems/*",
         "https://leetcode.com/submissions/*"
       ],
-      "js": ["content-script.js"],
+      "js": ["config.js", "content-script.js"],
       "run_at": "document_idle"
     },
     {
-      "matches": ["http://localhost:3000/*"],
-      "js": ["content-script.js"],
+      "matches": [
+        "http://localhost:3000/*",
+        "https://vantagecode.tech/*",
+        "https://www.vantagecode.tech/*"
+      ],
+      "js": ["config.js", "content-script.js"],
       "run_at": "document_idle"
     }
   ]

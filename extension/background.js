@@ -11,8 +11,11 @@
  *   syncWithBackend     → legacy bulk sync from popup
  */
 
-const BACKEND_SYNC    = 'http://localhost:8080/api/sync';
-const BACKEND_ATTEMPT = 'http://localhost:8080/api/sync/attempt';
+importScripts('config.js');
+
+const cfg = globalThis.VANTAGE_CONFIG || {};
+const BACKEND_SYNC = cfg.BACKEND_SYNC_URL;
+const BACKEND_ATTEMPT = cfg.BACKEND_ATTEMPT_URL;
 
 // ── Badge helpers ─────────────────────────────────────────────────────────────
 function setBadge(text, color) {
