@@ -14,6 +14,11 @@
  */
 console.log('[Vantage] DSA tracker active.');
 
+const cfg = globalThis.VANTAGE_CONFIG || {};
+const APP_HOSTNAME = cfg.APP_HOSTNAME;
+const APP_HOSTNAMES = cfg.APP_HOSTNAMES || (APP_HOSTNAME ? [APP_HOSTNAME] : []);
+const IS_APP_HOST = APP_HOSTNAMES.includes(location.hostname);
+
 // ── Context-invalidation guard ──────────────────────────────────────────────
 // After the extension is reloaded / updated, the old content-script instances
 // that are still alive in open tabs lose access to chrome.runtime / chrome.storage.
@@ -83,11 +88,11 @@ function safeSendMessage(msg) {
 
 const STORAGE_KEYS = ['lcusername', 'uid', 'sessionToken', 'token'];
 
-// ── Localhost-only: keep chrome.storage in sync with the React ──────────────
+// ── App-origin only: keep chrome.storage in sync with the React ─────────────
 // app's localStorage so the popup always shows the correct linked user.
 // Stores uid, lcusername, and sessionToken so the popup can detect user
 // switches and the background can authenticate sync requests.
-if (location.hostname === 'localhost') {
+if (IS_APP_HOST) {
 
     let pollTimer = null;   // so we can clear it on context death
 
@@ -228,7 +233,7 @@ if (location.hostname === 'localhost') {
     // Done — rest of the file is LeetCode-specific
 }
 
-if (location.hostname !== 'localhost') {
+if (!IS_APP_HOST) {
 // ── Auth state (populated from injected.js via lc-vantage-user) ──────────────
 let currentLcUser = null; // current LC session username (live from page)
 
@@ -412,4 +417,4 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 
-} // end: if (location.hostname !== 'localhost')
+} // end: non-app host branch

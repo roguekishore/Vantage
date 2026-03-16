@@ -1,6 +1,12 @@
-﻿const SPRING_BOOT_URL = "http://localhost:8080/api/sync";
-const SPRING_BOOT_USER = "http://localhost:8080/api/users";
-const LC_GRAPHQL      = "https://leetcode.com/graphql";
+﻿const cfg = globalThis.VANTAGE_CONFIG || {};
+const SPRING_BOOT_URL = cfg.BACKEND_SYNC_URL;
+const SPRING_BOOT_USER = cfg.BACKEND_USERS_URL;
+const LC_GRAPHQL = cfg.LEETCODE_GRAPHQL_URL;
+const APP_TAB_QUERY = cfg.APP_TAB_QUERY;
+const APP_TAB_QUERIES = cfg.APP_TAB_QUERIES || [APP_TAB_QUERY];
+const LEETCODE_TAB_QUERY = cfg.LEETCODE_TAB_QUERY;
+const APP_LOGIN_URL = cfg.APP_LOGIN_URL;
+const APP_OPEN_URL = cfg.APP_ORIGIN;
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -106,6 +112,14 @@ function showSignInPrompt(show) {
     el.style.display = show ? "block" : "none";
 }
 
+function applyAppLinks() {
+    const signInLink = document.getElementById("signinLink");
+    const openAppLink = document.getElementById("openAppLink");
+
+    if (signInLink) signInLink.href = APP_LOGIN_URL;
+    if (openAppLink) openAppLink.href = APP_OPEN_URL;
+}
+
 // ── Auth status (runs on popup open) ─────────────────────────────────────────
 
 /**
@@ -120,22 +134,24 @@ async function fetchLinkedProfile(uid) {
 }
 
 /**
- * Ask the content-script in a localhost:3000 tab to read localStorage
+ * Ask the content-script in an app tab to read localStorage
  * directly and return the current user data.  This bypasses chrome.storage
  * completely — it's a synchronous request → response over chrome.tabs.
  */
 async function fetchUserFromContentScript() {
     try {
-        const tabs = await chrome.tabs.query({ url: 'http://localhost:3000/*' });
-        for (const tab of tabs) {
-            try {
-                const resp = await chrome.tabs.sendMessage(
-                    tab.id, { action: 'getUserFromLocalStorage' });
-                if (resp && resp.uid != null) {
-                    console.log('[Vantage] Got user directly from content-script:', resp);
-                    return resp;   // { lcusername, uid, sessionToken }
-                }
-            } catch { /* content-script not ready in this tab */ }
+        for (const query of APP_TAB_QUERIES) {
+            const tabs = await chrome.tabs.query({ url: query });
+            for (const tab of tabs) {
+                try {
+                    const resp = await chrome.tabs.sendMessage(
+                        tab.id, { action: 'getUserFromLocalStorage' });
+                    if (resp && resp.uid != null) {
+                        console.log('[Vantage] Got user directly from content-script:', resp);
+                        return resp;   // { lcusername, uid, sessionToken }
+                    }
+                } catch { /* content-script not ready in this tab */ }
+            }
         }
     } catch (err) {
         console.warn('[Vantage] Tab query failed:', err);
@@ -151,7 +167,7 @@ async function fetchUserFromContentScript() {
  */
 async function fetchLcSessionFromContentScript() {
     try {
-        const tabs = await chrome.tabs.query({ url: 'https://leetcode.com/*' });
+        const tabs = await chrome.tabs.query({ url: LEETCODE_TAB_QUERY });
         for (const tab of tabs) {
             try {
                 const resp = await chrome.tabs.sendMessage(
@@ -172,7 +188,7 @@ async function fetchLcSessionFromContentScript() {
 
 async function checkAuthStatus() {
     // chrome.storage now stores uid, lcusername, and sessionToken, kept fresh
-    // by the content-script running on localhost:3000.
+    // by the content-script running on the app origin.
     let { lcusername: storedLc, uid: storedUid, sessionToken: storedToken, token: storedJwt } =
         await chrome.storage.local.get(['lcusername', 'uid', 'sessionToken', 'token']);
 
@@ -334,6 +350,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // ── On load: run auth check ───────────────────────────────────────────────────
 
 document.addEventListener("DOMContentLoaded", () => {
+    applyAppLinks();
     checkAuthStatus();
 });
 
