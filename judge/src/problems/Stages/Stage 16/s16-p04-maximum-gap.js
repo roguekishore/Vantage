@@ -65,7 +65,7 @@ int maximumGap(vector<int>& nums) {
     int n = nums.size();
     if (n < 2) return 0;
 
-    int minVal = nums, maxVal = nums;
+    int minVal = nums[0], maxVal = nums[0];
     for (int x : nums) {
         minVal = min(minVal, x);
         maxVal = max(maxVal, x);

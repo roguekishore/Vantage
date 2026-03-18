@@ -102,18 +102,20 @@ int main() {
 
 public class Main {
     public static int leastInterval(char[] tasks, int k) {
-        int[] freq = new int;
+      int[] freq = new int[26];
         for (char t : tasks) freq[t - 'A']++;
         
         Arrays.sort(freq);
-        int maxFreq = freq;
-        int idleTime = (maxFreq - 1) * k;
+      int maxFreq = freq[25];
+      int maxCount = 1;
         
-        for (int i = 24; i >= 0 && freq[i] > 0; i--) {
-            idleTime -= Math.min(maxFreq - 1, freq[i]);
-        }
+      for (int i = 24; i >= 0 && freq[i] == maxFreq; i--) {
+        maxCount++;
+      }
         
-        return idleTime > 0 ? idleTime + tasks.length : tasks.length;
+      int intervals = (maxFreq - 1) * (k + 1) + maxCount;
+        
+      return Math.max(intervals, tasks.length);
     }
 
     public static void main(String[] args) {

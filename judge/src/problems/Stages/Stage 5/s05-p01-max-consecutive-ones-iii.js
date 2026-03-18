@@ -128,7 +128,7 @@ public class Main {
     { input: '1\n0\n1', expected: '1' },
     { input: '1\n0\n0', expected: '0' },
     { input: '8\n1 0 0 1 1 0 1 1\n1', expected: '5' },
-    { input: '10\n0 0 0 1 1 1 0 0 0 1\n5', expected: '8' },
+    { input: '10\n0 0 0 1 1 1 0 0 0 1\n5', expected: '9' },
     { input: '4\n1 0 0 1\n2', expected: '4' }
   ]
 };

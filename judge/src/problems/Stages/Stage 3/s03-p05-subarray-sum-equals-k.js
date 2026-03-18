@@ -124,10 +124,10 @@ public class Main {
     { input: '1\n1\n0', expected: '0' },
     { input: '1\n5\n5', expected: '1' },
     { input: '4\n0 0 0 0\n0', expected: '10' },
-    { input: '5\n1 -1 1 -1 1\n0', expected: '4' },
+    { input: '5\n1 -1 1 -1 1\n0', expected: '6' },
     { input: '6\n10 2 -2 -20 10 1\n-10', expected: '3' },
     { input: '2\n-1 -1\n-2', expected: '1' },
-    { input: '5\n3 4 7 2 -3\n7', expected: '4' },
+    { input: '5\n3 4 7 2 -3\n7', expected: '2' },
     { input: '8\n1 2 3 4 5 6 7 8\n10', expected: '1' }
   ]
 };

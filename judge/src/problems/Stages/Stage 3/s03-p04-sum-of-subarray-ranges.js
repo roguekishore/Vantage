@@ -122,14 +122,14 @@ public class Main {
 
   testCases: [
     { input: '3\n1 2 3', expected: '4' },
-    { input: '3\n4 -2 -3', expected: '10' },
+    { input: '3\n4 -2 -3', expected: '14' },
     { input: '1\n10', expected: '0' },
     { input: '2\n1 5', expected: '4' },
     { input: '4\n1 1 1 1', expected: '0' },
     { input: '5\n1 2 3 4 5', expected: '20' },
-    { input: '3\n10 5 10', expected: '10' },
+    { input: '3\n10 5 10', expected: '15' },
     { input: '4\n-1 0 1 2', expected: '10' },
-    { input: '6\n1 3 5 2 4 6', expected: '56' },
-    { input: '5\n10 1 10 1 10', expected: '72' }
+    { input: '6\n1 3 5 2 4 6', expected: '49' },
+    { input: '5\n10 1 10 1 10', expected: '90' }
   ]
 };

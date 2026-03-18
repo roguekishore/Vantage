@@ -13,7 +13,7 @@
 
 module.exports = {
   id: 'two-city-scheduling',
-  conquestId: 'stage21-4',
+  conquestId: 'stage23-4',
   title: 'Two City Scheduling',
   difficulty: 'Medium',
   category: 'Greedy',
@@ -129,12 +129,12 @@ public class Main {
   testCases: [
     { input: '4\n10 20\n30 200\n400 50\n30 20', expected: '110' },
     { input: '2\n10 100\n20 30', expected: '40' },
-    { input: '4\n10 100\n20 50\n30 60\n40 30', expected: '110' },
-    { input: '4\n100 10\n90 20\n80 30\n70 40', expected: '100' },
+    { input: '4\n10 100\n20 50\n30 60\n40 30', expected: '120' },
+    { input: '4\n100 10\n90 20\n80 30\n70 40', expected: '180' },
     { input: '6\n10 20\n30 200\n400 50\n30 20\n50 50\n60 10', expected: '170' },
     { input: '2\n50 60\n70 80', expected: '130' },
-    { input: '4\n5 100\n6 90\n7 80\n8 70', expected: '168' },
-    { input: '4\n20 30\n40 50\n60 70\n80 90', expected: '200' },
+    { input: '4\n5 100\n6 90\n7 80\n8 70', expected: '161' },
+    { input: '4\n20 30\n40 50\n60 70\n80 90', expected: '220' },
     { input: '2\n5 5\n5 5', expected: '10' },
     { input: '4\n1000 1\n1 1000\n500 500\n400 600', expected: '902' }
   ],

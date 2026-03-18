@@ -83,11 +83,7 @@ char solve(int n, vector<char>& letters, char target) {
     int left = 0, right = n - 1;
     // Your code here
     
-    return letters;
-}
-
-int main() {
-    ios_base::sync_with_stdio(false);
+    return letters[0];
     cin.tie(NULL);
     int n;
     if (!(cin >> n)) return 0;
@@ -108,12 +104,12 @@ public class Main {
     public static char solve(int n, char[] letters, char target) {
         int left = 0, right = n - 1;
         // Your code here
-        
-        return letters;
+
+        return letters[0];
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.util.Scanner(System.in));
+        Scanner sc = new Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         char[] letters = new char[n];

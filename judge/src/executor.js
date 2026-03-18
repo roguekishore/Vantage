@@ -252,8 +252,9 @@ echo "Starting optimized C++ execution..."
       script += `  echo "TC${i + 1}_START"\n`;
       script += `  echo "TC${i + 1}_INPUT"\n`;
       script += `  echo '${escapedInput}' | ./solution 2>/tmp/err${i + 1}\n`;
-      script += `  echo "TC${i + 1}_END"\n`;
+      script += `  printf "\\n"\n`;
       script += `  echo "TC${i + 1}_EXPECTED:${escapedExpected}"\n`;
+      script += `  echo "TC${i + 1}_END"\n`;
     }
     script += `) | while IFS= read -r line; do
   echo "RESULT:\$line"
@@ -276,8 +277,9 @@ echo "" | java -Xmx${MEMORY_LIMIT_MB}m -cp /workspace ${className} >/dev/null 2>
       script += `  echo "TC${i + 1}_START"\n`;
       script += `  echo "TC${i + 1}_INPUT"\n`;
       script += `  echo '${escapedInput}' | java -Xmx${MEMORY_LIMIT_MB}m -XX:+UseSerialGC -XX:TieredStopAtLevel=1 -cp /workspace ${className} 2>/tmp/err${i + 1}\n`;
-      script += `  echo "TC${i + 1}_END"\n`;
+      script += `  printf "\\n"\n`;
       script += `  echo "TC${i + 1}_EXPECTED:${escapedExpected}"\n`;
+      script += `  echo "TC${i + 1}_END"\n`;
     }
     script += `) | while IFS= read -r line; do
   echo "RESULT:\$line" 
@@ -300,23 +302,42 @@ function parseOptimizedResults(output, testCases, totalTime) {
   let currentExpected = '';
 
   for (const line of lines) {
-    if (line.startsWith('RESULT:TC')) {
-      const content = line.substring(7); // Remove "RESULT:"
-      
+    if (!line.startsWith('RESULT:')) continue;
+
+    let content = line.substring(7); // Remove "RESULT:"
+
+    // If a testcase marker gets concatenated to user output (no trailing newline),
+    // split it so comparison still works.
+    if (currentTC && !/^TC\d+_/.test(content)) {
+      const markerIndex = content.search(new RegExp(`TC${currentTC}_(START|INPUT|EXPECTED:|END)`));
+      if (markerIndex > 0) {
+        const userChunk = content.substring(0, markerIndex);
+        if (userChunk) {
+          currentOutput += (currentOutput ? '\n' : '') + userChunk;
+        }
+        content = content.substring(markerIndex);
+      }
+    }
+
+    // Marker lines: TC{n}_START / _INPUT / _EXPECTED / _END
+    if (/^TC\d+_/.test(content)) {
       if (content.includes('_START')) {
         currentTC = parseInt(content.split('_')[0].substring(2));
         currentOutput = '';
+        currentExpected = '';
       } else if (content.includes('_INPUT')) {
         // Skip input echo
+      } else if (content.includes('_EXPECTED:')) {
+        currentExpected = content.split('_EXPECTED:')[1] || '';
       } else if (content.includes('_END')) {
         // Process the test case result
         if (currentTC) {
           const actualOutput = currentOutput.trim();
           const expectedOutput = currentExpected.trim();
           const passed = actualOutput === expectedOutput;
-          
+
           if (passed) totalPassed++;
-          
+
           results.push({
             testCase: currentTC,
             passed,
@@ -326,13 +347,11 @@ function parseOptimizedResults(output, testCases, totalTime) {
             time: Math.ceil(totalTime / testCases.length), // Distribute total time
           });
         }
-      } else if (content.includes('_EXPECTED:')) {
-        currentExpected = content.split('_EXPECTED:')[1] || '';
-      } else {
-        // This is actual program output
-        if (currentTC && !content.includes('_')) {
-          currentOutput += (currentOutput ? '\n' : '') + content;
-        }
+      }
+    } else {
+      // Regular user-program output line for the current test case
+      if (currentTC) {
+        currentOutput += (currentOutput ? '\n' : '') + content;
       }
     }
   }

@@ -129,9 +129,9 @@ class TreeNode {
 
 public class Main {
     public static TreeNode buildTree(String[] nodes) {
-        if (nodes.length == 0 || nodes.equals("null")) return null;
+        if (nodes.length == 0 || nodes[0].equals("null")) return null;
 
-        TreeNode root = new TreeNode(Integer.parseInt(nodes));
+        TreeNode root = new TreeNode(Integer.parseInt(nodes[0]));
         Queue<TreeNode> q = new LinkedList<>();
         q.add(root);
 

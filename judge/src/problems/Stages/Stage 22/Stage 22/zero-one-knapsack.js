@@ -162,7 +162,7 @@ public class Main {
     },
     {
       input: '4 8\n2 3 5 6\n6 8 12 13',
-      expected: '18'
+      expected: '20'
     },
     {
       input: '3 4\n4 5 1\n1 2 3',
