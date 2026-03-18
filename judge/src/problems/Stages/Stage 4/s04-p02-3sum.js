@@ -135,11 +135,11 @@ public class Main {
     { input: '6\n-1 0 1 2 -1 -4', expected: '-1 -1 2\n-1 0 1' },
     { input: '3\n0 0 0', expected: '0 0 0' },
     { input: '3\n0 1 1', expected: '' },
-    { input: '4\n-2 0 1 1', expected: '-2 0 1' },
+    { input: '4\n-2 0 1 1', expected: '-2 1 1' },
     { input: '5\n-1 -1 0 1 2', expected: '-1 -1 2\n-1 0 1' },
     { input: '10\n-4 -2 -2 -2 0 1 2 2 2 3', expected: '-4 1 3\n-4 2 2\n-2 0 2' },
     { input: '5\n0 0 0 0 0', expected: '0 0 0' },
-    { input: '8\n-5 2 3 -2 0 1 -1 4', expected: '-5 1 4\n-5 2 3\n-2 -1 3\n-2 1 1\n-1 0 1' },
+    { input: '8\n-5 2 3 -2 0 1 -1 4', expected: '-5 1 4\n-5 2 3\n-2 -1 3\n-2 0 2\n-1 0 1' },      
     { input: '4\n1 2 -2 -1', expected: '' },
     { input: '6\n-1 0 1 2 -1 -4', expected: '-1 -1 2\n-1 0 1' }
   ]

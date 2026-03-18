@@ -114,6 +114,6 @@ public class Main {
     { input: 'racecar', expected: 'racecar' },
     { input: 'Google', expected: 'elgooG' },
     { input: 'A', expected: 'A' },
-    { input: 'Space ', expected: ' ecapS' }
+    { input: 'Space', expected: 'ecapS' }
   ]
 };

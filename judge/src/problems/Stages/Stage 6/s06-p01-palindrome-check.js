@@ -120,6 +120,6 @@ public class Main {
     { input: '12321', expected: 'true' },
     { input: '123421', expected: 'false' },
     { input: '.,', expected: 'true' },
-    { input: 'Tab a cat.', expected: 'true' }
+    { input: 'Taco cat.', expected: 'true' }
   ]
 };

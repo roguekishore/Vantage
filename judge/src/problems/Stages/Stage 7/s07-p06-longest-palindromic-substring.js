@@ -30,22 +30,22 @@ Implement an $O(n^2)$ solution. A common efficient approach is the **Expand Arou
 ### Example
 **Input:**
 \`\`\`
-babad
+abad
 \`\`\`
 
 **Output:**
 \`\`\`
-bab
+aba
 \`\`\`
 
 **Explanation:**
-"aba" is also a valid answer. For the purpose of testing, any valid longest palindrome will be accepted (the test cases here expect the first one encountered).`,
+The longest palindrome is "aba".`,
 
   examples: [
     {
-      input: 'babad',
-      output: 'bab',
-      explanation: '"aba" is also valid.'
+      input: 'abad',
+      output: 'aba',
+      explanation: 'The longest palindrome is "aba".'
     },
     {
       input: 'cbbd',
@@ -109,15 +109,15 @@ public class Main {
   },
 
   testCases: [
-    { input: 'babad', expected: 'bab' },
+    { input: 'abad', expected: 'aba' },
     { input: 'cbbd', expected: 'bb' },
     { input: 'a', expected: 'a' },
-    { input: 'ac', expected: 'a' },
+    { input: 'aab', expected: 'aa' },
     { input: 'racecar', expected: 'racecar' },
     { input: 'noon', expected: 'noon' },
     { input: 'abacaba', expected: 'abacaba' },
     { input: 'aacabdkalgas', expected: 'aca' },
-    { input: 'abbcccbbb', expected: 'bbb' },
+    { input: 'abbcccbbb', expected: 'bbcccbb' },
     { input: 'forgeeksskeegfor', expected: 'geeksskeeg' }
   ]
 };

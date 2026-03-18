@@ -130,7 +130,7 @@ public class Main {
     { input: '3\n1 2 1', expected: '3' },
     { input: '4\n0 1 2 2', expected: '3' },
     { input: '5\n1 2 3 2 2', expected: '4' },
-    { input: '6\n3 3 3 1 2 1', expected: '5' },
+    { input: '6\n3 3 3 1 2 1', expected: '4' },
     { input: '1\n5', expected: '1' },
     { input: '2\n1 2', expected: '2' },
     { input: '5\n1 1 1 1 1', expected: '5' },

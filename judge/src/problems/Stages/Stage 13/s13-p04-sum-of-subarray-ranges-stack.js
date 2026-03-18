@@ -142,8 +142,14 @@ public class Main {
 
   testCases: [
     { input: '3\n1 2 3', expected: '4' },
-    { input: '4\n4 -2 -3 4', expected: '59' },
+    { input: '4\n4 -2 -3 4', expected: '35' },
     { input: '1\n10', expected: '0' },
-    { input: '5\n1 3 3 1 5', expected: '42' }
+    { input: '5\n1 3 3 1 5', expected: '26' },
+    { input: '4\n1 1 1 1', expected: '0' },
+    { input: '2\n-1 -100', expected: '99' },
+    { input: '6\n1 3 5 2 4 6', expected: '49' },
+    { input: '5\n10 1 10 1 10', expected: '90' },
+    { input: '5\n1 2 3 4 5', expected: '20' },
+    { input: '3\n10 5 10', expected: '15' }
   ]
 };

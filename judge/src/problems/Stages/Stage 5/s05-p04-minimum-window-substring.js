@@ -128,7 +128,7 @@ public class Main {
     { input: 'a\naa', expected: '' },
     { input: 'ab\nb', expected: 'b' },
     { input: 'aa\naa', expected: 'aa' },
-    { input: 'DONOTPANIC\nANT', expected: 'NOTPA' },
+    { input: 'DONOTPANIC\nANT', expected: 'TPAN' },
     { input: 'BANC\nABC', expected: 'BANC' },
     { input: 'xyz\ny', expected: 'y' },
     { input: 'aaaaabbbbbc\nabc', expected: 'abbbbbc' },

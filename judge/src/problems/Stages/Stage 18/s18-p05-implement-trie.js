@@ -59,7 +59,7 @@ using namespace std;
 
 class TrieNode {
 public:
-    TrieNode* children;
+    TrieNode* children[26];
     bool isEndOfWord;
 
     TrieNode() {
@@ -111,13 +111,32 @@ public:
 };
 
 int main() {
-    // Execution logic for commands...
+    int q;
+    if (!(cin >> q)) return 0;
+    Trie* obj = new Trie();
+    vector<string> res;
+    while(q--) {
+        string cmd, word;
+        cin >> cmd >> word;
+        if(cmd == "insert") {
+            obj->insert(word);
+            res.push_back("null");
+        } else if(cmd == "search") {
+            res.push_back(obj->search(word) ? "true" : "false");
+        } else if(cmd == "startsWith") {
+            res.push_back(obj->startsWith(word) ? "true" : "false");
+        }
+    }
+    for(int i=0; i<res.size(); i++) {
+        cout << res[i] << (i == res.size()-1 ? "" : " ");
+    }
+    cout << endl;
     return 0;
 }`,
     java: `import java.util.*;
 
 class TrieNode {
-    TrieNode[] children = new TrieNode;
+    TrieNode[] children = new TrieNode[26];
     boolean isEndOfWord = false;
 }
 
@@ -162,13 +181,33 @@ class Trie {
 
 public class Main {
     public static void main(String[] args) {
-        // Driver code...
+        Scanner sc = new Scanner(System.in);
+        if(!sc.hasNextInt()) return;
+        int q = sc.nextInt();
+        Trie obj = new Trie();
+        List<String> res = new ArrayList<>();
+        while(q-- > 0) {
+            String cmd = sc.next();
+            String word = sc.next();
+            if(cmd.equals("insert")) {
+                obj.insert(word);
+                res.add("null");
+            } else if(cmd.equals("search")) {
+                res.add(obj.search(word) ? "true" : "false");
+            } else if(cmd.equals("startsWith")) {
+                res.add(obj.startsWith(word) ? "true" : "false");
+            }
+        }
+        for(int i=0; i<res.size(); i++) {
+            System.out.print(res.get(i) + (i == res.size()-1 ? "" : " "));
+        }
+        System.out.println();
     }
 }`
   },
 
   testCases: [
-    { input: 'apple app', expected: 'search("apple"):true, startsWith("app"):true' },
-    { input: 'hello hell', expected: 'search("hell"):false, startsWith("hell"):true' }
+    { input: '6\ninsert apple\nsearch apple\nsearch app\nstartsWith app\ninsert app\nsearch app', expected: 'null true false true null true' },
+    { input: '4\ninsert hello\nsearch hello\nsearch hell\nstartsWith hell', expected: 'null true false true' }
   ]
 };
