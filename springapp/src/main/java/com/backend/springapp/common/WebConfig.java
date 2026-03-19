@@ -8,6 +8,8 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+import java.util.Arrays;
+
 /**
  * CORS + HTTP client configuration.
  *
@@ -17,7 +19,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig {
 
-    @Value("${cors.allowed-origins:http://localhost:3000}")
+    @Value("${cors.allowed-origins:http://localhost:3000,https://localhost:3000}")
     private String allowedOriginsRaw;
 
     @Bean
@@ -25,7 +27,10 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                String[] origins = allowedOriginsRaw.split(",");
+                String[] origins = Arrays.stream(allowedOriginsRaw.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isBlank())
+                        .toArray(String[]::new);
 
                 // Chrome extension sync — wide open (extension has no origin header)
                 registry.addMapping("/api/sync/**")

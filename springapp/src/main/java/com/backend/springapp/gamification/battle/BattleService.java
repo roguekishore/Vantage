@@ -13,6 +13,7 @@ import com.backend.springapp.user.UserProgressRepository;
 import com.backend.springapp.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -47,11 +48,15 @@ public class BattleService {
     private final SimpMessagingTemplate messagingTemplate;
     private final AchievementService achievementService;
     private final RestTemplate judgeRestTemplate;
+    @Value("${judge.base-url:http://localhost:9000}")
+    private String judgeBaseUrl;
 
-    private static final String JUDGE_URL = "http://localhost:9000/api/submit";
+    private static final long JUDGE_PROBLEM_CACHE_TTL_MS = 5 * 60 * 1000;
     private static final int RATE_LIMIT_SECONDS = 10;
     private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private final java.util.Random random = new java.util.Random();
+    private volatile List<JudgeProblemSummary> judgeProblemCatalogCache = List.of();
+    private volatile long judgeProblemCatalogCachedAtMs = 0L;
 
     /* ═══════════════════════════════════════════════════════════
      * MATCHMAKING QUEUE
@@ -306,7 +311,7 @@ public class BattleService {
             BattleProblem bp = new BattleProblem();
             bp.setBattleId(battleId);
             bp.setProblemId(p.getPid());
-            bp.setJudgeProblemId(p.getLcslug());
+            bp.setJudgeProblemId(resolveJudgeProblemId(p.getLcslug(), p));
             bp.setProblemIndex(i);
             battleProblemRepo.saveAndFlush(bp);
         }
@@ -434,6 +439,7 @@ public class BattleService {
         List<BattleProblem> battleProblems = battleProblemRepo.findByBattleIdOrderByProblemIndex(battleId);
         List<BattleStateDTO.ProblemInfo> problemInfos = battleProblems.stream().map(bp -> {
             Problem p = problemRepo.findById(bp.getProblemId()).orElse(null);
+            String resolvedJudgeId = resolveJudgeProblemId(bp.getJudgeProblemId(), p);
             boolean solved = submissionRepo.hasAcceptedSubmission(battleId, userId, bp.getProblemIndex());
             return new BattleStateDTO.ProblemInfo(
                     bp.getProblemIndex(),
@@ -441,7 +447,7 @@ public class BattleService {
                     p != null ? p.getDescription() : "",
                     "", // examples — frontend fetches from judge
                     "", // constraints
-                    bp.getJudgeProblemId(),
+                resolvedJudgeId,
                     solved
             );
         }).toList();
@@ -501,8 +507,17 @@ public class BattleService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Invalid problem index"));
 
+        Problem springProblem = problemRepo.findById(bp.getProblemId()).orElse(null);
+        String resolvedJudgeId = resolveJudgeProblemId(bp.getJudgeProblemId(), springProblem);
+
         // Call the Judge service
-        JudgeResult judgeResult = callJudge(bp.getJudgeProblemId(), language, code);
+        JudgeResult judgeResult = callJudge(resolvedJudgeId, language, code);
+
+        // Self-heal stored judgeProblemId for future requests/battles state payloads
+        if (!Objects.equals(resolvedJudgeId, bp.getJudgeProblemId())) {
+            bp.setJudgeProblemId(resolvedJudgeId);
+            battleProblemRepo.saveAndFlush(bp);
+        }
 
         // Record submission
         BattleSubmission sub = new BattleSubmission();
@@ -587,7 +602,7 @@ public class BattleService {
             HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
             ResponseEntity<Map> response = judgeRestTemplate.exchange(
-                    JUDGE_URL, HttpMethod.POST, request, Map.class);
+                    getJudgeSubmitUrl(), HttpMethod.POST, request, Map.class);
 
             Map<?, ?> resBody = response.getBody();
             if (resBody == null) {
@@ -1333,12 +1348,13 @@ public class BattleService {
         List<BattleProblem> battleProblems = battleProblemRepo.findByBattleIdOrderByProblemIndex(battleId);
         List<GroupBattleStateDTO.ProblemInfo> problemInfos = battleProblems.stream().map(bp -> {
             Problem p = problemRepo.findById(bp.getProblemId()).orElse(null);
+            String resolvedJudgeId = resolveJudgeProblemId(bp.getJudgeProblemId(), p);
             boolean solved = submissionRepo.hasAcceptedSubmission(battleId, userId, bp.getProblemIndex());
             return new GroupBattleStateDTO.ProblemInfo(
                     bp.getProblemIndex(),
                     p != null ? p.getTitle() : "Unknown",
                     p != null ? p.getDescription() : "",
-                    "", "", bp.getJudgeProblemId(), solved
+                "", "", resolvedJudgeId, solved
             );
         }).toList();
 
@@ -1383,6 +1399,101 @@ public class BattleService {
                 battle.getCompletedAt()
         );
     }
+
+    private String resolveJudgeProblemId(String currentJudgeProblemId, Problem springProblem) {
+        String candidate = normalizeId(currentJudgeProblemId);
+        if (candidate.isBlank()) return currentJudgeProblemId;
+
+        List<JudgeProblemSummary> catalog = getJudgeProblemCatalog();
+        if (catalog.isEmpty()) return candidate;
+
+        if (catalogContainsId(catalog, candidate)) return candidate;
+
+        String withoutRomanSuffix = candidate.replaceFirst("-(i|ii|iii|iv|v)$", "");
+        if (!withoutRomanSuffix.isBlank() && catalogContainsId(catalog, withoutRomanSuffix)) {
+            return withoutRomanSuffix;
+        }
+
+        String normalizedTitle = normalizeTitle(springProblem != null ? springProblem.getTitle() : null);
+        if (!normalizedTitle.isBlank()) {
+            for (JudgeProblemSummary jp : catalog) {
+                if (normalizedTitle.equals(normalizeTitle(jp.title()))) {
+                    return jp.id();
+                }
+            }
+        }
+
+        return candidate;
+    }
+
+    private boolean catalogContainsId(List<JudgeProblemSummary> catalog, String id) {
+        for (JudgeProblemSummary jp : catalog) {
+            if (id.equalsIgnoreCase(jp.id())) return true;
+        }
+        return false;
+    }
+
+    private List<JudgeProblemSummary> getJudgeProblemCatalog() {
+        long now = System.currentTimeMillis();
+        if (!judgeProblemCatalogCache.isEmpty() && (now - judgeProblemCatalogCachedAtMs) < JUDGE_PROBLEM_CACHE_TTL_MS) {
+            return judgeProblemCatalogCache;
+        }
+
+        try {
+            ResponseEntity<List> response = judgeRestTemplate.exchange(
+                    getJudgeProblemsUrl(), HttpMethod.GET, HttpEntity.EMPTY, List.class);
+
+            List<?> rows = response.getBody();
+            if (rows == null || rows.isEmpty()) return judgeProblemCatalogCache;
+
+            List<JudgeProblemSummary> parsed = new ArrayList<>();
+            for (Object row : rows) {
+                if (!(row instanceof Map<?, ?> m)) continue;
+                Object idObj = m.get("id");
+                if (idObj == null) continue;
+                String id = String.valueOf(idObj).trim();
+                if (id.isBlank()) continue;
+                String title = m.get("title") != null ? String.valueOf(m.get("title")) : "";
+                parsed.add(new JudgeProblemSummary(id, title));
+            }
+
+            if (!parsed.isEmpty()) {
+                judgeProblemCatalogCache = parsed;
+                judgeProblemCatalogCachedAtMs = now;
+            }
+        } catch (Exception e) {
+            log.debug("Could not refresh judge problem catalog: {}", e.getMessage());
+        }
+
+        return judgeProblemCatalogCache;
+    }
+
+    private String normalizeId(String value) {
+        return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String getJudgeSubmitUrl() {
+        return sanitizeJudgeBaseUrl() + "/api/submit";
+    }
+
+    private String getJudgeProblemsUrl() {
+        return sanitizeJudgeBaseUrl() + "/api/problems";
+    }
+
+    private String sanitizeJudgeBaseUrl() {
+        String base = judgeBaseUrl == null ? "" : judgeBaseUrl.trim();
+        if (base.endsWith("/")) {
+            return base.substring(0, base.length() - 1);
+        }
+        return base;
+    }
+
+    private String normalizeTitle(String value) {
+        if (value == null) return "";
+        return value.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]+", " ").replaceAll("\\s+", " ");
+    }
+
+    private record JudgeProblemSummary(String id, String title) {}
 
     @Transactional
     public void completeGroupBattle(Long battleId) {
