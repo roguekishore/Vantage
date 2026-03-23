@@ -1,5 +1,5 @@
 /**
- * Factorial Trailing Zeroes — Problem Definition
+ * Factorial Trailing Zeroes - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n.
@@ -10,7 +10,7 @@
 
 module.exports = {
   id: 'factorial-trailing-zeroes',
-  conquestId: 'bonusA-8',
+  conquestId: 'bonusB-3',
   title: 'Factorial Trailing Zeroes',
   difficulty: 'Medium',
   category: 'Math',

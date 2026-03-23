@@ -73,7 +73,7 @@ async function initPool() {
   }
 
   initialized = true;
-  console.log(`\n⚡ Worker pool ready — ${POOL_SIZE * Object.keys(IMAGES).length} total workers\n`);
+  console.log(`\n⚡ Worker pool ready - ${POOL_SIZE * Object.keys(IMAGES).length} total workers\n`);
 }
 
 /**
@@ -105,13 +105,13 @@ function acquire(language) {
     }
   }
 
-  // All busy — queue the request
+  // All busy - queue the request
   return new Promise((resolve, reject) => {
     const timer = setTimeout(() => {
       const queue = waitQueues.get(language);
       const idx = queue.findIndex((item) => item.resolve === resolve);
       if (idx !== -1) queue.splice(idx, 1);
-      reject(new Error(`Worker pool exhausted — all ${POOL_SIZE} ${language} workers busy. Try again later.`));
+      reject(new Error(`Worker pool exhausted - all ${POOL_SIZE} ${language} workers busy. Try again later.`));
     }, ACQUIRE_TIMEOUT);
 
     waitQueues.get(language).push({ resolve, timer });
@@ -132,7 +132,7 @@ function release(worker) {
       stdio: "ignore",
     });
   } catch {
-    // If cleanup fails, the worker might be dead — it'll be revived on next acquire
+    // If cleanup fails, the worker might be dead - it'll be revived on next acquire
   }
 
   worker.busy = false;
@@ -194,7 +194,7 @@ function execInWorker(worker, cmd, opts = {}) {
  * @param {string} content
  */
 function writeToWorker(worker, filename, content) {
-  // Use docker exec with stdin to write file — no temp files on host needed
+  // Use docker exec with stdin to write file - no temp files on host needed
   execInWorker(worker, `cat > /workspace/${filename}`, {
     input: content,
     timeout: 5000,
@@ -224,7 +224,7 @@ function getPoolStatus() {
 }
 
 /**
- * Graceful shutdown — stop all workers.
+ * Graceful shutdown - stop all workers.
  */
 function shutdownPool() {
   console.log("\n🛑 Shutting down worker pool...");

@@ -1,5 +1,5 @@
 /**
- * Search in Sorted Array of Unknown Size — Problem Definition
+ * Search in Sorted Array of Unknown Size - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer target.

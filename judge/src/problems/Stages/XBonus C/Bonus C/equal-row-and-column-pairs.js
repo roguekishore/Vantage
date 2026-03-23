@@ -1,5 +1,5 @@
 /**
- * Equal Row and Column Pairs — Problem Definition
+ * Equal Row and Column Pairs - Problem Definition
  *
  * Input format (stdin):
  *   First line: integer n (size of the grid)
@@ -11,7 +11,7 @@
 
 module.exports = {
   id: 'equal-row-and-column-pairs',
-  conquestId: 'bonusA-12',
+  conquestId: 'bonusC-2',
   title: 'Equal Row and Column Pairs',
   difficulty: 'Medium',
   category: 'Matrix',

@@ -1,11 +1,11 @@
 /**
- * Flood Fill — Problem Definition
+ * Flood Fill - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers m and n — number of rows and columns in the image
+ *   Line 1: Two integers m and n - number of rows and columns in the image
  *   Next m lines: n space-separated integers representing the image
- *   Next line: Two integers sr and sc — starting row and starting column
- *   Last line: Integer newColor — the new color to apply
+ *   Next line: Two integers sr and sc - starting row and starting column
+ *   Last line: Integer newColor - the new color to apply
  *
  * Output format (stdout):
  *   Print the updated image after performing flood fill.

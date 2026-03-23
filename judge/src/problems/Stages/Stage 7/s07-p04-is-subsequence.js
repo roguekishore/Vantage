@@ -1,5 +1,5 @@
 /**
- * Is Subsequence — Problem Definition
+ * Is Subsequence - Problem Definition
  *
  * Input format (stdin):
  * Line 1: String s (the potential subsequence).

@@ -1,5 +1,5 @@
 /**
- * Quadratic Sorting — Problem Definition
+ * Quadratic Sorting - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements.

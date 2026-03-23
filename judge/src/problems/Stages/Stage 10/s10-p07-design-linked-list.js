@@ -1,5 +1,5 @@
 /**
- * Design Linked List — Problem Definition
+ * Design Linked List - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer q, the number of operations.

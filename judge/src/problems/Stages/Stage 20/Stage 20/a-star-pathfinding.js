@@ -1,16 +1,16 @@
 /**
- * A* Pathfinding — Problem Definition
+ * A* Pathfinding - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers m and n — number of rows and columns in the grid
+ *   Line 1: Two integers m and n - number of rows and columns in the grid
  *   Next m lines: n space-separated integers representing the grid
  *                 0 = walkable cell
  *                 1 = obstacle
- *   Next line: Two integers sr sc — start cell
- *   Next line: Two integers tr tc — target cell
+ *   Next line: Two integers sr sc - start cell
+ *   Next line: Two integers tr tc - target cell
  *
  * Output format (stdout):
- *   Print a single integer — the length of the shortest path from start to target.
+ *   Print a single integer - the length of the shortest path from start to target.
  *   If the target cannot be reached, print -1.
  */
 

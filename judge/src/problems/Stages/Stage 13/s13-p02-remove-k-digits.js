@@ -1,5 +1,5 @@
 /**
- * Remove K Digits — Problem Definition
+ * Remove K Digits - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string representing a non-negative integer 'num'.

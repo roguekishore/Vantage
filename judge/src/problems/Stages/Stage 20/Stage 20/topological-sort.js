@@ -1,8 +1,8 @@
 /**
- * Topological Sort — Problem Definition
+ * Topological Sort - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers n and m — number of vertices and edges
+ *   Line 1: Two integers n and m - number of vertices and edges
  *   Next m lines: Two integers u v representing a directed edge from u to v
  *
  * Output format (stdout):

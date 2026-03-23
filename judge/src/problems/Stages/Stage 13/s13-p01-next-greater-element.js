@@ -1,5 +1,5 @@
 /**
- * Next Greater Element I — Problem Definition
+ * Next Greater Element I - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the size of the array.
@@ -32,7 +32,7 @@ If we use a nested loop ($O(n^2)$), we check every element to the right. But wit
 5.  Repeat until the end of the array.
 
 ### Why this works
-The stack maintains indices of elements for which we haven't found a "greater neighbor" yet. The elements in the stack (if looked up in the array) are always in **decreasing order**—this is why we call it a "Monotonic Stack."
+The stack maintains indices of elements for which we haven't found a "greater neighbor" yet. The elements in the stack (if looked up in the array) are always in **decreasing order**-this is why we call it a "Monotonic Stack."
 
 ### Example
 **Input:** \`\`

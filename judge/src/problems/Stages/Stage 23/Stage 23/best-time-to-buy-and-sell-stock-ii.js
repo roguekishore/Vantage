@@ -1,5 +1,5 @@
 /**
- * Best Time to Buy and Sell Stock II — Problem Definition
+ * Best Time to Buy and Sell Stock II - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of days
@@ -11,7 +11,7 @@
 
 module.exports = {
   id: 'best-time-to-buy-and-sell-stock-ii',
-  conquestId: 'stage21-2',
+  conquestId: 'stage23-2',
   title: 'Best Time to Buy and Sell Stock II',
   difficulty: 'Easy',
   category: 'Arrays',

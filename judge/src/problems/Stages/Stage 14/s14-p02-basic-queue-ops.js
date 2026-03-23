@@ -1,5 +1,5 @@
 /**
- * Basic Queue — Problem Definition
+ * Basic Queue - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer q, the number of operations.

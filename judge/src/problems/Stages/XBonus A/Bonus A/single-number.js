@@ -1,8 +1,8 @@
 /**
- * Single Number — Problem Definition
+ * Single Number - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer `n` — number of elements in the array
+ *   Line 1: Integer `n` - number of elements in the array
  *   Line 2: `n` space-separated integers
  *
  * Output format (stdout):
@@ -14,7 +14,7 @@
 
 module.exports = {
   id: 'single-number',
-  conquestId: 'stage6-1',
+  conquestId: 'bonusA-1',
   title: 'Single Number',
   difficulty: 'Easy',
   category: 'Bit Manipulation',

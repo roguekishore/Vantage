@@ -1,5 +1,5 @@
 /**
- * Design HashMap — Problem Definition
+ * Design HashMap - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer q representing the number of operations
@@ -15,7 +15,7 @@
 
 module.exports = {
   id: 'design-hashmap',
-  conquestId: 'stage21-9',
+  conquestId: 'stage24-1',
   title: 'Design HashMap',
   difficulty: 'Easy',
   category: 'Hash Table',
@@ -26,13 +26,13 @@ Design a **HashMap** without using any built-in hash table libraries.
 
 Implement the **MyHashMap** class with the following operations:
 
-- **put(key, value)** — Insert a *(key, value)* pair into the HashMap.  
+- **put(key, value)** - Insert a *(key, value)* pair into the HashMap.  
   If the key already exists, update the value.
 
-- **get(key)** — Return the value associated with the key.  
+- **get(key)** - Return the value associated with the key.  
   If the key does not exist, return **-1**.
 
-- **remove(key)** — Remove the key and its corresponding value if it exists.
+- **remove(key)** - Remove the key and its corresponding value if it exists.
 
 Typical Approach:
 

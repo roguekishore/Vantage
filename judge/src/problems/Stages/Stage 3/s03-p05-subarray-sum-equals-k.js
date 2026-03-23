@@ -1,5 +1,5 @@
 /**
- * Subarray Sum Equals K — Problem Definition
+ * Subarray Sum Equals K - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements in the array.

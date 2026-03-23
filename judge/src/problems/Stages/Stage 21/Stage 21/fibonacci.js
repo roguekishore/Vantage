@@ -1,5 +1,5 @@
 /**
- * Fibonacci — Problem Definition
+ * Fibonacci - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n

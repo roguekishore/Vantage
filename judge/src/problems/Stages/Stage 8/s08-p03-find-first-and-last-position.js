@@ -1,5 +1,5 @@
 /**
- * Find First and Last Position of Element in Sorted Array — Problem Definition
+ * Find First and Last Position of Element in Sorted Array - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the size of the array.

@@ -1,5 +1,5 @@
 /**
- * Knight's Tour — Problem Definition
+ * Knight's Tour - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the size of the chessboard (n × n)

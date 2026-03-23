@@ -1,5 +1,5 @@
 /**
- * Count Vowels — Problem Definition
+ * Count Vowels - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string s.

@@ -1,5 +1,5 @@
 /**
- * Find Minimum in Rotated Sorted Array — Problem Definition
+ * Find Minimum in Rotated Sorted Array - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the size of the array.

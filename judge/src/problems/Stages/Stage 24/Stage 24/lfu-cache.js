@@ -1,9 +1,9 @@
 /**
- * LFU Cache — Problem Definition
+ * LFU Cache - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer `capacity` — capacity of the LFU cache
- *   Line 2: Integer `q` — number of operations
+ *   Line 1: Integer `capacity` - capacity of the LFU cache
+ *   Line 2: Integer `q` - number of operations
  *   Next q lines: Operations of two types:
  *     - `put key value`
  *     - `get key`

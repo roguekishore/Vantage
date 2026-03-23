@@ -1,10 +1,10 @@
 /**
- * Dijkstra's Algorithm — Problem Definition
+ * Dijkstra's Algorithm - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers n and m — number of vertices and edges
+ *   Line 1: Two integers n and m - number of vertices and edges
  *   Next m lines: Three integers u v w representing an edge from u to v with weight w
- *   Last line: Integer s — source vertex
+ *   Last line: Integer s - source vertex
  *
  * Output format (stdout):
  *   Print n space-separated integers representing the shortest distance from

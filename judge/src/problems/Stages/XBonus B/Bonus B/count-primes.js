@@ -1,5 +1,5 @@
 /**
- * Count Primes — Problem Definition
+ * Count Primes - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n.
@@ -10,7 +10,7 @@
 
 module.exports = {
   id: 'count-primes',
-  conquestId: 'bonusA-6',
+  conquestId: 'bonusB-1',
   title: 'Count Primes',
   difficulty: 'Medium',
   category: 'Math',

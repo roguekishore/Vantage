@@ -1,5 +1,5 @@
 /**
- * Merge Two Sorted Lists — Problem Definition
+ * Merge Two Sorted Lists - Problem Definition
  *
  * Input format (stdin):
  * Line 1: n1 (size of list1) and n2 (size of list2).

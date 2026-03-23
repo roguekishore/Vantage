@@ -1,8 +1,8 @@
 /**
- * Tower of Hanoi — Problem Definition
+ * Tower of Hanoi - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer n — number of disks
+ *   Line 1: Integer n - number of disks
  *
  * Output format (stdout):
  *   Print the minimum number of moves required to move all disks

@@ -1,5 +1,5 @@
 /**
- * Two City Scheduling — Problem Definition
+ * Two City Scheduling - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of people (always even)

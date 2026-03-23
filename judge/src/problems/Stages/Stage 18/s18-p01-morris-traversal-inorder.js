@@ -1,5 +1,5 @@
 /**
- * Morris Inorder Traversal — Problem Definition
+ * Morris Inorder Traversal - Problem Definition
  *
  * Input format (stdin):
  * A single line of space-separated values representing the level-order traversal.

@@ -1,5 +1,5 @@
 /**
- * Reverse Words in a String — Problem Definition
+ * Reverse Words in a String - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string s containing words separated by at least one space.

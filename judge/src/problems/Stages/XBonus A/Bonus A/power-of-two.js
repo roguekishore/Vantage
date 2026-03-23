@@ -1,5 +1,5 @@
 /**
- * Power of Two — Problem Definition
+ * Power of Two - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n.

@@ -1,5 +1,5 @@
 /**
- * Top K Frequent Elements — Problem Definition
+ * Top K Frequent Elements - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n (number of elements) and k (the number of top frequent elements to find).

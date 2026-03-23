@@ -1,8 +1,8 @@
 /**
- * Design Linked List — Problem Definition
+ * Design Linked List - Problem Definition
  *
  * Input format (stdin):
- *   The first line contains an integer q — the number of operations.
+ *   The first line contains an integer q - the number of operations.
  *   The next q lines contain operations in one of the following formats:
  *
  *   addHead x        → Add node with value x at the beginning

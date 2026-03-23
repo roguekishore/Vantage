@@ -1,5 +1,5 @@
 /**
- * Linked List Cycle — Problem Definition
+ * Linked List Cycle - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of nodes.
@@ -32,8 +32,8 @@ Given \`head\`, the head of a linked list, determine if the linked list has a cy
 5. If \`fast\` or \`fast->next\` becomes \`NULL\`, there is no cycle.
 
 ### Time & Space Complexity
-- **Time**: $O(n)$ — We traverse the list once.
-- **Space**: $O(1)$ — We only use two pointers, regardless of list size.
+- **Time**: $O(n)$ - We traverse the list once.
+- **Space**: $O(1)$ - We only use two pointers, regardless of list size.
 
 ### Example
 **Input:**

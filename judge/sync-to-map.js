@@ -9,7 +9,7 @@
  *
  *   node sync-to-map.js          (from the judge/ directory)
  *
- * Safe to run multiple times — already-linked entries are updated in place.
+ * Safe to run multiple times - already-linked entries are updated in place.
  * ──────────────────────────────────────────────────────────────────────────
  */
 
@@ -48,7 +48,7 @@ for (const fullPath of collectJsFiles(PROBLEMS_DIR)) {
     if (problem.conquestId && problem.id) {
       linked.push({ conquestId: problem.conquestId, judgeId: problem.id, file: relName });
     } else {
-      console.warn(`⚠  ${relName} — no conquestId field, skipping`);
+      console.warn(`⚠  ${relName} - no conquestId field, skipping`);
     }
   } catch (err) {
     console.error(`✗  Failed to load ${relName}:`, err.message);
@@ -90,7 +90,7 @@ for (const { conquestId, judgeId, file } of linked) {
   }
 
   if (!patched) {
-    console.warn(`⚠  conquestId '${conquestId}' not found in conquest map — skipping ${file}`);
+    console.warn(`⚠  conquestId '${conquestId}' not found in conquest map - skipping ${file}`);
   }
 }
 

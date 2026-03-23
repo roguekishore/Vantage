@@ -1,5 +1,5 @@
 /**
- * Search in a Binary Search Tree — Problem Definition
+ * Search in a Binary Search Tree - Problem Definition
  *
  * Input format (stdin):
  * Line 1: Space-separated values representing the BST in level-order.

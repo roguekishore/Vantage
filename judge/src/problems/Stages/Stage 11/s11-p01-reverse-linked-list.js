@@ -1,5 +1,5 @@
 /**
- * Reverse Linked List — Problem Definition
+ * Reverse Linked List - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of nodes.
@@ -29,8 +29,8 @@ Given the head of a singly linked list, reverse the list and return the new head
 3. At the end, \`prev\` will be the new head of the reversed list.
 
 ### Time & Space Complexity
-- **Time**: $O(n)$ — We visit each node exactly once.
-- **Space**: $O(1)$ — We only use a few extra pointers.
+- **Time**: $O(n)$ - We visit each node exactly once.
+- **Space**: $O(1)$ - We only use a few extra pointers.
 
 ### Example
 **Input:**

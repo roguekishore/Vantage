@@ -39,10 +39,10 @@ function detectMode() {
   try {
     execSync("docker info", { stdio: "ignore", timeout: 5000 });
     EXECUTION_MODE = "docker";
-    console.log("🐳 Docker detected — using containerized sandbox execution");
+    console.log("🐳 Docker detected - using containerized sandbox execution");
   } catch {
     EXECUTION_MODE = "host";
-    console.log("💻 Docker not found — using direct host execution (dev mode)");
+    console.log("💻 Docker not found - using direct host execution (dev mode)");
     console.log("   Install Docker & run 'npm run build-sandboxes' for production use.");
   }
   return EXECUTION_MODE;
@@ -63,12 +63,12 @@ function cleanup(sessionDir) {
 }
 
 // ─────────────────────────────────────────────────
-// DOCKER EXECUTION  (Production — warm worker pool)
+// DOCKER EXECUTION  (Production - warm worker pool)
 // ─────────────────────────────────────────────────
 
 /**
  * Execute code inside a pooled worker container.
- * The worker is already running — we just docker exec into it.
+ * The worker is already running - we just docker exec into it.
  *
  * Flow:
  *   1. Acquire an idle worker from the pool
@@ -375,7 +375,7 @@ function getJavaFilename(code) {
 }
 
 // ─────────────────────────────────────────────────
-// HOST EXECUTION  (Dev mode — no Docker needed)
+// HOST EXECUTION  (Dev mode - no Docker needed)
 // ─────────────────────────────────────────────────
 
 /**
@@ -522,7 +522,7 @@ async function executeCode(language, code, input) {
     return executeInDockerPool(language, code, input);
   }
 
-  // Host (dev) mode — synchronous
+  // Host (dev) mode - synchronous
   const sessionId = uuidv4();
   const sessionDir = path.join(TEMP_DIR, sessionId);
   fs.mkdirSync(sessionDir, { recursive: true });

@@ -1,10 +1,10 @@
 /**
- * BFS (Graph) — Problem Definition
+ * BFS (Graph) - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers n and m — number of vertices and edges
+ *   Line 1: Two integers n and m - number of vertices and edges
  *   Next m lines: Two integers u v representing an undirected edge between u and v
- *   Last line: Integer s — starting vertex for BFS traversal
+ *   Last line: Integer s - starting vertex for BFS traversal
  *
  * Output format (stdout):
  *   Print the BFS traversal order starting from vertex s.

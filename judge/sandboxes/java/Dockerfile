@@ -9,5 +9,5 @@ WORKDIR /workspace
 
 USER sandbox
 
-# Keep the container alive — the judge server sends work via `docker exec`
+# Keep the container alive - the judge server sends work via `docker exec`
 CMD ["sleep", "infinity"]

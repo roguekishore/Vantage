@@ -1,5 +1,5 @@
 /**
- * Search in a Binary Tree — Problem Definition
+ * Search in a Binary Tree - Problem Definition
  *
  * Input format (stdin):
  * Line 1: Space-separated values representing the level-order traversal of the tree.

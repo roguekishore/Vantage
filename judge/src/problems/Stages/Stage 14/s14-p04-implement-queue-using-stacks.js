@@ -1,5 +1,5 @@
 /**
- * Implement Queue using Stacks — Problem Definition
+ * Implement Queue using Stacks - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer q, the number of operations.
@@ -30,7 +30,7 @@ This classic interview problem tests your ability to manipulate data flow. You m
 1.  **inputStack**: Every time you \`push(val)\`, simply push it here.
 2.  **outputStack**: This stack is used for \`pop()\` and \`peek()\`.
     - If the **outputStack** is empty, move *everything* from the **inputStack** to the **outputStack**.
-    - Moving elements from one stack to another reverses their order—perfect for converting LIFO to FIFO!
+    - Moving elements from one stack to another reverses their order-perfect for converting LIFO to FIFO!
     - Once moved, the top of the **outputStack** is the front of the queue.
 
 ### Amortized Complexity

@@ -1,5 +1,5 @@
 /**
- * Circular Queue — Problem Definition
+ * Circular Queue - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer k (capacity of the queue) and q (number of operations).

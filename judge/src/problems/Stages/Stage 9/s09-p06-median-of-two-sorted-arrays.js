@@ -1,5 +1,5 @@
 /**
- * Median of Two Sorted Arrays — Problem Definition
+ * Median of Two Sorted Arrays - Problem Definition
  *
  * Input format (stdin):
  * Line 1: Two integers m and n (sizes of the two arrays).

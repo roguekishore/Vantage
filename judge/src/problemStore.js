@@ -45,7 +45,7 @@ function loadProblems() {
       if (problem && problem.id) {
         problemsCache.set(problem.id, problem);
       } else {
-        console.warn(`⚠  Skipping ${path.relative(problemsDir, fullPath)} — no 'id' field`);
+        console.warn(`⚠  Skipping ${path.relative(problemsDir, fullPath)} - no 'id' field`);
       }
     } catch (err) {
       console.error(`✗  Failed to load ${path.relative(problemsDir, fullPath)}:`, err.message);

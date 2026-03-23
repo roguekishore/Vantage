@@ -1,5 +1,5 @@
 /**
- * Swap Nodes in Pairs — Problem Definition
+ * Swap Nodes in Pairs - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of nodes.

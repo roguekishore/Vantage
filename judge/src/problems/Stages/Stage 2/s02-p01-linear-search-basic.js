@@ -1,5 +1,5 @@
 /**
- * Linear Search in Array — Problem Definition
+ * Linear Search in Array - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements in the array.

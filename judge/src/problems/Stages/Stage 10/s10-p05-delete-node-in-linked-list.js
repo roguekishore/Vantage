@@ -1,5 +1,5 @@
 /**
- * Delete Node in a Linked List — Problem Definition
+ * Delete Node in a Linked List - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of existing nodes.
@@ -22,9 +22,9 @@ module.exports = {
 
 ### Task
 Given the head of a singly linked list and a value \`target\`, delete the **first occurrence** of a node with that value.
-1. **Case 1: Empty List** — Return \`null\`.
-2. **Case 2: Head deletion** — If the head node contains the target, the second node becomes the new head.
-3. **Case 3: General deletion** — Traverse the list while keeping track of the \`current\` node and its \`previous\` node.
+1. **Case 1: Empty List** - Return \`null\`.
+2. **Case 2: Head deletion** - If the head node contains the target, the second node becomes the new head.
+3. **Case 3: General deletion** - Traverse the list while keeping track of the \`current\` node and its \`previous\` node.
    - When \`current->data == target\`, set \`previous->next = current->next\`.
 4. Return the head of the modified list.
 

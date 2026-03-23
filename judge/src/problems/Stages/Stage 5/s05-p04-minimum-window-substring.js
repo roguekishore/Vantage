@@ -1,5 +1,5 @@
 /**
- * Minimum Window Substring — Problem Definition
+ * Minimum Window Substring - Problem Definition
  *
  * Input format (stdin):
  * Line 1: String s.

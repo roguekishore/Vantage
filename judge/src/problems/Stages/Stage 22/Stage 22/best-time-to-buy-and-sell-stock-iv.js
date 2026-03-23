@@ -1,5 +1,5 @@
 /**
- * Best Time to Buy and Sell Stock IV — Problem Definition
+ * Best Time to Buy and Sell Stock IV - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer k representing the maximum number of transactions

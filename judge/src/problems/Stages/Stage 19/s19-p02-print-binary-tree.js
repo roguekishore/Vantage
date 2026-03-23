@@ -1,5 +1,5 @@
 /**
- * Print Binary Tree — Problem Definition
+ * Print Binary Tree - Problem Definition
  *
  * Input format (stdin):
  * A single line of space-separated values representing the level-order traversal.

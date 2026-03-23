@@ -1,5 +1,5 @@
 /**
- * Longest Increasing Subsequence — Problem Definition
+ * Longest Increasing Subsequence - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of elements in the array
