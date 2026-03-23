@@ -1,4 +1,4 @@
-# DSA Skill Tree Sync — Chrome Extension
+# DSA Skill Tree Sync - Chrome Extension
 
 > Real-time DSA World Map progress tracker with auto-sync, account verification,
 > and token-based authentication for the **AlgoVisualizer (Vantage)** platform.
@@ -90,7 +90,7 @@ This Chrome MV3 extension bridges **LeetCode** and the **Vantage** web app
 |---|---|
 | **Auth check in content-script, not background** | Content-scripts inside LeetCode pages have full cookie access; MV3 service workers cannot reliably attach third-party cookies. |
 | **`lcSessionUser` cached in chrome.storage** | The popup runs in the extension's own origin and cannot read LeetCode cookies. The content-script writes the session username to storage so the popup can read it. |
-| **Token-based backend auth** | Prevents impersonation — the backend resolves the user from the `Bearer` token, ignoring any client-provided `lcusername`. |
+| **Token-based backend auth** | Prevents impersonation - the backend resolves the user from the `Bearer` token, ignoring any client-provided `lcusername`. |
 | **Dual content-script contexts** | `injected.js` runs in MAIN world (can wrap `fetch`/`XHR`), while `content-script.js` runs in ISOLATED world (has chrome API access). They communicate via `CustomEvent`. |
 
 ---
@@ -116,15 +116,15 @@ This Chrome MV3 extension bridges **LeetCode** and the **Vantage** web app
 
 ---
 
-### `injected.js` — MAIN world interceptor
+### `injected.js` - MAIN world interceptor
 
 Runs at `document_start` in LeetCode's own JS context *before* React boots.
 
 **Responsibilities:**
 
 1. **Wrap `window.fetch` and `XMLHttpRequest`** to intercept LeetCode API calls.
-2. **Detect submission POSTs** (`/problems/{slug}/submit/`) — stores the problem slug.
-3. **Watch polling responses** (`/submissions/detail/{id}/check/`) — when `state === "SUCCESS"`, dispatches a `lc-vantage-result` `CustomEvent` with full result metadata.
+2. **Detect submission POSTs** (`/problems/{slug}/submit/`) - stores the problem slug.
+3. **Watch polling responses** (`/submissions/detail/{id}/check/`) - when `state === "SUCCESS"`, dispatches a `lc-vantage-result` `CustomEvent` with full result metadata.
 4. **Query the current LC session** (relative GraphQL `/graphql`) on page load and dispatch `lc-vantage-user` so the content-script can cache the username.
 
 **Events dispatched:**
@@ -136,7 +136,7 @@ Runs at `document_start` in LeetCode's own JS context *before* React boots.
 
 ---
 
-### `content-script.js` — ISOLATED world bridge
+### `content-script.js` - ISOLATED world bridge
 
 Runs at `document_idle`. Behaviour depends on the host:
 
@@ -157,13 +157,13 @@ Writes/removes `{ lcusername, uid, sessionToken }` in `chrome.storage.local`.
 
 #### On `leetcode.com` (LeetCode)
 
-1. **Caches the LC session** — listens for `lc-vantage-user` → persists `lcSessionUser` to `chrome.storage.local` so the popup can read it reliably.
-2. **Auth-checks every submission** — compares the live LC session (`currentLcUser`) with the stored `lcusername`. Only forwards to background if they match.
+1. **Caches the LC session** - listens for `lc-vantage-user` → persists `lcSessionUser` to `chrome.storage.local` so the popup can read it reliably.
+2. **Auth-checks every submission** - compares the live LC session (`currentLcUser`) with the stored `lcusername`. Only forwards to background if they match.
 3. **Forwards results to background** via `chrome.runtime.sendMessage`:
    - `submissionAccepted` → solved
    - `submissionAttempted` → attempted
    - `authMismatch` → blocked (wrong account)
-4. **DOM MutationObserver fallback** — if the fetch/XHR interception misses a result, a DOM observer catches the `[data-e2e-locator="submission-result"]` element.
+4. **DOM MutationObserver fallback** - if the fetch/XHR interception misses a result, a DOM observer catches the `[data-e2e-locator="submission-result"]` element.
 
 #### Context invalidation guard
 
@@ -171,12 +171,12 @@ After extension reload/update, old content-scripts become "zombies" with no chro
 
 - Checks `chrome.runtime.id` before each call
 - Sets `_contextDead = true` on first failure
-- Logs a one-time warning: *"Extension was reloaded — this tab has a stale content-script. Please refresh the page (F5) to restore sync."*
+- Logs a one-time warning: *"Extension was reloaded - this tab has a stale content-script. Please refresh the page (F5) to restore sync."*
 - Stops the polling interval and prevents further API calls
 
 ---
 
-### `background.js` — MV3 service worker
+### `background.js` - MV3 service worker
 
 Receives `chrome.runtime.sendMessage` calls from content-scripts and forwards
 them to the Spring Boot backend.
@@ -188,7 +188,7 @@ them to the Spring Boot backend.
 | `submissionAccepted` | `/api/sync` | POST | Marks a problem as SOLVED |
 | `submissionAttempted` | `/api/sync/attempt` | POST | Marks a problem as ATTEMPTED |
 | `syncWithBackend` | `/api/sync` | POST | Legacy bulk sync from popup |
-| `authMismatch` | *(none)* | — | Flashes a red **!** badge for 8 seconds |
+| `authMismatch` | *(none)* | - | Flashes a red **!** badge for 8 seconds |
 
 **Authentication:** Reads `sessionToken` from `chrome.storage.local` and attaches
 it as `Authorization: Bearer <token>` on every backend request.
@@ -204,7 +204,7 @@ it as `Authorization: Bearer <token>` on every backend request.
 
 ---
 
-### `popup.html` + `popup.js` — Extension popup UI
+### `popup.html` + `popup.js` - Extension popup UI
 
 The popup is the user-facing control panel. It shows:
 
@@ -212,7 +212,7 @@ The popup is the user-facing control panel. It shows:
 |---|---|---|
 | **LC Session** | `#lcUser` | The LeetCode account currently signed in (from `lcSessionUser` in storage, with a direct GraphQL fallback) |
 | **App Linked** | `#appLinkedUser` | The `lcusername` confirmed by the backend for this user |
-| **Auth Chip** | `#authChip` | `✓ match`, `⚠ mismatch`, `not signed in`, `offline`, or `—` |
+| **Auth Chip** | `#authChip` | `✓ match`, `⚠ mismatch`, `not signed in`, `offline`, or `-` |
 | **Sync Now** | `#syncBtn` | Manual bulk sync button |
 | **Status Box** | `#statusBox` | Progress / result messages |
 | **Sign-in Prompt** | `#signinPrompt` | Shown when no linked account is found |
@@ -226,7 +226,7 @@ The popup is the user-facing control panel. It shows:
 5. Compares linked vs. session → sets the auth chip accordingly.
 
 **Live updates:** `chrome.storage.onChanged` listener triggers `checkAuthStatus()`
-whenever `lcusername`, `uid`, `sessionToken`, or `lcSessionUser` changes — even
+whenever `lcusername`, `uid`, `sessionToken`, or `lcSessionUser` changes - even
 while the popup is open.
 
 **LeetCode rate-limit handling:** The `lcQuery()` helper retries with exponential
@@ -395,11 +395,11 @@ The extension prevents syncing data under the wrong account at **three levels**:
 
 ### Common gotchas
 
-- **"Extension context invalidated"** — You reloaded/updated the extension while
+- **"Extension context invalidated"** - You reloaded/updated the extension while
   LeetCode tabs were open. Refresh those tabs (F5) to inject a fresh content-script.
-- **Popup shows "Not detected" for LC Session** — No LeetCode tab is open, or the
+- **Popup shows "Not detected" for LC Session** - No LeetCode tab is open, or the
   content-script hasn't run yet. Open any LeetCode problem page to cache the session.
-- **Auto-sync not firing** — The content-script only matches `/problems/*`. It won't
+- **Auto-sync not firing** - The content-script only matches `/problems/*`. It won't
   intercept submissions from the LeetCode Playground or Contest pages.
 
 ### Adding support for new pages
@@ -415,7 +415,7 @@ To intercept submissions on additional LeetCode URL patterns (e.g., contests):
 
 The extension uses the minimum required permissions:
 
-- **`storage`** — Read/write `chrome.storage.local` for state bridging.
-- **`activeTab`** — Not strictly required currently but reserved for future features.
-- **`host_permissions`** — `leetcode.com` (intercept submissions + session),
+- **`storage`** - Read/write `chrome.storage.local` for state bridging.
+- **`activeTab`** - Not strictly required currently but reserved for future features.
+- **`host_permissions`** - `leetcode.com` (intercept submissions + session),
   `localhost:8080` (backend API), `localhost:3000` (content-script injection on React app).
