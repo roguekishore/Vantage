@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Final result of a group (FFA) battle — sent to each participant after completion.
+ * Final result of a group (FFA) battle - sent to each participant after completion.
  */
 public record GroupBattleResultDTO(
         Long battleId,
@@ -22,6 +22,7 @@ public record GroupBattleResultDTO(
             int groupScore,
             int problemsSolved,
             int totalSubmissions,
+            boolean forfeited,
             int coinsEarned,
             int xpEarned
     ) {}

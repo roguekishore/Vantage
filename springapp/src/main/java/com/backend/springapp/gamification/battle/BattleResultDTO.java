@@ -1,7 +1,7 @@
 package com.backend.springapp.gamification.battle;
 
 /**
- * Final results — returned from GET /api/battle/{id}/result
+ * Final results - returned from GET /api/battle/{id}/result
  */
 public record BattleResultDTO(
         Long battleId,

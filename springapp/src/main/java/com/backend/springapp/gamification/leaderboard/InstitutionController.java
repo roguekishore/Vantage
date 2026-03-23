@@ -20,7 +20,7 @@ public class InstitutionController {
 
     private final InstitutionRepository institutionRepository;
 
-    /** List all institutions — used by frontend dropdowns. */
+    /** List all institutions - used by frontend dropdowns. */
     @GetMapping
     public ResponseEntity<List<InstitutionSummaryDTO>> list() {
         List<InstitutionSummaryDTO> institutions = institutionRepository.findAll()
@@ -31,7 +31,7 @@ public class InstitutionController {
         return ResponseEntity.ok(institutions);
     }
 
-    /** Typeahead search — used by the signup form institution picker. */
+    /** Typeahead search - used by the signup form institution picker. */
     @GetMapping("/search")
     public ResponseEntity<List<InstitutionSummaryDTO>> search(
             @RequestParam(defaultValue = "") String q,

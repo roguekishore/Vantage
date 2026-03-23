@@ -51,7 +51,7 @@ public class BattleParticipant {
     @Column(nullable = false, columnDefinition = "int default 1200")
     private int ratingBefore = 1200;
 
-    /** Rating after ELO adjustment — set on battle completion. */
+    /** Rating after ELO adjustment - set on battle completion. */
     private Integer ratingAfter;
 
     /** Points accumulated via FFA scoring formula (group battles only). */
@@ -61,4 +61,8 @@ public class BattleParticipant {
     /** Final placement in group battle (1st, 2nd, 3rd...). Null for 1v1. */
     @Column(name = "placement")
     private Integer placement;
+
+        /** True when player surrendered in a group battle. */
+        @Column(name = "forfeited", nullable = false, columnDefinition = "boolean default false")
+        private boolean forfeited = false;
 }

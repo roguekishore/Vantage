@@ -3,7 +3,7 @@ package com.backend.springapp.gamification.battle;
 import java.util.List;
 
 /**
- * Active group battle state — contains a live scoreboard instead of 1v1 progress pair.
+ * Active group battle state - contains a live scoreboard instead of 1v1 progress pair.
  */
 public record GroupBattleStateDTO(
         Long battleId,
@@ -19,7 +19,8 @@ public record GroupBattleStateDTO(
             int groupScore,
             int problemsSolved,
             int totalSubmissions,
-            int rank
+            int rank,
+            boolean forfeited
     ) {}
 
     public record ProblemInfo(

@@ -9,10 +9,7 @@ public class UserResponseDTO {
     private String username;
     private String email;
     private String lcusername;
-    /** Opaque session token — sent back to the extension for authenticated sync requests. */
-    private String sessionToken;
-
-    /** Phase 2: JWT token — frontend / extension can start using this instead of sessionToken. */
+    /** JWT token used as an in-memory bridge by clients that still send Bearer auth. */
     private String token;
 
     private Integer graduationYear;

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Store & inventory logic — browse, buy, own, consume items.
+ * Store & inventory logic - browse, buy, own, consume items.
  */
 @Slf4j
 @Service

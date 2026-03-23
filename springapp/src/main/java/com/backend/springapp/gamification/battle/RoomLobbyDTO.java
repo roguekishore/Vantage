@@ -3,7 +3,7 @@ package com.backend.springapp.gamification.battle;
 import java.util.List;
 
 /**
- * Snapshot of a group room's lobby state — sent to all participants.
+ * Snapshot of a group room's lobby state - sent to all participants.
  */
 public record RoomLobbyDTO(
         Long battleId,

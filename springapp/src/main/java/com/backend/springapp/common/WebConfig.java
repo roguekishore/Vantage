@@ -32,20 +32,20 @@ public class WebConfig {
                         .filter(s -> !s.isBlank())
                         .toArray(String[]::new);
 
-                // Chrome extension sync — wide open (extension has no origin header)
+                // Chrome extension sync - wide open (extension has no origin header)
                 registry.addMapping("/api/sync/**")
                         .allowedOriginPatterns("*")
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*");
 
-                // All other API endpoints — restricted to configured origins
+                // All other API endpoints - restricted to configured origins
                 registry.addMapping("/api/**")
                         .allowedOrigins(origins)
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(true);
 
-                // Actuator — allow health checks from anywhere
+                // Actuator - allow health checks from anywhere
                 registry.addMapping("/actuator/**")
                         .allowedOriginPatterns("*")
                         .allowedMethods("GET");
@@ -55,8 +55,8 @@ public class WebConfig {
 
     /**
      * Shared RestTemplate for internal service calls (e.g. Spring Boot → Judge).
-     * Connect timeout: 5 s — fail fast if judge is unreachable.
-     * Read timeout:   30 s — generous enough for slow Java compilations.
+     * Connect timeout: 5 s - fail fast if judge is unreachable.
+     * Read timeout:   30 s - generous enough for slow Java compilations.
      */
     @Bean
     public RestTemplate judgeRestTemplate() {

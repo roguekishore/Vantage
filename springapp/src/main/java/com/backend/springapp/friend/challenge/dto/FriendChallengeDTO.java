@@ -13,6 +13,7 @@ public record FriendChallengeDTO(
         int problemCount,
         String status,
         Long battleId,
+        String roomCode,
         String closeReason,
         LocalDateTime createdAt,
         LocalDateTime expiresAt,

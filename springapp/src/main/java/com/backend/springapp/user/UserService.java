@@ -12,7 +12,6 @@ import com.backend.springapp.common.JwtUtil;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,8 +40,7 @@ public class UserService {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setLcusername(user.getLcusername());
-        dto.setSessionToken(user.getSessionToken());
-        dto.setToken(jwtToken); // Phase 2: null for non-auth calls, populated for login/signup
+        dto.setToken(jwtToken);
         dto.setGraduationYear(user.getGraduationYear());
         dto.setRating(user.getRating());
         if (user.getInstitution() != null) {
@@ -65,6 +63,11 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
         return toResponse(user);
+    }
+
+    public User getUserEntityById(Long id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + id));
     }
 
     @Transactional
@@ -137,30 +140,19 @@ public class UserService {
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
         if (passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            // Already BCrypt-hashed — good
+            // Already BCrypt-hashed - good
         } else if (user.getPassword().equals(dto.getPassword())) {
-            // Legacy plain-text password — hash it now (auto-migration)
+            // Legacy plain-text password - hash it now (auto-migration)
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
         } else {
             throw new IllegalArgumentException("Invalid email or password");
         }
 
-        // Issue a fresh session token on every login
-        user.setSessionToken(UUID.randomUUID().toString());
         userRepository.save(user);
 
-        // Phase 2: dual-issue JWT alongside the legacy sessionToken
+        // Issue JWT for cookie + optional in-memory client bridge usage.
         String jwt = jwtUtil.generateToken(user.getUid(), user.getUsername(), user.getEmail());
         return toResponse(user, jwt);
-    }
-
-    /**
-     * Resolve a session token to the owning User entity.
-     * Used by SyncController to authenticate extension requests.
-     */
-    public User resolveToken(String token) {
-        if (token == null || token.isBlank()) return null;
-        return userRepository.findBySessionToken(token).orElse(null);
     }
 
     @Transactional
@@ -180,7 +172,6 @@ public class UserService {
         user.setUsername(dto.getUsername());
         user.setEmail(dto.getEmail());
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        user.setSessionToken(UUID.randomUUID().toString());
         if (dto.getLcusername() != null && !dto.getLcusername().isBlank()) {
             user.setLcusername(dto.getLcusername().trim());
         }
@@ -192,8 +183,19 @@ public class UserService {
         }
 
         User saved = userRepository.save(user);
-        // Phase 2: dual-issue JWT alongside the legacy sessionToken
+        // Issue JWT for cookie + optional in-memory client bridge usage.
         String jwt = jwtUtil.generateToken(saved.getUid(), saved.getUsername(), saved.getEmail());
         return toResponse(saved, jwt);
+    }
+
+    public String issueExtensionToken(Long uid, long expirationMs) {
+        User user = getUserEntityById(uid);
+        return jwtUtil.generateToken(
+                user.getUid(),
+                user.getUsername(),
+                user.getEmail(),
+                "ext",
+                expirationMs
+        );
     }
 }

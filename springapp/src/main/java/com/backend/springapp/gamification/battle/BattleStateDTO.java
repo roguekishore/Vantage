@@ -3,7 +3,7 @@ package com.backend.springapp.gamification.battle;
 import java.util.List;
 
 /**
- * Battle state — returned from GET /api/battle/{id}/state during ACTIVE phase.
+ * Battle state - returned from GET /api/battle/{id}/state during ACTIVE phase.
  */
 public record BattleStateDTO(
         Long battleId,

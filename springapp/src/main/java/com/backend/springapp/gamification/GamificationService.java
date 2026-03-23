@@ -20,12 +20,12 @@ import java.time.LocalDate;
 import java.time.temporal.TemporalAdjusters;
 
 /**
- * Orchestrates all gamification rewards — coins, XP, levels, streaks.
+ * Orchestrates all gamification rewards - coins, XP, levels, streaks.
  * <p>
  * Delegates to specialist sub-services:
  * <ul>
- *   <li>{@link StreakService} — streak tracking, multipliers, milestones</li>
- *   <li>{@link CoinService}  — coin credit/debit and audit log</li>
+ *   <li>{@link StreakService} - streak tracking, multipliers, milestones</li>
+ *   <li>{@link CoinService}  - coin credit/debit and audit log</li>
  * </ul>
  * Acts as a single façade for the REST layer and
  * {@link com.backend.springapp.store.StoreService}.
@@ -167,11 +167,11 @@ public class GamificationService {
         stats.setXp(stats.getXp() + xp);
         stats.setLevel(calculateLevel(stats.getXp()));
 
-        // 4. Check streak milestones — may add more coins/XP to stats in-memory
+        // 4. Check streak milestones - may add more coins/XP to stats in-memory
         //    and persists its own STREAK_BONUS transaction
         int[] milestoneBonus = streakService.checkAndCreditMilestones(stats);
 
-        // MUST use saveAndFlush — a downstream @Modifying(clearAutomatically=true)
+        // MUST use saveAndFlush - a downstream @Modifying(clearAutomatically=true)
         // query (e.g. addRating) can evict unflushed dirty entities from the
         // persistence context, silently losing accumulated coins/XP.
         statsRepository.saveAndFlush(stats);
@@ -223,7 +223,7 @@ public class GamificationService {
     }
 
     /**
-     * Like {@link #updateWeeklyStats} but for battle rewards — does NOT
+     * Like {@link #updateWeeklyStats} but for battle rewards - does NOT
      * increment the problems-solved counter since no problem was solved.
      */
     @Transactional
@@ -268,12 +268,12 @@ public class GamificationService {
         );
     }
 
-    /** Streak info — delegates to {@link StreakService}. */
+    /** Streak info - delegates to {@link StreakService}. */
     public StreakDTO getStreakDTO(Long userId) {
         return streakService.buildStreakDTO(getOrCreateStats(userId));
     }
 
-    /** Paginated coin history — delegates to {@link CoinService}. */
+    /** Paginated coin history - delegates to {@link CoinService}. */
     public Page<CoinHistoryDTO> getCoinHistory(Long userId, Pageable pageable) {
         return coinService.getCoinHistory(userId, pageable);
     }

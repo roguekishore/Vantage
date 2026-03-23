@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 /**
- * Achievement catalog — each row defines a badge that can be earned.
+ * Achievement catalog - each row defines a badge that can be earned.
  * Seeded on application startup via AchievementDataInitializer.
  */
 @Entity

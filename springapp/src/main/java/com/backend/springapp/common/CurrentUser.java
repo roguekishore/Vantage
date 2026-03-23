@@ -3,7 +3,7 @@ package com.backend.springapp.common;
 import jakarta.servlet.http.HttpServletRequest;
 
 /**
- * Phase 2 — Bridge helper to extract the current user ID.
+ * Phase 2 - Bridge helper to extract the current user ID.
  *
  * <p>Checks (in order):</p>
  * <ol>
@@ -31,13 +31,13 @@ public final class CurrentUser {
             return id;
         }
 
-        // 2. Fallback to query param (backward compat — Phase 2 bridge)
+        // 2. Fallback to query param (backward compat - Phase 2 bridge)
         String param = request.getParameter("userId");
         if (param != null && !param.isBlank()) {
             try {
                 return Long.parseLong(param);
             } catch (NumberFormatException ignored) {
-                // bad param — return null
+                // bad param - return null
             }
         }
 

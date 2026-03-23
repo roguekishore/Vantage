@@ -19,7 +19,7 @@ Get paginated list of problems with optional filters and user status.
 - `userId` (optional): Include user progress status
 - `status` (optional): Filter by solve status (NOT_STARTED, ATTEMPTED, SOLVED)
 
-**Response:** `Page<ProblemResponseDTO>` — `userStatus` is `null` for guests, populated for logged-in users.
+**Response:** `Page<ProblemResponseDTO>` - `userStatus` is `null` for guests, populated for logged-in users.
 
 ---
 

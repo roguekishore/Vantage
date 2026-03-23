@@ -4,6 +4,8 @@ import com.backend.springapp.friend.FriendshipRepository;
 import com.backend.springapp.friend.challenge.dto.*;
 import com.backend.springapp.gamification.battle.Battle;
 import com.backend.springapp.gamification.battle.BattleMode;
+import com.backend.springapp.gamification.battle.BattleRepository;
+import com.backend.springapp.gamification.battle.BattleState;
 import com.backend.springapp.gamification.battle.BattleService;
 import com.backend.springapp.problem.Tag;
 import com.backend.springapp.user.User;
@@ -32,13 +34,15 @@ public class FriendChallengeService {
     private final FriendChallengeMuteRepository muteRepository;
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
+    private final BattleRepository battleRepository;
     private final BattleService battleService;
     private final SimpMessagingTemplate messagingTemplate;
 
     @Transactional
     public FriendChallengeCreateResponseDTO createChallenge(Long challengerId, FriendChallengeCreateDTO req) {
-        if (req.mode() != BattleMode.CASUAL_1V1 && req.mode() != BattleMode.RANKED_1V1) {
-            throw new IllegalArgumentException("Only 1v1 modes are allowed for friend challenges");
+        boolean isGroupInvite = req.mode() == BattleMode.GROUP_FFA;
+        if (!isGroupInvite && req.mode() != BattleMode.CASUAL_1V1 && req.mode() != BattleMode.RANKED_1V1) {
+            throw new IllegalArgumentException("Unsupported challenge mode");
         }
         if (req.difficulty() == Tag.BASIC) {
             throw new IllegalArgumentException("Difficulty BASIC is not supported for battle challenges");
@@ -56,6 +60,27 @@ public class FriendChallengeService {
         long b = Math.max(challengerId, req.targetUserId());
         if (!friendshipRepository.existsByUserAIdAndUserBId(a, b)) {
             throw new IllegalStateException("You can challenge only users in your friend list");
+        }
+
+        Battle roomBattle = null;
+        if (isGroupInvite) {
+            String roomCode = req.roomCode() != null ? req.roomCode().trim().toUpperCase() : "";
+            if (roomCode.length() != 6) {
+                throw new IllegalArgumentException("roomCode is required for group invites");
+            }
+
+            roomBattle = battleRepository.findByRoomCode(roomCode)
+                    .orElseThrow(() -> new NoSuchElementException("Room not found: " + roomCode));
+
+            if (roomBattle.getMode() != BattleMode.GROUP_FFA) {
+                throw new IllegalArgumentException("Room is not a group battle");
+            }
+            if (roomBattle.getState() != BattleState.WAITING) {
+                throw new IllegalStateException("Room is no longer accepting invites");
+            }
+            if (!challengerId.equals(roomBattle.getCreatorId())) {
+                throw new IllegalStateException("Only the room creator can send room invites");
+            }
         }
 
         if (isMuted(req.targetUserId())) {
@@ -78,13 +103,19 @@ public class FriendChallengeService {
         challenge.setProblemCount(req.problemCount());
         challenge.setStatus(FriendChallengeStatus.PENDING);
         challenge.setExpiresAt(LocalDateTime.now().plusMinutes(CHALLENGE_TTL_MINUTES));
+        if (isGroupInvite && roomBattle != null) {
+            challenge.setBattleId(roomBattle.getId());
+            challenge.setRoomCode(roomBattle.getRoomCode());
+        }
         challenge = challengeRepository.saveAndFlush(challenge);
 
         FriendChallengeDTO dto = toDto(challenge, challenger, challengee);
 
         broadcast("/topic/friends/" + req.targetUserId() + "/challenges", Map.of(
                 "type", "FRIEND_MATCH_REQUEST_RECEIVED",
-                "message", challenger.getUsername() + " challenged you to a match",
+            "message", isGroupInvite
+                ? challenger.getUsername() + " invited you to group room " + challenge.getRoomCode()
+                : challenger.getUsername() + " challenged you to a match",
                 "challenge", dto
         ));
         broadcast("/topic/friends/" + challengerId + "/challenges", Map.of(
@@ -110,6 +141,37 @@ public class FriendChallengeService {
         FriendChallenge challenge = challengeRepository.findByIdAndChallengeeId(challengeId, userId)
                 .orElseThrow(() -> new NoSuchElementException("Challenge not found"));
         ensurePendingAndNotExpired(challenge);
+
+        if (challenge.getMode() == BattleMode.GROUP_FFA) {
+            if (challenge.getRoomCode() == null || challenge.getRoomCode().isBlank()) {
+            throw new IllegalStateException("Invite has no room code");
+            }
+
+            battleService.joinRoom(challenge.getRoomCode(), userId);
+
+            challenge.setStatus(FriendChallengeStatus.ACCEPTED);
+            challenge.setRespondedAt(LocalDateTime.now());
+            challenge.setCloseReason("Accepted");
+            challengeRepository.saveAndFlush(challenge);
+
+            FriendChallengeDTO dto = toDto(challenge);
+            broadcast("/topic/friends/" + challenge.getChallengerId() + "/challenges", Map.of(
+                "type", "FRIEND_MATCH_REQUEST_ACCEPTED",
+                "message", "Your friend joined room " + challenge.getRoomCode(),
+                "challenge", dto,
+                "battleId", challenge.getBattleId(),
+                "roomCode", challenge.getRoomCode()
+            ));
+            broadcast("/topic/friends/" + challenge.getChallengeeId() + "/challenges", Map.of(
+                "type", "FRIEND_MATCH_REQUEST_ACCEPTED",
+                "message", "Joined room " + challenge.getRoomCode(),
+                "challenge", dto,
+                "battleId", challenge.getBattleId(),
+                "roomCode", challenge.getRoomCode()
+            ));
+
+            return dto;
+        }
 
         if (battleService.hasActiveOrWaitingBattle(challenge.getChallengerId()) ||
                 battleService.hasActiveOrWaitingBattle(challenge.getChallengeeId())) {
@@ -277,6 +339,7 @@ public class FriendChallengeService {
                 c.getProblemCount(),
                 c.getStatus().name(),
                 c.getBattleId(),
+            c.getRoomCode(),
                 c.getCloseReason(),
                 c.getCreatedAt(),
                 c.getExpiresAt(),

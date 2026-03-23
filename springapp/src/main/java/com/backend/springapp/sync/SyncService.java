@@ -22,7 +22,7 @@ import java.util.Optional;
  * Handles the LeetCode → backend progress sync flow:
  *  1. Resolve lcusername → User
  *  2. For each slug, resolve lcslug → Problem
- *  3. Upsert UserProgress to SOLVED (idempotent — skips already-solved)
+ *  3. Upsert UserProgress to SOLVED (idempotent - skips already-solved)
  *  4. Increment the user's rating for each newly solved problem
  */
 @Slf4j
@@ -56,7 +56,7 @@ public class SyncService {
             Optional<Problem> problemOpt = problemRepository.findByLcslug(slug);
 
             if (problemOpt.isEmpty()) {
-                // Slug exists on LC but not in our problem set — skip silently
+                // Slug exists on LC but not in our problem set - skip silently
                 notFound.add(slug);
                 continue;
             }
@@ -128,7 +128,7 @@ public class SyncService {
 
     /**
      * Records a single ATTEMPTED status for a problem identified by its LeetCode slug.
-     * Idempotent — skips if the problem is already marked SOLVED (no downgrade).
+     * Idempotent - skips if the problem is already marked SOLVED (no downgrade).
      * Called by the browser extension for every non-accepted submission.
      *
      * @return true if a new record was created or an existing one was incremented,
@@ -144,7 +144,7 @@ public class SyncService {
 
         Optional<Problem> problemOpt = problemRepository.findByLcslug(lcslug);
         if (problemOpt.isEmpty()) {
-            log.debug("Attempt ignored — slug '{}' not in problem set", lcslug);
+            log.debug("Attempt ignored - slug '{}' not in problem set", lcslug);
             return false;
         }
 
@@ -156,16 +156,16 @@ public class SyncService {
 
         // Never downgrade a SOLVED problem to ATTEMPTED
         if (existingOpt.isPresent() && existingOpt.get().getStatus() == Status.SOLVED) {
-            log.debug("Attempt ignored — problem {} already SOLVED for user {}", lcslug, lcusername);
+            log.debug("Attempt ignored - problem {} already SOLVED for user {}", lcslug, lcusername);
             return false;
         }
 
         UserProgress progress;
         if (existingOpt.isPresent()) {
-            // Existing ATTEMPTED record — increment the counter
+            // Existing ATTEMPTED record - increment the counter
             progress = existingOpt.get();
         } else {
-            // First attempt — create a new record
+            // First attempt - create a new record
             progress = new UserProgress();
             progress.setUser(user);
             progress.setProblem(problem);
@@ -174,7 +174,7 @@ public class SyncService {
         }
 
         progress.setStatus(Status.ATTEMPTED);
-        // Null-safe increment — guards against legacy rows with a NULL attempt_count
+        // Null-safe increment - guards against legacy rows with a NULL attempt_count
         int prev = (progress.getAttemptCount() != null) ? progress.getAttemptCount() : 0;
         progress.setAttemptCount(prev + 1);
 

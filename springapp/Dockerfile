@@ -43,7 +43,7 @@ RUN ./mvnw package -DskipTests -B && \
 FROM eclipse-temurin:17-jre
 
 LABEL maintainer="roguekishore"
-LABEL description="Vantage — AlgoVisualizer Spring Boot backend API"
+LABEL description="Vantage - AlgoVisualizer Spring Boot backend API"
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y --no-install-recommends curl && \

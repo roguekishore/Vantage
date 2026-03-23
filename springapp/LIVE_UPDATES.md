@@ -1,4 +1,4 @@
-# Live Progress Updates — Server-Sent Events (SSE)
+# Live Progress Updates - Server-Sent Events (SSE)
 
 ## Overview
 
@@ -6,18 +6,18 @@ This application uses **Server-Sent Events (SSE)** to push real-time progress up
 
 ---
 
-## SSE vs WebSocket — Why SSE?
+## SSE vs WebSocket - Why SSE?
 
 | Feature | SSE (Server-Sent Events) | WebSocket |
 |---------|-------------------------|-----------|
 | **Direction** | Server → Client (one-way) | Bidirectional (both ways) |
 | **Protocol** | HTTP (uses `text/event-stream`) | Separate protocol (`ws://`) |
-| **Auto-reconnect** | Built-in — browser reconnects automatically | Must implement manually |
-| **Complexity** | Lightweight — no extra dependencies | Requires STOMP/SockJS or custom protocol |
+| **Auto-reconnect** | Built-in - browser reconnects automatically | Must implement manually |
+| **Complexity** | Lightweight - no extra dependencies | Requires STOMP/SockJS or custom protocol |
 | **Use case** | Server pushes updates to client | Real-time chat, multiplayer games |
 | **Our need** | ✅ Backend tells React "progress changed" | ❌ React never needs to send data back |
 
-**Decision**: SSE is perfect for our use case — we only need the backend to notify the frontend when progress changes. No bidirectional communication needed.
+**Decision**: SSE is perfect for our use case - we only need the backend to notify the frontend when progress changes. No bidirectional communication needed.
 
 ---
 
@@ -93,7 +93,7 @@ public record ProgressEvent(
 
 #### Annotation: `record` (Java 14+)
 - **What it does**: Automatically generates constructor, getters (`pid()`, `status()`), `equals()`, `hashCode()`, `toString()`
-- **Why use it**: Immutable data carrier — perfect for events that should never be modified after creation
+- **Why use it**: Immutable data carrier - perfect for events that should never be modified after creation
 - **Equivalent to**:
   ```java
   @Data @AllArgsConstructor
@@ -110,7 +110,7 @@ public record ProgressEvent(
 
 **File**: `springapp/src/main/java/com/backend/springapp/sse/ProgressEventService.java`
 
-This is the **core SSE orchestrator** — it manages per-user connections and broadcasts events.
+This is the **core SSE orchestrator** - it manages per-user connections and broadcasts events.
 
 #### Key Components
 
@@ -122,8 +122,8 @@ public class ProgressEventService {
 ```
 
 - **`@Service`**: Marks this as a Spring-managed bean (business logic layer)
-- **`@Slf4j`**: Lombok annotation — generates a `log` field for logging
-- **Lifecycle**: Spring creates **one singleton instance** at startup — all users share the same service
+- **`@Slf4j`**: Lombok annotation - generates a `log` field for logging
+- **Lifecycle**: Spring creates **one singleton instance** at startup - all users share the same service
 
 ---
 
@@ -135,15 +135,15 @@ private final Map<Long, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
 
 | Data Structure | Why This Choice? |
 |----------------|------------------|
-| `ConcurrentHashMap<Long, List<SseEmitter>>` | Thread-safe map — multiple extension sync requests can fire simultaneously |
+| `ConcurrentHashMap<Long, List<SseEmitter>>` | Thread-safe map - multiple extension sync requests can fire simultaneously |
 | **Key**: `Long` (userId) | Each user can have multiple open connections (multiple browser tabs) |
-| **Value**: `List<SseEmitter>` | One emitter per tab — using `CopyOnWriteArrayList` for safe iteration during concurrent modifications |
+| **Value**: `List<SseEmitter>` | One emitter per tab - using `CopyOnWriteArrayList` for safe iteration during concurrent modifications |
 
 **Why thread-safe?** The Chrome extension might sync 5 problems at once (bulk sync). Each triggers `publish()` concurrently. Without thread-safety → race conditions, lost events, or corrupted connection lists.
 
 ---
 
-##### c) `subscribe(Long userId)` — Open SSE Connection
+##### c) `subscribe(Long userId)` - Open SSE Connection
 
 ```java
 public SseEmitter subscribe(Long userId) {
@@ -162,8 +162,8 @@ public SseEmitter subscribe(Long userId) {
 emitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 ```
 
-- **`computeIfAbsent`**: If `userId` key doesn't exist, create a new empty list — then add the emitter
-- **`CopyOnWriteArrayList`**: Thread-safe list variant — safe to iterate while other threads add/remove
+- **`computeIfAbsent`**: If `userId` key doesn't exist, create a new empty list - then add the emitter
+- **`CopyOnWriteArrayList`**: Thread-safe list variant - safe to iterate while other threads add/remove
 
 ---
 
@@ -184,7 +184,7 @@ emitter.onError(e -> cleanup.run());
 - **`onCompletion`**: Fires when client closes the connection gracefully (tab closed, page navigated away)
 - **`onTimeout`**: Fires after 30 minutes of inactivity
 - **`onError`**: Fires on network errors, browser crashes, etc.
-- **Why important**: Prevents memory leaks — if we never remove dead emitters, the map grows forever
+- **Why important**: Prevents memory leaks - if we never remove dead emitters, the map grows forever
 
 ---
 
@@ -195,14 +195,14 @@ emitter.send(SseEmitter.event()
         .data("{\"status\":\"connected\"}", MediaType.APPLICATION_JSON));
 ```
 
-- **`.name("connected")`**: Event type — in JavaScript, this fires `EventSource.addEventListener('connected', ...)`
+- **`.name("connected")`**: Event type - in JavaScript, this fires `EventSource.addEventListener('connected', ...)`
 - **`.data(...)`**: JSON payload sent to the client
 - **`MediaType.APPLICATION_JSON`**: Sets `Content-Type` header so browser parses it as JSON
-- **Why send this?**: Confirms the connection is live — React logs "SSE connected" in console
+- **Why send this?**: Confirms the connection is live - React logs "SSE connected" in console
 
 ---
 
-##### d) `publish(Long userId, ProgressEvent event)` — Broadcast to All Tabs
+##### d) `publish(Long userId, ProgressEvent event)` - Broadcast to All Tabs
 
 ```java
 public void publish(Long userId, ProgressEvent event) {
@@ -251,7 +251,7 @@ if (!dead.isEmpty()) {
 ```
 
 - **`emitter.send()`**: Writes data to the HTTP stream (non-blocking)
-- **`IOException` handling**: Network errors (user lost WiFi, closed tab mid-send) — mark emitter as dead
+- **`IOException` handling**: Network errors (user lost WiFi, closed tab mid-send) - mark emitter as dead
 - **Post-send cleanup**: Remove all failed emitters from the active list
 - **Why not remove inside loop?** `CopyOnWriteArrayList` allows safe iteration, but batch removal is more efficient
 
@@ -274,10 +274,10 @@ public class ProgressEventController {
 
 | Annotation | Purpose |
 |------------|---------|
-| `@RestController` | Combines `@Controller` + `@ResponseBody` — all methods return data (not views) |
+| `@RestController` | Combines `@Controller` + `@ResponseBody` - all methods return data (not views) |
 | `@RequestMapping("/api/progress")` | Base path for all endpoints in this controller |
-| `@CrossOrigin(...)` | **CORS** — allows React (`localhost:3000`) to call this endpoint from a different origin |
-| `@RequiredArgsConstructor` | Lombok — generates constructor for all `final` fields (dependency injection) |
+| `@CrossOrigin(...)` | **CORS** - allows React (`localhost:3000`) to call this endpoint from a different origin |
+| `@RequiredArgsConstructor` | Lombok - generates constructor for all `final` fields (dependency injection) |
 
 ---
 
@@ -302,7 +302,7 @@ public SseEmitter stream(@RequestParam Long userId) {
 | Annotation | Purpose |
 |------------|---------|
 | `@GetMapping(value = "/stream")` | Maps `GET /api/progress/stream` to this method |
-| `produces = MediaType.TEXT_EVENT_STREAM_VALUE` | Sets `Content-Type: text/event-stream` — tells browser this is an SSE stream |
+| `produces = MediaType.TEXT_EVENT_STREAM_VALUE` | Sets `Content-Type: text/event-stream` - tells browser this is an SSE stream |
 | `@RequestParam Long userId` | Extracts `?userId=123` from query string, converts to `Long` |
 
 ---
@@ -313,7 +313,7 @@ public SseEmitter stream(@RequestParam Long userId) {
 1. React opens: `new EventSource("http://localhost:8080/api/progress/stream?userId=1")`
 2. Browser sends `GET` request with `Accept: text/event-stream`
 3. Spring calls `progressEventService.subscribe(1)`
-4. Returns `SseEmitter` — Spring keeps the HTTP connection open
+4. Returns `SseEmitter` - Spring keeps the HTTP connection open
 5. Every time `publish()` is called, data flows to the browser instantly
 
 ---
@@ -337,7 +337,7 @@ public class SyncService {
 **Dependency Injection**:
 - `@RequiredArgsConstructor` generates constructor with all `final` fields
 - Spring automatically injects `ProgressEventService` (because it's annotated with `@Service`)
-- **Constructor-based DI** (recommended over `@Autowired` field injection — easier to test)
+- **Constructor-based DI** (recommended over `@Autowired` field injection - easier to test)
 
 ---
 
@@ -360,7 +360,7 @@ public SyncResponseDTO syncProgress(String lcusername, List<String> slugs) {
 
 **Why inside `@Transactional`?**
 - Events are only published **after** the database commit succeeds
-- If the transaction rolls back (DB error), no event is sent — prevents frontend showing stale/incorrect data
+- If the transaction rolls back (DB error), no event is sent - prevents frontend showing stale/incorrect data
 - **Transaction boundary**: Method entry → DB writes → commit → SSE publish → method exit
 
 ---
@@ -389,7 +389,7 @@ public boolean markAttempted(String lcusername, String lcslug) {
 
 **File**: `springapp/src/main/java/com/backend/springapp/user/UserProgressService.java`
 
-Same pattern — injected `ProgressEventService`, publishes after `markAsSolved()` and `markAsAttempted()`.
+Same pattern - injected `ProgressEventService`, publishes after `markAsSolved()` and `markAsAttempted()`.
 
 ```java
 @Transactional
@@ -415,7 +415,7 @@ public UserProgressResponseDTO markAsSolved(Long uid, Long pid) {
 
 ## Frontend Implementation
 
-### React — Zustand Store
+### React - Zustand Store
 
 **File**: `reactapp/src/map/useProgressStore.js`
 
@@ -463,7 +463,7 @@ es.addEventListener('progress-update', (e) => {
 **Event Name Matching**:
 - Backend: `emitter.send(SseEmitter.event().name("progress-update"))`
 - Frontend: `es.addEventListener('progress-update', ...)`
-- **Must match exactly** — case-sensitive
+- **Must match exactly** - case-sensitive
 
 ---
 
@@ -588,7 +588,7 @@ data: {"pid":19,"status":"SOLVED","slug":"two-sum","attemptCount":1}
 ### 2. "Events not arriving in React"
 
 **Checklist**:
-- ✅ Backend logs show "Published SSE event to X emitter(s)" — if X=0, no tabs are subscribed
+- ✅ Backend logs show "Published SSE event to X emitter(s)" - if X=0, no tabs are subscribed
 - ✅ React console shows "[ProgressStore] SSE connected"
 - ✅ Event name matches: `emitter.send(...name("progress-update"))` ↔ `es.addEventListener('progress-update')`
 - ✅ CORS configured correctly (check browser console for CORS errors)
@@ -597,7 +597,7 @@ data: {"pid":19,"status":"SOLVED","slug":"two-sum","attemptCount":1}
 
 ### 3. "Multiple tabs receive the event twice"
 
-**Expected behavior**: If a user has 3 tabs open, each tab maintains its own `EventSource` connection. When an event is published, all 3 tabs receive it independently. This is correct — each tab's Zustand store should update.
+**Expected behavior**: If a user has 3 tabs open, each tab maintains its own `EventSource` connection. When an event is published, all 3 tabs receive it independently. This is correct - each tab's Zustand store should update.
 
 **If you see duplicates in a single tab**: Check for multiple `subscribeToLiveUpdates()` calls (e.g., `useEffect` running twice in React Strict Mode during development).
 

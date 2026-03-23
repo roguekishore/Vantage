@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * Phase 2 — Registers the JWT filter on all /api/** paths.
+ * Phase 2 - Registers the JWT filter on all /api/** paths.
  *
  * <p>This does NOT use Spring Security's filter chain (no starter-security dep).
  * It simply registers our {@link JwtAuthFilter} as a servlet filter so it can
@@ -19,7 +19,17 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final CsrfOriginFilter csrfOriginFilter;
     private final JwtAuthFilter jwtAuthFilter;
+
+    @Bean
+    public FilterRegistrationBean<CsrfOriginFilter> csrfOriginFilterRegistration() {
+        FilterRegistrationBean<CsrfOriginFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(csrfOriginFilter);
+        registration.addUrlPatterns("/api/*");
+        registration.setOrder(0); // run before auth filter
+        return registration;
+    }
 
     @Bean
     public FilterRegistrationBean<JwtAuthFilter> jwtFilterRegistration() {
