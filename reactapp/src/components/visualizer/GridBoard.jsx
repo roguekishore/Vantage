@@ -4,7 +4,7 @@ import { Grid3X3 } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * GridBoard — interactive 2D grid for pathfinding, sudoku, n-queens, flood fill.
+ * GridBoard - interactive 2D grid for pathfinding, sudoku, n-queens, flood fill.
  *
  * Clean card, no shadow, thin cell borders.
  */

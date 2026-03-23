@@ -29,7 +29,7 @@ const difficultyConfig = {
 };
 
 /**
- * ProblemCard — Horizontal row layout card for individual algorithm problems.
+ * ProblemCard - Horizontal row layout card for individual algorithm problems.
  */
 export default function ProblemCard({ algo, onClick, fallbackIcon: FallbackIcon, index = 0 }) {
   const Icon = algo.icon || FallbackIcon || Hash;

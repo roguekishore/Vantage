@@ -1,92 +1,491 @@
 /* ============================================
-   ONLINE JUDGE — Professional IDE Theme
-   Inspired by VS Code / LeetCode Pro
+   ONLINE JUDGE — Terminal Brutalist Theme
+   Matches GroupArenaPage aesthetic exactly
    ============================================ */
 
-/* ── Root shell ── */
+/* ── Design tokens ── */
 .judge-root {
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-  --judge-panel-bg: var(--card);
-  --judge-surface: color-mix(in oklch, var(--background) 92%, var(--foreground) 8%);
-  --judge-surface-elevated: color-mix(in oklch, var(--card) 95%, var(--foreground) 5%);
-  --judge-accent: var(--color-accent-primary);
-  --judge-accent-hover: var(--color-accent-primary-hover);
-  --judge-accent-subtle: var(--color-accent-primary-light);
-  --judge-border: var(--border);
-  --judge-border-subtle: color-mix(in oklch, var(--border) 60%, transparent 40%);
-  --judge-radius: 8px;
+
+  --judge-bg:               #09090b;
+  --judge-surface:          #0c0c0f;
+  --judge-surface-elevated: #111115;
+  --judge-border:           rgba(255, 255, 255, 0.2);
+  --judge-border-sub:       rgba(255, 255, 255, 0.14);
+  --judge-border-faint:     rgba(255, 255, 255, 0.07);
+
+  --judge-text-pri:   #ffffff;
+  --judge-text-sec:   rgba(255, 255, 255, 0.34);
+  --judge-text-meta:  rgba(255, 255, 255, 0.2);
+
+  --judge-acid:    #EDFF66;
+  --judge-green:   #34d399;
+  --judge-red:     #f87171;
+  --judge-amber:   #fbbf24;
+
+  --color-success:       #34d399;
+  --color-success-hover: #10b981;
+  --color-success-light: rgba(52, 211, 153, 0.15);
+  --color-danger:        #f87171;
+  --color-danger-hover:  #ef4444;
+  --color-danger-light:  rgba(248, 113, 113, 0.12);
+  --color-warning:       #fbbf24;
+  --color-orange:        #f59e0b;
+
+  --color-accent-primary:       var(--judge-acid);
+  --color-accent-primary-hover: #d9ea55;
+  --color-accent-primary-light: rgba(237, 255, 102, 0.1);
+
+  --judge-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
+  --judge-radius:    8px;
   --judge-radius-sm: 6px;
   --judge-radius-xs: 4px;
-  --judge-font-mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', 'SF Mono', Consolas, monospace;
-  --judge-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.06);
-  --judge-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.04), 0 4px 8px rgba(0, 0, 0, 0.08);
-  --judge-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.06), 0 8px 24px rgba(0, 0, 0, 0.1);
   --judge-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* keep muted-foreground in sync for any Tailwind usage */
+  --muted-foreground: rgba(255, 255, 255, 0.32);
 }
 
-.dark .judge-root {
-  --judge-surface: color-mix(in oklch, var(--background) 97%, var(--foreground) 3%);
-  --judge-surface-elevated: color-mix(in oklch, var(--card) 97%, var(--foreground) 3%);
-  --judge-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.15), 0 1px 3px rgba(0, 0, 0, 0.2);
-  --judge-shadow-md: 0 2px 4px rgba(0, 0, 0, 0.15), 0 4px 8px rgba(0, 0, 0, 0.25);
-  --judge-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2), 0 8px 24px rgba(0, 0, 0, 0.3);
+/* ── Base reset for the root shell ── */
+.judge-root {
+  background: var(--judge-bg);
+  color: var(--judge-text-pri);
+}
+
+/* ── Grain overlay (matches GroupArena ::before) ── */
+.judge-root::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.022;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 200px;
+  z-index: 0;
+}
+
+.judge-root > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Header bar ── */
 .judge-header {
-  background: var(--judge-panel-bg);
+  background: var(--judge-bg);
   border-bottom: 1px solid var(--judge-border);
-  backdrop-filter: blur(16px) saturate(1.8);
-  -webkit-backdrop-filter: blur(16px) saturate(1.8);
-}
-
-/* ── Tab trigger: underline variant ── */
-.judge-tab-trigger {
-  position: relative;
-  border-radius: 0 !important;
-  border-bottom: 2px solid transparent;
-  box-shadow: none !important;
-  background: transparent !important;
-  height: 2.5rem;
-  padding: 0 0.875rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  transition: color var(--judge-transition), border-color var(--judge-transition);
-  gap: 0.5rem;
-  letter-spacing: 0.01em;
-}
-
-.judge-tab-trigger:hover {
-  color: var(--foreground);
-}
-
-.judge-tab-trigger[data-state="active"] {
-  color: var(--judge-accent) !important;
-  border-bottom-color: var(--judge-accent) !important;
-  background: transparent !important;
-  box-shadow: none !important;
 }
 
 /* ── Panels ── */
 .judge-panel {
-  background: var(--judge-panel-bg);
+  background: var(--judge-surface);
 }
 
-/* ── Code toolbar ── */
+/* ── Toolbar (editor top bar) ── */
 .judge-toolbar {
-  background: var(--judge-panel-bg);
+  background: var(--judge-bg);
   border-bottom: 1px solid var(--judge-border);
 }
 
-/* ── Resizable handles ── */
-.judge-resize-handle {
-  transition: background-color var(--judge-transition);
+/* ── Tab trigger: brutalist underline variant ── */
+.judge-tab-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 12px;
+  height: 38px;
+  border-radius: 0 !important;
+  border: none !important;
+  border-bottom: 1px solid transparent !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.28);
+  margin-bottom: -1px;
+  transition: color var(--judge-transition), border-color var(--judge-transition);
+  cursor: pointer;
 }
 
-.judge-resize-handle:hover,
-.judge-resize-handle:active {
-  background-color: var(--judge-accent) !important;
+.judge-tab-trigger:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.judge-tab-trigger[data-state="active"] {
+  color: #fff !important;
+  border-bottom-color: var(--judge-acid) !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── Language selector ── */
+.judge-lang-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--judge-border);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--judge-font-mono);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  transition: all var(--judge-transition);
+}
+
+.judge-lang-trigger:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.judge-lang-trigger[data-state="open"] {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* ── Icon buttons (reset, copy) ── */
+.judge-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  transition: all var(--judge-transition);
+}
+
+.judge-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ── Run button ── */
+.judge-btn-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--judge-border);
+  background: transparent;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  transition: all var(--judge-transition);
+}
+
+.judge-btn-run:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.judge-btn-run:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Submit button ── */
+.judge-btn-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 14px;
+  border-radius: 7px;
+  border: none;
+  background: var(--judge-acid);
+  color: #09090b;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  transition: opacity var(--judge-transition);
+}
+
+.judge-btn-submit:hover:not(:disabled) {
+  opacity: 0.82;
+}
+
+.judge-btn-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* ── Sign-in CTA ── */
+.judge-btn-login {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 7px;
+  border: 1px solid var(--judge-border);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all var(--judge-transition);
+}
+
+.judge-btn-login:hover {
+  border-color: rgba(255, 255, 255, 0.28);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Test-case pill ── */
+.judge-tc-pill {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--judge-transition);
+}
+
+.judge-tc-pill:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.judge-tc-pill[data-active="true"] {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border-color: var(--judge-border);
+}
+
+.judge-tc-pill-custom[data-active="true"] {
+  border-color: rgba(237, 255, 102, 0.22);
+}
+
+.judge-tc-pill-add {
+  border: 1px solid var(--judge-border);
+  background: transparent;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  justify-content: center;
+}
+
+.judge-tc-pill-add:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* ── Textarea input ── */
+.judge-input {
+  width: 100%;
+  min-height: 80px;
+  border-radius: 9px;
+  border: 1px solid var(--judge-border);
+  background: var(--judge-surface);
+  padding: 8px 12px;
+  font-family: var(--judge-font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.7);
+  outline: none;
+  resize: vertical;
+  transition: border-color var(--judge-transition);
+}
+
+.judge-input:focus {
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.judge-input::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ── Code block (output / expected / error) ── */
+.judge-codeblock {
+  border-radius: 9px;
+  border: 1px solid var(--judge-border-sub);
+  background: var(--judge-surface);
+  padding: 8px 12px;
+  font-family: var(--judge-font-mono);
+  font-size: 13px;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-x: auto;
+  color: rgba(255, 255, 255, 0.68);
+  margin: 0;
+}
+
+.judge-codeblock--error {
+  background: rgba(127, 29, 29, 0.2);
+  border-color: rgba(248, 113, 113, 0.2);
+  color: #fca5a5;
+}
+
+/* ── Status / verdict banner ── */
+.judge-status-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--judge-border);
+  background: var(--judge-surface);
+}
+
+.judge-status-banner--accepted {
+  border-color: rgba(52, 211, 153, 0.22);
+  background: rgba(52, 211, 153, 0.1);
+}
+
+.judge-status-banner--failed {
+  border-color: rgba(248, 113, 113, 0.2);
+  background: rgba(248, 113, 113, 0.1);
+}
+
+.judge-status-banner--warning {
+  border-color: rgba(251, 191, 36, 0.22);
+  background: rgba(251, 191, 36, 0.1);
+}
+
+/* ── Result dot on tab ── */
+.judge-result-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.judge-result-dot--success {
+  background: var(--judge-green);
+}
+
+.judge-result-dot--error {
+  background: var(--judge-red);
+}
+
+/* ── Section heading ── */
+.judge-section-heading {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--judge-text-meta);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.judge-section-heading::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--judge-border-faint);
+}
+
+/* ── Field label ── */
+.judge-label {
+  font-size: 9px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--judge-text-meta);
+  margin-bottom: 6px;
+}
+
+/* ── Example card ── */
+.judge-example-card {
+  border-radius: 11px;
+  border: 1px solid var(--judge-border-faint);
+  overflow: hidden;
+  transition: border-color var(--judge-transition);
+}
+
+.judge-example-card:hover {
+  border-color: var(--judge-border);
+}
+
+.judge-example-header {
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 14px;
+  border-bottom: 1px solid var(--judge-border-faint);
+}
+
+.judge-example-body {
+  padding: 14px;
+  background: var(--judge-bg);
+}
+
+/* ── Constraint items ── */
+.judge-constraint-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 3px 0;
+}
+
+.judge-constraint-dot {
+  margin-top: 6px;
+  width: 4px;
+  height: 4px;
+  min-width: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+}
+
+/* ── First-failed card ── */
+.judge-failed-card {
+  border-radius: 11px;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  overflow: hidden;
+}
+
+.judge-failed-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  background: rgba(248, 113, 113, 0.06);
+  border-bottom: 1px solid rgba(248, 113, 113, 0.12);
+}
+
+/* ── Empty state ── */
+.judge-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: var(--judge-text-meta);
+  gap: 8px;
+  text-align: center;
+}
+
+.judge-empty-state-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.5;
 }
 
 /* ── Monaco overrides ── */
@@ -101,8 +500,8 @@
 
 /* ── Scrollbars ── */
 .judge-root ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 4px;
+  height: 4px;
 }
 
 .judge-root ::-webkit-scrollbar-track {
@@ -110,20 +509,24 @@
 }
 
 .judge-root ::-webkit-scrollbar-thumb {
-  background: var(--judge-border);
+  background: rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
-  transition: background var(--judge-transition);
 }
 
 .judge-root ::-webkit-scrollbar-thumb:hover {
-  background: var(--muted-foreground);
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .judge-root ::-webkit-scrollbar-corner {
   background: transparent;
 }
 
-/* ── Select animation ── */
+/* ── All buttons use default cursor ── */
+.judge-root button {
+  transition: all var(--judge-transition);
+}
+
+/* ── Dropdown animation ── */
 [data-slot="select-content"] {
   animation: judge-dropdown-in 0.15s ease-out;
 }
@@ -133,452 +536,42 @@
     opacity: 0;
     transform: translateY(-4px) scale(0.97);
   }
-
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
 
-/* ── Test case pill ── */
-.judge-tc-pill {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.3rem 0.75rem;
-  border-radius: var(--judge-radius-sm);
-  font-size: 0.6875rem;
-  font-weight: 500;
-  letter-spacing: 0.015em;
-  color: var(--muted-foreground);
-  border: 1px solid transparent;
-  transition: all var(--judge-transition);
-  cursor: pointer;
-  user-select: none;
-  background: transparent;
-}
-
-.judge-tc-pill:hover {
-  background: var(--secondary);
-  color: var(--foreground);
-  border-color: var(--judge-border-subtle);
-}
-
-.judge-tc-pill[data-active="true"] {
-  background: var(--judge-accent-subtle);
-  color: var(--judge-accent);
-  font-weight: 600;
-  border-color: color-mix(in oklch, var(--judge-accent) 25%, transparent);
-}
-
-.judge-tc-pill-custom {
-  padding-right: 1.5rem;
-}
-
-.judge-tc-pill-add {
-  border: 1px dashed var(--judge-border);
-  gap: 0.25rem;
-}
-
-.judge-tc-pill-add:hover {
-  border-color: var(--judge-accent);
-  color: var(--judge-accent);
-  background: var(--judge-accent-subtle);
-}
-
-/* ── Input fields ── */
-.judge-input {
-  width: 100%;
-  min-height: 64px;
-  border-radius: var(--judge-radius);
-  border: 1px solid var(--judge-border);
-  background: var(--judge-surface);
-  padding: 0.75rem;
-  font-size: 0.8125rem;
-  font-family: var(--judge-font-mono);
-  line-height: 1.6;
-  resize: vertical;
-  color: var(--foreground);
-  transition: border-color var(--judge-transition), box-shadow var(--judge-transition);
-}
-
-.judge-input:focus {
-  outline: none;
-  border-color: var(--judge-accent);
-  box-shadow: 0 0 0 3px var(--judge-accent-subtle), var(--judge-shadow-sm);
-}
-
-.judge-input::placeholder {
-  color: var(--muted-foreground);
-  opacity: 0.5;
-}
-
-/* ── Code block (output / expected) ── */
-.judge-codeblock {
-  border-radius: var(--judge-radius);
-  border: 1px solid var(--judge-border);
-  background: var(--judge-surface);
-  padding: 0.75rem;
-  font-size: 0.8125rem;
-  font-family: var(--judge-font-mono);
-  line-height: 1.6;
-  white-space: pre-wrap;
-  word-break: break-word;
-  overflow-x: auto;
-  color: var(--foreground);
-}
-
-.judge-codeblock--error {
-  background: var(--color-danger-light);
-  border-color: color-mix(in oklch, var(--color-danger) 25%, transparent);
-  color: var(--color-danger);
-}
-
-/* ── Status banner ── */
-.judge-status-banner {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.875rem 1rem;
-  border-radius: var(--judge-radius);
-  border: 1px solid var(--judge-border);
-  background: var(--judge-panel-bg);
-  box-shadow: var(--judge-shadow-sm);
-}
-
-.judge-status-banner--accepted {
-  border-color: color-mix(in oklch, var(--color-success) 35%, transparent);
-  background: color-mix(in oklch, var(--color-success) 6%, var(--judge-panel-bg));
-}
-
-.judge-status-banner--failed {
-  border-color: color-mix(in oklch, var(--color-danger) 35%, transparent);
-  background: color-mix(in oklch, var(--color-danger) 6%, var(--judge-panel-bg));
-}
-
-.judge-status-banner--warning {
-  border-color: color-mix(in oklch, var(--color-warning) 35%, transparent);
-  background: color-mix(in oklch, var(--color-warning) 6%, var(--judge-panel-bg));
-}
-
 /* ── Progress track ── */
 .judge-progress-track {
-  height: 6px;
+  height: 3px;
   border-radius: 9999px;
-  background: var(--secondary);
+  background: rgba(255, 255, 255, 0.06);
   overflow: hidden;
 }
 
 .judge-progress-fill {
   height: 100%;
   border-radius: 9999px;
-  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* ── Badge ── */
-[data-slot="badge"] {
-  border-radius: var(--judge-radius-sm) !important;
-  letter-spacing: 0.01em;
-}
-
-/* ── Smooth buttons ── */
-.judge-root button {
-  transition: all var(--judge-transition);
-}
-
-/* ── Code in description ── */
-.judge-root code {
-  font-family: var(--judge-font-mono);
-}
-
-/* ── Label ── */
-.judge-label {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--muted-foreground);
-  margin-bottom: 0.5rem;
-}
-
-/* ── First-failed card ── */
-.judge-failed-card {
-  border-radius: var(--judge-radius);
-  border: 1px solid color-mix(in oklch, var(--color-danger) 25%, transparent);
-  overflow: hidden;
-  box-shadow: var(--judge-shadow-sm);
-}
-
-.judge-failed-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.625rem 0.875rem;
-  background: color-mix(in oklch, var(--color-danger) 6%, var(--judge-panel-bg));
-  border-bottom: 1px solid color-mix(in oklch, var(--color-danger) 12%, transparent);
-}
-
-/* ── Description examples ── */
-.judge-example-card {
-  border-radius: var(--judge-radius);
-  border: 1px solid var(--judge-border);
-  overflow: hidden;
-  transition: border-color var(--judge-transition);
-}
-
-.judge-example-card:hover {
-  border-color: color-mix(in oklch, var(--judge-accent) 40%, var(--judge-border));
-}
-
-.judge-example-header {
-  background: var(--judge-surface);
-  padding: 0.5rem 0.875rem;
-  border-bottom: 1px solid var(--judge-border);
-}
-
-.judge-example-body {
-  padding: 0.875rem;
-}
-
-/* ── Constraint items ── */
-.judge-constraint-item {
-  display: flex;
-  align-items: start;
-  gap: 0.5rem;
-  padding: 0.375rem 0;
-}
-
-.judge-constraint-dot {
-  margin-top: 0.5rem;
-  height: 4px;
-  width: 4px;
-  min-width: 4px;
-  border-radius: 9999px;
-  background: var(--judge-accent);
-}
-
-/* ── Empty state ── */
-.judge-empty-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 3rem 1.5rem;
-  color: var(--muted-foreground);
-  gap: 0.75rem;
-}
-
-.judge-empty-state-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  opacity: 0.3;
-  stroke-width: 1.2;
-}
-
-/* ── Section heading ── */
-.judge-section-heading {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--muted-foreground);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.judge-section-heading::after {
-  content: '';
-  flex: 1;
-  height: 1px;
-  background: var(--judge-border);
-}
-
-/* ── Language selector button (dropdown) ── */
-.judge-lang-trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--judge-radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  font-family: var(--judge-font-mono);
-  color: var(--foreground);
-  background: var(--secondary);
-  border: 1px solid var(--judge-border);
-  cursor: pointer;
-  transition: all var(--judge-transition);
-  height: 1.75rem;
-}
-
-.judge-lang-trigger:hover {
-  background: var(--judge-surface-elevated);
-  border-color: var(--judge-accent);
-}
-
-.judge-lang-trigger[data-state="open"] {
-  border-color: var(--judge-accent);
-  box-shadow: 0 0 0 2px var(--judge-accent-subtle);
-}
-
-/* ── Action buttons ── */
-.judge-btn-run {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  height: 1.75rem;
-  padding: 0 0.75rem;
-  border-radius: var(--judge-radius-sm);
-  font-size: 0.75rem;
-  font-weight: 600;
-  background: var(--secondary);
-  border: 1px solid var(--judge-border);
-  color: var(--foreground);
-  cursor: pointer;
-  transition: all var(--judge-transition);
-}
-
-.judge-btn-run:hover:not(:disabled) {
-  background: var(--judge-surface-elevated);
-  border-color: var(--muted-foreground);
-}
-
-.judge-btn-run:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.judge-btn-submit {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  height: 1.75rem;
-  padding: 0 1rem;
-  border-radius: var(--judge-radius-sm);
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: var(--color-success);
-  border: none;
-  color: white;
-  cursor: pointer;
-  transition: all var(--judge-transition);
-  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
-}
-
-.judge-btn-submit:hover:not(:disabled) {
-  background: var(--color-success-hover);
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
-  transform: translateY(-0.5px);
-}
-
-.judge-btn-submit:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* Sign-in CTA — replaces Submit when not logged in */
-.judge-btn-login {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  height: 1.75rem;
-  padding: 0 0.875rem;
-  border-radius: var(--judge-radius-sm);
-  font-size: 0.7rem;
-  font-weight: 600;
-  background: var(--judge-accent);
-  border: none;
-  color: white;
-  cursor: pointer;
-  transition: all var(--judge-transition);
-  box-shadow: 0 1px 3px color-mix(in oklch, var(--judge-accent) 40%, transparent 60%);
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.judge-btn-login:hover {
-  background: var(--judge-accent-hover);
-  box-shadow: 0 2px 8px color-mix(in oklch, var(--judge-accent) 50%, transparent 50%);
-  transform: translateY(-0.5px);
-}
-
-/* ── Toolbar icon buttons ── */
-.judge-icon-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border-radius: var(--judge-radius-xs);
-  border: none;
-  background: transparent;
-  color: var(--muted-foreground);
-  cursor: pointer;
-  transition: all var(--judge-transition);
-}
-
-.judge-icon-btn:hover {
-  background: var(--secondary);
-  color: var(--foreground);
-}
-
-/* ── Result badge ── */
-.judge-result-dot {
-  display: inline-block;
-  width: 7px;
-  height: 7px;
-  border-radius: 9999px;
-  margin-left: 0.375rem;
-}
-
-.judge-result-dot--success {
-  background: var(--color-success);
-  box-shadow: 0 0 4px var(--color-success-light);
-}
-
-.judge-result-dot--error {
-  background: var(--color-danger);
-  box-shadow: 0 0 4px var(--color-danger-light);
+  transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ── Loading skeleton ── */
 @keyframes judge-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-
-  100% {
-    background-position: 200% 0;
-  }
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
 }
 
 .judge-skeleton {
-  background: linear-gradient(90deg,
-      var(--secondary) 25%,
-      var(--judge-surface-elevated) 50%,
-      var(--secondary) 75%);
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.04) 25%,
+    rgba(255,255,255,0.08) 50%,
+    rgba(255,255,255,0.04) 75%
+  );
   background-size: 200% 100%;
   animation: judge-shimmer 1.5s ease-in-out infinite;
   border-radius: var(--judge-radius-sm);
-}
-
-/* ── Pulse animation for running state ── */
-@keyframes judge-pulse {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.judge-pulsing {
-  animation: judge-pulse 1.5s ease-in-out infinite;
 }
 
 /* ── Responsive ── */
@@ -586,28 +579,4 @@
   .judge-root [data-panel-group-direction="horizontal"] {
     flex-direction: column !important;
   }
-}
-
-/* ── Focus ring utility ── */
-.judge-focus-ring:focus-visible {
-  outline: 2px solid var(--judge-accent);
-  outline-offset: 2px;
-}
-
-/* ── Keyboard shortcut badge ── */
-.judge-kbd {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  padding: 0 0.25rem;
-  border-radius: var(--judge-radius-xs);
-  border: 1px solid var(--judge-border);
-  background: var(--judge-surface);
-  font-family: var(--judge-font-mono);
-  font-size: 0.625rem;
-  font-weight: 500;
-  color: var(--muted-foreground);
-  line-height: 1;
 }

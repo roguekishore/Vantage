@@ -414,7 +414,7 @@ const CircularQueueVisualizer = () => {
                       >
                         <span className="text-xs text-theme-tertiary font-mono">[{index}]</span>
                         <span className="font-bold text-xl">
-                          {isEmpty ? "—" : item.value}
+                          {isEmpty ? "-" : item.value}
                         </span>
                       </div>
                     );

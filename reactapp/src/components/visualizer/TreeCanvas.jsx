@@ -4,7 +4,7 @@ import { GitBranch } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * TreeCanvas — SVG binary tree with recursive layout.
+ * TreeCanvas - SVG binary tree with recursive layout.
  *
  * Clean card wrapper, no shadow. SVG rendered inside.
  */

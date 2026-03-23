@@ -67,7 +67,7 @@ const InventoryPage = () => {
                 Inventory
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">
-                Items you own — powerups, boosts, and more
+                Items you own - powerups, boosts, and more
               </p>
             </div>
           </div>

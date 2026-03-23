@@ -278,7 +278,7 @@ const ExpressionAddOperators = ({ navigate }) => {
                   <Node
                     text={`${current.note || ""} ${
                       current.expr
-                        ? ` — expr: ${current.expr.replace(/^\+/, "")}`
+                        ? ` - expr: ${current.expr.replace(/^\+/, "")}`
                         : ""
                     }`}
                     status={
@@ -340,7 +340,7 @@ const ExpressionAddOperators = ({ navigate }) => {
           </div>
 
           <div className="mt-4 text-xs text-theme-tertiary">
-            (recent steps shown — play to auto-advance)
+            (recent steps shown - play to auto-advance)
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-// Visualizer Design System — shadcn-styled Reusable Components
+// Visualizer Design System - shadcn-styled Reusable Components
 // =============================================================
 
 import VisualizerShell from './VisualizerShell';

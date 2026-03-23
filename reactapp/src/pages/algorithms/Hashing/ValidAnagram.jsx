@@ -625,12 +625,12 @@ const ValidAnagram = () => {
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n)</span> — single
+                  <span className="font-mono text-teal300">O(n)</span> - single
                   pass through each string
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(k)</span> — where
+                  <span className="font-mono text-teal300">O(k)</span> - where
                   k is the number of unique characters
                 </div>
                 <div>

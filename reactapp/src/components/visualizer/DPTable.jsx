@@ -4,7 +4,7 @@ import { Table } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * DPTable — 2D table for dynamic programming visualizations.
+ * DPTable - 2D table for dynamic programming visualizations.
  *
  * Clean card, table uses border-collapse, subtle cell styling.
  */

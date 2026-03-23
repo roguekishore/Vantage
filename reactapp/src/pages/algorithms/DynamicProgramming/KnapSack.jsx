@@ -602,8 +602,8 @@ const KnapsackVisualizer = () => {
             <div className="p-4 bg-theme-tertiary/50 rounded-xl border border-theme-primary/60 shadow-2xl">
               <h4 className="text-success font-semibold flex items-center gap-2"><Clock size={16} /> Complexity & Notes</h4>
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
-                <div><strong>Time:</strong> <span className="font-mono text-teal300">O(N x W)</span> — we fill N x W DP table.</div>
-                <div><strong>Space:</strong> <span className="font-mono text-teal300">O(N x W)</span> — storing full table for visualization and path reconstruction.</div>
+                <div><strong>Time:</strong> <span className="font-mono text-teal300">O(N x W)</span> - we fill N x W DP table.</div>
+                <div><strong>Space:</strong> <span className="font-mono text-teal300">O(N x W)</span> - storing full table for visualization and path reconstruction.</div>
                 <div><strong>Optimization:</strong> You can reduce to O(W) using rolling arrays but you'll lose item backtracking for visualization.</div>
               </div>
             </div>

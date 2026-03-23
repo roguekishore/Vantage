@@ -831,12 +831,12 @@ const FourSum = () => {
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(N³)</span> — two
+                  <span className="font-mono text-teal300">O(N³)</span> - two
                   loops + two pointers for each pair.
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(1)</span> —
+                  <span className="font-mono text-teal300">O(1)</span> -
                   excluding space for output.
                 </div>
                 <div>

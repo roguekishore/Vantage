@@ -581,11 +581,11 @@ const FindFirstAndLastPosition = () => {
                     <div>
                       <strong>Time:</strong>{" "}
                       <span className="font-mono text-teal300">O(log n)</span>{" "}
-                      — Two separate binary searches are performed.
+                      - Two separate binary searches are performed.
                     </div>
                     <div>
                       <strong>Space:</strong>{" "}
-                      <span className="font-mono text-teal300">O(1)</span> —
+                      <span className="font-mono text-teal300">O(1)</span> -
                       The algorithm requires constant extra space.
                     </div>
                   </div>

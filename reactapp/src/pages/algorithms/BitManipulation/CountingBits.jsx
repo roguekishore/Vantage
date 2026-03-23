@@ -690,13 +690,13 @@ const CountingBits = () => {
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">
                     <span className="text-theme-secondary">Current Number</span>
                     <span className="font-mono font-bold text-orange400 text-lg">
-                      {currentNum !== null ? currentNum : "—"}
+                      {currentNum !== null ? currentNum : "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">
                     <span className="text-theme-secondary">Set Bits</span>
                     <span className="font-mono font-bold text-success text-lg">
-                      {bitCount !== null ? bitCount : "—"}
+                      {bitCount !== null ? bitCount : "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">

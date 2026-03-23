@@ -10,10 +10,10 @@ import {
 } from "lucide-react";
 
 /**
- * ControlPanel — unified play/pause/step/reset/speed bar.
+ * ControlPanel - unified play/pause/step/reset/speed bar.
  *
  * Built entirely from shadcn Button + native select styled to match.
- * No shadows — subtle border, clean bg-card surface.
+ * No shadows - subtle border, clean bg-card surface.
  */
 
 const DEFAULT_SPEEDS = [

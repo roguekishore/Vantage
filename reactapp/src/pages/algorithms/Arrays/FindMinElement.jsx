@@ -68,7 +68,7 @@ const FindMinElement = ({ navigate, embedded = false, externalArray }) => {
     return () => clearInterval(interval);
   }, [isPlaying, currentIndex, array, minIndex, speed]);
 
-  /* ══════ Embedded mode — compact panel for Judge drawer ══════ */
+  /* ══════ Embedded mode - compact panel for Judge drawer ══════ */
   if (embedded) {
     return (
       <div className="flex flex-col h-full p-4 gap-3">

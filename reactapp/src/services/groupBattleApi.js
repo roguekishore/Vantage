@@ -134,6 +134,21 @@ export async function submitGroupBattleCode(battleId, opts) {
 }
 
 /**
+ * Forfeit an active group battle.
+ * @param {number} battleId
+ * @param {number} userId
+ */
+export async function forfeitGroupBattle(battleId, userId) {
+  const res = await authFetch(`${API_BASE}/${battleId}/forfeit`, {
+    method: "POST",
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || err.error || "Failed to forfeit group battle");
+  }
+}
+
+/**
  * Get group battle result (final placement).
  * @param {number} battleId
  * @param {number} userId
@@ -142,4 +157,14 @@ export async function fetchGroupBattleResult(battleId, userId) {
   const res = await authFetch(`${API_BASE}/${battleId}/group-result`);
   if (!res.ok) throw new Error("Failed to fetch group result");
   return res.json();
+}
+
+/**
+ * Abandon a group battle (forfeit + leave).
+ * @param {number} battleId
+ * @param {number} userId
+ */
+export async function abandonGroupBattle(battleId, userId) {
+  const res = await authFetch(`${API_BASE}/${battleId}/abandon`, { method: "POST" });
+  if (!res.ok) throw new Error("Failed to abandon group battle");
 }

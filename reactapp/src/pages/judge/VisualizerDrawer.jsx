@@ -22,10 +22,10 @@ const VISUALIZER_MAP = {
  * algorithm visualizer that corresponds to the current judge problem.
  *
  * Props:
- *   problemId   — judge problem ID (e.g. "find-max-element")
- *   isOpen      — whether the drawer is expanded
- *   onToggle    — callback to toggle open/close
- *   testArray   — optional number[] parsed from the active test case input
+ *   problemId   - judge problem ID (e.g. "find-max-element")
+ *   isOpen      - whether the drawer is expanded
+ *   onToggle    - callback to toggle open/close
+ *   testArray   - optional number[] parsed from the active test case input
  */
 export default function VisualizerDrawer({
   problemId,
@@ -38,7 +38,7 @@ export default function VisualizerDrawer({
     [problemId]
   );
 
-  /* No visualizer for this problem — render nothing */
+  /* No visualizer for this problem - render nothing */
   if (!VisualizerComponent) return null;
 
   return (

@@ -4,7 +4,7 @@ import { Hash } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * HashMapView — key→value map display.
+ * HashMapView - key→value map display.
  *
  * Clean card, mono font, subtle key→value pairs.
  */

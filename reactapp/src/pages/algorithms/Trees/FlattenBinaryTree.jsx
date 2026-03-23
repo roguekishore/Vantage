@@ -878,19 +878,19 @@ const FlattenBinaryTreeVisualizer = () => {
                   <div className="flex justify-between p-2 bg-theme-secondary rounded border border-theme-primary">
                     <span className="text-theme-tertiary">Current Node:</span>
                     <span className="text-accent-primary font-mono font-bold">
-                      {state.currentNode ?? "—"}
+                      {state.currentNode ?? "-"}
                     </span>
                   </div>
                   <div className="flex justify-between p-2 bg-theme-secondary rounded border border-theme-primary">
                     <span className="text-theme-tertiary">Temp Right:</span>
                     <span className="text-orange300 font-mono font-bold">
-                      {state.tempRight ?? "—"}
+                      {state.tempRight ?? "-"}
                     </span>
                   </div>
                   <div className="flex justify-between p-2 bg-theme-secondary rounded border border-theme-primary">
                     <span className="text-theme-tertiary">Curr Pointer:</span>
                     <span className="text-success font-mono font-bold">
-                      {state.currentPtr ?? "—"}
+                      {state.currentPtr ?? "-"}
                     </span>
                   </div>
                 </div>

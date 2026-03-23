@@ -4,7 +4,7 @@ import { Separator } from "../ui/separator";
 import { Binary } from "lucide-react";
 
 /**
- * BinaryView — bit-level binary display.
+ * BinaryView - bit-level binary display.
  *
  * Shows a number in binary with optional bit highlighting.
  */

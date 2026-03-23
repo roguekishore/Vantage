@@ -4,7 +4,7 @@ import { Share2 } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * GraphCanvas — SVG edges + DOM node divs for graph visualizations.
+ * GraphCanvas - SVG edges + DOM node divs for graph visualizations.
  *
  * Clean card, no shadow. Uses relative positioning for nodes.
  */

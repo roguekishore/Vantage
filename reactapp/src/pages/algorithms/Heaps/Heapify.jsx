@@ -535,14 +535,14 @@ void buildHeap(vector<int>& a, int n) {
                   <Zap className="h-5 w-5 text-success mt-0.5" />
                   <div>
                     <div className="font-bold text-theme-primary">Time Complexity</div>
-                    <div className="text-sm text-theme-tertiary">O(n) — Building heap from array</div>
+                    <div className="text-sm text-theme-tertiary">O(n) - Building heap from array</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
                   <Cpu className="h-5 w-5 text-accent-primary mt-0.5" />
                   <div>
                     <div className="font-bold text-theme-primary">Space Complexity</div>
-                    <div className="text-sm text-theme-tertiary">O(1) — In-place heapify</div>
+                    <div className="text-sm text-theme-tertiary">O(1) - In-place heapify</div>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">

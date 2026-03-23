@@ -59,11 +59,11 @@ export async function cancelFriendRequest(requestId) {
   }
 }
 
-export async function sendFriendChallenge({ targetUserId, mode, difficulty, problemCount }) {
+export async function sendFriendChallenge({ targetUserId, mode, difficulty, problemCount, roomCode }) {
   const res = await authFetch(`${API_BASE}/friends/challenges`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ targetUserId, mode, difficulty, problemCount }),
+    body: JSON.stringify({ targetUserId, mode, difficulty, problemCount, roomCode }),
   });
   return parseResponse(res, "Failed to send challenge");
 }

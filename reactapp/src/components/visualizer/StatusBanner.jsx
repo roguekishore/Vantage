@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 import { CheckCircle, XCircle, AlertCircle, Loader2 } from "lucide-react";
 
 /**
- * StatusBanner — success/error/warning/loading/info banner.
+ * StatusBanner - success/error/warning/loading/info banner.
  *
  * Subtle background tint, no shadow, border accent via border-l.
  */

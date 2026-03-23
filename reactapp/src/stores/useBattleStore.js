@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getToken } from "../services/api";
+import { getSockJsUrl, getStompBrokerUrl } from "../services/realtimeUrls";
 import {
   joinQueue as apiJoinQueue,
   fetchQueueStatus,
@@ -13,9 +14,11 @@ import {
   fetchBattleResult,
   forfeitBattle,
   abandonBattle as apiAbandonBattle,
+  checkActiveBattle as apiCheckActiveBattle,
 } from "../services/battleApi";
 
-const WS_URL = "http://localhost:8080/ws";
+const SOCKJS_URL = getSockJsUrl();
+const STOMP_BROKER_URL = getStompBrokerUrl();
 const POLL_INTERVAL = 3000;
 
 /**
@@ -27,7 +30,9 @@ const POLL_INTERVAL = 3000;
 const useBattleStore = create((set, get) => ({
   /* ── State ── */
   queueStatus: null,       // null | "QUEUED" | "MATCHED"
-  activeBattleState: null, // null | "WAITING" | "ACTIVE" — set when joinQueue finds existing battle
+  activeBattleState: null, // "WAITING" or "ACTIVE" - set on load if user has a battle
+  activeBattleMode: null,  // "CASUAL_1V1" | "RANKED_1V1" | "GROUP_FFA"
+  activeBattleRoomCode: null, // room code for group battles
   battleId: null,
   lobby: null,             // BattleLobbyDTO
   battleState: null,       // BattleStateDTO
@@ -62,12 +67,13 @@ const useBattleStore = create((set, get) => ({
       }
 
       const client = new Client({
-        webSocketFactory: () => new SockJS(WS_URL),
-        connectHeaders: { Authorization: `Bearer ${getToken() || ''}` },
+        brokerURL: STOMP_BROKER_URL,
+        webSocketFactory: () => new SockJS(SOCKJS_URL),
+        connectHeaders: { Authorization: `Bearer ${getToken() || ""}` },
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
-        debug: () => {},          // silence debug logs
+        debug: () => { },          // silence debug logs
         onConnect: () => {
           set({ _stompClient: client, _wsConnected: true });
           resolve(true);
@@ -89,7 +95,7 @@ const useBattleStore = create((set, get) => ({
         resolve(false);
       }
 
-      // Timeout — if not connected in 4s, fall back
+      // Timeout - if not connected in 4s, fall back
       setTimeout(() => {
         if (!client.connected) {
           set({ _wsConnected: false });
@@ -170,7 +176,7 @@ const useBattleStore = create((set, get) => ({
           }
         });
       }
-      // Always start polling as fallback (WS will race it — first to fire wins)
+      // Always start polling as fallback (WS will race it - first to fire wins)
       get().startQueuePolling(userId);
     } catch (e) {
       set({ error: e.message, loading: false });
@@ -241,7 +247,7 @@ const useBattleStore = create((set, get) => ({
         get().startBattlePolling(battleId, userId);
       }
     } catch (e) {
-      // Retry up to 3 times with delay — handles race condition where
+      // Retry up to 3 times with delay - handles race condition where
       // the matchmaking transaction hasn't committed yet
       if (_retries < 3) {
         await new Promise((r) => setTimeout(r, 1000 * (_retries + 1)));
@@ -306,7 +312,7 @@ const useBattleStore = create((set, get) => ({
     // Fetch once immediately
     fetchBattleState(battleId, userId)
       .then((s) => set({ battleState: s }))
-      .catch(() => {});
+      .catch(() => { });
   },
 
   stopBattlePolling: () => {
@@ -347,7 +353,7 @@ const useBattleStore = create((set, get) => ({
     try {
       await apiAbandonBattle(battleId, userId);
     } catch { /* ignore */ }
-    set({ battleId: null, activeBattleState: null, battleState: null, lobby: null, error: null });
+    set({ battleId: null, activeBattleState: null, activeBattleMode: null, activeBattleRoomCode: null, battleState: null, lobby: null, error: null });
   },
 
   /* ── Result ── */
@@ -356,8 +362,21 @@ const useBattleStore = create((set, get) => ({
     try {
       const result = await fetchBattleResult(battleId, userId);
       set({ result, loading: false });
+      return { ok: true, status: 200, result };
     } catch (e) {
+      // 409 means battle is not completed yet; resolve current state so caller can route.
+      if (e?.status === 409) {
+        try {
+          const state = await fetchBattleState(battleId, userId);
+          set({ battleState: state, loading: false, error: null });
+          return { ok: false, status: 409, pendingState: state?.state || null };
+        } catch {
+          set({ loading: false, error: "Battle is not finished yet." });
+          return { ok: false, status: 409, pendingState: null };
+        }
+      }
       set({ error: e.message, loading: false });
+      return { ok: false, status: e?.status || 500 };
     }
   },
 
@@ -375,10 +394,29 @@ const useBattleStore = create((set, get) => ({
     get().stopPolling();
     get()._disconnectStomp();
     set({
-      queueStatus: null, activeBattleState: null, battleId: null, lobby: null,
+      queueStatus: null, activeBattleState: null, activeBattleMode: null, activeBattleRoomCode: null, battleId: null, lobby: null,
       battleState: null, result: null, error: null,
       loading: false, submitting: false,
     });
+  },
+
+  checkActiveBattle: async (userId) => {
+    try {
+      const res = await apiCheckActiveBattle(userId);
+      if (res?.battleId) {
+        set({
+          activeBattleState: res.state,
+          battleId: res.battleId,
+          activeBattleMode: res.mode || null,
+          activeBattleRoomCode: res.roomCode || null,
+        });
+      } else {
+        set({ activeBattleState: null, battleId: null, activeBattleMode: null, activeBattleRoomCode: null });
+      }
+    } catch (e) {
+      console.warn("Failed to check for active battle on load:", e.message);
+      set({ activeBattleState: null, battleId: null, activeBattleMode: null, activeBattleRoomCode: null });
+    }
   },
 }));
 

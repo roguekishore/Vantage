@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 import { ArrowRight } from "lucide-react";
 
 /**
- * LinkedListChain — horizontal chain of linked-list nodes with arrows.
+ * LinkedListChain - horizontal chain of linked-list nodes with arrows.
  *
  * Clean border boxes, subtle arrows, no shadow.
  */

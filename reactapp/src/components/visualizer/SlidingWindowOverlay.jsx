@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
 /**
- * SlidingWindowOverlay — animated bounding box around a sub-range.
+ * SlidingWindowOverlay - animated bounding box around a sub-range.
  *
  * Measures DOM positions and renders a translucent highlight rectangle.
  * Uses CSS-variable-based colors for consistency with shadcn theme.

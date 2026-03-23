@@ -277,7 +277,7 @@ const AssignCookies = () => {
                         Assign Cookies
                     </h1>
                     <p className="text-theme-tertiary mt-2">
-                        LeetCode 455 — Greedy assignment to maximize satisfied children
+                        LeetCode 455 - Greedy assignment to maximize satisfied children
                     </p>
                 </header>
 
@@ -377,9 +377,9 @@ const AssignCookies = () => {
                                     <Clock className="w-5 h-5" /> Complexity
                                 </h3>
                                 <p className="text-sm text-theme-secondary">
-                                    Time: <span className="text-accent-primary font-semibold">O(n log n)</span> — due to sorting
+                                    Time: <span className="text-accent-primary font-semibold">O(n log n)</span> - due to sorting
                                     <br />
-                                    Space: <span className="text-accent-primary font-semibold">O(1)</span> — in-place sorting
+                                    Space: <span className="text-accent-primary font-semibold">O(1)</span> - in-place sorting
                                 </p>
                             </div>
                         </div>

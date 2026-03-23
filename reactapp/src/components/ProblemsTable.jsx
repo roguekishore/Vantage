@@ -1,57 +1,143 @@
 /**
- * ProblemsTable — Premium problem table with rich, modern design.
- * Used by both /problems (Spring-backed) and /judge (Node-backed).
- *
- * Features:
- *   • Gradient hero header with animated accents
- *   • Live stat cards with glow effects
- *   • Glassmorphism filter bar
- *   • Premium table rows with hover glow & accent bars
- *   • Rich difficulty badges & status indicators
- *   • Detail dialog with polished layout
- *   • Dual-theme compatible
+ * ProblemsTable — Vantage aesthetic overhaul.
+ * Dark #09090b base · Monument Extended titles · EDFF66 accents
+ * GSAP scroll animations · custom row interactions · full parity with original API
  */
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useGSAP } from "@gsap/react";
 import {
   ArrowUp, ArrowDown, ArrowUpDown, Search,
-  ExternalLink, X, Loader2, Filter, RotateCcw, CheckCircle2, Circle,
-  CircleDot, BookOpen, Code2, Trophy, Target, Flame, Sparkles, Zap,
+  ExternalLink, X, Loader2, Filter, RotateCcw,
+  Check, BookOpen, ChevronRight, Zap,
 } from "lucide-react";
-import { Badge } from "./ui/badge";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
-import {
-  Select, SelectTrigger, SelectContent, SelectItem, SelectValue,
-} from "./ui/select";
-import {
-  Dialog, DialogContent,
-} from "./ui/dialog";
+import { SiLeetcode } from "react-icons/si";
+import { Dialog, DialogContent } from "./ui/dialog";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "./ui/select";
 import { fetchProgressStats } from "../services/problemApi";
+import { ALGO_CONFIGS, AlgoCanvas, MergeSortCanvas } from "@/components/HomePageAnimations";
+import CustomCursor from "@/components/CustomCursor";
+import { MONUMENT_TYPO as T } from "@/components/MonumentTypography";
 
-/* ── Constants ────────────────────────────────────────────────────── */
+gsap.registerPlugin(ScrollTrigger);
 
+/* ─────────────────────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────────────────────── */
 const LC_BASE = "https://leetcode.com/problems";
 
-const DIFF_STYLE = {
-  BASIC: { color: "text-zinc-400", bg: "bg-zinc-500/10 border-zinc-500/20 text-zinc-400", label: "Basic", glow: "" },
-  EASY: { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400", label: "Easy", glow: "shadow-emerald-500/5" },
-  MEDIUM: { color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20 text-amber-400", label: "Medium", glow: "shadow-amber-500/5" },
-  HARD: { color: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/20 text-rose-400", label: "Hard", glow: "shadow-rose-500/5" },
-  Easy: { color: "text-emerald-400", bg: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400", label: "Easy", glow: "shadow-emerald-500/5" },
-  Medium: { color: "text-amber-400", bg: "bg-amber-500/10 border-amber-500/20 text-amber-400", label: "Medium", glow: "shadow-amber-500/5" },
-  Hard: { color: "text-rose-400", bg: "bg-rose-500/10 border-rose-500/20 text-rose-400", label: "Hard", glow: "shadow-rose-500/5" },
+const DIFF = {
+  BASIC: { color: "#888", dot: "rgba(136,136,136,0.8)", label: "Basic" },
+  EASY: { color: "#34d399", dot: "rgba(52,211,153,0.85)", label: "Easy" },
+  MEDIUM: { color: "#fbbf24", dot: "rgba(251,191,36,0.85)", label: "Medium" },
+  HARD: { color: "#f87171", dot: "rgba(248,113,113,0.85)", label: "Hard" },
+  Easy: { color: "#34d399", dot: "rgba(52,211,153,0.85)", label: "Easy" },
+  Medium: { color: "#fbbf24", dot: "rgba(251,191,36,0.85)", label: "Medium" },
+  Hard: { color: "#f87171", dot: "rgba(248,113,113,0.85)", label: "Hard" },
 };
 
 const STATUS_CFG = {
-  SOLVED: { icon: CheckCircle2, color: "text-emerald-400", bgDot: "bg-emerald-400", label: "Solved" },
-  ATTEMPTED: { icon: CircleDot, color: "text-amber-400", bgDot: "bg-amber-400", label: "Attempted" },
-  NOT_STARTED: { icon: Circle, color: "text-zinc-600", bgDot: "bg-zinc-600", label: "Todo" },
+  SOLVED: { label: "Solved" },
+  ATTEMPTED: { label: "Attempted" },
+  NOT_STARTED: { label: "Todo" },
 };
 
-/* ── Sortable column header ───────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────
+   BACKGROUND CANVAS
+───────────────────────────────────────────────────────── */
+function BgCanvas() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const canvas = ref.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    const dpr = window.devicePixelRatio || 1;
+    const resize = () => {
+      canvas.width = canvas.offsetWidth * dpr;
+      canvas.height = canvas.offsetHeight * dpr;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    resize();
+    window.addEventListener("resize", resize);
+    const W = () => canvas.offsetWidth;
+    const H = () => canvas.offsetHeight;
+    const pts = Array.from({ length: 40 }, () => ({
+      x: Math.random() * W(), y: Math.random() * H(),
+      vx: (Math.random() - .5) * .14, vy: (Math.random() - .5) * .14,
+      r: .5 + Math.random() * 1.2, op: .04 + Math.random() * .08,
+      ph: Math.random() * Math.PI * 2,
+    }));
+    let t = 0, id;
+    const tick = () => {
+      t += .007;
+      ctx.clearRect(0, 0, W(), H());
+      pts.forEach(p => {
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0) p.x = W(); if (p.x > W()) p.x = 0;
+        if (p.y < 0) p.y = H(); if (p.y > H()) p.y = 0;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,255,255,${p.op * (.7 + .3 * Math.sin(t + p.ph))})`;
+        ctx.fill();
+      });
+      for (let i = 0; i < pts.length; i++) {
+        for (let j = i + 1; j < pts.length; j++) {
+          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+          const d = Math.sqrt(dx * dx + dy * dy);
+          if (d < 100) {
+            ctx.beginPath();
+            ctx.moveTo(pts[i].x, pts[i].y);
+            ctx.lineTo(pts[j].x, pts[j].y);
+            ctx.strokeStyle = `rgba(255,255,255,${(1 - d / 100) * .025})`;
+            ctx.lineWidth = .5;
+            ctx.stroke();
+          }
+        }
+      }
+      id = requestAnimationFrame(tick);
+    };
+    id = requestAnimationFrame(tick);
+    return () => { cancelAnimationFrame(id); window.removeEventListener("resize", resize); };
+  }, []);
+  return (
+    <canvas ref={ref} style={{
+      position: "fixed", inset: 0, width: "100%", height: "100%",
+      pointerEvents: "none", zIndex: 0, opacity: .45,
+    }} />
+  );
+}
 
+/* ─────────────────────────────────────────────────────────
+   STATUS DOT
+───────────────────────────────────────────────────────── */
+function StatusDot({ status }) {
+  if (status === "SOLVED") return (
+    <div style={{
+      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+      background: "rgba(52,211,153,0.12)",
+      border: "1px solid rgba(52,211,153,0.35)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <Check size={11} color="#34d399" strokeWidth={2.8} />
+    </div>
+  );
+  if (status === "ATTEMPTED") return (
+    <div style={{
+      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+      border: "1.5px solid rgba(251,191,36,0.5)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+    }}>
+      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(251,191,36,0.7)" }} />
+    </div>
+  );
+  return <div style={{ width: 20, height: 20, flexShrink: 0 }} />;
+}
+
+/* ─────────────────────────────────────────────────────────
+   SORT HEADER
+───────────────────────────────────────────────────────── */
 function SortHeader({ label, field, current, onSort }) {
   const [f, d] = (current || "").split(",");
   const active = f === field;
@@ -59,47 +145,291 @@ function SortHeader({ label, field, current, onSort }) {
   return (
     <button
       onClick={() => onSort(active && d === "asc" ? `${field},desc` : `${field},asc`)}
-      className="inline-flex items-center gap-1.5 text-[11px] uppercase tracking-wider font-semibold text-muted-foreground hover:text-foreground transition-all duration-200 group"
+      data-cursor={label.toUpperCase()}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 5,
+        fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
+        textTransform: "uppercase",
+        color: active ? "#EDFF66" : "rgba(255,255,255,0.28)",
+        background: "none", border: "none", cursor: "none",
+        transition: "color .15s",
+        padding: 0,
+      }}
     >
       {label}
-      <Icon className={`h-3 w-3 transition-all duration-200 ${active ? "text-[#5542FF]" : "opacity-20 group-hover:opacity-60"}`} />
+      <Icon size={10} style={{ opacity: active ? 1 : .4 }} />
     </button>
   );
 }
 
-/* ── Status icon cell (premium animated dot) ──────────────────────── */
-
-function StatusDot({ status }) {
-  const cfg = STATUS_CFG[status] || STATUS_CFG.NOT_STARTED;
-  const isSolved = status === "SOLVED";
+/* ─────────────────────────────────────────────────────────
+   COLUMN HEADER LABEL (non-sortable)
+───────────────────────────────────────────────────────── */
+function ColLabel({ children }) {
   return (
-    <span title={cfg.label} className="relative flex items-center justify-center">
-      <span className={`h-2.5 w-2.5 rounded-full ${cfg.bgDot} ${isSolved ? "animate-pulse" : ""}`}
-        style={isSolved ? { boxShadow: "0 0 8px rgba(52, 211, 153, 0.4)" } : {}} />
+    <span style={{
+      fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
+      textTransform: "uppercase", color: "rgba(255,255,255,0.28)",
+    }}>
+      {children}
     </span>
   );
 }
 
+/* ─────────────────────────────────────────────────────────
+   STAT CHIP
+───────────────────────────────────────────────────────── */
+function StatChip({ label, value, color }) {
+  return (
+    <div style={{ padding: "12px 20px" }}>
+      <div style={{
+        fontFamily: T.fontFamily, fontSize: 22, fontWeight: 900,
+        color: color || "#fff", lineHeight: 1,
+        fontVariantNumeric: "tabular-nums",
+      }}>
+        {value}
+      </div>
+      <div style={{
+        fontSize: 9, fontWeight: 800, letterSpacing: ".2em",
+        textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginTop: 4,
+      }}>
+        {label}
+      </div>
+    </div>
+  );
+}
 
-/* ═══════════════════════════════════════════════════════════════════════
+/* ─────────────────────────────────────────────────────────
+   SKELETON ROW
+───────────────────────────────────────────────────────── */
+function SkeletonRow({ i }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center",
+      padding: "14px 22px", gap: 0,
+      borderBottom: "1px solid rgba(255,255,255,0.04)",
+      animation: "vantage-pulse 1.6s ease-in-out infinite",
+      animationDelay: `${i * 0.07}s`,
+    }}>
+      <div style={{ width: 36, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+        <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+      </div>
+      <div style={{ width: 52, flexShrink: 0, padding: "0 10px" }}>
+        <div style={{ height: 10, width: 28, borderRadius: 4, background: "rgba(255,255,255,0.05)" }} />
+      </div>
+      <div style={{ flex: 1, paddingRight: 20 }}>
+        <div style={{ height: 11, width: `${35 + (i * 17) % 44}%`, borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
+      </div>
+      <div style={{ width: 140, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+        <div style={{ height: 22, width: 80, borderRadius: 8, background: "rgba(255,255,255,0.04)" }} />
+      </div>
+      <div style={{ width: 96, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+        <div style={{ height: 10, width: 50, borderRadius: 4, background: "rgba(255,255,255,0.05)" }} />
+      </div>
+      <div style={{ width: 40, flexShrink: 0 }} />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   DETAIL ROW (inside dialog)
+───────────────────────────────────────────────────────── */
+function DetailRow({ label, children }) {
+  return (
+    <div style={{ display: "flex", gap: 16 }}>
+      <span style={{
+        width: 90, flexShrink: 0, fontSize: 9, fontWeight: 900,
+        letterSpacing: ".2em", textTransform: "uppercase",
+        color: "rgba(255,255,255,0.22)", paddingTop: 2,
+      }}>
+        {label}
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   PROBLEM ROW
+───────────────────────────────────────────────────────── */
+function ProblemRow({ problem, index, showStage, showLeetCode, source, onClick, getUserStatus, getDifficulty, getTitle, getId, getLcSlug, getCategory, getStages }) {
+  const [hov, setHov] = useState(false);
+  const diff = getDifficulty(problem);
+  const dStyle = DIFF[diff] || { color: "rgba(255,255,255,0.3)", dot: "rgba(255,255,255,0.2)", label: diff };
+  const status = getUserStatus(problem);
+  const slug = getLcSlug(problem);
+
+  return (
+    <div
+      className="prob-row"
+      onClick={() => onClick(problem)}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      data-cursor="OPEN"
+      style={{
+        display: "flex", alignItems: "center",
+        padding: "0 22px",
+        height: 52,
+        borderBottom: "1px solid rgba(255,255,255,0.04)",
+        background: hov ? "rgba(255,255,255,0.025)" : "transparent",
+        cursor: "none",
+        transition: "background 0.14s",
+        position: "relative",
+      }}
+    >
+      {/* Left accent line on hover */}
+      <div style={{
+        position: "absolute", left: 0, top: 8, bottom: 8,
+        width: 2, borderRadius: 2,
+        background: dStyle.color,
+        opacity: hov ? 0.7 : 0,
+        transition: "opacity 0.14s",
+      }} />
+
+      {/* Status */}
+      <div style={{ width: 36, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+        <StatusDot status={status} />
+      </div>
+
+      {/* # */}
+      <div style={{ width: 52, flexShrink: 0, padding: "0 10px" }}>
+        <span style={{
+          fontFamily: "monospace", fontSize: 11,
+          color: "rgba(255,255,255,0.22)",
+          fontVariantNumeric: "tabular-nums",
+        }}>
+          {index + 1}
+        </span>
+      </div>
+
+      {/* Title */}
+      <div style={{ flex: 1, minWidth: 0, paddingRight: 20 }}>
+        <span style={{
+          fontSize: 13, fontWeight: 600,
+          color: hov ? "#fff" : "rgba(255,255,255,0.62)",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          display: "block",
+          transition: "color 0.14s",
+        }}>
+          {getTitle(problem)}
+        </span>
+      </div>
+
+      {/* Stage / Topic */}
+      {(showStage || source === "judge") && (
+        <div style={{ width: 160, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+          <span style={{
+            fontSize: 11, fontWeight: 600,
+            color: "rgba(255,255,255,0.25)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            maxWidth: "100%",
+          }}>
+            {source === "judge" ? getCategory(problem) : (getStages(problem)[0] || "—")}
+          </span>
+        </div>
+      )}
+
+      {/* Difficulty */}
+      <div style={{ width: 96, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <div style={{
+          width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
+          background: dStyle.dot,
+        }} />
+        <span style={{
+          fontSize: 11, fontWeight: 700,
+          color: dStyle.color,
+        }}>
+          {dStyle.label}
+        </span>
+      </div>
+
+      {/* LC */}
+      {showLeetCode && (
+        <div
+          style={{ width: 40, flexShrink: 0, display: "flex", justifyContent: "center" }}
+          onClick={e => e.stopPropagation()}
+        >
+          {slug ? (
+            <a
+              href={`${LC_BASE}/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              data-cursor="LC"
+              style={{
+                width: 28, height: 28, borderRadius: 8,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                color: "rgba(255,255,255,0.22)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                transition: "all .15s",
+                cursor: "none",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = "#FFA116";
+                e.currentTarget.style.borderColor = "rgba(255,161,22,0.3)";
+                e.currentTarget.style.background = "rgba(255,161,22,0.08)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = "rgba(255,255,255,0.22)";
+                e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
+                e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <SiLeetcode size={13} />
+            </a>
+          ) : null}
+        </div>
+      )}
+
+      {/* Chevron */}
+      <ChevronRight
+        size={13}
+        style={{
+          color: "rgba(255,255,255,0.18)",
+          opacity: hov ? 1 : 0,
+          transition: "opacity 0.14s",
+          flexShrink: 0,
+          marginLeft: 4,
+        }}
+      />
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────
+   FILTER PILL BUTTON
+───────────────────────────────────────────────────────── */
+function FilterPill({ children, active, onClick, color }) {
+  const [hov, setHov] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHov(true)}
+      onMouseLeave={() => setHov(false)}
+      data-cursor="FILTER"
+      style={{
+        height: 32, padding: "0 14px", borderRadius: 8, cursor: "none",
+        flexShrink: 0,
+        border: active
+          ? `1px solid ${color || "rgba(237,255,102,0.35)"}`
+          : "1px solid rgba(255,255,255,0.07)",
+        background: active
+          ? (color ? `${color}14` : "rgba(237,255,102,0.07)")
+          : (hov ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)"),
+        color: active
+          ? (color || "#EDFF66")
+          : (hov ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.32)"),
+        fontSize: 11, fontWeight: 800, letterSpacing: ".04em",
+        transition: "all .15s", whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    MAIN COMPONENT
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/**
- * @param {Object}   props
- * @param {"spring"|"judge"} props.source     - Data source: "spring" for paginated backend, "judge" for client-side
- * @param {Function} props.fetchList          - Fetches the problem list. For spring: ({page,size,sort,stage,tag,status,keyword}) → Page<DTO>.
- *                                              For judge: () → Problem[]
- * @param {Function} [props.fetchDetail]      - Fetches a single problem detail by id
- * @param {Function} [props.fetchStages]      - Fetches stage names for the filter dropdown
- * @param {Object}   [props.progressMap]      - Map<pid, {status}> from backend (for spring source)
- * @param {string}   [props.title]            - Page title
- * @param {string}   [props.subtitle]         - Page subtitle
- * @param {React.ElementType} [props.icon]    - Header icon component
- * @param {Function} [props.onRowClick]       - Custom row click handler (pid, problem) → void. If omitted, opens detail dialog.
- * @param {boolean}  [props.showLeetCode]     - Show LC link column (default true)
- * @param {boolean}  [props.showStage]        - Show stage column (default true for spring, false for judge)
- */
+═══════════════════════════════════════════════════════ */
 export default function ProblemsTable({
   source = "spring",
   fetchList,
@@ -113,21 +443,19 @@ export default function ProblemsTable({
   showLeetCode = true,
   showStage = source === "spring",
 }) {
-  const navigate = useNavigate();
+  const pageRef = useRef(null);
 
-  /* ── State ────────────────────────────────────────────────────── */
+  /* ── State ── */
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(0);
   const [size] = useState(20);
-  const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
   const [sort, setSort] = useState("pid,asc");
   const [hasMore, setHasMore] = useState(false);
 
-  /* ── Filters ──────────────────────────────────────────────────── */
   const [stageFilter, setStageFilter] = useState("");
   const [tagFilter, setTagFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -135,34 +463,28 @@ export default function ProblemsTable({
   const [debounced, setDebounced] = useState("");
   const [stages, setStages] = useState([]);
 
-  /* ── Detail dialog ────────────────────────────────────────────── */
   const [selected, setSelected] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  /* ── Server-side stats (solved / attempted counts) ───────────── */
   const [userStats, setUserStats] = useState(null);
-
-  /* ── Judge-only: client-side filter state ─────────────────────── */
   const [judgeDiffFilter, setJudgeDiffFilter] = useState("All");
+  const [judgeStatusFilter, setJudgeStatusFilter] = useState("All");
 
-  /* ── Infinite scroll sentinel ref ────────────────────────────── */
   const sentinelRef = useRef(null);
+  const searchRef = useRef(null);
 
-  /* ── Debounce search — resets to page 0 ─────────────────────── */
+  /* ── Debounce ── */
   useEffect(() => {
-    const t = setTimeout(() => { setDebounced(searchKeyword); }, 300);
+    const t = setTimeout(() => setDebounced(searchKeyword), 300);
     return () => clearTimeout(t);
   }, [searchKeyword]);
 
-  /* ── Reset to page 0 when any filter/sort changes ───────────── */
   useEffect(() => {
-    setPage(0);
-    setProblems([]);
-    setHasMore(false);
+    setPage(0); setProblems([]); setHasMore(false);
   }, [debounced, stageFilter, tagFilter, statusFilter, sort]);
 
-  /* ── Fetch a single page (spring) ───────────────────────────── */
+  /* ── Fetch ── */
   const fetchSpringPage = useCallback(async (pageNum) => {
     const isFirst = pageNum === 0;
     if (isFirst) setLoading(true); else setLoadingMore(true);
@@ -177,14 +499,12 @@ export default function ProblemsTable({
       });
       const incoming = data.content || [];
       setProblems(prev => isFirst ? incoming : [...prev, ...incoming]);
-      setTotalPages(data.totalPages || 0);
       setTotalElements(data.totalElements || 0);
       setHasMore(pageNum < (data.totalPages || 0) - 1);
     } catch (e) { setError(e.message); }
     finally { if (isFirst) setLoading(false); else setLoadingMore(false); }
   }, [fetchList, size, sort, stageFilter, tagFilter, statusFilter, debounced]);
 
-  /* ── Fetch judge list (all at once, client-filtered) ─────────── */
   const loadJudge = useCallback(async () => {
     setLoading(true); setError(null);
     try {
@@ -195,22 +515,20 @@ export default function ProblemsTable({
     finally { setLoading(false); }
   }, [fetchList]);
 
-  /* ── Initial + page-change load ─────────────────────────────── */
   useEffect(() => {
     if (source === "spring") fetchSpringPage(page);
     else if (page === 0) loadJudge();
   }, [source, page, fetchSpringPage, loadJudge]);
 
-  /* ── IntersectionObserver: load next page when sentinel visible ─ */
+  /* ── Infinite scroll ── */
   useEffect(() => {
     if (source !== "spring") return;
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading) {
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loadingMore && !loading)
           setPage(prev => prev + 1);
-        }
       },
       { rootMargin: "200px" }
     );
@@ -218,25 +536,22 @@ export default function ProblemsTable({
     return () => observer.disconnect();
   }, [source, hasMore, loadingMore, loading]);
 
-  /* ── Fetch stages once ───────────────────────────────────────── */
   useEffect(() => {
     if (fetchStagesFn) fetchStagesFn().then(setStages).catch(() => { });
   }, [fetchStagesFn]);
 
-  /* ── Fetch user stats once (spring only) ─────────────────────── */
   useEffect(() => {
     if (source !== "spring") return;
     fetchProgressStats().then(setUserStats).catch(() => { });
   }, [source]);
 
-  /* ── Judge: client-filtered list ──────────────────────────────── */
+  /* ── Judge filter ── */
   const filteredJudge = useMemo(() => {
     if (source !== "judge") return [];
-    return problems.filter((p) => {
+    return problems.filter(p => {
       const matchSearch = !debounced ||
         p.title?.toLowerCase().includes(debounced.toLowerCase()) ||
         p.topic?.toLowerCase().includes(debounced.toLowerCase()) ||
-        p.category?.toLowerCase().includes(debounced.toLowerCase()) ||
         p.tags?.some(t => t.toLowerCase().includes(debounced.toLowerCase()));
       const matchDiff = judgeDiffFilter === "All" || p.difficulty === judgeDiffFilter;
       return matchSearch && matchDiff;
@@ -246,8 +561,8 @@ export default function ProblemsTable({
   const displayList = source === "spring" ? problems : filteredJudge;
   const displayTotal = source === "spring" ? totalElements : filteredJudge.length;
 
-  /* ── Detail dialog ────────────────────────────────────────────── */
-  const openDetail = async (id) => {
+  /* ── Detail ── */
+  const openDetail = async id => {
     if (!fetchDetail) return;
     setDialogOpen(true); setDetailLoading(true);
     try { setSelected(await fetchDetail(id)); }
@@ -255,575 +570,873 @@ export default function ProblemsTable({
     finally { setDetailLoading(false); }
   };
 
-  const handleRowClick = (problem) => {
+  const handleRowClick = problem => {
     const id = problem.pid ?? problem.id;
-    if (onRowClick) {
-      onRowClick(id, problem);
-    } else {
-      openDetail(id);
-    }
+    if (onRowClick) onRowClick(id, problem);
+    else openDetail(id);
   };
 
-  /* ── Clear all filters ────────────────────────────────────────── */
+  /* ── Helpers ── */
   const clearAll = () => {
     setSearchKeyword(""); setDebounced("");
     setStageFilter(""); setTagFilter(""); setStatusFilter("");
-    setJudgeDiffFilter("All");
-    setSort("pid,asc");
-    // page/problems reset handled by the filter-change useEffect
+    setJudgeDiffFilter("All"); setSort("pid,asc");
   };
 
   const hasFilters = source === "spring"
     ? (stageFilter || tagFilter || statusFilter || debounced)
     : (debounced || judgeDiffFilter !== "All");
 
-  /* ── Helpers for normalising data shape between spring & judge ── */
-  const getDifficulty = (p) => p.tag || p.difficulty || "";
-  const getTitle = (p) => p.title || "";
-  const getId = (p) => p.pid ?? p.id;
-  const getLcSlug = (p) => p.lcslug || p.lcSlug || null;
-  const getStages = (p) => p.stages || [];
-  const getCategory = (p) => p.category || p.topic || "";
-  const getUserStatus = (p) => {
-    // Spring backend provides userStatus directly
+  const retryLoad = useCallback(() => {
+    if (source === "spring") { setPage(0); fetchSpringPage(0); }
+    else loadJudge();
+  }, [source, fetchSpringPage, loadJudge]);
+
+  const getDifficulty = p => p.tag || p.difficulty || "";
+  const getTitle = p => p.title || "";
+  const getId = p => p.pid ?? p.id;
+  const getLcSlug = p => p.lcslug || p.lcSlug || null;
+  const getStages = p => p.stages || [];
+  const getCategory = p => p.category || p.topic || "";
+  const getUserStatus = p => {
     if (p.userStatus) return p.userStatus;
-    // Fallback: look up from the progressMap
     const id = getId(p);
     if (progressMap[id]) return progressMap[id].status || progressMap[id];
     return null;
   };
 
-  /* ── Stats for header ──────────────────────────────────────────── */
+  /* ── Stats ── */
   const solvedCount = useMemo(() => {
-    if (source === "spring") {
-      // Use the server-side aggregate count (covers all problems, not just loaded page)
-      if (userStats) return Number(userStats.solved ?? 0);
-      return 0;
-    }
+    if (source === "spring") return userStats ? Number(userStats.solved ?? 0) : 0;
     return problems.filter(p => {
-      const id = p.pid ?? p.id;
-      const s = progressMap[id];
+      const s = progressMap[p.pid ?? p.id];
       return (s?.status || s) === "SOLVED";
     }).length;
   }, [source, problems, progressMap, userStats]);
 
   const attemptedCount = useMemo(() => {
-    if (source === "spring") {
-      if (userStats) return Number(userStats.attempted ?? 0);
-      return 0;
-    }
+    if (source === "spring") return userStats ? Number(userStats.attempted ?? 0) : 0;
     return problems.filter(p => {
-      const id = p.pid ?? p.id;
-      const s = progressMap[id];
+      const s = progressMap[p.pid ?? p.id];
       return (s?.status || s) === "ATTEMPTED";
     }).length;
   }, [source, problems, progressMap, userStats]);
 
-  /* ═══════════════════════════════════════════════════════════════════
-     RENDER
-     ═══════════════════════════════════════════════════════════════════ */
+  const completionPct = displayTotal > 0 ? Math.round((solvedCount / displayTotal) * 100) : 0;
+
+  /* ── GSAP entrance ── */
+  useGSAP(() => {
+    gsap.fromTo(".pt-eyebrow",
+      { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", delay: 0.05 }
+    );
+    gsap.fromTo(".pt-title",
+      { opacity: 0, y: 36, skewY: 1 },
+      { opacity: 1, y: 0, skewY: 0, duration: 0.8, ease: "expo.out", delay: 0.14 }
+    );
+    gsap.fromTo(".pt-sub",
+      { opacity: 0, y: 16 },
+      { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", delay: 0.28 }
+    );
+    gsap.fromTo(".pt-stats",
+      { opacity: 0, y: 14 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", delay: 0.38 }
+    );
+    gsap.fromTo(".pt-filterbar",
+      { opacity: 0, y: 12 },
+      { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", delay: 0.48 }
+    );
+    gsap.fromTo(".pt-table-wrap",
+      { opacity: 0, y: 20 },
+      { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", delay: 0.58 }
+    );
+  }, { scope: pageRef });
+
+  /* ── Animate rows when loaded ── */
+  useGSAP(() => {
+    if (loading) return;
+    gsap.fromTo(".prob-row",
+      { opacity: 0, x: -12 },
+      {
+        opacity: 1, x: 0,
+        duration: 0.4, ease: "expo.out",
+        stagger: 0.025,
+        scrollTrigger: { trigger: ".pt-table-wrap", start: "top 90%" },
+      }
+    );
+  }, { scope: pageRef, dependencies: [loading] });
+
+  /* ── Difficulty quick-filter pills ── */
+  const diffPills = source === "spring"
+    ? [
+      { label: "All", value: "" },
+      { label: "Easy", value: "EASY", color: "#34d399" },
+      { label: "Medium", value: "MEDIUM", color: "#fbbf24" },
+      { label: "Hard", value: "HARD", color: "#f87171" },
+    ]
+    : [
+      { label: "All", value: "All" },
+      { label: "Easy", value: "Easy", color: "#34d399" },
+      { label: "Medium", value: "Medium", color: "#fbbf24" },
+      { label: "Hard", value: "Hard", color: "#f87171" },
+    ];
+
+  const statusPills = [
+    { label: "All", value: "" },
+    { label: "Solved", value: "SOLVED", color: "#34d399" },
+    { label: "Attempted", value: "ATTEMPTED", color: "#fbbf24" },
+    { label: "Todo", value: "NOT_STARTED", color: "rgba(255,255,255,0.4)" },
+  ];
+
   return (
-    <div className="min-h-screen bg-background text-foreground pt-24 md:pt-28">
+    <div
+      ref={pageRef}
+      style={{
+        minHeight: "100vh",
+        background: "#09090b",
+        position: "relative",
+        overflowX: "hidden",
+        paddingTop: 56,
+        paddingBottom: 80,
+        cursor: "none",
+      }}
+    >
+      <CustomCursor />
+      <BgCanvas />
 
-      {/* ── HERO HEADER ──────────────────────────────────────── */}
-      <div className="relative overflow-hidden">
-        {/* Background gradient wash */}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#5542FF]/[0.04] via-transparent to-transparent pointer-events-none" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-[#5542FF]/[0.03] rounded-full blur-[100px] pointer-events-none" />
-
-        <main className="relative mx-auto max-w-[1200px] px-4 sm:px-6 lg:px-8 pt-6 pb-16">
-
-          {/* ── Title Block ───────────────────────────────────── */}
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 mb-8">
-            <div className="flex items-start gap-4">
-              <div className="flex items-center justify-center h-12 w-12 rounded-2xl bg-gradient-to-br from-[#5542FF] to-[#B28EF2] shadow-lg shadow-[#5542FF]/20">
-                <HeaderIcon className="h-5 w-5 text-white" strokeWidth={2} />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
-                  {title}
-                </h1>
-                <p className="text-sm text-muted-foreground mt-1">
-                  {subtitle || `Master ${displayTotal} challenges to level up your skills`}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* ── STAT CARDS ────────────────────────────────────── */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-            <StatPill icon={Target} label="Total" value={displayTotal} color="purple" />
-            <StatPill icon={Trophy} label="Solved" value={solvedCount} color="emerald" />
-            <StatPill icon={Flame} label="Attempted" value={attemptedCount} color="amber" />
-            <StatPill icon={Zap} label="Remaining" value={Math.max(0, displayTotal - solvedCount)} color="rose" />
-          </div>
-
-          {/* ── STATUS TABS (spring only) ─────────────────────── */}
-          {source === "spring" && (
-            <div className="mb-6">
-              <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-secondary/80 border border-border">
-                {[
-                  { val: "ALL", label: "All", icon: null, count: displayTotal },
-                  { val: "SOLVED", label: "Solved", icon: CheckCircle2, count: solvedCount, dotColor: "bg-emerald-400" },
-                  { val: "ATTEMPTED", label: "Attempted", icon: CircleDot, count: attemptedCount, dotColor: "bg-amber-400" },
-                  { val: "NOT_STARTED", label: "Todo", icon: Circle, count: Math.max(0, displayTotal - solvedCount - attemptedCount), dotColor: "bg-zinc-500" },
-                ].map((tab) => {
-                  const isActive = (tab.val === "ALL" && !statusFilter) || statusFilter === tab.val;
-                  return (
-                    <button
-                      key={tab.val}
-                      onClick={() => { setStatusFilter(tab.val === "ALL" ? "" : tab.val); }}
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${
-                        isActive
-                          ? "bg-background text-foreground shadow-sm shadow-black/10"
-                          : "text-muted-foreground hover:text-foreground hover:bg-background/50"
-                      }`}
-                    >
-                      {tab.dotColor && <span className={`h-1.5 w-1.5 rounded-full ${tab.dotColor}`} />}
-                      {tab.label}
-                      <span className={`text-[10px] tabular-nums ${isActive ? "text-muted-foreground" : "text-muted-foreground/50"}`}>
-                        {tab.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* ── SEARCH + FILTERS BAR ─────────────────────────── */}
-          <div className="relative z-20 rounded-2xl border border-border bg-card/60 backdrop-blur-sm p-4 sm:p-5 mb-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
-              {/* Search */}
-              <div className="relative flex-1 min-w-0">
-                <Search className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/50" />
-                <Input
-                  type="text"
-                  placeholder="Search by name, topic, or tag…"
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  className="pl-10 pr-9 h-10 text-sm bg-background border-border rounded-xl focus:ring-2 focus:ring-[#5542FF]/20 focus:border-[#5542FF]/40 transition-all"
-                />
-                {searchKeyword && (
-                  <button
-                    onClick={() => setSearchKeyword("")}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <div className="hidden sm:block w-px h-8 bg-border" />
-
-              {/* Filters */}
-              <div className="flex items-center gap-2.5 flex-wrap">
-                <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
-                  <Filter className="h-3 w-3" />
-                  <span className="hidden sm:inline">Filters</span>
-                </div>
-
-                {source === "spring" ? (
-                  <>
-                    <Select value={tagFilter} onValueChange={(v) => { setTagFilter(v === "__all__" ? "" : v); }}>
-                      <SelectTrigger className="w-28 h-9 text-xs rounded-xl border-border bg-background/80 hover:bg-background transition-colors">
-                        <SelectValue placeholder="Difficulty" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="__all__">All levels</SelectItem>
-                        <SelectItem value="EASY">Easy</SelectItem>
-                        <SelectItem value="MEDIUM">Medium</SelectItem>
-                        <SelectItem value="HARD">Hard</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    {showStage && stages.length > 0 && (
-                      <Select value={stageFilter} onValueChange={(v) => { setStageFilter(v === "__all__" ? "" : v); }}>
-                        <SelectTrigger className="w-40 h-9 text-xs rounded-xl border-border bg-background/80 hover:bg-background transition-colors">
-                          <SelectValue placeholder="All stages" />
-                        </SelectTrigger>
-                        <SelectContent className="max-h-64 overflow-y-auto">
-                          <SelectItem value="__all__">All stages</SelectItem>
-                          {stages.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    )}
-
-                  </>
-                ) : (
-                  /* Judge: premium difficulty pills */
-                  <div className="flex items-center gap-1.5 p-1 rounded-xl bg-secondary/60 border border-border">
-                    {["All", "Easy", "Medium", "Hard"].map(d => {
-                      const isActive = judgeDiffFilter === d;
-                      const pillColors = {
-                        All: "",
-                        Easy: isActive ? "text-emerald-400" : "",
-                        Medium: isActive ? "text-amber-400" : "",
-                        Hard: isActive ? "text-rose-400" : "",
-                      };
-                      return (
-                        <button
-                          key={d}
-                          onClick={() => setJudgeDiffFilter(d)}
-                          className={`px-3 py-1.5 rounded-lg text-[11px] font-semibold transition-all duration-200 ${
-                            isActive
-                              ? `bg-background shadow-sm ${pillColors[d] || "text-foreground"}`
-                              : "text-muted-foreground hover:text-foreground"
-                          }`}
-                        >
-                          {d}
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-
-                {hasFilters && (
-                  <Button variant="ghost" size="sm" onClick={clearAll}
-                    className="h-9 px-3 text-[11px] text-muted-foreground hover:text-foreground gap-1.5 rounded-xl">
-                    <RotateCcw className="h-3 w-3" />
-                    Reset
-                  </Button>
-                )}
+      {/* Masked algorithm animation background */}
+      <div
+        style={{
+          position: "fixed",
+          inset: 0,
+          pointerEvents: "none",
+          zIndex: 0,
+          opacity: 0.1,
+          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 80%, transparent 100%)",
+          maskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 80%, transparent 100%)",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100vw",
+            height: "100vh",
+            display: "grid",
+            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
+            gridTemplateRows: "repeat(3, minmax(0, 1fr))",
+            border: "1px solid rgba(255,255,255,0.04)",
+            background: "rgba(255,255,255,0.005)",
+          }}
+        >
+          {[
+            "bfs",
+            "dfs",
+            "dijkstra",
+            "floydwarshall",
+            "inorder",
+            "slidingwindow",
+            "bsearch",
+            "mergesort",
+            "twopointers",
+            "kadane",
+            "kruskal",
+            "heapsort",
+          ].map((key, i, arr) => (
+            <div
+              key={key}
+              style={{
+                position: "relative",
+                overflow: "hidden",
+                borderRight: (i % 4) < 3 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                borderBottom: i < arr.length - 4 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                background: "rgba(255,255,255,0.006)",
+              }}
+            >
+              <div style={{ position: "absolute", inset: 0 }}>
+                {key === "mergesort"
+                  ? <MergeSortCanvas />
+                  : <AlgoCanvas algo={ALGO_CONFIGS[key]} />}
               </div>
             </div>
-          </div>
-
-          {/* ── ERROR ─────────────────────────────────────────── */}
-          {error && (
-            <div className="mb-6 rounded-2xl border border-rose-500/20 bg-rose-500/5 px-5 py-4 text-sm text-rose-400 flex items-center justify-between backdrop-blur-sm">
-              <span>{error}</span>
-              <Button variant="ghost" size="sm" onClick={source === "spring" ? loadSpring : loadJudge}
-                className="text-xs text-rose-400 hover:text-rose-300 gap-1.5 rounded-xl">
-                <RotateCcw className="h-3 w-3" /> Retry
-              </Button>
-            </div>
-          )}
-
-          {/* ── TABLE CONTAINER ──────────────────────────────── */}
-          <div className="rounded-2xl border border-border bg-card/40 backdrop-blur-sm overflow-hidden shadow-sm">
-
-            {/* Header row */}
-            <div className="flex items-center bg-secondary/30 border-b border-border px-4 py-3">
-              {/* Status */}
-              <div className="w-9 shrink-0 text-center">
-                <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">St</span>
-              </div>
-              {/* # */}
-              <div className="w-12 shrink-0 px-2">
-                {source === "spring" ? (
-                  <SortHeader label="#" field="pid" current={sort} onSort={(s) => { setSort(s); }} />
-                ) : (
-                  <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">#</span>
-                )}
-              </div>
-              {/* Title */}
-              <div className="flex-1 min-w-0">
-                {source === "spring" ? (
-                  <SortHeader label="Title" field="title" current={sort} onSort={(s) => { setSort(s); }} />
-                ) : (
-                  <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">Title</span>
-                )}
-              </div>
-              {/* Stage / Topic — hidden below lg */}
-              {(showStage || source === "judge") && (
-                <div className="hidden lg:block w-48 shrink-0">
-                  <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">
-                    {source === "judge" ? "Topic" : "Stage"}
-                  </span>
-                </div>
-              )}
-              {/* Difficulty */}
-              <div className="w-28 shrink-0">
-                {source === "spring" ? (
-                  <SortHeader label="Difficulty" field="tag" current={sort} onSort={(s) => { setSort(s); }} />
-                ) : (
-                  <span className="text-[10px] uppercase tracking-widest font-semibold text-muted-foreground/60">Difficulty</span>
-                )}
-              </div>
-              {/* LC — hidden below sm */}
-              {showLeetCode && (
-                <div className="hidden sm:block w-10 shrink-0 text-center">
-                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground/60 font-semibold">LC</span>
-                </div>
-              )}
-            </div>
-
-            {/* Body */}
-            <div>
-              {loading ? (
-                /* Skeleton rows */
-                Array.from({ length: 8 }).map((_, i) => (
-                  <div key={i} className="flex items-center px-4 py-3.5 border-b border-border last:border-0">
-                    <div className="w-9 shrink-0 flex justify-center">
-                      <div className="h-2.5 w-2.5 rounded-full bg-secondary shimmer-premium" />
-                    </div>
-                    <div className="w-12 shrink-0 px-2">
-                      <div className="h-3 w-6 rounded-md bg-secondary shimmer-premium" style={{ animationDelay: `${i * 60}ms` }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="h-4 rounded-md bg-secondary shimmer-premium" style={{ width: `${40 + (i * 17) % 40}%`, animationDelay: `${i * 60}ms` }} />
-                    </div>
-                    {(showStage || source === "judge") && (
-                      <div className="hidden lg:block w-48 shrink-0">
-                        <div className="h-5 w-28 rounded-lg bg-secondary shimmer-premium" style={{ animationDelay: `${i * 60}ms` }} />
-                      </div>
-                    )}
-                    <div className="w-28 shrink-0">
-                      <div className="h-5 w-14 rounded-full bg-secondary shimmer-premium" style={{ animationDelay: `${i * 60}ms` }} />
-                    </div>
-                    {showLeetCode && (
-                      <div className="hidden sm:block w-10 shrink-0 flex justify-center">
-                        <div className="h-3 w-3 rounded bg-secondary shimmer-premium" />
-                      </div>
-                    )}
-                  </div>
-                ))
-              ) : displayList.length === 0 ? (
-                <div className="h-60 flex flex-col items-center justify-center gap-3 text-muted-foreground">
-                  <div className="h-14 w-14 rounded-2xl bg-secondary/60 flex items-center justify-center">
-                    <Search className="h-6 w-6 opacity-30" />
-                  </div>
-                  <div className="text-center">
-                    <p className="text-sm font-medium text-foreground/60">
-                      {hasFilters ? "No matching problems" : "No problems found"}
-                    </p>
-                    <p className="text-xs text-muted-foreground/60 mt-1">
-                      {hasFilters ? "Try adjusting your filters or search terms" : "Check back later for new challenges"}
-                    </p>
-                  </div>
-                  {hasFilters && (
-                    <button onClick={clearAll}
-                      className="px-4 py-2 rounded-xl text-xs font-medium bg-secondary/80 text-foreground hover:bg-secondary transition-colors">
-                      Clear all filters
-                    </button>
-                  )}
-                </div>
-              ) : displayList.map((p, i) => {
-                const diff = getDifficulty(p);
-                const style = DIFF_STYLE[diff] || { bg: "bg-secondary text-muted-foreground border-transparent", label: diff };
-                const status = getUserStatus(p);
-                const idx = i + 1;
-                const slug = getLcSlug(p);
-
-                return (
-                  <div
-                    key={getId(p)}
-                    onClick={() => handleRowClick(p)}
-                    className="group flex items-center px-4 py-3.5 border-b border-border last:border-0 cursor-pointer hover:bg-[#5542FF]/[0.03] transition-all duration-200 relative"
-                  >
-                    {/* Accent bar on hover */}
-                    <div className="absolute left-0 top-[20%] bottom-[20%] w-0.5 rounded-r-full bg-gradient-to-b from-[#5542FF] to-[#B28EF2] opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-
-                    {/* Status dot */}
-                    <div className="w-9 shrink-0 flex justify-center">
-                      <StatusDot status={status} />
-                    </div>
-
-                    {/* # */}
-                    <div className="w-12 shrink-0 px-2">
-                      <span className="font-mono text-xs text-muted-foreground/50 tabular-nums group-hover:text-muted-foreground transition-colors">
-                        {idx}
-                      </span>
-                    </div>
-
-                    {/* Title */}
-                    <div className="flex-1 min-w-0 pr-4">
-                      <span className="text-[13px] font-medium text-foreground/80 group-hover:text-foreground transition-colors duration-200 truncate block">
-                        {getTitle(p)}
-                      </span>
-                    </div>
-
-                    {/* Stage / Topic */}
-                    {(showStage || source === "judge") && (
-                      <div className="hidden lg:block w-48 shrink-0 pr-3">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-[11px] font-medium bg-secondary/60 text-muted-foreground max-w-full truncate">
-                          {source === "judge" ? getCategory(p) : (getStages(p)[0] || "—")}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Difficulty */}
-                    <div className="w-28 shrink-0">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${style.bg}`}>
-                        {style.label}
-                      </span>
-                    </div>
-
-                    {/* LC link */}
-                    {showLeetCode && (
-                      <div className="hidden sm:flex w-10 shrink-0 justify-center" onClick={(e) => e.stopPropagation()}>
-                        {slug ? (
-                          <a
-                            href={`${LC_BASE}/${slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center justify-center h-7 w-7 rounded-lg text-muted-foreground/40 hover:text-foreground hover:bg-secondary/80 transition-all duration-200"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                          </a>
-                        ) : (
-                          <span className="text-muted-foreground/20 text-sm">-</span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* ── INFINITE SCROLL SENTINEL (spring) ────────────── */}
-          {source === "spring" && (
-            <div ref={sentinelRef} className="mt-2 flex flex-col items-center py-6 gap-2">
-              {loadingMore && (
-                <>
-                  <Loader2 className="h-5 w-5 animate-spin text-[#5542FF]" />
-                  <span className="text-xs text-muted-foreground">Loading more…</span>
-                </>
-              )}
-              {!loadingMore && !hasMore && !loading && displayList.length > 0 && (
-                <div className="flex flex-col items-center gap-1">
-                  <div className="h-px w-24 bg-gradient-to-r from-transparent via-border to-transparent" />
-                  <span className="text-xs text-muted-foreground/50">
-                    All {totalElements} problems loaded
-                  </span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Count footer (judge) ─────────────────────────── */}
-          {source === "judge" && !loading && !error && (
-            <div className="mt-5 text-center">
-              <span className="text-xs text-muted-foreground/60">
-                Showing <span className="font-medium text-muted-foreground">{displayList.length}</span> problem{displayList.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-          )}
-        </main>
+          ))}
+        </div>
       </div>
 
-      {/* ── DETAIL DIALOG (spring only) ─────────────────────── */}
-      {fetchDetail && (
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent className="max-w-lg p-0 gap-0 overflow-hidden rounded-2xl border-border">
-            {detailLoading ? (
-              <div className="flex items-center justify-center h-52 text-muted-foreground">
-                <div className="flex flex-col items-center gap-3">
-                  <Loader2 className="h-5 w-5 animate-spin text-[#5542FF]" />
-                  <span className="text-sm text-muted-foreground">Loading problem…</span>
+      {/* Atmosphere */}
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: .018,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        backgroundSize: "256px",
+      }} />
+      <div style={{
+        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: .013,
+        backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)",
+        backgroundSize: "52px 52px",
+      }} />
+      <div style={{
+        position: "fixed", top: "-20%", right: "-12%",
+        width: 600, height: 600, borderRadius: "50%", pointerEvents: "none", zIndex: 0,
+        background: "radial-gradient(circle, rgba(237,255,102,0.04) 0%, transparent 65%)",
+      }} />
+      <div style={{
+        position: "fixed", bottom: "-10%", left: "-10%",
+        width: 500, height: 500, borderRadius: "50%", pointerEvents: "none", zIndex: 0,
+        background: "radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 65%)",
+      }} />
+
+      <div style={{ position: "relative", zIndex: 1, maxWidth: 1080, margin: "0 auto", padding: "40px clamp(20px,5vw,52px) 0" }}>
+
+        {/* ══ HERO ══════════════════════════════════════════════════ */}
+        <div style={{ position: "relative", overflow: "hidden" }}>
+
+          {/* Watermark */}
+          {/* <div style={{
+            position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)",
+            fontFamily: T.fontFamily, fontWeight: 900,
+            fontSize: "clamp(5rem,15vw,12rem)", letterSpacing: "-.03em",
+            color: "rgba(255,255,255,0.022)", lineHeight: .85,
+            textTransform: "uppercase", pointerEvents: "none", userSelect: "none",
+          }}>
+            GRIND
+          </div> */}
+
+          <div className="pt-hero-grid" style={{
+            display: "grid", gridTemplateColumns: "1fr auto",
+            gap: 30, alignItems: "end",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            paddingBottom: 28, marginBottom: 28,
+            position: "relative",
+          }}>
+            <div>
+              <p className="pt-eyebrow" style={{
+                fontSize: 9, fontWeight: 900, letterSpacing: ".28em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.22)",
+                marginBottom: 14,
+              }}>
+                - Practice Arena
+              </p>
+
+              <h1 className="pt-title" style={{
+                fontFamily: T.fontFamily,
+                fontSize: "clamp(2.8rem,5vw,4.8rem)",
+                fontWeight: 900, letterSpacing: "-0.02em",
+                lineHeight: 0.9, color: "#fff",
+                marginBottom: 14,
+              }}>
+                <span style={{ color: "#fff", display: "block" }}>{title}</span>
+                <span style={{ color: "#EDFF66", display: "block" }}>Arena.</span>
+              </h1>
+              <p className="pt-sub" style={{
+                fontSize: 14, color: "rgba(255,255,255,0.3)", lineHeight: 1.7, maxWidth: 420,
+              }}>
+                {subtitle || `${displayTotal} challenges. Every problem solved is a step closer to #1.`}
+              </p>
+            </div>
+
+            {/* Progress block */}
+            <div className="pt-stats pt-hero-stats" style={{
+              flexShrink: 0, minWidth: 250,
+              background: "#0d0d10", border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 16, overflow: "hidden",
+            }}>
+              <div style={{ height: 2, background: "linear-gradient(90deg,#EDFF66,rgba(237,255,102,0.2))" }} />
+
+              <div style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <div style={{
+                  fontSize: 9, fontWeight: 900, letterSpacing: ".22em",
+                  textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: 6,
+                }}>
+                  Completion
+                </div>
+                <div style={{
+                  fontFamily: T.fontFamily, letterSpacing: "-0.015em", fontSize: 30, fontWeight: 900,
+                  color: "#EDFF66", lineHeight: 1, textShadow: "0 0 24px rgba(237,255,102,0.28)",
+                }}>
+                  {completionPct}%
                 </div>
               </div>
-            ) : selected ? (
-              <div className="text-foreground">
-                {/* Gradient header */}
-                <div className="relative border-b border-border px-6 pt-6 pb-5 bg-gradient-to-br from-[#5542FF]/[0.06] to-transparent">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-[#B28EF2]/[0.04] rounded-full blur-[60px] pointer-events-none" />
-                  <p className="text-[10px] text-muted-foreground mb-2 font-mono tracking-widest uppercase font-semibold">
-                    Problem #{selected.pid ?? selected.id}
-                  </p>
-                  <h2 className="text-lg font-bold leading-snug">{selected.title}</h2>
+
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+                {[
+                  { label: "Solved", value: solvedCount, color: "#34d399" },
+                  { label: "Attempt", value: attemptedCount, color: "#fbbf24" },
+                  { label: "Total", value: displayTotal, color: "#fff" },
+                ].map((s, i) => (
+                  <div key={s.label} style={{ padding: "12px 14px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
+                    <div style={{
+                      fontFamily: T.fontFamily, fontSize: 17, fontWeight: 900,
+                      color: s.color, lineHeight: 1, marginBottom: 3,
+                      textShadow: s.color === "#fff" ? "none" : `0 0 14px ${s.color}30`,
+                    }}>{s.value}</div>
+                    <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>{s.label}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ padding: "10px 16px 14px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ height: 3, borderRadius: 3, overflow: "hidden", background: "rgba(255,255,255,0.06)" }}>
+                  <div style={{
+                    height: "100%", width: `${completionPct}%`, borderRadius: 3,
+                    background: "linear-gradient(90deg,#EDFF66,#34d399)",
+                    transition: "width 1.2s cubic-bezier(0.16,1,0.3,1)",
+                  }} />
                 </div>
-                {/* body */}
-                <div className="px-6 py-6 space-y-4">
+              </div>
+            </div>
+          </div>
+
+          {/* Stats strip */}
+          {/* <div className="pt-stats" style={{
+            display: "flex", alignItems: "stretch", width: "fit-content",
+            borderRadius: 16, overflow: "hidden",
+            border: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.02)",
+          }}>
+            {[
+              { label: "Total",     value: displayTotal,   color: "rgba(255,255,255,0.85)" },
+              { label: "Solved",    value: solvedCount,    color: "#34d399" },
+              { label: "Attempted", value: attemptedCount, color: "#fbbf24" },
+              { label: "Remaining", value: displayTotal - solvedCount - attemptedCount, color: "rgba(255,255,255,0.3)" },
+            ].map(({ label, value, color }, i) => (
+              <React.Fragment key={label}>
+                {i > 0 && <div style={{ width: 1, background: "rgba(255,255,255,0.05)", alignSelf: "stretch" }} />}
+                <StatChip label={label} value={value} color={color} />
+              </React.Fragment>
+            ))}
+          </div> */}
+        </div>
+
+        {/* ══ FILTER BAR ════════════════════════════════════════════ */}
+        <div className="pt-filterbar" style={{
+          background: "#0d0d10",
+          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 16, padding: "16px 20px",
+          marginBottom: 16,
+          display: "flex", flexDirection: "column", gap: 14,
+          position: "relative",
+          zIndex: 20, // Increased z-index to stay above table
+          // Removed overflowX: "auto" from here
+        }}>
+          {/* Search */}
+          <div style={{ position: "relative" }}>
+            <Search size={13} style={{
+              position: "absolute", left: 12, top: "50%",
+              transform: "translateY(-50%)", pointerEvents: "none",
+              color: "rgba(255,255,255,0.2)",
+            }} />
+            <input
+              ref={searchRef}
+              type="text"
+              placeholder="Search problems, topics, tags…"
+              value={searchKeyword}
+              onChange={e => setSearchKeyword(e.target.value)}
+              style={{
+                width: "100%", height: 40, borderRadius: 10,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                paddingLeft: 36, paddingRight: 36,
+                fontSize: 13, color: "#fff", outline: "none",
+                transition: "border-color .15s",
+                cursor: "none",
+              }}
+              onFocus={e => e.currentTarget.style.borderColor = "rgba(237,255,102,0.3)"}
+              onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
+            />
+            {searchKeyword && (
+              <button
+                onClick={() => setSearchKeyword("")}
+                data-cursor="CLEAR"
+                style={{
+                  position: "absolute", right: 10, top: "50%",
+                  transform: "translateY(-50%)", cursor: "none",
+                  background: "none", border: "none",
+                  color: "rgba(255,255,255,0.28)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  padding: 2,
+                }}
+              >
+                <X size={13} />
+              </button>
+            )}
+          </div>
+
+          {/* Pill rows - This container now handles horizontal scrolling for pills only */}
+          <div style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            width: "100%"
+          }}>
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              overflowX: "auto", // Moved scroll here
+              paddingBottom: 4, // Small buffer for scrollbar height
+              flex: 1,
+              msOverflowStyle: 'none',
+              scrollbarWidth: 'none'
+            }}>
+              <span style={{
+                fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.22)",
+                display: "flex", alignItems: "center", gap: 6,
+                flexShrink: 0,
+                marginRight: 4,
+              }}>
+                <Filter size={10} /> Difficulty
+              </span>
+              {diffPills.map(pill => (
+                <FilterPill
+                  key={pill.value}
+                  active={source === "spring" ? tagFilter === pill.value : judgeDiffFilter === pill.value}
+                  onClick={() => source === "spring" ? setTagFilter(pill.value) : setJudgeDiffFilter(pill.value)}
+                  color={pill.color}
+                >
+                  {pill.label}
+                </FilterPill>
+              ))}
+
+              {source === "spring" && (
+                <>
+                  <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 4px", flexShrink: 0 }} />
+                  <span style={{
+                    fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
+                    textTransform: "uppercase", color: "rgba(255,255,255,0.22)",
+                    display: "flex", alignItems: "center", gap: 6, marginRight: 4,
+                    flexShrink: 0,
+                  }}>
+                    <Zap size={10} /> Status
+                  </span>
+                  {statusPills.map(pill => (
+                    <FilterPill
+                      key={pill.value}
+                      active={statusFilter === pill.value}
+                      onClick={() => setStatusFilter(pill.value)}
+                      color={pill.color}
+                    >
+                      {pill.label}
+                    </FilterPill>
+                  ))}
+                </>
+              )}
+            </div>
+
+            {/* Stage select - Kept outside the scroll container to prevent clipping */}
+            {showStage && stages.length > 0 && (
+              <>
+                <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 4px", flexShrink: 0 }} />
+                <div style={{ position: "relative", zIndex: 50 }}>
+                  <Select value={stageFilter || "__all__"} onValueChange={v => setStageFilter(v === "__all__" ? "" : v)}>
+                    <SelectTrigger style={{
+                      height: 32, width: 160, borderRadius: 8, cursor: "none",
+                      flexShrink: 0,
+                      background: stageFilter ? "rgba(237,255,102,0.07)" : "rgba(255,255,255,0.02)",
+                      border: stageFilter ? "1px solid rgba(237,255,102,0.3)" : "1px solid rgba(255,255,255,0.07)",
+                      color: stageFilter ? "#EDFF66" : "rgba(255,255,255,0.35)",
+                      fontSize: 11, fontWeight: 800,
+                    }}>
+                      <SelectValue placeholder="All stages" />
+                    </SelectTrigger>
+                    {/* Added Portal or high z-index handling */}
+                    <SelectContent
+                      position="popper"
+                      sideOffset={5}
+                      style={{
+                        background: "#0d0d10",
+                        border: "1px solid rgba(255,255,255,0.15)",
+                        borderRadius: 10,
+                        zIndex: 100,
+                        // Fix: Constrain the height and allow internal scrolling
+                        maxHeight: "240px",
+                        width: "var(--radix-select-trigger-width)", // Keeps dropdown same width as button
+                        overflowY: "auto",
+                      }}
+                    >
+                      <SelectItem value="__all__">All stages</SelectItem>
+                      {stages.map(s => (
+                        <SelectItem key={s} value={s}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
+            )}
+
+            {/* Reset */}
+            {hasFilters && (
+              <>
+                <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 4px", flexShrink: 0 }} />
+                <button
+                  onClick={clearAll}
+                  data-cursor="RESET"
+                  style={{
+                    height: 32, padding: "0 12px", borderRadius: 8, cursor: "none",
+                    border: "1px solid rgba(248,113,113,0.25)",
+                    background: "rgba(248,113,113,0.06)",
+                    color: "#f87171", fontSize: 11, fontWeight: 800,
+                    display: "flex", alignItems: "center", gap: 5,
+                    transition: "all .15s",
+                    flexShrink: 0
+                  }}
+                >
+                  <RotateCcw size={10} /> Reset
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ══ ERROR ════════════════════════════════════════════════ */}
+        {error && (
+          <div style={{
+            borderRadius: 12, padding: "12px 18px", marginBottom: 12,
+            background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.2)",
+            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
+          }}>
+            <span style={{ fontSize: 13, color: "#f87171", overflow: "hidden", textOverflow: "ellipsis" }}>{error}</span>
+            <button
+              onClick={retryLoad}
+              data-cursor="RETRY"
+              style={{
+                height: 30, padding: "0 12px", borderRadius: 8, cursor: "none",
+                border: "1px solid rgba(248,113,113,0.3)", background: "transparent",
+                color: "#f87171", fontSize: 11, fontWeight: 800,
+                display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+              }}
+            >
+              <RotateCcw size={10} /> Retry
+            </button>
+          </div>
+        )}
+
+        {/* ══ TABLE ════════════════════════════════════════════════ */}
+        <div className="pt-table-wrap" style={{
+          background: "#0d0d10",
+          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 18, overflow: "hidden",
+        }}>
+
+          {/* Top accent */}
+          <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(237,255,102,0.25),transparent)" }} />
+
+          {/* Table head */}
+          <div style={{
+            display: "flex", alignItems: "center",
+            padding: "11px 22px",
+            background: "rgba(255,255,255,0.02)",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+          }}>
+            <div style={{ width: 36, flexShrink: 0 }} />
+            <div style={{ width: 52, flexShrink: 0, padding: "0 10px" }}>
+              {source === "spring"
+                ? <SortHeader label="#" field="pid" current={sort} onSort={setSort} />
+                : <ColLabel>#</ColLabel>}
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {source === "spring"
+                ? <SortHeader label="Title" field="title" current={sort} onSort={setSort} />
+                : <ColLabel>Title</ColLabel>}
+            </div>
+            {(showStage || source === "judge") && (
+              <div style={{ width: 160, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+                <ColLabel>{source === "judge" ? "Topic" : "Stage"}</ColLabel>
+              </div>
+            )}
+            <div style={{ width: 96, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+              {source === "spring"
+                ? <SortHeader label="Difficulty" field="tag" current={sort} onSort={setSort} />
+                : <ColLabel>Difficulty</ColLabel>}
+            </div>
+            {showLeetCode && (
+              <div style={{ width: 40, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+                <ColLabel>LC</ColLabel>
+              </div>
+            )}
+            <div style={{ width: 20, flexShrink: 0 }} />
+          </div>
+
+          {/* Rows */}
+          {loading ? (
+            <div>
+              {Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} i={i} />)}
+            </div>
+          ) : displayList.length === 0 ? (
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", padding: "64px 24px", gap: 14,
+            }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12,
+                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Search size={18} style={{ color: "rgba(255,255,255,0.14)" }} />
+              </div>
+              <div style={{ textAlign: "center" }}>
+                <p style={{
+                  fontFamily: T.fontFamily, fontSize: 14, fontWeight: 900,
+                  textTransform: "uppercase", letterSpacing: ".06em",
+                  color: "rgba(255,255,255,0.18)", marginBottom: 6,
+                }}>
+                  {hasFilters ? "No matches" : "No problems"}
+                </p>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", lineHeight: 1.6 }}>
+                  {hasFilters ? "Try adjusting your filters above." : "Check back later."}
+                </p>
+              </div>
+              {hasFilters && (
+                <button
+                  onClick={clearAll}
+                  data-cursor="RESET"
+                  style={{
+                    height: 32, padding: "0 16px", borderRadius: 8, cursor: "none",
+                    border: "1px solid rgba(255,255,255,0.1)",
+                    background: "rgba(255,255,255,0.03)",
+                    color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 800,
+                    transition: "all .15s",
+                  }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+          ) : (
+            displayList.map((p, i) => (
+              <ProblemRow
+                key={getId(p)}
+                problem={p}
+                index={i}
+                showStage={showStage}
+                showLeetCode={showLeetCode}
+                source={source}
+                onClick={handleRowClick}
+                getUserStatus={getUserStatus}
+                getDifficulty={getDifficulty}
+                getTitle={getTitle}
+                getId={getId}
+                getLcSlug={getLcSlug}
+                getCategory={getCategory}
+                getStages={getStages}
+              />
+            ))
+          )}
+
+          {/* Bottom status bar */}
+          {!loading && displayList.length > 0 && (
+            <div style={{
+              padding: "10px 22px",
+              borderTop: "1px solid rgba(255,255,255,0.04)",
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.18)", fontVariantNumeric: "tabular-nums" }}>
+                {displayList.length} of {displayTotal} problems
+              </span>
+              {hasMore && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700, color: "rgba(237,255,102,0.5)",
+                  letterSpacing: ".1em", textTransform: "uppercase",
+                }}>
+                  Scroll for more ↓
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* ══ INFINITE SCROLL SENTINEL ════════════════════════════ */}
+        {source === "spring" && (
+          <div ref={sentinelRef} style={{
+            display: "flex", flexDirection: "column",
+            alignItems: "center", padding: "28px 0", gap: 8,
+          }}>
+            {loadingMore && (
+              <>
+                <Loader2 size={16} style={{ color: "rgba(255,255,255,0.25)", animation: "spin 1s linear infinite" }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: ".1em", textTransform: "uppercase" }}>
+                  Loading more…
+                </span>
+              </>
+            )}
+            {!loadingMore && !hasMore && !loading && displayList.length > 0 && (
+              <span style={{
+                fontSize: 10, fontWeight: 900, letterSpacing: ".2em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.14)",
+              }}>
+                All {totalElements} problems loaded
+              </span>
+            )}
+          </div>
+        )}
+
+        {source === "judge" && !loading && !error && (
+          <div style={{ textAlign: "center", padding: "20px 0" }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.14)" }}>
+              {displayList.length} problem{displayList.length !== 1 ? "s" : ""}
+            </span>
+          </div>
+        )}
+
+      </div>
+
+      {/* ══ DETAIL DIALOG ════════════════════════════════════════ */}
+      {fetchDetail && (
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent style={{
+            maxWidth: 480, padding: 0, gap: 0, overflow: "hidden",
+            borderRadius: 20,
+            background: "#0d0d10",
+            border: "1px solid rgba(255,255,255,0.1)",
+            boxShadow: "0 40px 80px rgba(0,0,0,0.7)",
+          }}>
+            {/* Top accent */}
+            <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(237,255,102,0.4),transparent)" }} />
+
+            {detailLoading ? (
+              <div style={{
+                height: 220, display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Loader2 size={20} style={{ color: "rgba(255,255,255,0.2)", animation: "spin 1s linear infinite" }} />
+              </div>
+            ) : selected ? (
+              <div style={{ color: "#fff" }}>
+                {/* Header */}
+                <div style={{
+                  padding: "22px 24px 18px",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                }}>
+                  <div style={{
+                    fontSize: 9, fontWeight: 900, letterSpacing: ".22em",
+                    textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 8,
+                  }}>
+                    Problem #{selected.pid ?? selected.id}
+                  </div>
+                  <div style={{
+                    fontFamily: T.fontFamily, fontSize: 20, fontWeight: 900,
+                    letterSpacing: "-.01em", lineHeight: 1.15, color: "#fff",
+                  }}>
+                    {selected.title}
+                  </div>
+                </div>
+
+                {/* Body */}
+                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16, background: "rgba(0,0,0,0.25)" }}>
                   <DetailRow label="Difficulty">
                     {(() => {
-                      const s = DIFF_STYLE[selected.tag || selected.difficulty] || {};
+                      const s = DIFF[selected.tag || selected.difficulty] || {};
                       return (
-                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold border ${s.bg || "bg-secondary text-muted-foreground"}`}>
-                          {s.label || selected.tag || selected.difficulty}
-                        </span>
+                        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot || "rgba(255,255,255,0.3)" }} />
+                          <span style={{ fontSize: 13, fontWeight: 700, color: s.color || "rgba(255,255,255,0.5)" }}>
+                            {s.label || selected.tag || selected.difficulty}
+                          </span>
+                        </div>
                       );
                     })()}
                   </DetailRow>
+
                   {selected.userStatus && (
                     <DetailRow label="Status">
-                      <div className="flex items-center gap-2">
+                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                         <StatusDot status={selected.userStatus} />
-                        <span className="text-sm font-medium">{STATUS_CFG[selected.userStatus]?.label || selected.userStatus}</span>
+                        <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>
+                          {STATUS_CFG[selected.userStatus]?.label || selected.userStatus}
+                        </span>
                       </div>
                     </DetailRow>
                   )}
+
                   {selected.stages?.length > 0 && (
                     <DetailRow label="Stages">
-                      <div className="flex flex-wrap gap-1.5">
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {selected.stages.map(t => (
-                          <Badge key={t} variant="secondary" className="text-[10px] rounded-lg px-2.5 py-0.5 font-medium">{t}</Badge>
+                          <span key={t} style={{
+                            padding: "3px 10px", borderRadius: 7,
+                            border: "1px solid rgba(255,255,255,0.09)",
+                            background: "rgba(255,255,255,0.04)",
+                            fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)",
+                          }}>
+                            {t}
+                          </span>
                         ))}
                       </div>
                     </DetailRow>
                   )}
+
                   {selected.hasVisualizer !== undefined && (
                     <DetailRow label="Visualizer">
-                      <span className={`text-sm font-medium ${selected.hasVisualizer ? "text-emerald-400" : "text-muted-foreground/40"}`}>
-                        {selected.hasVisualizer ? "✦ Available" : "—"}
+                      <span style={{ fontSize: 13, fontWeight: 600, color: selected.hasVisualizer ? "#34d399" : "rgba(255,255,255,0.2)" }}>
+                        {selected.hasVisualizer ? "Available" : "—"}
                       </span>
                     </DetailRow>
                   )}
+
                   {selected.description && (
                     <DetailRow label="Description">
-                      <p className="text-sm text-muted-foreground leading-relaxed">{selected.description}</p>
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.65 }}>
+                        {selected.description}
+                      </p>
                     </DetailRow>
                   )}
-                  {(getLcSlug(selected)) && (
+
+                  {getLcSlug(selected) && (
                     <DetailRow label="LeetCode">
                       <a
                         href={`${LC_BASE}/${getLcSlug(selected)}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium bg-secondary/80 text-foreground hover:bg-secondary transition-all border border-border"
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 7,
+                          padding: "6px 14px", borderRadius: 9,
+                          border: "1px solid rgba(255,161,22,0.25)",
+                          background: "rgba(255,161,22,0.06)",
+                          fontSize: 12, fontWeight: 700, color: "#FFA116",
+                          textDecoration: "none", cursor: "none",
+                          transition: "all .15s",
+                        }}
                       >
                         {getLcSlug(selected)}
-                        <ExternalLink className="h-3 w-3 text-muted-foreground" />
+                        <ExternalLink size={11} />
                       </a>
                     </DetailRow>
                   )}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center h-52 text-sm text-muted-foreground">
+              <div style={{
+                height: 200, display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 13, color: "rgba(255,255,255,0.2)",
+              }}>
                 Problem not found.
               </div>
             )}
           </DialogContent>
         </Dialog>
       )}
-    </div>
-  );
-}
 
-/* ── Small helpers ────────────────────────────────────────────────── */
-
-function DetailRow({ label, children }) {
-  return (
-    <div className="flex gap-4">
-      <span className="w-24 shrink-0 text-[10px] text-muted-foreground/70 pt-1 uppercase tracking-widest font-semibold">{label}</span>
-      <div className="flex-1 min-w-0">{children}</div>
-    </div>
-  );
-}
-
-/* ── Stat pill for header ─────────────────────────────────────────── */
-
-const STAT_COLORS = {
-  purple: { icon: "text-[#5542FF]", bg: "bg-[#5542FF]/[0.08] border-[#5542FF]/[0.12]", glow: "shadow-[#5542FF]/5" },
-  emerald: { icon: "text-emerald-400", bg: "bg-emerald-500/[0.08] border-emerald-500/[0.12]", glow: "shadow-emerald-500/5" },
-  amber: { icon: "text-amber-400", bg: "bg-amber-500/[0.08] border-amber-500/[0.12]", glow: "shadow-amber-500/5" },
-  rose: { icon: "text-rose-400", bg: "bg-rose-500/[0.08] border-rose-500/[0.12]", glow: "shadow-rose-500/5" },
-};
-
-function StatPill({ icon: Icon, label, value, color }) {
-  const c = STAT_COLORS[color] || STAT_COLORS.purple;
-  return (
-    <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${c.bg} shadow-sm ${c.glow} transition-all duration-200 hover:scale-[1.02]`}>
-      <div className={`flex items-center justify-center h-8 w-8 rounded-xl ${c.bg}`}>
-        <Icon className={`h-4 w-4 ${c.icon}`} strokeWidth={2} />
-      </div>
-      <div>
-        <p className="text-lg font-bold tabular-nums text-foreground leading-none">{value}</p>
-        <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mt-0.5">{label}</p>
-      </div>
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+        input::placeholder { color: rgba(255,255,255,0.2); }
+        @keyframes vantage-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @media (max-width: 720px) {
+          div[style*="grid-template-columns: 1fr auto"] {
+            grid-template-columns: 1fr !important;
+          }
+          .pt-hero-grid {
+            gap: 16px !important;
+          }
+          .pt-hero-stats {
+            min-width: 0 !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

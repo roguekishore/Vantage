@@ -4,7 +4,7 @@ import { Separator } from "../ui/separator";
 import { Layers } from "lucide-react";
 
 /**
- * CallStackView — recursion call-stack visualizer.
+ * CallStackView - recursion call-stack visualizer.
  *
  * Renders frames in reverse order (most recent on top) with
  * active-frame highlighting using primary tint.
@@ -31,7 +31,7 @@ const CallStackView = ({
 
       <Separator />
 
-      {/* stack frames — top = most recent */}
+      {/* stack frames - top = most recent */}
       <div className="px-4 py-3 space-y-1.5">
         {[...frames].reverse().map((frame, i) => {
           const originalIdx = frames.length - 1 - i;

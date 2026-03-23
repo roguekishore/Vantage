@@ -998,12 +998,12 @@ const FourSumVisualizer = () => {
                   <>
                     <div>
                       <strong>Time:</strong>{" "}
-                      <span className="font-mono text-danger">O(n⁴)</span> — 4
+                      <span className="font-mono text-danger">O(n⁴)</span> - 4
                       nested loops
                     </div>
                     <div>
                       <strong>Space:</strong>{" "}
-                      <span className="font-mono text-teal300">O(1)</span> — no
+                      <span className="font-mono text-teal300">O(1)</span> - no
                       extra space
                     </div>
                   </>
@@ -1011,13 +1011,13 @@ const FourSumVisualizer = () => {
                   <>
                     <div>
                       <strong>Time:</strong>{" "}
-                      <span className="font-mono text-teal300">O(n³)</span> — 2
+                      <span className="font-mono text-teal300">O(n³)</span> - 2
                       loops + two pointers
                     </div>
                     <div>
                       <strong>Space:</strong>{" "}
                       <span className="font-mono text-teal300">O(log n)</span>{" "}
-                      — sorting space
+                      - sorting space
                     </div>
                     <div>
                       <strong>Optimization:</strong> Two-pointer eliminates

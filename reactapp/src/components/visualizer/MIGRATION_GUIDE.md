@@ -1,4 +1,4 @@
-# Visualizer Migration Guide — AI Context Document
+# Visualizer Migration Guide - AI Context Document
 
 > **Purpose**: Hand this file to any AI (Copilot, Claude, Gemini, etc.) along with
 > the target visualizer file. The AI will have all the context it needs to refactor
@@ -12,14 +12,14 @@
 - **Component Library**: shadcn/ui (css-variables, dark mode via class). Components used:
   `Button`, `Badge`, `Card`, `Tabs`, `Input`, `Separator`, `Select`, `ScrollArea`
 - **Utility**: `cn()` from `src/lib/utils.js` (clsx + tailwind-merge)
-- **Icons**: `lucide-react` — all icons used everywhere
-- **Design Tokens**: shadcn CSS variables — `bg-background`, `bg-card`, `bg-muted`,
+- **Icons**: `lucide-react` - all icons used everywhere
+- **Design Tokens**: shadcn CSS variables - `bg-background`, `bg-card`, `bg-muted`,
   `text-foreground`, `text-muted-foreground`, `border-border`, `bg-primary`, `text-primary`,
   `bg-input`, `ring-ring`, etc.
 - **Font**: Inter (imported in index.css)
-- **Critical Rule**: **NO SHADOWS** — use `border` to differentiate cards/sections
+- **Critical Rule**: **NO SHADOWS** - use `border` to differentiate cards/sections
 - **Card Pattern**: `rounded-lg border bg-card` (never shadow)
-- **Design Philosophy**: **Monochrome-first** — Linear / Vercel / Raycast inspired.
+- **Design Philosophy**: **Monochrome-first** - Linear / Vercel / Raycast inspired.
   One accent color (`primary`), neutral everything else, subtle tinted backgrounds.
 - **Typography Rules**:
   - Component headers: `text-[13px] font-medium text-foreground` using `<span>` (never `<h3>`)
@@ -29,9 +29,9 @@
   - Tiny labels: `text-[10px]` or `text-[11px]`
 - **Icon Rules**: All component header icons use `h-3.5 w-3.5 text-muted-foreground`
 - **Spacing**: Component headers use `py-2.5 px-4`, content uses `p-4`
-- **Existing Hook**: `useModeHistorySwitch` — controls brute-force/optimal mode toggling
+- **Existing Hook**: `useModeHistorySwitch` - controls brute-force/optimal mode toggling
   (import from `../../../hooks/useModeHistorySwitch`)
-- **Existing Component**: `VisualizerPointer` — DOM-positioned arrow pointer above array elements
+- **Existing Component**: `VisualizerPointer` - DOM-positioned arrow pointer above array elements
   (used internally by `ArrayBar`)
 - **Visualizer Count**: ~144 JSX files across 24 algorithm categories
 
@@ -106,7 +106,7 @@ Most visualizers are at `src/pages/algorithms/<category>/<Name>.jsx` → `"../..
 
 ## 3 · Component API Reference
 
-### 3.1 · `VisualizerShell` — Page Wrapper (EVERY visualizer)
+### 3.1 · `VisualizerShell` - Page Wrapper (EVERY visualizer)
 
 Wraps the entire page. Provides max-width container, centered title, subtitle, optional LeetCode badge.
 
@@ -115,7 +115,7 @@ Wraps the entire page. Provides max-width container, centered title, subtitle, o
   title="Bubble Sort Visualizer"
   subtitle="Visualizing the classic comparison sorting algorithm"
   icon={<List />}           // any Lucide icon
-  leetcode="#912"            // optional — shows "LeetCode #912" badge
+  leetcode="#912"            // optional - shows "LeetCode #912" badge
 >
   {/* all content goes here */}
 </VisualizerShell>
@@ -131,7 +131,7 @@ Wraps the entire page. Provides max-width container, centered title, subtitle, o
 
 ---
 
-### 3.2 · `ControlPanel` — Play/Pause/Step/Reset Bar (EVERY visualizer)
+### 3.2 · `ControlPanel` - Play/Pause/Step/Reset Bar (EVERY visualizer)
 
 Unified control bar with two modes: unloaded (shows Load button) and loaded (step controls + speed + counter + reset).
 
@@ -183,11 +183,11 @@ Unified control bar with two modes: unloaded (shows Load button) and loaded (ste
 
 ---
 
-### 3.3 · `CodeBlock` — Pseudocode Panel
+### 3.3 · `CodeBlock` - Pseudocode Panel
 
 Supports TWO code formats:
 
-**Format A — Token-based** (BubbleSort, NQueens, Stack, etc.):
+**Format A - Token-based** (BubbleSort, NQueens, Stack, etc.):
 ```js
 const CODE = [
   { l: 1, c: [{ t: "function sort(arr) {", c: "" }] },
@@ -196,7 +196,7 @@ const CODE = [
 // Token colors: "purple" | "cyan" | "yellow" | "orange" | "light-gray" | ""
 ```
 
-**Format B — Plain string** (Sudoku, LCS, SlidingWindow, etc.):
+**Format B - Plain string** (Sudoku, LCS, SlidingWindow, etc.):
 ```js
 const CODE = [
   { line: 1, content: "function sort(arr) {" },
@@ -223,7 +223,7 @@ const CODE = [
 
 ---
 
-### 3.4 · `ExplanationBox` — Step Explanation
+### 3.4 · `ExplanationBox` - Step Explanation
 
 Two modes: simple (single line) and scrollable history.
 
@@ -254,7 +254,7 @@ Two modes: simple (single line) and scrollable history.
 
 ---
 
-### 3.5 · `ComplexityCard` — Time/Space Complexity
+### 3.5 · `ComplexityCard` - Time/Space Complexity
 
 Full-width card for algorithm complexity analysis.
 
@@ -284,7 +284,7 @@ Full-width card for algorithm complexity analysis.
 
 ---
 
-### 3.6 · `StatsGrid` — Metric Stat Boxes
+### 3.6 · `StatsGrid` - Metric Stat Boxes
 
 Small colored stat boxes for counters (comparisons, swaps, visited nodes, etc.).
 
@@ -305,7 +305,7 @@ Available colors: `"teal"` | `"purple"` | `"blue"` | `"emerald"` | `"amber"` | `
 
 ---
 
-### 3.7 · `ArrayBar` — Horizontal Array Boxes + Pointers
+### 3.7 · `ArrayBar` - Horizontal Array Boxes + Pointers
 
 For sorting, arrays, binary search, sliding window string chars, etc.
 
@@ -340,7 +340,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.8 · `GridBoard` — 2D Grid (Pathfinding, Sudoku, N-Queens, Flood Fill)
+### 3.8 · `GridBoard` - 2D Grid (Pathfinding, Sudoku, N-Queens, Flood Fill)
 
 ```jsx
 <GridBoard
@@ -374,7 +374,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.9 · `TreeCanvas` — SVG Binary Tree
+### 3.9 · `TreeCanvas` - SVG Binary Tree
 
 ```jsx
 <TreeCanvas
@@ -408,7 +408,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.10 · `GraphCanvas` — SVG+DOM Graph (BFS, DFS, Dijkstra)
+### 3.10 · `GraphCanvas` - SVG+DOM Graph (BFS, DFS, Dijkstra)
 
 ```jsx
 <GraphCanvas
@@ -445,7 +445,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.11 · `LinkedListChain` — Horizontal Node Chain
+### 3.11 · `LinkedListChain` - Horizontal Node Chain
 
 ```jsx
 <LinkedListChain
@@ -469,7 +469,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.12 · `StackColumn` — Vertical LIFO Stack
+### 3.12 · `StackColumn` - Vertical LIFO Stack
 
 ```jsx
 <StackColumn
@@ -491,7 +491,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.13 · `QueueRow` — Horizontal FIFO Queue
+### 3.13 · `QueueRow` - Horizontal FIFO Queue
 
 ```jsx
 <QueueRow
@@ -513,7 +513,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.14 · `DPTable` — 2D DP Table
+### 3.14 · `DPTable` - 2D DP Table
 
 ```jsx
 <DPTable
@@ -537,7 +537,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.15 · `HashMapView` — Key→Value Map Display
+### 3.15 · `HashMapView` - Key→Value Map Display
 
 ```jsx
 <HashMapView
@@ -557,7 +557,7 @@ For sorting, arrays, binary search, sliding window string chars, etc.
 
 ---
 
-### 3.16 · `SlidingWindowOverlay` — Animated Bounding Box
+### 3.16 · `SlidingWindowOverlay` - Animated Bounding Box
 
 Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
@@ -586,7 +586,7 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 ---
 
-### 3.17 · `ModeToggle` — Brute Force / Optimal Switcher
+### 3.17 · `ModeToggle` - Brute Force / Optimal Switcher
 
 ```jsx
 <ModeToggle
@@ -606,7 +606,7 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 ---
 
-### 3.18 · `LangTabs` — Multi-Language Code Tabs
+### 3.18 · `LangTabs` - Multi-Language Code Tabs
 
 ```jsx
 <LangTabs
@@ -629,7 +629,7 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 ---
 
-### 3.19 · `ColorLegend` — Colored Dot + Label Strip
+### 3.19 · `ColorLegend` - Colored Dot + Label Strip
 
 ```jsx
 <ColorLegend
@@ -644,12 +644,12 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `items` | array | ✅ | `[{color, label}]` — color is Tailwind bg class OR CSS hex |
+| `items` | array | ✅ | `[{color, label}]` - color is Tailwind bg class OR CSS hex |
 | `layout` | string | ❌ | `"row"` or `"wrap"` |
 
 ---
 
-### 3.20 · `InputBar` — Labeled Input Field
+### 3.20 · `InputBar` - Labeled Input Field
 
 ```jsx
 <InputBar
@@ -676,7 +676,7 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 ---
 
-### 3.21 · `StatusBanner` — Success/Error/Loading Banner
+### 3.21 · `StatusBanner` - Success/Error/Loading Banner
 
 ```jsx
 <StatusBanner
@@ -699,7 +699,7 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 ---
 
-### 3.22 · `CallStackView` — Recursion Call Stack
+### 3.22 · `CallStackView` - Recursion Call Stack
 
 ```jsx
 <CallStackView
@@ -714,13 +714,13 @@ Measures DOM positions and renders an absolutely-positioned highlight rectangle.
 
 | Prop | Type | Required | Description |
 |------|------|----------|-------------|
-| `frames` | array | ✅ | `string[]` or `[{label, value?}]` — index 0 = bottom of stack |
+| `frames` | array | ✅ | `string[]` or `[{label, value?}]` - index 0 = bottom of stack |
 | `activeIndex` | number | ❌ | Index of active frame (highlights with primary tint) |
 | `title` | string | ❌ | Panel heading |
 
 ---
 
-### 3.23 · `BinaryView` — Bit-Level Binary Display
+### 3.23 · `BinaryView` - Bit-Level Binary Display
 
 ```jsx
 <BinaryView
@@ -831,7 +831,7 @@ When migrating a visualizer file, follow these steps:
 
 1. **Read** the original file completely
 2. **Identify** which data-specific components it needs (use Category table above)
-3. **Keep** the algorithm logic (history generation) **unchanged** — just extract it to a standalone function or `useCallback` at the top
+3. **Keep** the algorithm logic (history generation) **unchanged** - just extract it to a standalone function or `useCallback` at the top
 4. **Keep** pseudocode data as a constant outside the component
 5. **Keep** complexity text as constants outside the component
 6. **Replace** the inline `<header>` with `<VisualizerShell>`
@@ -876,7 +876,7 @@ Key patterns demonstrated:
 - `inputSlot` using shadcn-styled input with `text-[11px]` labels and `gap-2`
 - `pointers` array for VisualizerPointer integration
 - Standard `grid grid-cols-1 lg:grid-cols-3 gap-6` layout
-- No shadows anywhere — borders only
+- No shadows anywhere - borders only
 - `text-muted-foreground` for placeholder/empty state text
 - **Monochrome stats**: StatsGrid uses no colored borders, all values are `text-foreground`
 - **No uppercase labels**: ExplanationBox, ComplexityCard use sentence-case
@@ -899,7 +899,7 @@ RULES:
 4. Use the standard grid layout from Section 5
 5. Create a getStyle callback for per-element conditional coloring
 6. Keep all existing features (keyboard control, click-outside, etc.)
-7. Output the COMPLETE refactored file — no placeholders, no "..."
+7. Output the COMPLETE refactored file - no placeholders, no "..."
 
 SHADCN STYLING RULES:
 - NEVER use shadows (no shadow-*, no drop-shadow). Use borders only.
@@ -911,7 +911,7 @@ SHADCN STYLING RULES:
 - Default cells: "bg-secondary text-secondary-foreground" (not bg-muted)
 - Comparing/active cells: "bg-primary/15 border-primary/50 text-primary"
 - Sorted/success cells: "bg-emerald-500/15 border-emerald-500/40 text-emerald-400"
-- NEVER use text-white for state colors — use the color's own text token
+- NEVER use text-white for state colors - use the color's own text token
 - NEVER use uppercase labels (no "uppercase tracking-wider")
 - Component headers: text-[13px] font-medium, icons h-3.5 w-3.5
 - Section labels: text-[11px] font-medium text-muted-foreground
@@ -925,4 +925,4 @@ Here is the file to refactor:
 
 ---
 
-*Generated for AlgoVisualizer migration — 22 reusable components, 144 target files.*
+*Generated for AlgoVisualizer migration - 22 reusable components, 144 target files.*

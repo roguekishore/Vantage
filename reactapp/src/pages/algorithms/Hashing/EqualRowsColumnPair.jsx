@@ -693,11 +693,11 @@ const EqualRowsColumnPairs = () => {
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n² × n)</span> — n² to iterate grid, n for hashing vectors
+                  <span className="font-mono text-teal300">O(n² × n)</span> - n² to iterate grid, n for hashing vectors
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n² × n)</span> — storing all rows as vectors in map
+                  <span className="font-mono text-teal300">O(n² × n)</span> - storing all rows as vectors in map
                 </div>
                 <div>
                   <strong>Key Optimization:</strong> Using vectors as map keys allows direct comparison

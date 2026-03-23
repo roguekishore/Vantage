@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 import { CheckCircle } from "lucide-react";
 
 /**
- * ExplanationBox — step explanation text.
+ * ExplanationBox - step explanation text.
  *
  * Simple mode: single line.  History mode: scrollable log.
  * Clean card border, no shadow.

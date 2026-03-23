@@ -640,8 +640,8 @@ const SellStockIVVisualizer = () => {
             <div className="p-4 bg-theme-tertiary/50 rounded-xl border border-theme-primary/60 shadow-2xl">
               <h4 className="text-success font-semibold flex items-center gap-2"><Clock size={16} /> Complexity & Notes</h4>
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
-                <div><strong>Time:</strong> <span className="font-mono text-teal300">O(N * K)</span> — We loop N days, and for each day, K transactions.</div>
-                <div><strong>Space:</strong> <span className="font-mono text-teal300">O(K)</span> — We only need two arrays of size k+1.</div>
+                <div><strong>Time:</strong> <span className="font-mono text-teal300">O(N * K)</span> - We loop N days, and for each day, K transactions.</div>
+                <div><strong>Space:</strong> <span className="font-mono text-teal300">O(K)</span> - We only need two arrays of size k+1.</div>
                 <div><strong>Optimization:</strong> If k &gt;= N/2, it becomes Stock II, solvable in O(N) time.</div>
               </div>
             </div>

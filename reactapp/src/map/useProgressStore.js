@@ -23,7 +23,7 @@ function getUserStore() {
  *   2. Sends completions to the backend
  *   3. Provides derived helpers (locked/available/completed/current)
  * 
- * NO localStorage persistence — all state comes from the backend.
+ * NO localStorage persistence - all state comes from the backend.
  * 
  * ID MAPPING:
  *   Frontend IDs are strings like 'stage1-1', 'stage4-2'
@@ -66,7 +66,9 @@ import {
   STATS,
 } from '../data/dsa-conquest-map';
 
-import { authFetch, getToken } from '../services/api';
+import { authFetch } from '../services/api';
+import { getToken } from '../services/api';
+import { buildApiUrl, getApiBaseUrl } from '../services/realtimeUrls';
 
 // Re-export everything from the data source for backward compatibility
 export {
@@ -124,7 +126,7 @@ export const toFrontendId = (backendPid) => _pidToFrontendId[backendPid] ?? null
 // API helpers
 // =============================================================================
 
-const API_BASE = (process.env.REACT_APP_API_URL || 'http://localhost:8080') + '/api';
+const API_BASE = getApiBaseUrl();
 
 async function apiFetchProgress(userId) {
   const res = await authFetch(`${API_BASE}/progress`);
@@ -149,7 +151,7 @@ async function apiMarkAttempted(userId, backendPid) {
 }
 
 // =============================================================================
-// ZUSTAND STORE (no persistence — backend is truth)
+// ZUSTAND STORE (no persistence - backend is truth)
 // =============================================================================
 
 const useProgressStore = create((set, get) => ({
@@ -167,7 +169,7 @@ const useProgressStore = create((set, get) => ({
    */
   loadProgress: async (userId) => {
     if (!userId) return;
-    // Clear stale data immediately — backend is always the source of truth
+    // Clear stale data immediately - backend is always the source of truth
     set({ isLoading: true, completedProblems: [] });
     try {
       const progressMap = await apiFetchProgress(userId);
@@ -205,7 +207,13 @@ const useProgressStore = create((set, get) => ({
     // Tear down any stale / closed connection before creating a new one
     existing?.close();
 
-    const es = new EventSource(`${API_BASE}/progress/stream?token=${encodeURIComponent(getToken() || '')}`);
+    // Native EventSource does not support custom request headers (like Cache-Control),
+    // so we keep cache controls on the server response and add a nonce query param.
+    // Auth is resolved on the backend from HttpOnly cookie.
+    const bearer = getToken();
+    const tokenQuery = bearer ? `&token=${encodeURIComponent(bearer)}` : "";
+    const streamUrl = buildApiUrl(`/progress/stream?userId=${encodeURIComponent(userId)}${tokenQuery}&_=${Date.now()}`);
+    const es = new EventSource(streamUrl, { withCredentials: true });
     set({ _eventSource: es });
 
     es.addEventListener('connected', () => {
@@ -240,15 +248,15 @@ const useProgressStore = create((set, get) => ({
             }
           }
 
-          // ── Refresh user rating in localStorage ──
+          // ── Refresh user rating in auth store ──
           try {
-            const user = JSON.parse(localStorage.getItem('user'));
+            const user = getUserStore().getState().user;
             if (user?.uid) {
               authFetch(`${API_BASE}/users/${user.uid}`)
                 .then(r => r.ok ? r.json() : null)
                 .then(profile => {
                   if (profile) {
-                    localStorage.setItem('user', JSON.stringify({ ...user, rating: profile.rating }));
+                    getUserStore().getState().setUser({ ...user, rating: profile.rating });
                   }
                 })
                 .catch(() => {});
@@ -267,7 +275,7 @@ const useProgressStore = create((set, get) => ({
     });
 
     es.onerror = () => {
-      console.warn('[ProgressStore] SSE connection error — will auto-reconnect');
+      console.warn('[ProgressStore] SSE connection error - will auto-reconnect');
     };
 
     // Return cleanup function
@@ -304,7 +312,7 @@ const useProgressStore = create((set, get) => ({
 
     // Get user
     let user = null;
-    try { user = getUserStore().getState().user ?? JSON.parse(localStorage.getItem('user')); } catch { /* ignore */ }
+    try { user = getUserStore().getState().user; } catch { /* ignore */ }
     if (!user?.uid) return { success: false, nextProblem: null };
 
     const backendPid = toBackendPid(problemId);
@@ -322,12 +330,12 @@ const useProgressStore = create((set, get) => ({
         getAchievementStore().getState().refresh(user.uid);
       } catch { /* non-critical */ }
 
-      // Refresh user rating in localStorage
+      // Refresh user rating in auth store
       try {
         const profileRes = await authFetch(`${API_BASE}/users/${user.uid}`);
         if (profileRes.ok) {
           const profile = await profileRes.json();
-          localStorage.setItem('user', JSON.stringify({ ...user, rating: profile.rating }));
+          getUserStore().getState().setUser({ ...user, rating: profile.rating });
         }
       } catch { /* non-critical */ }
 
@@ -340,12 +348,12 @@ const useProgressStore = create((set, get) => ({
 
   /**
    * Mark a problem as attempted (wrong answer / runtime error / etc).
-   * Fire-and-forget — doesn't block the UI.
+   * Fire-and-forget - doesn't block the UI.
    * Accepts a conquest-map ID (e.g. 'stage1-1').
    */
   markProblemAttempted: async (problemId) => {
     let user = null;
-    try { user = JSON.parse(localStorage.getItem('user')); } catch { /* ignore */ }
+    try { user = getUserStore().getState().user; } catch { /* ignore */ }
     if (!user?.uid) return;
 
     const backendPid = toBackendPid(problemId);
