@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Runs every 5 seconds — checks for expired active battles, lobby timeouts,
+ * Runs every 5 seconds - checks for expired active battles, lobby timeouts,
  * and stale matchmaking queue entries.
  */
 @Slf4j

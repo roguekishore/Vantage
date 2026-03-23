@@ -1,6 +1,5 @@
 package com.backend.springapp.sse;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -13,6 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manages per-user SSE emitters and broadcasts {@link ProgressEvent}s.
@@ -26,10 +29,19 @@ public class ProgressEventService {
 
     /** userId → list of live SSE emitters (one per browser tab) */
     private final Map<Long, List<SseEmitter>> emitters = new ConcurrentHashMap<>();
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /** Timeout for each SSE connection (30 minutes, then client auto-reconnects) */
     private static final long SSE_TIMEOUT = 30 * 60 * 1000L;
+
+    /** Heartbeat period to keep intermediary proxies/CDNs from idling out SSE streams. */
+    private static final long HEARTBEAT_SECONDS = 25L;
+
+    private final ScheduledExecutorService heartbeatExecutor =
+            Executors.newScheduledThreadPool(1, r -> {
+                Thread t = new Thread(r, "sse-heartbeat");
+                t.setDaemon(true);
+                return t;
+            });
 
     /**
      * Register a new SSE connection for a user.
@@ -40,8 +52,19 @@ public class ProgressEventService {
 
         emitters.computeIfAbsent(userId, k -> new CopyOnWriteArrayList<>()).add(emitter);
 
+        final ScheduledFuture<?> heartbeatTask = heartbeatExecutor.scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("ping")
+                        .data(Map.of("status", "alive"), MediaType.APPLICATION_JSON));
+            } catch (IOException e) {
+                emitter.completeWithError(e);
+            }
+        }, HEARTBEAT_SECONDS, HEARTBEAT_SECONDS, TimeUnit.SECONDS);
+
         // Remove emitter on completion / timeout / error
         Runnable cleanup = () -> {
+            heartbeatTask.cancel(true);
             List<SseEmitter> list = emitters.get(userId);
             if (list != null) {
                 list.remove(emitter);
@@ -56,7 +79,7 @@ public class ProgressEventService {
         try {
             emitter.send(SseEmitter.event()
                     .name("connected")
-                    .data("{\"status\":\"connected\"}", MediaType.APPLICATION_JSON));
+                    .data(Map.of("status", "connected"), MediaType.APPLICATION_JSON));
         } catch (IOException e) {
             log.warn("Failed to send initial SSE event to user {}", userId, e);
             emitter.completeWithError(e);
@@ -99,20 +122,12 @@ public class ProgressEventService {
             return;
         }
 
-        String json;
-        try {
-            json = objectMapper.writeValueAsString(event);
-        } catch (Exception e) {
-            log.error("Failed to serialize progress event for userId={}", userId, e);
-            return;
-        }
-
         List<SseEmitter> dead = new java.util.ArrayList<>();
         for (SseEmitter emitter : list) {
             try {
                 emitter.send(SseEmitter.event()
                         .name("progress-update")
-                        .data(json, MediaType.APPLICATION_JSON));
+                        .data(event, MediaType.APPLICATION_JSON));
             } catch (IOException e) {
                 log.debug("SSE send failed for userId={}, removing emitter", userId);
                 dead.add(emitter);

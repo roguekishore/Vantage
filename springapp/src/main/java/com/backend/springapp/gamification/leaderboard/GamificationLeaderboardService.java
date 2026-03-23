@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * Gamification leaderboard logic — XP, weekly stats, streaks.
+ * Gamification leaderboard logic - XP, weekly stats, streaks.
  * Separate from the existing LeaderboardService (which ranks by problem-solving rating).
  */
 @Service

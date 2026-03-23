@@ -26,9 +26,10 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 /**
- * Core 1-v-1 battle logic — matchmaking, lobby, arena, judging, ELO.
+ * Core 1-v-1 battle logic - matchmaking, lobby, arena, judging, ELO.
  */
 @Slf4j
 @Service
@@ -71,8 +72,15 @@ public class BattleService {
             log.info("Cleaned stale queue entry for user {} before re-queuing", userId);
         }
 
-        // If user is already in a WAITING or ACTIVE battle, return its info for rejoin
-        Optional<Battle> existingBattle = findRecentBattleForUser(userId);
+        // If user is in a group battle (WAITING/ACTIVE), block 1v1 queue entry.
+        Optional<Battle> activeGroupBattle = findRecentActiveGroupBattleForUser(userId);
+        if (activeGroupBattle.isPresent()) {
+            throw new IllegalStateException("You are currently in a group battle. Leave/forfeit it before joining 1v1 queue.");
+        }
+
+        // If user is already in a WAITING/ACTIVE 1v1 battle, return it for rejoin.
+        // Group rooms are handled via the /group flow and must not be surfaced here.
+        Optional<Battle> existingBattle = findRecentOneVsOneBattleForUser(userId);
         if (existingBattle.isPresent()) {
             Battle b = existingBattle.get();
             return Map.of(
@@ -106,8 +114,8 @@ public class BattleService {
             return new QueueStatusResponse("QUEUED", null);
         }
 
-        // Search for a WAITING or ACTIVE battle where this user is a participant
-        return findRecentBattleForUser(userId)
+        // Search for a WAITING/ACTIVE 1v1 battle where this user is a participant
+        return findRecentOneVsOneBattleForUser(userId)
                 .map(b -> new QueueStatusResponse("MATCHED", b.getId()))
                 .orElse(new QueueStatusResponse("NOT_QUEUED", null));
     }
@@ -128,6 +136,22 @@ public class BattleService {
             }
         }
         return Optional.empty();
+    }
+
+    /**
+     * Look for the most recent WAITING/ACTIVE 1v1 battle for a user.
+     * Group battles are intentionally excluded to avoid routing 1v1 UI
+     * (queue/lobby/rejoin overlay) into group rooms.
+     */
+    private Optional<Battle> findRecentOneVsOneBattleForUser(Long userId) {
+        return findRecentBattleForUser(userId)
+                .filter(b -> b.getMode() == BattleMode.CASUAL_1V1 || b.getMode() == BattleMode.RANKED_1V1);
+    }
+
+    /** Look for a WAITING/ACTIVE group battle for a user. */
+    private Optional<Battle> findRecentActiveGroupBattleForUser(Long userId) {
+        return findRecentBattleForUser(userId)
+                .filter(b -> b.getMode() == BattleMode.GROUP_FFA);
     }
 
     @Transactional(readOnly = true)
@@ -445,7 +469,7 @@ public class BattleService {
                     bp.getProblemIndex(),
                     p != null ? p.getTitle() : "Unknown",
                     p != null ? p.getDescription() : "",
-                    "", // examples — frontend fetches from judge
+                    "", // examples - frontend fetches from judge
                     "", // constraints
                 resolvedJudgeId,
                     solved
@@ -484,6 +508,10 @@ public class BattleService {
 
         BattleParticipant me = participantRepo.findByBattleIdAndUserId(battleId, userId)
                 .orElseThrow(() -> new IllegalStateException("Not in this battle"));
+
+        if (battle.getMode() == BattleMode.GROUP_FFA && me.isForfeited()) {
+            throw new IllegalStateException("You forfeited this group battle");
+        }
 
         // Already solved this problem?
         if (submissionRepo.hasAcceptedSubmission(battleId, userId, problemIndex)) {
@@ -662,7 +690,8 @@ public class BattleService {
     @Transactional
     public void completeBattle(Long battleId) {
         Battle battle = battleRepo.findById(battleId).orElse(null);
-        if (battle == null || battle.getState() == BattleState.COMPLETED) return;
+        if (battle == null || battle.getState() == BattleState.COMPLETED
+                         || battle.getState() == BattleState.CANCELLED) return;
 
         // Route group battles to their own completion handler
         if (battle.getMode() == BattleMode.GROUP_FFA) {
@@ -819,12 +848,17 @@ public class BattleService {
             xp = isRanked ? 15 : 10;
         }
 
+        // Safety guard: skip if no rewards to give
+        if (coins <= 0 && xp <= 0) return;
+
         PlayerStats stats = gamificationService.getOrCreateStats(bp.getUserId());
         stats.setXp(stats.getXp() + xp);
         stats.setLevel(GamificationService.calculateLevel(stats.getXp()));
         statsRepo.saveAndFlush(stats);
 
-        gamificationService.creditCoins(bp.getUserId(), coins, TransactionSource.BATTLE_WIN, bp.getBattleId());
+        if (coins > 0) {
+            gamificationService.creditCoins(bp.getUserId(), coins, TransactionSource.BATTLE_WIN, bp.getBattleId());
+        }
 
         // Track battle XP + coins on the weekly leaderboard
         gamificationService.addWeeklyBattleReward(bp.getUserId(), coins, xp);
@@ -843,8 +877,50 @@ public class BattleService {
         Battle battle = battleRepo.findById(battleId)
                 .orElseThrow(() -> new NoSuchElementException("Battle not found"));
 
-        if (battle.getState() != BattleState.ACTIVE && battle.getState() != BattleState.WAITING) {
-            throw new IllegalStateException("Cannot forfeit a completed/cancelled battle");
+        // Graceful no-op if battle already resolved (e.g. timer expired between UI check and click)
+        if (battle.getState() == BattleState.COMPLETED || battle.getState() == BattleState.CANCELLED) {
+            log.info("Forfeit request for already resolved battle {} by user {} — ignoring", battleId, userId);
+            return;
+        }
+
+        // Group FFA: mark forfeiter, keep room running for others.
+        // Early-complete only when <=1 non-forfeited player remains.
+        if (battle.getMode() == BattleMode.GROUP_FFA) {
+            if (battle.getState() != BattleState.ACTIVE) {
+                throw new IllegalStateException("Cannot forfeit before group battle starts");
+            }
+
+            List<BattleParticipant> participants = participantRepo.findByBattleId(battleId);
+            BattleParticipant forfeiter = participants.stream()
+                    .filter(p -> p.getUserId().equals(userId))
+                    .findFirst()
+                    .orElseThrow(() -> new IllegalStateException("Not in this battle"));
+
+            if (forfeiter.isForfeited()) {
+                return;
+            }
+
+            // Keep forfeiter at the bottom and disable further submissions.
+            forfeiter.setForfeited(true);
+            forfeiter.setGroupScore(Math.min(forfeiter.getGroupScore(), -1_000_000));
+            participantRepo.saveAndFlush(forfeiter);
+
+            long activePlayers = participants.stream().filter(p -> !p.isForfeited()).count();
+            if (activePlayers <= 1) {
+                completeGroupBattle(battleId);
+            } else {
+                for (BattleParticipant p : participants) {
+                    try {
+                        GroupBattleStateDTO stateDTO = getGroupBattleState(battleId, p.getUserId());
+                        broadcastSafe("/topic/battle/" + battleId + "/group-state/" + p.getUserId(), stateDTO);
+                    } catch (Exception e) {
+                        log.warn("Failed to broadcast group forfeit state to user {}: {}", p.getUserId(), e.getMessage());
+                    }
+                }
+            }
+
+            log.info("🏟️ User {} forfeited group battle {}", userId, battleId);
+            return;
         }
 
         List<BattleParticipant> participants = participantRepo.findByBattleId(battleId);
@@ -946,7 +1022,7 @@ public class BattleService {
      * SCHEDULED JOB HELPERS
      * ═══════════════════════════════════════════════════════════ */
 
-    /** Called by BattleTimerJob every 5s — complete expired active battles. */
+    /** Called by BattleTimerJob every 5s - complete expired active battles. */
     @Transactional
     public void checkExpiredBattles() {
         List<Battle> expired = battleRepo.findExpiredActiveBattles();
@@ -956,7 +1032,7 @@ public class BattleService {
         }
     }
 
-    /** Called by QueueTimeoutJob every 30s — remove stale queue entries (>5 min). */
+    /** Called by QueueTimeoutJob every 30s - remove stale queue entries (>5 min). */
     @Transactional
     public void cleanupStaleQueue() {
         LocalDateTime cutoff = LocalDateTime.now().minusMinutes(5);
@@ -966,12 +1042,12 @@ public class BattleService {
         }
     }
 
-    /** Called by lobby timeout check — cancel 1v1 waiting battles past 60s. Group rooms have no auto-cancel. */
+    /** Called by lobby timeout check - cancel 1v1 waiting battles past 60s. Group rooms have no auto-cancel. */
     @Transactional
     public void cancelExpiredLobbies() {
         List<Battle> expired = battleRepo.findExpiredLobbyBattles();
         for (Battle b : expired) {
-            // Group rooms stay open until creator starts — never auto-cancel
+            // Group rooms stay open until creator starts - never auto-cancel
             if (b.getMode() == BattleMode.GROUP_FFA) continue;
 
             b.setState(BattleState.CANCELLED);
@@ -1028,7 +1104,7 @@ public class BattleService {
     }
 
     /* ═══════════════════════════════════════════════════════════
-     * ABANDON — force-complete a stuck/stale battle
+     * ABANDON - force-complete a stuck/stale battle
      * ═══════════════════════════════════════════════════════════ */
 
     @Transactional
@@ -1040,7 +1116,18 @@ public class BattleService {
             return; // already done
         }
 
-        // If WAITING (lobby) — just cancel
+        // Group FFA abandon: forfeit if not already, then return.
+        // The battle keeps running for other players.
+        if (battle.getMode() == BattleMode.GROUP_FFA) {
+            BattleParticipant me = participantRepo.findByBattleIdAndUserId(battleId, userId).orElse(null);
+            if (me != null && !me.isForfeited()) {
+                forfeit(battleId, userId);
+            }
+            log.info("🏟️ User {} abandoned group battle {}", userId, battleId);
+            return;
+        }
+
+        // If WAITING (lobby) - just cancel
         if (battle.getState() == BattleState.WAITING) {
             battle.setState(BattleState.CANCELLED);
             battle.setCompletedAt(LocalDateTime.now());
@@ -1049,7 +1136,7 @@ public class BattleService {
             return;
         }
 
-        // ACTIVE — treat as forfeit by this user
+        // ACTIVE - treat as forfeit by this user
         forfeit(battleId, userId);
         log.info("⚔️ Battle {} abandoned (was ACTIVE) by user {}", battleId, userId);
     }
@@ -1128,11 +1215,15 @@ public class BattleService {
     }
 
     /* ═══════════════════════════════════════════════════════════
-     * GROUP BATTLE — ROOM MANAGEMENT
+     * GROUP BATTLE - ROOM MANAGEMENT
      * ═══════════════════════════════════════════════════════════ */
 
     @Transactional
     public RoomLobbyDTO createRoom(Long userId, CreateRoomRequest req) {
+        if (hasActiveOrWaitingBattle(userId)) {
+            throw new IllegalStateException("You are already in an active battle");
+        }
+
         if (req.maxPlayers() < 3 || req.maxPlayers() > 8) {
             throw new IllegalArgumentException("Group battles require 3–8 players");
         }
@@ -1190,18 +1281,24 @@ public class BattleService {
         Battle battle = battleRepo.findByRoomCode(roomCode.toUpperCase())
                 .orElseThrow(() -> new NoSuchElementException("Room not found: " + roomCode));
 
+        // Allow rejoin if already a participant in THIS battle
+        List<BattleParticipant> participants = participantRepo.findByBattleId(battle.getId());
+        boolean alreadyIn = participants.stream().anyMatch(p -> p.getUserId().equals(userId));
+        if (alreadyIn) {
+            return getRoomLobby(battle.getId());
+        }
+
+        // Block joining if user is in a DIFFERENT active battle
+        if (hasActiveOrWaitingBattle(userId)) {
+            throw new IllegalStateException("You are already in an active battle");
+        }
+
         if (battle.getState() != BattleState.WAITING) {
             throw new IllegalStateException("Battle has already started or ended");
         }
 
-        List<BattleParticipant> participants = participantRepo.findByBattleId(battle.getId());
         if (participants.size() >= battle.getMaxPlayers()) {
             throw new IllegalStateException("Room is full (" + battle.getMaxPlayers() + "/" + battle.getMaxPlayers() + ")");
-        }
-
-        boolean alreadyIn = participants.stream().anyMatch(p -> p.getUserId().equals(userId));
-        if (alreadyIn) {
-            return getRoomLobby(battle.getId());
         }
 
         PlayerStats stats = gamificationService.getOrCreateStats(userId);
@@ -1218,34 +1315,60 @@ public class BattleService {
         Battle battle = battleRepo.findByRoomCode(roomCode.toUpperCase())
                 .orElseThrow(() -> new NoSuchElementException("Room not found: " + roomCode));
 
+        // Idempotent close path for creator: if room is already closed, treat as no-op.
+        if (userId.equals(battle.getCreatorId())
+                && (battle.getState() == BattleState.CANCELLED || battle.getState() == BattleState.COMPLETED)) {
+            return null;
+        }
+
         if (battle.getState() != BattleState.WAITING) {
             throw new IllegalStateException("Cannot leave an active battle");
         }
 
-        BattleParticipant me = participantRepo.findByBattleIdAndUserId(battle.getId(), userId)
-                .orElseThrow(() -> new IllegalStateException("You are not in this room"));
+        BattleParticipant me = participantRepo.findByBattleIdAndUserId(battle.getId(), userId).orElse(null);
+
+        // Creator leaving should always close the room for everyone.
+        if (userId.equals(battle.getCreatorId())) {
+            if (me != null) {
+                participantRepo.delete(me);
+                participantRepo.flush();
+            }
+            closeRoomAsCreatorLeft(battle, roomCode);
+            return null;
+        }
+
+        if (me == null) {
+            throw new IllegalStateException("You are not in this room");
+        }
+
         participantRepo.delete(me);
         participantRepo.flush();
-
-        // If creator left: transfer or cancel
-        if (userId.equals(battle.getCreatorId())) {
-            List<BattleParticipant> remaining = participantRepo.findByBattleId(battle.getId());
-            if (remaining.isEmpty()) {
-                battle.setState(BattleState.CANCELLED);
-                battle.setCompletedAt(LocalDateTime.now());
-                battleRepo.saveAndFlush(battle);
-                broadcastSafe("/topic/battle/" + battle.getId() + "/room",
-                        Map.of("state", "CANCELLED", "battleId", battle.getId()));
-                log.info("🏟️ Room {} cancelled (creator left, no players)", roomCode);
-                return null;
-            }
-            battle.setCreatorId(remaining.get(0).getUserId());
-            battleRepo.saveAndFlush(battle);
-        }
 
         RoomLobbyDTO lobby = getRoomLobby(battle.getId());
         broadcastSafe("/topic/battle/" + battle.getId() + "/room", lobby);
         return lobby;
+    }
+
+    private void closeRoomAsCreatorLeft(Battle battle, String roomCode) {
+        // Remove any remaining participants so nobody is considered in this waiting room anymore.
+        List<BattleParticipant> remaining = participantRepo.findByBattleId(battle.getId());
+        if (!remaining.isEmpty()) {
+            participantRepo.deleteAll(remaining);
+            participantRepo.flush();
+        }
+
+        battle.setState(BattleState.CANCELLED);
+        battle.setCompletedAt(LocalDateTime.now());
+        battleRepo.saveAndFlush(battle);
+
+        broadcastSafe("/topic/battle/" + battle.getId() + "/room",
+                Map.of(
+                        "state", "CANCELLED",
+                        "battleId", battle.getId(),
+                        "message", "Room closed: creator left"
+                ));
+
+        log.info("🏟️ Room {} closed by creator {}", roomCode, battle.getCreatorId());
     }
 
     @Transactional
@@ -1300,7 +1423,7 @@ public class BattleService {
         log.info("🏟️ Group battle {} STARTED (room={}, players={})",
                 battle.getId(), roomCode, participants.size());
 
-        // Notify all players — broadcast "started" signal + initial group state
+        // Notify all players - broadcast "started" signal + initial group state
         broadcastSafe("/topic/battle/" + battle.getId() + "/started",
                 Map.of("battleId", battle.getId(), "state", "ACTIVE"));
         for (BattleParticipant p : participants) {
@@ -1329,9 +1452,13 @@ public class BattleService {
             timeRemainingMs = Math.max(0, totalMs - elapsed);
         }
 
-        // Build scoreboard sorted by groupScore desc
+        // Build scoreboard: non-forfeited first, then by score desc
         List<BattleParticipant> sorted = new ArrayList<>(participants);
-        sorted.sort(Comparator.comparingInt(BattleParticipant::getGroupScore).reversed());
+        sorted.sort(Comparator
+            .comparing(BattleParticipant::isForfeited)
+            .thenComparingInt(p -> -p.getGroupScore())
+            .thenComparingInt(p -> -p.getProblemsSolved())
+            .thenComparingInt(BattleParticipant::getTotalSubmissions));
 
         List<GroupBattleStateDTO.ScoreboardEntry> scoreboard = new ArrayList<>();
         for (int i = 0; i < sorted.size(); i++) {
@@ -1340,7 +1467,8 @@ public class BattleService {
             scoreboard.add(new GroupBattleStateDTO.ScoreboardEntry(
                     p.getUserId(), username,
                     p.getGroupScore(), p.getProblemsSolved(), p.getTotalSubmissions(),
-                    i + 1
+                    i + 1,
+                    p.isForfeited()
             ));
         }
 
@@ -1380,15 +1508,16 @@ public class BattleService {
                 .orElseThrow(() -> new IllegalStateException("Not in this battle"));
 
         int myPlacement = me.getPlacement() != null ? me.getPlacement() : 99;
-        int[] coinsXp = placementRewards(myPlacement);
+        int[] coinsXp = rewardForGroupParticipant(me);
 
         List<GroupBattleResultDTO.PlacementEntry> placements = participants.stream().map(p -> {
             int place = p.getPlacement() != null ? p.getPlacement() : 99;
-            int[] cxp = placementRewards(place);
+            int[] cxp = rewardForGroupParticipant(p);
             String username = userRepo.findById(p.getUserId()).map(User::getUsername).orElse("Unknown");
             return new GroupBattleResultDTO.PlacementEntry(
                     place, p.getUserId(), username,
                     p.getGroupScore(), p.getProblemsSolved(), p.getTotalSubmissions(),
+                p.isForfeited(),
                     cxp[0], cxp[1]
             );
         }).toList();
@@ -1498,7 +1627,8 @@ public class BattleService {
     @Transactional
     public void completeGroupBattle(Long battleId) {
         Battle battle = battleRepo.findById(battleId).orElse(null);
-        if (battle == null || battle.getState() == BattleState.COMPLETED) return;
+        if (battle == null || battle.getState() == BattleState.COMPLETED
+                         || battle.getState() == BattleState.CANCELLED) return;
 
         battle.setState(BattleState.COMPLETED);
         battle.setCompletedAt(LocalDateTime.now());
@@ -1511,10 +1641,11 @@ public class BattleService {
             return;
         }
 
-        // Rank by groupScore descending, break ties by problemsSolved then totalSubmissions
+        // Rank non-forfeited players first, then by score desc, tie-break by solved/submissions.
         participants.sort(Comparator
-                .comparingInt(BattleParticipant::getGroupScore).reversed()
-                .thenComparingInt(BattleParticipant::getProblemsSolved).reversed()
+            .comparing(BattleParticipant::isForfeited)
+            .thenComparingInt(p -> -p.getGroupScore())
+            .thenComparingInt(p -> -p.getProblemsSolved())
                 .thenComparingInt(BattleParticipant::getTotalSubmissions));
 
         for (int i = 0; i < participants.size(); i++) {
@@ -1542,7 +1673,7 @@ public class BattleService {
     }
 
     /* ═══════════════════════════════════════════════════════════
-     * GROUP BATTLE — HELPERS
+     * GROUP BATTLE - HELPERS
      * ═══════════════════════════════════════════════════════════ */
 
     private String generateRoomCode() {
@@ -1596,19 +1727,37 @@ public class BattleService {
 
     private void rewardGroupParticipant(BattleParticipant bp) {
         int placement = bp.getPlacement() != null ? bp.getPlacement() : 99;
-        int[] cxp = placementRewards(placement);
+        int[] cxp = rewardForGroupParticipant(bp);
         int coins = cxp[0];
         int xp = cxp[1];
+
+        // Skip reward for forfeited players (they get 0/0 which would crash creditCoins)
+        if (coins <= 0 && xp <= 0) {
+            log.info("Group reward: user {} (rank={}, forfeited={}) → skipped (0 coins, 0 XP)",
+                    bp.getUserId(), placement, bp.isForfeited());
+            return;
+        }
 
         PlayerStats stats = gamificationService.getOrCreateStats(bp.getUserId());
         stats.setXp(stats.getXp() + xp);
         stats.setLevel(GamificationService.calculateLevel(stats.getXp()));
         statsRepo.saveAndFlush(stats);
 
-        gamificationService.creditCoins(bp.getUserId(), coins, TransactionSource.BATTLE_WIN, bp.getBattleId());
+        if (coins > 0) {
+            gamificationService.creditCoins(bp.getUserId(), coins, TransactionSource.BATTLE_WIN, bp.getBattleId());
+        }
         gamificationService.addWeeklyBattleReward(bp.getUserId(), coins, xp);
 
-        log.info("Group reward: user {} (rank={}) → {} coins + {} XP", bp.getUserId(), placement, coins, xp);
+        log.info("Group reward: user {} (rank={}, forfeited={}) → {} coins + {} XP",
+                bp.getUserId(), placement, bp.isForfeited(), coins, xp);
+    }
+
+    private int[] rewardForGroupParticipant(BattleParticipant bp) {
+        if (bp.isForfeited()) {
+            return new int[]{0, 0};
+        }
+        int placement = bp.getPlacement() != null ? bp.getPlacement() : 99;
+        return placementRewards(placement);
     }
 
     /** Returns [coins, xp] for a given placement. */
@@ -1619,5 +1768,23 @@ public class BattleService {
             case 3  -> new int[]{30,  35};
             default -> new int[]{10,  15};
         };
+    }
+
+    public Optional<ActiveBattleDTO> checkForActiveBattle(Long userId) {
+        return participantRepo.findByUserIdOrderByBattleIdDesc(userId).stream()
+                .map(p -> battleRepo.findById(p.getBattleId()).orElse(null))
+                .filter(Objects::nonNull)
+                .filter(b -> b.getState() == BattleState.WAITING || b.getState() == BattleState.ACTIVE)
+                .filter(b -> {
+                    // For group battles, skip if this user has already forfeited
+                    if (b.getMode() == BattleMode.GROUP_FFA) {
+                        var bp = participantRepo.findByBattleIdAndUserId(b.getId(), userId);
+                        if (bp.isPresent() && bp.get().isForfeited()) return false;
+                    }
+                    return true;
+                })
+                .findFirst()
+                .map(b -> new ActiveBattleDTO(b.getId(), b.getState().name(),
+                        b.getMode().name(), b.getRoomCode()));
     }
 }

@@ -1,8 +1,8 @@
-# Spring Boot Backend — Architecture
+# Spring Boot Backend - Architecture
 
 ## Overview
 
-The backend follows a **feature-based (modular) package structure** where each business domain is a self-contained module. All related files — entities, repositories, services, controllers, DTOs, and enums — live directly inside the module package with **no sub-folders**.
+The backend follows a **feature-based (modular) package structure** where each business domain is a self-contained module. All related files - entities, repositories, services, controllers, DTOs, and enums - live directly inside the module package with **no sub-folders**.
 
 This design makes it easy to add new modules (e.g., `ranking`, `battle`, `gamification`, `contest`, `leetcode`, `ai`) without touching existing code.
 
@@ -20,25 +20,25 @@ com.backend.springapp
 │   └── DataInitializer.java           # Database seeder (stages + 164 problems)
 │
 ├── problem/                           # Everything related to Problems & Stages
-│   ├── Problem.java                   # @Entity — problems table
-│   ├── ProblemStage.java              # @Entity — problem ↔ stage join table
-│   ├── Stage.java                     # @Entity — stages table
-│   ├── Tag.java                       # Enum — BASIC, EASY, MEDIUM, HARD
+│   ├── Problem.java                   # @Entity - problems table
+│   ├── ProblemStage.java              # @Entity - problem ↔ stage join table
+│   ├── Stage.java                     # @Entity - stages table
+│   ├── Tag.java                       # Enum - BASIC, EASY, MEDIUM, HARD
 │   ├── ProblemRepository.java         # JPA repository with custom queries
 │   ├── ProblemStageRepository.java    # JPA repository for join table
 │   ├── StageRepository.java           # JPA repository for stages
-│   ├── ProblemService.java            # Business logic — CRUD, filters, search
+│   ├── ProblemService.java            # Business logic - CRUD, filters, search
 │   ├── ProblemController.java         # REST /api/problems/**
 │   ├── StageController.java           # REST /api/stages
 │   ├── ProblemRequestDTO.java         # Inbound DTO for create/update
 │   └── ProblemResponseDTO.java        # Outbound DTO (includes userStatus)
 │
 ├── user/                              # Everything related to Users & Progress
-│   ├── User.java                      # @Entity — users table
-│   ├── UserProgress.java              # @Entity — userprogress table
-│   ├── Status.java                    # Enum — SOLVED, ATTEMPTED
+│   ├── User.java                      # @Entity - users table
+│   ├── UserProgress.java              # @Entity - userprogress table
+│   ├── Status.java                    # Enum - SOLVED, ATTEMPTED
 │   ├── UserProgressRepository.java    # JPA repository with custom queries
-│   ├── UserProgressService.java       # Business logic — attempts, solves, stats
+│   ├── UserProgressService.java       # Business logic - attempts, solves, stats
 │   ├── UserProgressController.java    # REST /api/progress/**
 │   └── UserProgressResponseDTO.java   # Outbound DTO for progress
 │
@@ -57,7 +57,7 @@ com.backend.springapp
 
 | Rule | Detail |
 |------|--------|
-| **Flat structure** | No sub-folders inside a module — entities, repos, services, controllers, DTOs all sit at the same level. |
+| **Flat structure** | No sub-folders inside a module - entities, repos, services, controllers, DTOs all sit at the same level. |
 | **Self-contained** | Each module owns its own entities, repositories, services, controllers, request/response DTOs, and enums. |
 | **Cross-module imports are OK** | A module may import classes from another module (e.g., `ProblemService` imports `UserProgressRepository`). |
 | **Shared concerns → `common/`** | Configs, global exception handlers, security filters, or utilities go in `common/`. |
@@ -108,9 +108,9 @@ common   ──depends on──▶  problem (DataInitializer seeds Problem/Stage
 
 - **Java 17** + **Spring Boot 4.0.2**
 - **Spring Data JPA** (Hibernate) → MySQL
-- **Lombok** — boilerplate reduction
-- **Jakarta Validation** — request DTO validation
-- **Spring DevTools** — hot reload in development
+- **Lombok** - boilerplate reduction
+- **Jakarta Validation** - request DTO validation
+- **Spring DevTools** - hot reload in development
 
 ---
 
@@ -118,7 +118,7 @@ common   ──depends on──▶  problem (DataInitializer seeds Problem/Stage
 
 ### IntelliJ IDEA
 - After the restructure, do **File → Invalidate Caches / Restart** if imports show red
-- Use **Ctrl+Shift+F** (Find in Files) to search `com.backend.springapp.entity` — there should be **zero** results
+- Use **Ctrl+Shift+F** (Find in Files) to search `com.backend.springapp.entity` - there should be **zero** results
 - Use **Refactor → Move Class** (F6) if you need to move more classes in the future
 
 ### VS Code (with Java Extension Pack)

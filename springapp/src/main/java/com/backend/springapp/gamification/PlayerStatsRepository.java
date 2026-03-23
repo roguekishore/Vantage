@@ -27,7 +27,7 @@ public interface PlayerStatsRepository extends JpaRepository<PlayerStats, Long> 
 
     /* ── Phase 4: Leaderboard queries ── */
 
-    /** Global XP leaderboard — all-time XP, descending. */
+    /** Global XP leaderboard - all-time XP, descending. */
     @Query("SELECT p FROM PlayerStats p ORDER BY p.xp DESC")
     List<PlayerStats> findTopByXp(Pageable pageable);
 
@@ -35,7 +35,7 @@ public interface PlayerStatsRepository extends JpaRepository<PlayerStats, Long> 
     @Query("SELECT COUNT(p) FROM PlayerStats p WHERE p.xp > 0")
     long countWithXp();
 
-    /** Streak leaderboard — active streaks, descending. */
+    /** Streak leaderboard - active streaks, descending. */
     @Query("SELECT p FROM PlayerStats p WHERE p.currentStreak > 0 ORDER BY p.currentStreak DESC, p.longestStreak DESC")
     List<PlayerStats> findTopByStreak(Pageable pageable);
 
@@ -57,7 +57,7 @@ public interface PlayerStatsRepository extends JpaRepository<PlayerStats, Long> 
 
     /* ── Battle Rating Leaderboard ── */
 
-    /** Battle rating leaderboard — highest ELO first. */
+    /** Battle rating leaderboard - highest ELO first. */
     @Query("SELECT p FROM PlayerStats p ORDER BY p.battleRating DESC")
     List<PlayerStats> findTopByBattleRating(Pageable pageable);
 

@@ -2,9 +2,9 @@
 
 > **Backend package structure (feature-based modules):**
 > All API endpoints remain unchanged. Internally, the backend is organized as:
-> - `com.backend.springapp.problem` — Problem & Stage CRUD (`/api/problems`, `/api/stages`)
-> - `com.backend.springapp.user` — User Progress tracking (`/api/progress`)
-> - `com.backend.springapp.common` — CORS config, data seeder
+> - `com.backend.springapp.problem` - Problem & Stage CRUD (`/api/problems`, `/api/stages`)
+> - `com.backend.springapp.user` - User Progress tracking (`/api/progress`)
+> - `com.backend.springapp.common` - CORS config, data seeder
 
 ## 🚀 Quick Start
 

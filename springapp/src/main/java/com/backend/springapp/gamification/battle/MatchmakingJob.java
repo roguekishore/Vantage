@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Runs every 5 seconds — pairs compatible players in the matchmaking queue.
+ * Runs every 5 seconds - pairs compatible players in the matchmaking queue.
  */
 @Slf4j
 @Component

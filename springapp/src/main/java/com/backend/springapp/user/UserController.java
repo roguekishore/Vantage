@@ -19,13 +19,13 @@ public class UserController {
 
     private final UserService userService;
 
-    /** GET /api/users — list all users */
+    /** GET /api/users - list all users */
     @GetMapping
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
 
-    /** GET /api/users/{id} — get one user */
+    /** GET /api/users/{id} - get one user */
     @GetMapping("/{id}")
     public ResponseEntity<?> getUserById(@PathVariable Long id) {
         try {
@@ -35,7 +35,7 @@ public class UserController {
         }
     }
 
-    /** POST /api/users — create user */
+    /** POST /api/users - create user */
     @PostMapping
     public ResponseEntity<?> createUser(@Valid @RequestBody UserRequestDTO dto) {
         try {
@@ -46,7 +46,7 @@ public class UserController {
         }
     }
 
-    /** PUT /api/users/{id} — update user */
+    /** PUT /api/users/{id} - update user */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id, @Valid @RequestBody UserRequestDTO dto) {
         try {
@@ -58,7 +58,7 @@ public class UserController {
         }
     }
 
-    /** DELETE /api/users/{id} — delete user */
+    /** DELETE /api/users/{id} - delete user */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {

@@ -1,7 +1,10 @@
 package com.backend.springapp.gamification.battle;
 
+import com.backend.springapp.common.CurrentUser;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -101,7 +104,7 @@ public class BattleController {
     }
 
     /* ═══════════════════════════════════════════════════════════
-     * GROUP BATTLE — ROOM ENDPOINTS
+     * GROUP BATTLE - ROOM ENDPOINTS
      * ═══════════════════════════════════════════════════════════ */
 
     /** Create a new group room. */
@@ -159,5 +162,20 @@ public class BattleController {
     public ResponseEntity<GroupBattleResultDTO> getGroupBattleResult(@PathVariable Long id,
                                                                       @RequestParam Long userId) {
         return ResponseEntity.ok(battleService.getGroupBattleResult(id, userId));
+    }
+
+    /* ── Active Battle Check ── */
+
+    @GetMapping("/active")
+    public ResponseEntity<?> getActiveBattle(HttpServletRequest request) {
+        Long userId = CurrentUser.resolve(request);
+        if (userId == null) {
+            // Return 401 if user cannot be resolved, but don't error.
+            // It just means they are not logged in.
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        return battleService.checkForActiveBattle(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.noContent().build());
     }
 }

@@ -6,7 +6,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Runs every 30 seconds — removes players who've been in queue > 5 minutes.
+ * Runs every 30 seconds - removes players who've been in queue > 5 minutes.
  */
 @Slf4j
 @Component

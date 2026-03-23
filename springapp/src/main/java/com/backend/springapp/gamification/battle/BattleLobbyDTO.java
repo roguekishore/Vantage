@@ -3,7 +3,7 @@ package com.backend.springapp.gamification.battle;
 import java.util.List;
 
 /**
- * Lobby view — returned from GET /api/battle/{id}
+ * Lobby view - returned from GET /api/battle/{id}
  */
 public record BattleLobbyDTO(
         Long battleId,

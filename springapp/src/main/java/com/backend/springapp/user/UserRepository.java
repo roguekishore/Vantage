@@ -19,8 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByLcusername(String lcusername);
 
-    Optional<User> findBySessionToken(String sessionToken);
-
     Page<User> findByUsernameContainingIgnoreCaseAndUidNot(String username, Long uid, Pageable pageable);
 
     boolean existsByEmail(String email);

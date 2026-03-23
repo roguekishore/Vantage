@@ -1,7 +1,7 @@
 package com.backend.springapp.gamification.battle;
 
 /**
- * Submission feedback — returned from POST /api/battle/{id}/submit
+ * Submission feedback - returned from POST /api/battle/{id}/submit
  */
 public record SubmitResultDTO(
         String verdict,

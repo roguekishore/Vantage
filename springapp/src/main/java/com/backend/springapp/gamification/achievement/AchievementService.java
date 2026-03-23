@@ -51,7 +51,7 @@ public class AchievementService {
     private final GamificationService gamificationService;
 
     /* ═══════════════════════════════════════════════════════════
-     * CHECK & AWARD — PROBLEM ACHIEVEMENTS
+     * CHECK & AWARD - PROBLEM ACHIEVEMENTS
      * ═══════════════════════════════════════════════════════════ */
 
     /**
@@ -69,7 +69,7 @@ public class AchievementService {
         awarded.addAll(tryAward(userId, "SOLVE_50",    () -> solvedCount >= 50));
         awarded.addAll(tryAward(userId, "SOLVE_100",   () -> solvedCount >= 100));
 
-        // ALL_EASY / ALL_MEDIUM — compare solved vs total per difficulty
+        // ALL_EASY / ALL_MEDIUM - compare solved vs total per difficulty
         awarded.addAll(tryAward(userId, "ALL_EASY", () -> {
             long totalEasy = problemRepo.countByTag(Tag.EASY);
             if (totalEasy == 0) return false;
@@ -95,7 +95,7 @@ public class AchievementService {
     }
 
     /* ═══════════════════════════════════════════════════════════
-     * CHECK & AWARD — STREAK ACHIEVEMENTS
+     * CHECK & AWARD - STREAK ACHIEVEMENTS
      * ═══════════════════════════════════════════════════════════ */
 
     @Transactional
@@ -111,7 +111,7 @@ public class AchievementService {
     }
 
     /* ═══════════════════════════════════════════════════════════
-     * CHECK & AWARD — BATTLE ACHIEVEMENTS
+     * CHECK & AWARD - BATTLE ACHIEVEMENTS
      * ═══════════════════════════════════════════════════════════ */
 
     /**
@@ -131,10 +131,10 @@ public class AchievementService {
         awarded.addAll(tryAward(userId, "BATTLE_WIN_5",     () -> totalWins >= 5));
         awarded.addAll(tryAward(userId, "BATTLE_WIN_20",    () -> totalWins >= 20));
 
-        // SPEED_DEMON — solved a battle problem in under 5 minutes
+        // SPEED_DEMON - solved a battle problem in under 5 minutes
         awarded.addAll(tryAward(userId, "SPEED_DEMON", () -> hasSpeedDemonSolve(userId, battleId)));
 
-        // UNDERDOG — beat someone 200+ BR above you
+        // UNDERDOG - beat someone 200+ BR above you
         awarded.addAll(tryAward(userId, "UNDERDOG", () -> isUnderdogWin(userId, battleId)));
 
         return awarded;
@@ -295,7 +295,7 @@ public class AchievementService {
             case "FIRST_BATTLE_WIN", "BATTLE_WIN_5", "BATTLE_WIN_20" ->
                     (int) countBattleWins(userId);
             case "SPEED_DEMON", "UNDERDOG" -> {
-                // Binary achievements — 0 or 1
+                // Binary achievements - 0 or 1
                 boolean earned = playerAchievementRepo.existsByUserIdAndAchievementId(userId, a.getId());
                 yield earned ? 1 : 0;
             }

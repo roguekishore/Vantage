@@ -51,7 +51,7 @@ public class StreakService {
         { 365, 10000,     0 },
     };
 
-    /** Name of the Streak Shield store item — used by {@link StreakResetJob}. */
+    /** Name of the Streak Shield store item - used by {@link StreakResetJob}. */
     public static final String SHIELD_ITEM_NAME = "Streak Shield";
 
     /* ═══════════════════════════════════════════════════════════
@@ -60,7 +60,7 @@ public class StreakService {
 
     /**
      * Coin multiplier earned by the given streak.
-     * Formula: {@code min(1.5, 1.0 + streak × 0.01)} — caps at 1.5× after 50 days.
+     * Formula: {@code min(1.5, 1.0 + streak × 0.01)} - caps at 1.5× after 50 days.
      */
     public static double multiplierFor(int currentStreak) {
         return Math.min(1.5, 1.0 + currentStreak * 0.01);
@@ -78,7 +78,7 @@ public class StreakService {
      *   <li>Older / null → missed ≥ 1 day, reset to 1</li>
      * </ul>
      * Updates {@code longestStreak} and {@code lastActivityDate} in-memory.
-     * Does <b>not</b> persist — the caller is responsible for saving {@code PlayerStats}.
+     * Does <b>not</b> persist - the caller is responsible for saving {@code PlayerStats}.
      *
      * @return the new {@code currentStreak} value
      */
@@ -87,7 +87,7 @@ public class StreakService {
         LocalDate last  = stats.getLastActivityDate();
 
         if (last != null && last.equals(today)) {
-            return stats.getCurrentStreak(); // already solved today — no change
+            return stats.getCurrentStreak(); // already solved today - no change
         }
 
         if (last != null && last.equals(today.minusDays(1))) {
@@ -111,9 +111,9 @@ public class StreakService {
      * Checks whether the current streak has hit a milestone.
      * If it has, credits the bonus coins/XP directly onto {@code stats}
      * and persists a {@code STREAK_BONUS} {@link CoinTransaction} record.
-     * Does <b>not</b> save {@code PlayerStats} — the caller handles that.
+     * Does <b>not</b> save {@code PlayerStats} - the caller handles that.
      *
-     * @return {@code int[]{coinBonus, xpBonus}} — both 0 when no milestone was hit
+     * @return {@code int[]{coinBonus, xpBonus}} - both 0 when no milestone was hit
      */
     @Transactional
     public int[] checkAndCreditMilestones(PlayerStats stats) {

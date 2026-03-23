@@ -13,7 +13,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 
 /**
- * Global exception handler — catches unhandled exceptions and returns
+ * Global exception handler - catches unhandled exceptions and returns
  * structured JSON error responses instead of leaking stack traces.
  */
 @Slf4j

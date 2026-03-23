@@ -49,6 +49,9 @@ public class FriendChallenge {
 
     private Long battleId;
 
+    @Column(length = 6)
+    private String roomCode;
+
     private String closeReason;
 
     @PrePersist

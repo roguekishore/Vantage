@@ -3,7 +3,7 @@ package com.backend.springapp.gamification.battle;
 import java.time.LocalDateTime;
 
 /**
- * Compact battle history item — returned from GET /api/battle/history
+ * Compact battle history item - returned from GET /api/battle/history
  */
 public record BattleHistoryDTO(
         Long battleId,

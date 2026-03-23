@@ -66,18 +66,18 @@ public class StreakResetJob {
                     stats.setLastShieldUsedDate(LocalDate.now());
                     statsRepository.saveAndFlush(stats);
                     shieldedCount++;
-                    log.info("🛡️ StreakResetJob: Streak Shield consumed for user {} — {}-day streak preserved!",
+                    log.info("🛡️ StreakResetJob: Streak Shield consumed for user {} - {}-day streak preserved!",
                             userId, stats.getCurrentStreak());
                 } catch (IllegalStateException e) {
-                    // Race condition fallback — treat as no shield
-                    log.warn("StreakResetJob: Failed to consume shield for user {} — resetting streak: {}",
+                    // Race condition fallback - treat as no shield
+                    log.warn("StreakResetJob: Failed to consume shield for user {} - resetting streak: {}",
                             userId, e.getMessage());
                     stats.setCurrentStreak(0);
                     statsRepository.saveAndFlush(stats);
                     resetCount++;
                 }
             } else {
-                // No shield — reset the streak
+                // No shield - reset the streak
                 stats.setCurrentStreak(0);
                 statsRepository.saveAndFlush(stats);
                 resetCount++;

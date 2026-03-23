@@ -23,4 +23,6 @@ public interface BattleParticipantRepository extends JpaRepository<BattlePartici
            "JOIN Battle b ON b.id = bp.battleId " +
            "WHERE bp.userId = :userId AND b.mode = 'RANKED_1V1' AND b.state = 'COMPLETED'")
     long countCompletedRankedBattles(@Param("userId") Long userId);
+
+    List<BattleParticipant> findByUserId(Long userId);
 }

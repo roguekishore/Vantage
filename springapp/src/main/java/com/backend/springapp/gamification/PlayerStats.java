@@ -26,7 +26,7 @@ public class PlayerStats {
     @EqualsAndHashCode.Include
     private Long id;
 
-    /** FK → users.uid — one stats row per user */
+    /** FK → users.uid - one stats row per user */
     @Column(nullable = false, unique = true)
     private Long userId;
 
