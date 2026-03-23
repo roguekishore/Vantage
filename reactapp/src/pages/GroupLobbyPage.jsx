@@ -3,18 +3,23 @@ import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "../lib/utils";
 import { getStoredUser } from "../services/userApi";
 import useGroupBattleStore from "../stores/useGroupBattleStore";
+import useFriendsStore from "../stores/useFriendsStore";
 import {
-  Users, Crown, Zap, Copy, Check, ArrowLeft,
+  Users, Crown, Zap, Copy, Check,
   Play, UserX, LogOut, AlertTriangle, Loader2,
-  Shield, ChevronRight, Hash,
+  ChevronRight, Hash, Search, UserPlus,
 } from "lucide-react";
-import { Button } from "../components/ui/button";
+import CustomCursor from "../components/CustomCursor";
+import { MONUMENT_TYPO } from "../components/MonumentTypography";
+
+const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
+const BATTLE_FONT_LETTER_SPACING = MONUMENT_TYPO.letterSpacing.monument;
 
 /* ── Constants ── */
 const DIFFICULTIES = [
-  { value: "EASY",   label: "Easy",   color: "text-emerald-400", bg: "bg-emerald-500/20 border-emerald-500/40" },
-  { value: "MEDIUM", label: "Medium", color: "text-amber-400",   bg: "bg-amber-500/20 border-amber-500/40"   },
-  { value: "HARD",   label: "Hard",   color: "text-red-400",     bg: "bg-red-500/20 border-red-500/40"       },
+  { value: "EASY", label: "Easy", color: "text-emerald-400", dot: "bg-emerald-500" },
+  { value: "MEDIUM", label: "Medium", color: "text-amber-400", dot: "bg-amber-500" },
+  { value: "HARD", label: "Hard", color: "text-rose-400", dot: "bg-rose-500" },
 ];
 const PROBLEM_COUNTS = [1, 2, 3];
 const MAX_PLAYERS_OPTIONS = [3, 4, 5, 6, 7, 8];
@@ -28,6 +33,14 @@ export default function GroupLobbyPage() {
 
   const { room, roomCode, battleId, loading, error, kicked, createRoom, lookupRoom, joinRoom, leaveRoom, kickPlayer, startBattle, reset } =
     useGroupBattleStore();
+  const {
+    friends,
+    friendsPresence,
+    actionLoading: friendActionLoading,
+    loadOverview: loadFriendsOverview,
+    loadFriendsPresence,
+    sendChallenge,
+  } = useFriendsStore();
 
   /* ── Tab: create | join ── */
   const [tab, setTab] = useState(codeParam ? "join" : "create");
@@ -40,12 +53,14 @@ export default function GroupLobbyPage() {
 
   /* ── Join-room form ── */
   const [joinCode, setJoinCode] = useState(codeParam || "");
+  const [friendQuery, setFriendQuery] = useState("");
+  const [invitingFriendId, setInvitingFriendId] = useState(null);
 
   /* ── Copy feedback ── */
   const [copied, setCopied] = useState(false);
 
   /* ─ Clean up on unmount ─ */
-  useEffect(() => () => { /* don't reset on nav away — arena needs state */ }, []);
+  useEffect(() => () => { /* don't reset on nav away - arena needs state */ }, []);
 
   /* ─ If kicked, navigate home ─ */
   useEffect(() => {
@@ -56,12 +71,19 @@ export default function GroupLobbyPage() {
     }
   }, [kicked, navigate, reset]);
 
-  /* ─ If auto-joined via URL param, look up room ─ */
+  /* ─ If opened via invite link, try auto-join first ─ */
   useEffect(() => {
-    if (codeParam && !room) {
-      lookupRoom(codeParam).catch(() => {});
+    if (codeParam && userId && !room) {
+      joinRoom(codeParam, userId)
+        .catch(() => lookupRoom(codeParam).catch(() => {}));
     }
-  }, [codeParam]);
+  }, [codeParam, userId, room, joinRoom, lookupRoom]);
+
+  useEffect(() => {
+    if (!room || room.state !== "WAITING") return;
+    loadFriendsOverview();
+    loadFriendsPresence();
+  }, [room?.battleId, room?.state, loadFriendsOverview, loadFriendsPresence]);
 
   /* ─ Navigate to arena when battle starts ─ */
   useEffect(() => {
@@ -127,289 +149,496 @@ export default function GroupLobbyPage() {
     setTimeout(() => setCopied(false), 2000);
   };
 
+  const copyInviteLink = () => {
+    const link = `${window.location.origin}/group/${room?.roomCode || roomCode || ""}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleInviteFriend = async (friend) => {
+    if (!friend?.uid || !room?.roomCode || !isCreator) return;
+    setInvitingFriendId(friend.uid);
+    try {
+      await sendChallenge({
+        targetUserId: friend.uid,
+        mode: "GROUP_FFA",
+        difficulty: room.difficulty,
+        problemCount: room.problemCount,
+        roomCode: room.roomCode,
+      });
+    } finally {
+      setInvitingFriendId(null);
+    }
+  };
+
   const isCreator = room?.creatorId === userId;
   const playerCount = room?.participants?.length || 0;
   const canStart = isCreator && playerCount >= 3;
+  const participantIds = new Set((room?.participants || []).map((p) => p.userId));
+  const onlineInvitableFriends = (friends || [])
+    .filter((f) => !!friendsPresence?.[f.uid]?.online)
+    .filter((f) => !participantIds.has(f.uid) && f.uid !== userId)
+    .filter((f) => !friendQuery.trim() || f.username?.toLowerCase().includes(friendQuery.trim().toLowerCase()));
 
   /* ════════════════════════════════════ RENDER ════════════════ */
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col items-center px-4 py-12">
-      <div className="w-full max-w-2xl battle-fade-up">
+    <div className="group-battle-theme min-h-screen bg-zinc-950 pt-24 pb-16 px-4 sm:px-6" style={{ cursor: "none" }}>
+      <CustomCursor />
+      <div className="max-w-3xl mx-auto space-y-4">
 
-        {/* ── Header ── */}
-        <div className="flex items-center gap-3 mb-8">
-          <button onClick={() => navigate("/battle")}
-            className="text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold flex items-center gap-2">
-              <Users className="w-6 h-6 text-primary" />
-              Group Battle
-            </h1>
-            <p className="text-sm text-muted-foreground">Free-For-All · 3–8 players · Points-based</p>
+        {/* ── Page Header ── */}
+        <div className="battle-fade-up">
+          <div className="flex items-end justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-zinc-500 mb-2">- Group Battle</p>
+              <h1 className="battle-monument text-3xl font-black tracking-tight text-white flex items-center gap-2">
+                <Users className="w-6 h-6 text-primary" />
+                Lobby
+              </h1>
+              <p className="text-sm text-zinc-500 mt-1.5">Free-For-All · 3–8 players · Points-based</p>
+            </div>
           </div>
         </div>
 
         {/* ── Room Cancelled Banner ── */}
         {room?.state === "CANCELLED" && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 mb-4 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-            <span className="text-sm text-red-300">Room was cancelled. Redirecting…</span>
+          <div className="rounded-xl border border-red-900/40 bg-red-950/30 px-4 py-3 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            <span className="text-sm text-red-400">
+              {room?.cancelMessage || "Room was cancelled. Redirecting…"}
+            </span>
           </div>
         )}
 
         {/* ── Error Banner ── */}
         {error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 p-4 mb-4 flex items-center gap-3">
-            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-            <span className="text-sm text-red-300">{error}</span>
+          <div className="rounded-xl border border-red-900/40 bg-red-950/30 px-4 py-3 mb-4 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            <span className="text-sm text-red-400">{error}</span>
           </div>
         )}
 
         {/* ═══════════════════════════════════════════════════════
-            LOBBY PANEL — show once in a room
+            LOBBY PANEL - show once in a room
          ═══════════════════════════════════════════════════════ */}
         {room && room.state !== "CANCELLED" ? (
-          <div className="rounded-xl border border-border/60 bg-card p-6 space-y-6">
-
-            {/* Room header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <span className="text-xs text-muted-foreground uppercase tracking-widest">Room Code</span>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="text-3xl font-mono font-bold tracking-widest text-primary">
-                    {room.roomCode}
-                  </span>
-                  <button onClick={copyCode}
-                    className="text-muted-foreground hover:text-foreground transition-colors">
-                    {copied
-                      ? <Check className="w-4 h-4 text-emerald-400" />
-                      : <Copy className="w-4 h-4" />}
-                  </button>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden battle-panel">
+            {/* Card header */}
+            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center">
+                  <Users className="w-4 h-4 text-zinc-400" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-white">Room Lobby</div>
+                  <div className="text-[11px] text-zinc-500">Waiting for players to join</div>
                 </div>
               </div>
-              <div className="flex flex-col items-end gap-1">
-                <span className={cn(
-                  "text-xs font-semibold px-2 py-0.5 rounded-full",
-                  room.difficulty === "EASY" ? "bg-emerald-500/20 text-emerald-400" :
-                  room.difficulty === "MEDIUM" ? "bg-amber-500/20 text-amber-400" :
-                  "bg-red-500/20 text-red-400"
-                )}>{room.difficulty}</span>
-                <span className="text-xs text-muted-foreground">
-                  {room.problemCount} problem{room.problemCount !== 1 ? "s" : ""} · {room.durationMinutes} min
-                </span>
-              </div>
             </div>
 
-            {/* Players list */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-sm font-semibold text-foreground/80">
-                  Players ({playerCount}/{room.maxPlayers})
-                </span>
-                {!canStart && isCreator && (
-                  <span className="text-xs text-muted-foreground">Need at least 3 to start</span>
-                )}
+            <div className="p-5 space-y-5">
+              {/* Room Details Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
+                <div>
+                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block mb-1">Room Code</span>
+                  <div className="flex items-center gap-3">
+                    <span className="battle-monument text-3xl font-black tabular-nums tracking-[0.2em] text-white">
+                      {room.roomCode}
+                    </span>
+                    <button onClick={copyCode}
+                      className="p-1.5 rounded-lg hover:bg-zinc-800/40 transition-colors text-zinc-500 hover:text-white border border-zinc-800 hover:border-zinc-700">
+                      {copied
+                        ? <Check className="w-4 h-4 text-emerald-500" />
+                        : <Copy className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-sm">
+                  <span className={cn(
+                    "text-[11px] font-bold flex items-center gap-1.5",
+                    room.difficulty === "EASY" ? "text-emerald-400" :
+                    room.difficulty === "MEDIUM" ? "text-amber-400" :
+                    "text-rose-400"
+                  )}>
+                    <span className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      room.difficulty === "EASY" ? "bg-emerald-500" :
+                      room.difficulty === "MEDIUM" ? "bg-amber-500" :
+                      "bg-rose-500"
+                    )} />
+                    {room.difficulty}
+                  </span>
+                  <span className="text-xs font-medium text-zinc-500">
+                    {room.problemCount} problem{room.problemCount !== 1 ? "s" : ""} · {room.durationMinutes} min
+                  </span>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                {room.participants.map((p) => (
-                  <div key={p.userId}
-                    className="flex items-center justify-between rounded-lg border border-border/40 bg-background/50 px-3 py-2">
-                    <div className="flex items-center gap-2">
-                      {p.userId === room.creatorId
-                        ? <Crown className="w-4 h-4 text-amber-400" />
-                        : <Shield className="w-4 h-4 text-muted-foreground/40" />}
-                      <span className="font-medium text-sm">
-                        {p.username}
-                        {p.userId === userId ? <span className="ml-1 text-xs text-primary">(you)</span> : null}
-                      </span>
-                      <span className="text-xs text-muted-foreground">BR {p.battleRating}</span>
+              {/* Players list */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-sm font-bold text-white">
+                    Players ({playerCount}/{room.maxPlayers})
+                  </span>
+                  {!canStart && isCreator && (
+                    <span className="text-xs text-zinc-500">Need at least 3 to start</span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {room.participants.map((p) => (
+                    <div key={p.userId}
+                      className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-sm font-bold text-zinc-300 uppercase">
+                          {p.username?.charAt(0)?.toUpperCase() || "?"}
+                        </div>
+                        <div>
+                          <div className="font-bold text-sm text-white flex items-center gap-1.5">
+                            {p.username}
+                            {p.userId === room.creatorId && <Crown className="w-3.5 h-3.5 text-amber-500" />}
+                            {p.userId === userId && <span className="text-[9px] px-1.5 py-0.5 rounded-lg bg-primary/20 text-primary font-black uppercase tracking-widest">YOU</span>}
+                          </div>
+                          <div className="text-[11px] text-zinc-500 mt-0.5">BR {p.battleRating}</div>
+                        </div>
+                      </div>
+
+                      {/* Kick button - creator only, not on self */}
+                      {isCreator && p.userId !== userId && (
+                        <button onClick={() => handleKick(p.userId)}
+                          className="p-1.5 rounded-lg text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-colors"
+                          title="Kick player">
+                          <UserX className="w-4 h-4" />
+                        </button>
+                      )}
                     </div>
+                  ))}
 
-                    {/* Kick button — creator only, not on self */}
-                    {isCreator && p.userId !== userId && (
-                      <button onClick={() => handleKick(p.userId)}
-                        className="text-muted-foreground hover:text-red-400 transition-colors p-1 rounded"
-                        title="Kick player">
-                        <UserX className="w-4 h-4" />
-                      </button>
-                    )}
-                  </div>
-                ))}
-
-                {/* Empty slots */}
-                {Array.from({ length: Math.max(0, room.maxPlayers - playerCount) }).map((_, i) => (
-                  <div key={i}
-                    className="flex items-center gap-2 rounded-lg border border-dashed border-border/30 px-3 py-2">
-                    <div className="w-4 h-4 rounded-full border border-dashed border-border/40" />
-                    <span className="text-xs text-muted-foreground italic">Waiting for player…</span>
-                  </div>
-                ))}
+                  {/* Empty slots */}
+                  {Array.from({ length: Math.max(0, room.maxPlayers - playerCount) }).map((_, i) => (
+                    <div key={`empty-${i}`}
+                      className="flex items-center gap-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-950 p-3 opacity-60">
+                      <div className="w-10 h-10 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-zinc-600" />
+                      </div>
+                      <span className="text-sm font-medium text-zinc-500">Waiting...</span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
 
-            {/* Share link */}
-            <div className="rounded-lg border border-border/40 bg-background/40 px-3 py-2 flex items-center gap-2">
-              <Hash className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
-              <span className="text-xs text-muted-foreground truncate">
-                Share: {window.location.origin}/group/{room.roomCode}
-              </span>
-              <button onClick={copyCode}
-                className="ml-auto text-muted-foreground hover:text-primary transition-colors shrink-0">
-                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-
-            {/* Actions */}
-            <div className="flex gap-3">
-              {isCreator && (
-                <Button onClick={handleStart} disabled={!canStart || loading}
-                  className="flex-1 gap-2">
-                  {loading
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Play className="w-4 h-4" />}
-                  Start Battle
-                </Button>
+              {/* Share link (temporarily hidden) */}
+              {false && (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 flex items-center gap-3">
+                  <div className="p-1.5 rounded-lg bg-zinc-800 border border-zinc-700/60">
+                    <Hash className="w-4 h-4 text-zinc-500" />
+                  </div>
+                  <span className="text-xs font-mono text-zinc-500 truncate flex-1">
+                    {window.location.origin}/group/{room.roomCode}
+                  </span>
+                  <button onClick={copyInviteLink}
+                    className="px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-zinc-500 hover:text-white transition-colors shrink-0 flex items-center gap-1.5">
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? "Copied" : "Copy Link"}
+                  </button>
+                </div>
               )}
-              <Button variant="outline" onClick={handleLeave}
-                className="gap-2 text-muted-foreground hover:text-red-400">
-                <LogOut className="w-4 h-4" /> Leave
-              </Button>
+
+              {/* Invite online friends (temporarily hidden) */}
+              {false && isCreator && (
+                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">
+                      Invite Online Friends
+                    </span>
+                    <span className="text-[11px] text-zinc-500">{onlineInvitableFriends.length} available</span>
+                  </div>
+
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
+                    <input
+                      value={friendQuery}
+                      onChange={(e) => setFriendQuery(e.target.value)}
+                      placeholder="Search online friends…"
+                      className="w-full h-9 rounded-lg border border-zinc-800 bg-zinc-900 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+                    />
+                  </div>
+
+                  {onlineInvitableFriends.length === 0 ? (
+                    <div className="text-xs text-zinc-500 px-1 py-1">
+                      No online friends available to invite.
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-44 overflow-auto pr-1">
+                      {onlineInvitableFriends.slice(0, 10).map((f) => {
+                        const busy = invitingFriendId === f.uid && friendActionLoading;
+                        return (
+                          <div key={f.uid} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-2">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-zinc-200 truncate">{f.username}</div>
+                              <div className="text-[11px] text-emerald-400">Online</div>
+                            </div>
+                            <button
+                              onClick={() => handleInviteFriend(f)}
+                              disabled={friendActionLoading}
+                              className="h-8 px-3 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5"
+                            >
+                              {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
+                              Invite
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex gap-3 pt-2">
+                {isCreator && (
+                  <button 
+                    onClick={handleStart} 
+                    disabled={!canStart || loading}
+                    className={cn(
+                      "flex-1 h-11 rounded-xl font-bold text-sm transition-all",
+                      "flex items-center justify-center gap-2",
+                      canStart && !loading 
+                        ? "bg-primary text-primary-foreground hover:opacity-90" 
+                        : "bg-zinc-800 text-zinc-600 opacity-60 cursor-not-allowed"
+                    )}>
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                    Start Battle
+                  </button>
+                )}
+                <button 
+                  onClick={handleLeave}
+                  className={cn(
+                    "h-11 px-6 rounded-xl font-bold text-sm transition-all",
+                    "flex items-center justify-center gap-2",
+                    "border border-zinc-800 bg-zinc-950 text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-zinc-700",
+                    !isCreator && "flex-1"
+                  )}>
+                  <LogOut className="w-4 h-4" /> Leave
+                </button>
+              </div>
             </div>
           </div>
-
         ) : (
           /* ═══════════════════════════════════════════════════════
               CREATE / JOIN PANEL
            ═══════════════════════════════════════════════════════ */
-          <div className="rounded-xl border border-border/60 bg-card p-6">
-
-            {/* Tabs */}
-            <div className="flex gap-1 mb-6 bg-background/60 rounded-lg p-1">
-              {["create", "join"].map((t) => (
-                <button key={t} onClick={() => setTab(t)}
-                  className={cn(
-                    "flex-1 py-2 rounded-md text-sm font-medium transition-all",
-                    tab === t
-                      ? "bg-primary text-primary-foreground shadow"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}>
-                  {t === "create" ? "Create Room" : "Join Room"}
-                </button>
-              ))}
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden battle-panel">
+            {/* Card header */}
+            <div className="px-5 py-4 border-b border-zinc-800 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center">
+                <Users className="w-4 h-4 text-zinc-500" />
+              </div>
+              <div>
+                <div className="text-sm font-bold text-white">Room Setup</div>
+                <div className="text-[11px] text-zinc-500">Create or join a group battle</div>
+              </div>
             </div>
 
-            {/* ── Create Room Form ── */}
-            {tab === "create" && (
-              <div className="space-y-5 battle-fade-up-delay-1">
-                {/* Difficulty */}
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 block">
-                    Difficulty
-                  </label>
-                  <div className="flex gap-2">
-                    {DIFFICULTIES.map((d) => (
-                      <button key={d.value} onClick={() => setDifficulty(d.value)}
-                        className={cn(
-                          "flex-1 py-2 rounded-lg border text-sm font-semibold transition-all",
-                          difficulty === d.value ? d.bg : "border-border/40 text-muted-foreground hover:border-border"
-                        )}>
-                        <span className={difficulty === d.value ? d.color : ""}>{d.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Problem Count */}
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 block">
-                    Problems
-                  </label>
-                  <div className="flex gap-2">
-                    {PROBLEM_COUNTS.map((n) => (
-                      <button key={n} onClick={() => { setProblemCount(n); setDurationMinutes(n * 15); }}
-                        className={cn(
-                          "flex-1 py-2 rounded-lg border text-sm font-semibold transition-all",
-                          problemCount === n
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border/40 text-muted-foreground hover:border-border"
-                        )}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">{durationMinutes} min time limit</p>
-                </div>
-
-                {/* Max Players */}
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 block">
-                    Max Players
-                  </label>
-                  <div className="flex gap-1.5 flex-wrap">
-                    {MAX_PLAYERS_OPTIONS.map((n) => (
-                      <button key={n} onClick={() => setMaxPlayers(n)}
-                        className={cn(
-                          "w-10 h-10 rounded-lg border text-sm font-semibold transition-all",
-                          maxPlayers === n
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border/40 text-muted-foreground hover:border-border"
-                        )}>
-                        {n}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Scoring note */}
-                <div className="rounded-lg border border-border/30 bg-background/40 p-3 text-xs text-muted-foreground space-y-1">
-                  <p className="font-semibold text-foreground/60">⚡ FFA Scoring</p>
-                  <p>Points = base × time_bonus × accuracy</p>
-                  <p>Easy: 100 · Medium: 250 · Hard: 500 base points</p>
-                  <p>Faster solves & fewer wrong answers earn more.</p>
-                </div>
-
-                <Button onClick={handleCreate} disabled={loading} className="w-full gap-2">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-                  Create Room
-                </Button>
-              </div>
-            )}
-
-            {/* ── Join Room Form ── */}
-            {tab === "join" && (
-              <div className="space-y-5 battle-fade-up-delay-1">
-                <div>
-                  <label className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2 block">
-                    Room Code
-                  </label>
-                  <input
-                    value={joinCode}
-                    onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
-                    placeholder="ABC123"
-                    maxLength={6}
+            <div className="p-5 space-y-5">
+              {/* Tabs */}
+              <div className="flex gap-1 mb-6 bg-zinc-950 rounded-xl p-1 border border-zinc-800">
+                {["create", "join"].map((t) => (
+                  <button key={t} onClick={() => setTab(t)}
                     className={cn(
-                      "w-full rounded-lg border border-border/60 bg-background px-4 py-3",
-                      "text-2xl font-mono font-bold tracking-[0.4em] text-center",
-                      "focus:outline-none focus:border-primary/60 transition-colors uppercase"
-                    )}
-                  />
-                  <p className="text-xs text-muted-foreground mt-1 text-center">
-                    Enter the 6-character code shared by the room creator.
-                  </p>
-                </div>
-
-                <Button onClick={handleJoin} disabled={loading || joinCode.length !== 6} className="w-full gap-2">
-                  {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-                  Join Room
-                </Button>
+                      "flex-1 py-2 rounded-lg text-sm font-bold transition-all",
+                      tab === t
+                        ? "bg-white text-zinc-950"
+                        : "text-zinc-500 hover:text-zinc-300"
+                    )}>
+                    {t === "create" ? "Create Room" : "Join Room"}
+                  </button>
+                ))}
               </div>
-            )}
+
+              {/* ── Create Room Form ── */}
+              {tab === "create" && (
+                <div className="space-y-6 battle-fade-up-delay-1">
+                  {/* Difficulty */}
+                  <div className="space-y-2.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
+                      Difficulty
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {DIFFICULTIES.map((d) => {
+                        const active = difficulty === d.value;
+                        return (
+                          <button key={d.value} onClick={() => setDifficulty(d.value)}
+                            className={cn(
+                              "py-2 rounded-xl border text-sm font-bold transition-all flex items-center justify-center gap-1.5",
+                              active
+                                ? "bg-zinc-800 border-zinc-600 text-white"
+                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                            )}>
+                            <span className={cn("w-1.5 h-1.5 rounded-full", d.dot)} />
+                            <span className={cn(active ? "text-white" : d.color)}>{d.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Problem Count */}
+                  <div className="space-y-2.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
+                      Problems
+                    </label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {PROBLEM_COUNTS.map((n) => {
+                        const active = problemCount === n;
+                        return (
+                          <button key={n} onClick={() => { setProblemCount(n); setDurationMinutes(n * 15); }}
+                            className={cn(
+                              "py-2 rounded-xl border text-sm font-bold transition-all",
+                              active
+                                ? "bg-white text-zinc-950 border-white"
+                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                            )}>
+                            {n}
+                            <span className="text-[10px] font-normal opacity-60 ml-1">·{n * 15}m</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Max Players */}
+                  <div className="space-y-2.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
+                      Max Players
+                    </label>
+                    <div className="flex gap-2 flex-wrap">
+                      {MAX_PLAYERS_OPTIONS.map((n) => {
+                        const active = maxPlayers === n;
+                        return (
+                          <button key={n} onClick={() => setMaxPlayers(n)}
+                            className={cn(
+                              "w-10 h-10 rounded-lg border text-sm font-bold transition-all",
+                              active
+                                ? "bg-white text-zinc-950 border-white"
+                                : "bg-zinc-950 text-zinc-500 hover:text-zinc-300 border-zinc-800 hover:border-zinc-700"
+                            )}>
+                            {n}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Scoring note */}
+                  <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs text-zinc-500 space-y-1.5 flex gap-3">
+                    <div className="mt-0.5">
+                      <Zap className="w-4 h-4 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-white">FFA Scoring System</p>
+                      <p className="leading-relaxed">Points = base × time_bonus × accuracy</p>
+                      <p className="leading-relaxed">Base points: Easy (100) · Medium (250) · Hard (500)</p>
+                      <p className="leading-relaxed">Faster solves and fewer wrong answers earn you more points.</p>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={handleCreate} 
+                    disabled={loading} 
+                    className={cn(
+                      "w-full h-11 rounded-xl font-bold text-sm transition-all mt-4",
+                      "flex items-center justify-center gap-2",
+                      "bg-primary text-primary-foreground",
+                      "hover:opacity-90",
+                      "disabled:opacity-40 disabled:cursor-not-allowed",
+                      ""
+                    )}
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
+                    Create Room
+                  </button>
+                </div>
+              )}
+
+              {/* ── Join Room Form ── */}
+              {tab === "join" && (
+                <div className="space-y-6 battle-fade-up-delay-1">
+                  <div className="space-y-2.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
+                      Room Code
+                    </label>
+                    <input
+                      value={joinCode}
+                      onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
+                      placeholder="ABC123"
+                      maxLength={6}
+                      className={cn(
+                        "w-full h-14 rounded-xl border border-zinc-800 bg-zinc-950 px-4",
+                        "battle-monument text-2xl font-black tracking-[0.4em] text-center text-white",
+                        "focus:outline-none focus:border-zinc-600 transition-colors uppercase",
+                        "placeholder:text-zinc-600"
+                      )}
+                    />
+                    <p className="text-xs text-zinc-500 mt-1 text-center">
+                      Enter the 6-character code shared by the room creator.
+                    </p>
+                  </div>
+
+                  <button 
+                    onClick={handleJoin} 
+                    disabled={loading || joinCode.length !== 6} 
+                    className={cn(
+                      "w-full h-11 rounded-xl font-bold text-sm transition-all mt-4",
+                      "flex items-center justify-center gap-2",
+                      "bg-primary text-primary-foreground",
+                      "hover:opacity-90",
+                      "disabled:opacity-40 disabled:cursor-not-allowed",
+                      ""
+                    )}
+                  >
+                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
+                    Join Room
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
+      <style>{`
+        .group-battle-theme{position:relative;overflow-x:hidden}
+        .group-battle-theme::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;
+          background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+          background-size:200px;z-index:0}
+        .group-battle-theme::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.014;
+          background-image:linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px);
+          background-size:64px 64px;z-index:0}
+        .group-battle-theme > div{position:relative;z-index:1}
+        .group-battle-theme .bg-zinc-900{background:#0d0d10!important}
+        .group-battle-theme .bg-zinc-950{background:#09090b!important}
+        .group-battle-theme .border-zinc-800{border-color:rgba(255,255,255,.06)!important}
+        .group-battle-theme .border-zinc-700{border-color:rgba(255,255,255,.12)!important}
+        .group-battle-theme .bg-primary{background:#EDFF66!important;color:#09090b!important}
+        .group-battle-theme .text-primary{color:#EDFF66!important}
+        .group-battle-theme .border-primary\/20{border-color:rgba(237,255,102,.22)!important}
+        .group-battle-theme .bg-primary\/10{background:rgba(237,255,102,.1)!important}
+        .group-battle-theme .text-primary-foreground{color:#09090b!important}
+        .group-battle-theme .text-zinc-500{color:rgba(255,255,255,.35)!important}
+        .group-battle-theme .text-zinc-600{color:rgba(255,255,255,.22)!important}
+        .group-battle-theme .rounded-2xl{border-radius:18px!important}
+        .group-battle-theme .rounded-xl{border-radius:12px!important}
+        .group-battle-theme .battle-panel{position:relative;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset}
+        .group-battle-theme .battle-panel::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;
+          background:linear-gradient(90deg,rgba(237,255,102,.65),rgba(237,255,102,0));pointer-events:none}
+        .group-battle-theme .battle-monument{font-family:${BATTLE_FONT_FAMILY};letter-spacing:${BATTLE_FONT_LETTER_SPACING}}
+        .group-battle-theme input.battle-monument::placeholder{letter-spacing:.08em;font-family:inherit}
+        .group-battle-theme .hover\:opacity-90:hover{opacity:.86!important}
+        .group-battle-theme .hover\:text-rose-400:hover{color:#f87171!important}
+        .group-battle-theme button{cursor:none!important}
+      `}</style>
     </div>
   );
 }

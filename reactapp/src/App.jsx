@@ -1,12 +1,11 @@
 import React, { lazy, Suspense, useState, useEffect, useRef } from "react";
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "./components/theme-provider";
 import ZentryNavbar from "./components/zentry/ZentryNavbar";
 import HomePage from "./pages/HomePage";
 import AppRoutes from "./routes";
 import WorldMap from "./map/WorldMap";
-import LoginPage from "./pages/LoginPage";
-import SignupPage from "./pages/SignupPage";
+import AuthPage from "./pages/AuthPage";
 import ProfilePage from "./pages/ProfilePage";
 import StorePage from "./pages/StorePage";
 import InventoryPage from "./pages/InventoryPage";
@@ -26,6 +25,7 @@ import useFriendsStore from "./stores/useFriendsStore";
 import useProgressStore from "./map/useProgressStore";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FriendChallengeModal from "./components/FriendChallengeModal";
+import useBattleStore from "./stores/useBattleStore";
 
 const JudgePage = lazy(() => import("./pages/judge/JudgePage"));
 const ProblemListPage = lazy(() => import("./pages/problems/ProblemListPage"));
@@ -40,6 +40,25 @@ const NAVBAR_HIDDEN_PATHS = [
 
 const TRANSPARENT_NAVBAR_PATHS = [
   '/',
+];
+
+const ZINC_LIGHT_SCOPE_PATHS = [
+  '/login',
+  '/signup',
+  '/problem',
+  '/profile',
+  '/store',
+  '/inventory',
+  '/leaderboard',
+  '/battle',
+  '/achievements',
+  '/friends',
+  '/group',
+  '/problems',
+];
+
+const MAP_DARK_LOCK_PATHS = [
+  '/map',
 ];
 
 function ScrollToTop() {
@@ -57,16 +76,23 @@ function ScrollToTop() {
  * On login  → loads gamification stats, achievements, and problem progress.
  * On logout → clears all stores so no stale data leaks between sessions.
  *
- * This is the SINGLE place that bootstraps the universal state layer —
+ * This is the SINGLE place that bootstraps the universal state layer -
  * individual pages / components no longer need to kick off their own fetches
  * for the core data (coins, XP, streak, badges, solved problems).
  */
 function useAppInit() {
   const user = useUserStore((s) => s.user);
+  const hydrateSession = useUserStore((s) => s.hydrateSession);
   const uid = user?.uid ?? null;
 
   // Keep a ref to the previous uid so we can detect genuine changes
   const prevUidRef = useRef(undefined);
+
+  // Boot once: if only cookie exists (no local token/user persisted),
+  // recover authenticated user profile from /api/auth/me.
+  useEffect(() => {
+    hydrateSession();
+  }, [hydrateSession]);
 
   useEffect(() => {
     const prev = prevUidRef.current;
@@ -100,6 +126,10 @@ function useAppInit() {
 
 function AppContent() {
   const location = useLocation();
+  const navigate = useNavigate();
+  const user = useUserStore((s) => s.user);
+  const uid = user?.uid ?? null;
+  const { activeBattleState, battleId, activeBattleMode, activeBattleRoomCode, checkActiveBattle, fetchLobby } = useBattleStore();
 
   // Bootstrap all global stores (gamification, achievements, progress)
   // whenever the logged-in user changes.
@@ -111,20 +141,58 @@ function AppContent() {
   // Scroll listener
   useEffect(() => {
     let lastScrollY = window.scrollY;
+    let frameId = null;
 
-    const handleScroll = () => {
+    const update = () => {
+      frameId = null;
       const currentScrollY = window.scrollY;
       const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+      const nextDirection = currentScrollY > lastScrollY ? 1 : -1;
+      const nextProgress = maxScroll > 0 ? currentScrollY / maxScroll : 0;
 
-      setScrollDirection(currentScrollY > lastScrollY ? 1 : -1);
-      setScrollProgress(maxScroll > 0 ? currentScrollY / maxScroll : 0);
+      setScrollDirection((prev) => (prev === nextDirection ? prev : nextDirection));
+      setScrollProgress((prev) => (Math.abs(prev - nextProgress) < 0.001 ? prev : nextProgress));
 
       lastScrollY = currentScrollY;
     };
 
+    const handleScroll = () => {
+      if (frameId != null) return;
+      frameId = window.requestAnimationFrame(update);
+    };
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frameId != null) window.cancelAnimationFrame(frameId);
+    };
   }, []);
+
+  useEffect(() => {
+    const body = window.document.body;
+    const shouldUseZincLightScope = ZINC_LIGHT_SCOPE_PATHS.some((path) =>
+      location.pathname === path || location.pathname.startsWith(path + '/')
+    );
+    const isMapPage = MAP_DARK_LOCK_PATHS.some((path) =>
+      location.pathname === path || location.pathname.startsWith(path + '/')
+    );
+
+    body.classList.toggle('vantage-zinc-pages', shouldUseZincLightScope && !isMapPage);
+    body.classList.toggle('vantage-map-page', isMapPage);
+
+    return () => {
+      body.classList.remove('vantage-zinc-pages');
+      body.classList.remove('vantage-map-page');
+    };
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!uid) return;
+
+    checkActiveBattle(uid);
+    const interval = setInterval(() => checkActiveBattle(uid), 15000);
+    return () => clearInterval(interval);
+  }, [uid, location.pathname, checkActiveBattle]);
 
   // Check if navbar should be shown for current path
   const showNavbar = !NAVBAR_HIDDEN_PATHS.some(path =>
@@ -137,6 +205,36 @@ function AppContent() {
   );
 
   const showScrollTop = scrollProgress > 0.1;
+  const hideBattleOverlay =
+    location.pathname === "/battle" ||
+    location.pathname.startsWith("/battle/match/") ||
+    location.pathname.startsWith("/battle/result/") ||
+    location.pathname === "/group" ||
+    location.pathname.startsWith("/group/") ||
+    location.pathname === "/login" ||
+    location.pathname === "/signup";
+
+  const handleBattleOverlayJoin = async () => {
+    if (!battleId || !uid) return;
+    const isGroup = activeBattleMode === "GROUP_FFA";
+
+    if (activeBattleState === "ACTIVE") {
+      navigate(isGroup ? `/group/match/${battleId}` : `/battle/match/${battleId}`);
+      return;
+    }
+    if (activeBattleState === "WAITING") {
+      if (isGroup && activeBattleRoomCode) {
+        navigate(`/group/${activeBattleRoomCode}`);
+        return;
+      }
+      try {
+        await fetchLobby(battleId, uid);
+      } catch {
+        // ignore and still route to battle page
+      }
+      navigate("/battle");
+    }
+  };
 
   return (
     <div>
@@ -154,8 +252,8 @@ function AppContent() {
       <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>Loading...</div>}>
         <Routes>
           <Route path="/" element={<HomePage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
+          <Route path="/login" element={<AuthPage initialMode="login" />} />
+          <Route path="/signup" element={<AuthPage initialMode="signup" />} />
           <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
           <Route path="/store" element={<ProtectedRoute><StorePage /></ProtectedRoute>} />
           <Route path="/inventory" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
@@ -177,6 +275,70 @@ function AppContent() {
       </Suspense>
 
       <FriendChallengeModal />
+
+      {!hideBattleOverlay && activeBattleState && battleId && (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            transform: "translateX(-50%)",
+            bottom: "1.2rem",
+            width: "min(760px, calc(100vw - 2rem))",
+            zIndex: 9998,
+            borderRadius: 14,
+            border: "1px solid rgba(248,113,113,0.3)",
+            background: "rgba(13,13,16,0.9)",
+            backdropFilter: "blur(12px)",
+            boxShadow: "0 12px 36px rgba(0,0,0,0.45)",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "12px 14px",
+          }}
+        >
+          <div
+            style={{
+              width: 10,
+              height: 10,
+              borderRadius: "50%",
+              background: activeBattleState === "ACTIVE" ? "#f87171" : "#fbbf24",
+              boxShadow:
+                activeBattleState === "ACTIVE"
+                  ? "0 0 12px rgba(248,113,113,0.9)"
+                  : "0 0 12px rgba(251,191,36,0.85)",
+              flexShrink: 0,
+            }}
+          />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
+              Ongoing Battle
+            </div>
+            <div style={{ fontSize: 13, color: "#fff" }}>
+              You have a battle {activeBattleState === "ACTIVE" ? "in progress" : "waiting in lobby"}.
+            </div>
+          </div>
+
+          <button
+            onClick={handleBattleOverlayJoin}
+            style={{
+              height: 36,
+              borderRadius: 10,
+              border: "none",
+              padding: "0 14px",
+              background: "#EDFF66",
+              color: "#09090b",
+              fontSize: 11,
+              fontWeight: 900,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              cursor: "pointer",
+              flexShrink: 0,
+            }}
+          >
+            {activeBattleState === "ACTIVE" ? "Rejoin Battle" : "Rejoin Lobby"}
+          </button>
+        </div>
+      )}
 
       {/* Scroll to Top Button */}
       <button

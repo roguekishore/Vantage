@@ -655,7 +655,7 @@ const PowerOfTwo = ({ navigate }) => {
                       <div className="flex justify-between items-center py-2">
                         <span className="text-theme-secondary">Active Line</span>
                         <span className="font-mono font-bold text-success">
-                          {line || "—"}
+                          {line || "-"}
                         </span>
                       </div>
                     </div>

@@ -3,10 +3,10 @@ import { cn } from "../../lib/utils";
 import { Badge } from "../ui/badge";
 
 /**
- * VisualizerShell — outermost page layout wrapper.
+ * VisualizerShell - outermost page layout wrapper.
  *
  * Clean Inter font, tight tracking, shadcn Badge for LeetCode tag.
- * No shadows anywhere — just clean spacing and typography.
+ * No shadows anywhere - just clean spacing and typography.
  */
 const VisualizerShell = ({ title, subtitle, icon, leetcode, children, className }) => {
   return (

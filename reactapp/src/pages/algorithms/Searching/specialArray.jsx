@@ -467,10 +467,10 @@ const SpecialArray = () => {
               </h4>
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
-                  <strong>Time:</strong> <span className="font-mono text-teal300">O(N²)</span> — check N+1 values, each requires O(N) scan
+                  <strong>Time:</strong> <span className="font-mono text-teal300">O(N²)</span> - check N+1 values, each requires O(N) scan
                 </div>
                 <div>
-                  <strong>Space:</strong> <span className="font-mono text-teal300">O(1)</span> — constant extra space
+                  <strong>Space:</strong> <span className="font-mono text-teal300">O(1)</span> - constant extra space
                 </div>
                 <div>
                   <strong>Optimization:</strong> Sort + binary search can achieve O(N log N)

@@ -1,16 +1,12 @@
 import { authFetch, API_BASE } from "./api";
+import useUserStore from "@/stores/useUserStore";
 
 /**
  * Get the current logged-in user from localStorage.
  * Returns null if not logged in.
  */
 export function getStoredUser() {
-  try {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+  return useUserStore.getState().user ?? null;
 }
 
 /**

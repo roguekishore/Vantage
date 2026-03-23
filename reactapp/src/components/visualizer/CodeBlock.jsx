@@ -4,7 +4,7 @@ import { Code } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * CodeBlock — pseudocode panel with active-line highlighting.
+ * CodeBlock - pseudocode panel with active-line highlighting.
  *
  * Supports Format A (token-based) and Format B (plain string).
  * Clean card border, no shadow, mono font, subtle line highlight.

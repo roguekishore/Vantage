@@ -627,7 +627,7 @@ const ReverseBits = ({ navigate }) => {
                       <div className="flex justify-between items-center py-2 border-b border-purple700/30">
                         <span className="text-theme-secondary">Current Bit</span>
                         <span className="font-mono font-bold text-warning">
-                          {currentBit !== null ? currentBit : "—"}
+                          {currentBit !== null ? currentBit : "-"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-2 border-b border-purple700/30">
@@ -645,7 +645,7 @@ const ReverseBits = ({ navigate }) => {
                       <div className="flex justify-between items-center py-2">
                         <span className="text-theme-secondary">Active Line</span>
                         <span className="font-mono font-bold text-success">
-                          {line || "—"}
+                          {line || "-"}
                         </span>
                       </div>
                     </div>

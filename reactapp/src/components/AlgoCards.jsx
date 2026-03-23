@@ -254,7 +254,7 @@ const AlgoCard = ({ algo, accent, index, basePath, col, row }) => {
         willChange: "transform",
       }}
     >
-      {/* Radial glow — subtle */}
+      {/* Radial glow - subtle */}
       <div style={{
         position: "absolute", top: -30, right: -30,
         width: 160, height: 160, borderRadius: "50%",

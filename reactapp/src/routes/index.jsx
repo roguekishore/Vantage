@@ -475,7 +475,7 @@ const AppRoutes = () => {
         <Route path={`${pathfinding.path}/FloodFill`} element={<VisualizerRoute component={FloodFill} title="Flood Fill" topic="pathfinding" />} />
         <Route path={`${pathfinding.path}/RatInMaze`} element={<VisualizerRoute component={RatInMaze} title="Rat in Maze" topic="pathfinding" />} />
 
-        {/* 404 catch-all — must be last */}
+        {/* 404 catch-all - must be last */}
         <Route path="*" element={
           <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '1rem', color: 'var(--home-muted, #888)' }}>
             <h1 style={{ fontSize: '3rem', margin: 0 }}>404</h1>

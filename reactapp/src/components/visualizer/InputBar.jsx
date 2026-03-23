@@ -4,7 +4,7 @@ import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 
 /**
- * InputBar — labeled input field with optional action button.
+ * InputBar - labeled input field with optional action button.
  *
  * Uses shadcn Input and Button for consistent styling.
  */

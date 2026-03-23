@@ -883,7 +883,7 @@ const PrintBinaryTreeVisualizer = () => {
                   <span className="font-mono text-teal300">
                     O(h * 2ʰ)
                   </span>{" "}
-                  — The algorithm performs two passes. First, `getHeight` runs in
+                  - The algorithm performs two passes. First, `getHeight` runs in
                   O(N) time (N=nodes). Second, the `fill` function visits
                   each cell of the `m x n` matrix. Since `m = h+1` and `n =
                   2^(h+1)-1`, the time is proportional to the matrix size,
@@ -894,7 +894,7 @@ const PrintBinaryTreeVisualizer = () => {
                   <span className="font-mono text-teal300">
                     O(h * 2ʰ)
                   </span>{" "}
-                  — The space is dominated by the output matrix `res`.
+                  - The space is dominated by the output matrix `res`.
                   The recursion stack depth is at most O(h).
                 </div>
                 <div>

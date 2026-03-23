@@ -5,7 +5,7 @@ import { Separator } from "../ui/separator";
 import { Code } from "lucide-react";
 
 /**
- * LangTabs — C++ / Python / Java code tabs.
+ * LangTabs - C++ / Python / Java code tabs.
  *
  * Uses shadcn Tabs for a clean, professional tab bar.
  */

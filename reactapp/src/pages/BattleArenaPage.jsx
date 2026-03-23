@@ -3,88 +3,104 @@ import { useParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import useBattleStore from "../stores/useBattleStore";
 import { getStoredUser } from "../services/userApi";
-import {
-  fetchProblem as fetchJudgeProblem,
-  runCode,
-} from "../services/judgeApi";
-import { useTheme } from "../components/theme-provider";
-import { cn } from "../lib/utils";
+import { fetchProblem as fetchJudgeProblem, runCode } from "../services/judgeApi";
+import { resolveJudgeProblemId } from "../lib/judgeProblemIdResolver";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
 import { ScrollArea } from "../components/ui/scroll-area";
-import { Separator } from "../components/ui/separator";
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
+  ResizablePanelGroup, ResizablePanel, ResizableHandle,
 } from "../components/ui/resizable";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
+  Tooltip, TooltipTrigger, TooltipContent, TooltipProvider,
 } from "../components/ui/tooltip";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
+  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
+  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
 } from "../components/ui/dropdown-menu";
 import {
-  Swords, Timer, AlertTriangle, CheckCircle2,
-  XCircle, Loader2, Flag, ChevronLeft, ChevronRight,
-  Play, Clock, Terminal, SquareTerminal, FlaskConical,
-  BookOpen, ListChecks, RotateCcw, Copy, Check, Plus, X,
-  ChevronDown, Braces, Code2, Zap, CircleDot, Hash, ArrowUpRight,
+  Swords, Timer, AlertTriangle, CheckCircle2, XCircle,
+  Loader2, Flag, ChevronLeft, ChevronRight, Play, Clock,
+  Terminal, SquareTerminal, FlaskConical, BookOpen, ListChecks,
+  RotateCcw, Copy, Check, Plus, X, ChevronDown, Braces,
+  Code2, Zap, CircleDot, Hash, ArrowUpRight,
 } from "lucide-react";
+import CustomCursor from "../components/CustomCursor";
+import { MONUMENT_TYPO } from "../components/MonumentTypography";
 import "./judge/Judge.css";
 
-/* ── Constants ── */
+const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
+const BATTLE_FONT_LETTER_SPACING = MONUMENT_TYPO.letterSpacing.monument;
+
 const LANGUAGES = [
-  { value: "cpp", label: "C++", monacoId: "cpp" },
+  { value: "cpp",  label: "C++",  monacoId: "cpp"  },
   { value: "java", label: "Java", monacoId: "java" },
 ];
 
+/* ── Inline style constants ── */
+const S = {
+  bg:        "#09090b",
+  surface:   "#0c0c0f",
+  border:    "rgba(255,255,255,0.2)",
+  borderSub: "rgba(255,255,255,0.16)",
+  textPri:   "#ffffff",
+  textSec:   "rgba(255,255,255,0.32)",
+  textMeta:  "rgba(255,255,255,0.18)",
+  acid:      "#EDFF66",
+  red:       "#f87171",
+  green:     "#34d399",
+  amber:     "#fbbf24",
+  violet:    "#c4b5fd",
+};
+
+/* ── Verdict config ── */
+const VERDICT_CFG = {
+  ACCEPTED:      { color: S.green,  bgColor: "rgba(52,211,153,0.08)",   border: "rgba(52,211,153,0.2)",  label: "Accepted"             },
+  WRONG_ANSWER:  { color: S.red,    bgColor: "rgba(248,113,113,0.08)",  border: "rgba(248,113,113,0.2)", label: "Wrong Answer"         },
+  TIME_LIMIT:    { color: S.amber,  bgColor: "rgba(251,191,36,0.08)",   border: "rgba(251,191,36,0.2)",  label: "Time Limit Exceeded"  },
+  COMPILE_ERROR: { color: S.red,    bgColor: "rgba(248,113,113,0.08)",  border: "rgba(248,113,113,0.2)", label: "Compilation Error"    },
+  RUNTIME_ERROR: { color: S.amber,  bgColor: "rgba(251,191,36,0.08)",   border: "rgba(251,191,36,0.2)",  label: "Runtime Error"        },
+  ERROR:         { color: S.red,    bgColor: "rgba(248,113,113,0.08)",  border: "rgba(248,113,113,0.2)", label: "Error"                },
+};
+
+const STATUS_CFG = {
+  Success: { color: S.green, bgColor: "rgba(52,211,153,0.08)",  border: "rgba(52,211,153,0.2)",  Icon: CheckCircle2 },
+  Error:   { color: S.red,   bgColor: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.2)", Icon: AlertTriangle },
+  "Runtime Error": { color: S.amber, bgColor: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.2)", Icon: AlertTriangle },
+};
+
 /* ════════════════════════════════════════════
-   BATTLE ARENA PAGE
-   Reuses JudgePage workspace patterns with
-   battle-specific elements (timer, opponent, forfeit)
-   ════════════════════════════════════════════ */
+   ARENA PAGE
+════════════════════════════════════════════ */
 export default function BattleArenaPage() {
   const { battleId } = useParams();
   const navigate = useNavigate();
-  const user = getStoredUser();
+  const user   = getStoredUser();
   const userId = user?.uid;
-  const { theme } = useTheme();
 
   const {
     battleState, submitting, error,
     startBattlePolling, stopBattlePolling, submitCode: battleSubmit, forfeit,
   } = useBattleStore();
 
-  /* ── Local state ── */
-  const [currentProblemIdx, setCurrentProblemIdx] = useState(0);
-  const [codeByProblem, setCodeByProblem] = useState({});
-  const [language, setLanguage] = useState("cpp");
-  const [submitResult, setSubmitResult] = useState(null);
+  const [currentProblemIdx, setCurrentProblemIdx]     = useState(0);
+  const [codeByProblem, setCodeByProblem]             = useState({});
+  const [language, setLanguage]                       = useState("cpp");
+  const [submitResult, setSubmitResult]               = useState(null);
   const [judgeProblemDetails, setJudgeProblemDetails] = useState({});
-  const [leftTab, setLeftTab] = useState("description");
-  const [bottomTab, setBottomTab] = useState("testcases");
-  const [running, setRunning] = useState(false);
-  const [runResult, setRunResult] = useState(null);
-  const [copied, setCopied] = useState(false);
-  const [activeTestCase, setActiveTestCase] = useState(0);
-  const [testCasesByProblem, setTestCasesByProblem] = useState({});
+  const [leftTab, setLeftTab]                         = useState("description");
+  const [bottomTab, setBottomTab]                     = useState("testcases");
+  const [running, setRunning]                         = useState(false);
+  const [runResult, setRunResult]                     = useState(null);
+  const [copied, setCopied]                           = useState(false);
+  const [activeTestCase, setActiveTestCase]           = useState(0);
+  const [testCasesByProblem, setTestCasesByProblem]   = useState({});
   const editorRef = useRef(null);
 
-  /* ── Polling lifecycle ── */
   useEffect(() => {
     if (battleId && userId) startBattlePolling(Number(battleId), userId);
     return () => stopBattlePolling();
   }, [battleId, userId, startBattlePolling, stopBattlePolling]);
 
-  /* ── Navigate away on completion ── */
   useEffect(() => {
     if (
       (battleState?.state === "COMPLETED" || battleState?.state === "CANCELLED") &&
@@ -95,168 +111,112 @@ export default function BattleArenaPage() {
     }
   }, [battleState?.state, battleState?.battleId, battleId, navigate, stopBattlePolling]);
 
-  /* ── Fetch judge problem details for each battle problem ── */
   useEffect(() => {
     if (!battleState?.problems) return;
     battleState.problems.forEach((p) => {
-      if (p.judgeProblemId && !judgeProblemDetails[p.judgeProblemId]) {
-        fetchJudgeProblem(p.judgeProblemId)
-          .then((data) => {
-            setJudgeProblemDetails((prev) => ({ ...prev, [p.judgeProblemId]: data }));
-            setCodeByProblem((prev) => {
-              if (!prev[p.index] && data.boilerplate?.[language]) {
-                return { ...prev, [p.index]: data.boilerplate[language] };
-              }
-              return prev;
+      const jid = resolveJudgeProblemId({ judgeProblemId: p.judgeProblemId, title: p.title, fallbackId: p.judgeProblemId });
+      if (jid && !judgeProblemDetails[jid]) {
+        fetchJudgeProblem(jid).then((data) => {
+          setJudgeProblemDetails(prev => ({ ...prev, [jid]: data }));
+          setCodeByProblem(prev => {
+            if (!prev[p.index] && data.boilerplate?.[language]) return { ...prev, [p.index]: data.boilerplate[language] };
+            return prev;
+          });
+          if (data.sampleTestCases?.length) {
+            setTestCasesByProblem(prev => {
+              if (prev[p.index]) return prev;
+              return { ...prev, [p.index]: data.sampleTestCases.map(tc => ({ input: tc.input, output: tc.output, isCustom: false })) };
             });
-            if (data.sampleTestCases?.length) {
-              setTestCasesByProblem((prev) => {
-                if (prev[p.index]) return prev;
-                return {
-                  ...prev,
-                  [p.index]: data.sampleTestCases.map((tc) => ({
-                    input: tc.input, output: tc.output, isCustom: false,
-                  })),
-                };
-              });
-            }
-          })
-          .catch(() => {});
+          }
+        }).catch(() => {});
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [battleState?.problems]);
 
-  /* ── Derived ── */
-  const currentProblem = battleState?.problems?.[currentProblemIdx];
-  const judgeDetail = currentProblem ? judgeProblemDetails[currentProblem.judgeProblemId] : null;
-  const code = codeByProblem[currentProblemIdx] || "";
-  const testCases = testCasesByProblem[currentProblemIdx] || [];
-  const customInput = testCases[activeTestCase]?.input || "";
-  const currentLang = LANGUAGES.find((l) => l.value === language);
-  const sampleCount = judgeDetail?.sampleTestCases?.length || 0;
+  const currentProblem  = battleState?.problems?.[currentProblemIdx];
+  const currentJudgeId  = currentProblem ? resolveJudgeProblemId({ judgeProblemId: currentProblem.judgeProblemId, title: currentProblem.title, fallbackId: currentProblem.judgeProblemId }) : null;
+  const judgeDetail     = currentJudgeId ? judgeProblemDetails[currentJudgeId] : null;
+  const code            = codeByProblem[currentProblemIdx] || "";
+  const testCases       = testCasesByProblem[currentProblemIdx] || [];
+  const customInput     = testCases[activeTestCase]?.input || "";
+  const currentLang     = LANGUAGES.find(l => l.value === language);
+  const sampleCount     = judgeDetail?.sampleTestCases?.length || 0;
 
-  const editorTheme =
-    theme === "dark" ||
-    (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-      ? "vs-dark"
-      : "light";
-
-  /* ── Code handlers ── */
   const setCode = useCallback(
-    (val) => setCodeByProblem((prev) => ({ ...prev, [currentProblemIdx]: val })),
+    (val) => setCodeByProblem(prev => ({ ...prev, [currentProblemIdx]: val })),
     [currentProblemIdx]
   );
 
-  const handleLanguageChange = useCallback(
-    (lang) => {
-      setLanguage(lang);
-      if (battleState?.problems) {
-        battleState.problems.forEach((p) => {
-          const detail = judgeProblemDetails[p.judgeProblemId];
-          if (detail?.boilerplate?.[lang]) {
-            setCodeByProblem((prev) => {
-              const existing = prev[p.index];
-              const oldBoilerplate = detail.boilerplate?.[language];
-              if (!existing || existing === oldBoilerplate) {
-                return { ...prev, [p.index]: detail.boilerplate[lang] };
-              }
-              return prev;
-            });
-          }
-        });
-      }
-    },
-    [battleState?.problems, judgeProblemDetails, language]
-  );
+  const handleLanguageChange = useCallback((lang) => {
+    setLanguage(lang);
+    if (battleState?.problems) {
+      battleState.problems.forEach(p => {
+        const jid = resolveJudgeProblemId({ judgeProblemId: p.judgeProblemId, title: p.title, fallbackId: p.judgeProblemId });
+        const detail = judgeProblemDetails[jid];
+        if (detail?.boilerplate?.[lang]) {
+          setCodeByProblem(prev => {
+            const existing  = prev[p.index];
+            const oldBoiler = detail.boilerplate?.[language];
+            if (!existing || existing === oldBoiler) return { ...prev, [p.index]: detail.boilerplate[lang] };
+            return prev;
+          });
+        }
+      });
+    }
+  }, [battleState?.problems, judgeProblemDetails, language]);
 
-  const handleResetCode = () => {
-    if (judgeDetail?.boilerplate?.[language]) setCode(judgeDetail.boilerplate[language]);
-  };
-
-  const handleCopyCode = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
+  const handleResetCode   = () => { if (judgeDetail?.boilerplate?.[language]) setCode(judgeDetail.boilerplate[language]); };
+  const handleCopyCode    = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
   const handleEditorMount = (editor) => { editorRef.current = editor; editor.focus(); };
 
-  /* ── Test case handlers ── */
   const updateActiveInput = (value) => {
-    setTestCasesByProblem((prev) => ({
+    setTestCasesByProblem(prev => ({
       ...prev,
-      [currentProblemIdx]: (prev[currentProblemIdx] || []).map((tc, i) =>
-        i === activeTestCase ? { ...tc, input: value } : tc
-      ),
+      [currentProblemIdx]: (prev[currentProblemIdx] || []).map((tc, i) => i === activeTestCase ? { ...tc, input: value } : tc),
     }));
   };
 
   const addCustomTestCase = () => {
     const last = testCases[testCases.length - 1];
-    setTestCasesByProblem((prev) => ({
+    setTestCasesByProblem(prev => ({
       ...prev,
-      [currentProblemIdx]: [
-        ...(prev[currentProblemIdx] || []),
-        { input: last?.input || "", output: "", isCustom: true },
-      ],
+      [currentProblemIdx]: [...(prev[currentProblemIdx] || []), { input: last?.input || "", output: "", isCustom: true }],
     }));
     setActiveTestCase(testCases.length);
   };
 
   const removeTestCase = (idx) => {
     if (!testCases[idx]?.isCustom) return;
-    setTestCasesByProblem((prev) => ({
+    setTestCasesByProblem(prev => ({
       ...prev,
       [currentProblemIdx]: (prev[currentProblemIdx] || []).filter((_, i) => i !== idx),
     }));
-    setActiveTestCase((prev) => Math.min(prev, testCases.length - 2));
+    setActiveTestCase(prev => Math.min(prev, testCases.length - 2));
   };
 
-  /* Load a failed test case into the testcase panel for debugging */
   const useFailedAsTestCase = (input, expected) => {
-    setTestCasesByProblem((prev) => ({
+    setTestCasesByProblem(prev => ({
       ...prev,
-      [currentProblemIdx]: [
-        ...(prev[currentProblemIdx] || []),
-        { input, output: expected || "", isCustom: true },
-      ],
+      [currentProblemIdx]: [...(prev[currentProblemIdx] || []), { input, output: expected || "", isCustom: true }],
     }));
     setActiveTestCase(testCases.length);
     setBottomTab("testcases");
   };
 
-  /* ── Run (single exec against judge with custom input) ── */
   const handleRun = async () => {
-    setRunning(true);
-    setRunResult(null);
-    setSubmitResult(null);
-    setBottomTab("result");
-    try {
-      const res = await runCode({ language, code, input: customInput });
-      setRunResult(res);
-    } catch (err) {
-      setRunResult({ status: "Error", stderr: err.message });
-    } finally {
-      setRunning(false);
-    }
+    setRunning(true); setRunResult(null); setSubmitResult(null); setBottomTab("result");
+    try { setRunResult(await runCode({ language, code, input: customInput })); }
+    catch (err) { setRunResult({ status: "Error", stderr: err.message }); }
+    finally { setRunning(false); }
   };
 
-  /* ── Submit (battle submit → Spring → Judge → scoring) ── */
   const handleSubmit = async () => {
     if (!currentProblem || !code) return;
-    setSubmitResult(null);
-    setRunResult(null);
-    setLeftTab("results");
-    try {
-      const result = await battleSubmit(Number(battleId), userId, currentProblemIdx, language, code);
-      setSubmitResult(result);
-    } catch (e) {
-      setSubmitResult({ verdict: "ERROR", error: e.message });
-    }
+    setSubmitResult(null); setRunResult(null); setLeftTab("results");
+    try { setSubmitResult(await battleSubmit(Number(battleId), userId, currentProblemIdx, language, code)); }
+    catch (e) { setSubmitResult({ verdict: "ERROR", error: e.message }); }
   };
 
-  /* ── Forfeit ── */
   const handleForfeit = async () => {
     if (window.confirm("Are you sure you want to forfeit?")) {
       await forfeit(Number(battleId), userId);
@@ -264,205 +224,228 @@ export default function BattleArenaPage() {
     }
   };
 
-  /* ── Timer ── */
   const timeRemaining = battleState?.timeRemainingMs ?? 0;
-  const minutes = Math.floor(timeRemaining / 60000);
-  const seconds = Math.floor((timeRemaining % 60000) / 1000);
-  const timerUrgent = timeRemaining < 60000;
-  const timerWarn = timeRemaining < 300000;
+  const minutes       = Math.floor(timeRemaining / 60000);
+  const seconds       = Math.floor((timeRemaining % 60000) / 1000);
+  const timerUrgent   = timeRemaining < 60000;
+  const timerWarn     = timeRemaining < 300000;
 
-  /* ── Problem switching ── */
   const switchProblem = (idx) => {
-    setCurrentProblemIdx(idx);
-    setSubmitResult(null);
-    setRunResult(null);
-    setActiveTestCase(0);
-    setLeftTab("description");
-    setBottomTab("testcases");
+    setCurrentProblemIdx(idx); setSubmitResult(null); setRunResult(null);
+    setActiveTestCase(0); setLeftTab("description"); setBottomTab("testcases");
   };
 
-  /* ── Loading ── */
+  /* Loading */
   if (!battleState) {
     return (
-      <div className="flex h-screen items-center justify-center bg-background text-foreground">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-          <span className="text-sm text-muted-foreground">Loading battle…</span>
-        </div>
+      <div style={{ height: "100vh", background: S.bg, display: "flex", alignItems: "center",
+        justifyContent: "center", flexDirection: "column", gap: 14 }}>
+        <Loader2 size={22} color="rgba(255,255,255,0.25)" style={{ animation: "spin 1s linear infinite" }} />
+        <span style={{ fontSize: 13, color: S.textSec }}>Loading battle…</span>
+        <style>{`@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}`}</style>
       </div>
     );
   }
 
   const totalProblems = battleState.problems?.length ?? 0;
-  const mySolved = battleState.myProgress?.problemsSolved ?? 0;
-  const oppSolved = battleState.opponentProgress?.problemsSolved ?? 0;
+  const mySolved      = battleState.myProgress?.problemsSolved ?? 0;
+  const oppSolved     = battleState.opponentProgress?.problemsSolved ?? 0;
+  const timerColor    = timerUrgent ? S.red : timerWarn ? S.amber : S.textPri;
 
-  /* ════════════════════════════════════════════
-     RENDER
-     ════════════════════════════════════════════ */
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="judge-root flex h-screen flex-col bg-background text-foreground overflow-hidden">
+      <div className="cursor-visible-scope battle-heading-font" style={{ display: "flex", flexDirection: "column", height: "100vh",
+        background: S.bg, color: S.textPri, overflow: "hidden", cursor: "none" }}>
+        <CustomCursor />
 
-        {/* ═══════════ BATTLE HEADER ═══════════ */}
-        <header className="judge-header flex items-center justify-between h-11 px-3 flex-shrink-0 z-10">
-          {/* Left: Timer */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <Swords className="w-3.5 h-3.5 text-[var(--color-accent-primary)]" />
-              <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground hidden sm:inline">Battle</span>
+        {/* ══════════ HEADER ══════════ */}
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+          height: 44, padding: "0 14px", flexShrink: 0,
+          borderBottom: `1px solid ${S.border}`, background: S.bg, zIndex: 10 }}>
+
+          {/* Left - timer */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <Swords size={13} color="rgba(255,255,255,0.4)" />
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.22)" }}>Battle</span>
             </div>
-            <Separator orientation="vertical" className="h-4" />
-            <div className={cn(
-              "flex items-center gap-1.5 font-mono text-sm font-bold tabular-nums",
-              timerUrgent ? "text-red-500" : timerWarn ? "text-amber-500" : "text-foreground"
-            )}>
-              <Timer className="w-3.5 h-3.5" />
+            <div style={{ width: 1, height: 14, background: S.border }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 6,
+              fontFamily: "monospace", fontSize: 14, fontWeight: 900,
+              color: timerColor, letterSpacing: "0.04em" }}>
+              <Timer size={13} color={timerColor} />
               {String(minutes).padStart(2, "0")}:{String(seconds).padStart(2, "0")}
-              {timerUrgent && <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse ml-0.5" />}
+              {timerUrgent && (
+                <div style={{ width: 5, height: 5, borderRadius: "50%", background: S.red,
+                  animation: "blink 0.8s step-end infinite" }} />
+              )}
             </div>
           </div>
 
-          {/* Center: Problem tabs */}
-          <div className="flex items-center gap-1 p-0.5 rounded-lg bg-secondary/50">
+          {/* Center - problem tabs */}
+          <div style={{ display: "flex", alignItems: "center", gap: 3, padding: 3,
+            borderRadius: 11, background: "rgba(255,255,255,0.03)", border: `1px solid ${S.border}` }}>
             {battleState.problems?.map((p, i) => (
-              <button
-                key={i}
-                onClick={() => switchProblem(i)}
-                className={cn(
-                  "relative px-3.5 py-1 rounded-md text-[11px] font-semibold transition-all",
-                  currentProblemIdx === i
-                    ? "bg-foreground text-background dark:bg-white dark:text-black shadow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                )}
-              >
+              <button key={i} onClick={() => switchProblem(i)} style={{
+                position: "relative", padding: "5px 14px", borderRadius: 8, border: "none", cursor: "none",
+                fontSize: 11, fontWeight: 900, letterSpacing: "0.06em", textTransform: "uppercase",
+                background: currentProblemIdx === i ? "rgba(255,255,255,0.1)" : "transparent",
+                color: currentProblemIdx === i ? "#fff" : "rgba(255,255,255,0.32)",
+                transition: "all 0.15s",
+              }}>
                 P{i + 1}
                 {p.isSolved && (
-                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-background" />
+                  <div style={{ position: "absolute", top: 2, right: 2, width: 5, height: 5,
+                    borderRadius: "50%", background: S.green,
+                    boxShadow: `0 0 4px ${S.green}` }} />
                 )}
               </button>
             ))}
           </div>
 
-          {/* Right: Progress + Forfeit */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="text-muted-foreground text-[10px] font-medium">You</span>
-                <div className="flex gap-0.5">
-                  {Array.from({ length: totalProblems }).map((_, i) => (
-                    <div key={i} className={cn("w-2 h-2 rounded-full transition-colors",
-                      i < mySolved ? "bg-emerald-500" : "bg-foreground/10 dark:bg-white/10"
-                    )} />
-                  ))}
-                </div>
-              </div>
-              <Separator orientation="vertical" className="h-3" />
-              <div className="flex items-center gap-1.5">
-                <span className="text-muted-foreground text-[10px] font-medium">Opp</span>
-                <div className="flex gap-0.5">
-                  {Array.from({ length: totalProblems }).map((_, i) => (
-                    <div key={i} className={cn("w-2 h-2 rounded-full transition-colors",
-                      i < oppSolved ? "bg-red-500" : "bg-foreground/10 dark:bg-white/10"
-                    )} />
-                  ))}
-                </div>
+          {/* Right - progress + forfeit */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {/* You */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.16em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.22)" }}>You</span>
+              <div style={{ display: "flex", gap: 3 }}>
+                {Array.from({ length: totalProblems }).map((_, i) => (
+                  <div key={i} style={{ width: 7, height: 7, borderRadius: "50%",
+                    background: i < mySolved ? S.acid : "rgba(255,255,255,0.1)",
+                    boxShadow: i < mySolved ? `0 0 5px rgba(237,255,102,0.6)` : "none",
+                    transition: "background 0.3s, box-shadow 0.3s" }} />
+                ))}
               </div>
             </div>
-            <Separator orientation="vertical" className="h-4 hidden sm:block" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleForfeit}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11px] font-medium text-muted-foreground hover:text-red-500 hover:bg-red-500/10 transition-all"
-                >
-                  <Flag className="w-3 h-3" />
-                  <span className="hidden sm:inline">Forfeit</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">Surrender this battle</TooltipContent>
-            </Tooltip>
+            <div style={{ width: 1, height: 12, background: S.border }} />
+            {/* Opp */}
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.16em",
+                textTransform: "uppercase", color: "rgba(255,255,255,0.22)" }}>Opp</span>
+              <div style={{ display: "flex", gap: 3 }}>
+                {Array.from({ length: totalProblems }).map((_, i) => (
+                  <div key={i} style={{ width: 7, height: 7, borderRadius: "50%",
+                    background: i < oppSolved ? S.red : "rgba(255,255,255,0.1)",
+                    transition: "background 0.3s" }} />
+                ))}
+              </div>
+            </div>
+            <div style={{ width: 1, height: 12, background: S.border }} />
+            <button onClick={handleForfeit} style={{
+              display: "flex", alignItems: "center", gap: 5, padding: "5px 10px",
+              borderRadius: 8, border: "none", cursor: "none", background: "transparent",
+              fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: "rgba(255,255,255,0.28)",
+              transition: "all 0.15s",
+            }}
+              onMouseEnter={e => { e.currentTarget.style.color = S.red; e.currentTarget.style.background = "rgba(248,113,113,0.08)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.28)"; e.currentTarget.style.background = "transparent"; }}
+            >
+              <Flag size={12} /> Forfeit
+            </button>
           </div>
         </header>
 
-        {/* ═══════════ WORKSPACE ═══════════ */}
-        <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0">
+        {/* ══════════ WORKSPACE ══════════ */}
+        <ResizablePanelGroup orientation="horizontal" style={{ flex: 1, minHeight: 0 }}>
 
-          {/* ─── LEFT PANEL: Problem + Results ─── */}
+          {/* ── LEFT: Problem + Results ── */}
           <ResizablePanel id="left" defaultSize="40%" minSize="25%" maxSize="55%">
-            <div className="flex flex-col h-full judge-panel">
-              <Tabs value={leftTab} onValueChange={setLeftTab} className="flex flex-col h-full">
-                <div className="flex items-center border-b border-border px-1 flex-shrink-0">
-                  <TabsList className="bg-transparent h-10 p-0 gap-0">
-                    <TabsTrigger value="description" className="judge-tab-trigger">
-                      <BookOpen className="h-3.5 w-3.5" /> Description
-                    </TabsTrigger>
-                    <TabsTrigger value="results" className="judge-tab-trigger">
-                      <ListChecks className="h-3.5 w-3.5" /> Results
-                      {submitResult && (
-                        <span className={`judge-result-dot ${
-                          submitResult.verdict === "ACCEPTED" ? "judge-result-dot--success" : "judge-result-dot--error"
-                        }`} />
-                      )}
-                    </TabsTrigger>
+            <div style={{ display: "flex", flexDirection: "column", height: "100%",
+              background: S.surface, borderRight: `1px solid ${S.border}` }}>
+              <Tabs value={leftTab} onValueChange={setLeftTab} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+
+                {/* Tab bar */}
+                <div style={{ display: "flex", alignItems: "center",
+                  borderBottom: `1px solid ${S.border}`, padding: "0 4px", flexShrink: 0, background: S.bg }}>
+                  <TabsList style={{ background: "transparent", height: 38, padding: 0, display: "flex", gap: 0 }}>
+                    {[
+                      { value: "description", Icon: BookOpen,   label: "Description" },
+                      { value: "results",     Icon: ListChecks, label: "Results",
+                        dot: submitResult ? (submitResult.verdict === "ACCEPTED" ? S.green : S.red) : null },
+                    ].map(tab => (
+                      <TabsTrigger key={tab.value} value={tab.value}
+                        style={{ display: "flex", alignItems: "center", gap: 5,
+                          padding: "0 12px", height: 38, borderRadius: 0, border: "none",
+                          background: "transparent", cursor: "none",
+                          fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+                          color: leftTab === tab.value ? "#fff" : "rgba(255,255,255,0.28)",
+                          borderBottom: leftTab === tab.value ? `1px solid ${S.acid}` : "1px solid transparent",
+                          transition: "color 0.15s, border-color 0.15s",
+                          marginBottom: -1,
+                        }}>
+                        <tab.Icon size={12} />
+                        {tab.label}
+                        {tab.dot && <div style={{ width: 5, height: 5, borderRadius: "50%", background: tab.dot }} />}
+                      </TabsTrigger>
+                    ))}
                   </TabsList>
                 </div>
 
-                {/* ── Description ── */}
-                <TabsContent value="description" className="flex-1 overflow-hidden m-0">
-                  <ScrollArea className="h-full">
-                    <div className="p-5 space-y-6">
-                      {/* Title */}
+                {/* Description */}
+                <TabsContent value="description" style={{ flex: 1, overflow: "hidden", margin: 0 }}>
+                  <ScrollArea style={{ height: "100%" }}>
+                    <div style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 22 }}>
+
+                      {/* Problem header */}
                       <div>
-                        <div className="flex items-center gap-2 mb-1.5">
-                          <Code2 className="h-3.5 w-3.5 text-[var(--color-accent-primary)]" />
-                          <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
+                            textTransform: "uppercase", color: "rgba(255,255,255,0.22)" }}>
                             Problem {currentProblemIdx + 1} of {totalProblems}
                           </span>
                           {currentProblem?.isSolved && (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                              <CheckCircle2 className="w-2.5 h-2.5" /> Solved
+                            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9,
+                              fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase",
+                              color: S.green, background: "rgba(52,211,153,0.08)",
+                              border: "1px solid rgba(52,211,153,0.2)", padding: "2px 7px", borderRadius: 6 }}>
+                              <CheckCircle2 size={9} /> Solved
                             </span>
                           )}
                         </div>
-                        <h2 className="text-lg font-bold text-foreground tracking-tight">
+                        <h2 style={{ fontFamily: BATTLE_FONT_FAMILY, letterSpacing: BATTLE_FONT_LETTER_SPACING,
+                          fontSize: 17, fontWeight: 900, color: "#fff", lineHeight: 1.2, margin: 0 }}>
                           {judgeDetail?.title || currentProblem?.title || `Problem ${currentProblemIdx + 1}`}
                         </h2>
                       </div>
 
-                      {/* Description */}
-                      <div className="text-[13px] leading-relaxed text-foreground/90 space-y-2">
+                      {/* Description text */}
+                      <div style={{ fontSize: 13, lineHeight: 1.75, color: S.textSec }}>
                         {(judgeDetail?.description || currentProblem?.description || "Loading…")
-                          .split("\n")
-                          .map((line, i) => (
-                            <p key={i} className={line ? "" : "h-2"}>{line}</p>
+                          .split("\n").map((line, i) => (
+                            <p key={i} style={{ margin: line ? "0 0 6px" : "0 0 10px" }}>{line}</p>
                           ))}
                       </div>
 
                       {/* Examples */}
                       {judgeDetail?.examples?.length > 0 && (
-                        <div className="space-y-3">
-                          <h3 className="judge-section-heading">Examples</h3>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          <h3 style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
+                            textTransform: "uppercase", color: "rgba(255,255,255,0.22)", margin: 0 }}>Examples</h3>
                           {judgeDetail.examples.map((ex, i) => (
-                            <div key={i} className="judge-example-card">
-                              <div className="judge-example-header">
-                                <span className="text-[11px] font-semibold text-muted-foreground flex items-center gap-1.5">
-                                  <Hash className="h-3 w-3" /> Example {i + 1}
-                                </span>
+                            <div key={i} style={{ borderRadius: 11, border: `1px solid ${S.borderSub}`, overflow: "hidden" }}>
+                              <div style={{ padding: "8px 12px", borderBottom: `1px solid ${S.borderSub}`,
+                                background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", gap: 6 }}>
+                                <Hash size={11} color="rgba(255,255,255,0.25)" />
+                                <span style={{ fontSize: 10, fontWeight: 700, color: S.textMeta }}>Example {i + 1}</span>
                               </div>
-                              <div className="judge-example-body space-y-2.5">
-                                <div>
-                                  <div className="judge-label">Input</div>
-                                  <code className="judge-codeblock block text-[12px]">{ex.input}</code>
-                                </div>
-                                <div>
-                                  <div className="judge-label">Output</div>
-                                  <code className="judge-codeblock block text-[12px]">{ex.output}</code>
-                                </div>
+                              <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+                                {[["Input", ex.input], ["Output", ex.output]].map(([label, val]) => (
+                                  <div key={label}>
+                                    <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em",
+                                      textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 5 }}>{label}</div>
+                                    <code style={{ display: "block", fontFamily: "'JetBrains Mono',monospace",
+                                      fontSize: 12, background: S.bg, border: `1px solid ${S.border}`,
+                                      borderRadius: 8, padding: "8px 12px", color: "rgba(255,255,255,0.7)",
+                                      whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{val}</code>
+                                  </div>
+                                ))}
                                 {ex.explanation && (
-                                  <div className="pt-2 border-t border-border/50">
-                                    <div className="judge-label">Explanation</div>
-                                    <span className="text-xs text-muted-foreground leading-relaxed">{ex.explanation}</span>
+                                  <div style={{ paddingTop: 8, borderTop: `1px solid ${S.borderSub}` }}>
+                                    <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em",
+                                      textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 5 }}>Explanation</div>
+                                    <span style={{ fontSize: 12, color: S.textSec, lineHeight: 1.65 }}>{ex.explanation}</span>
                                   </div>
                                 )}
                               </div>
@@ -473,13 +456,18 @@ export default function BattleArenaPage() {
 
                       {/* Constraints */}
                       {judgeDetail?.constraints?.length > 0 && (
-                        <div className="space-y-2.5">
-                          <h3 className="judge-section-heading">Constraints</h3>
-                          <div className="rounded-lg border border-border p-3 space-y-0.5">
+                        <div>
+                          <h3 style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
+                            textTransform: "uppercase", color: "rgba(255,255,255,0.22)", margin: "0 0 10px" }}>Constraints</h3>
+                          <div style={{ border: `1px solid ${S.borderSub}`, borderRadius: 10,
+                            background: "rgba(255,255,255,0.015)", padding: "10px 14px",
+                            display: "flex", flexDirection: "column", gap: 6 }}>
                             {judgeDetail.constraints.map((c, i) => (
-                              <div key={i} className="judge-constraint-item">
-                                <span className="judge-constraint-dot" />
-                                <code className="text-xs font-mono text-foreground/70">{c}</code>
+                              <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                                <div style={{ width: 4, height: 4, borderRadius: "50%",
+                                  background: "rgba(255,255,255,0.2)", marginTop: 6, flexShrink: 0 }} />
+                                <code style={{ fontFamily: "'JetBrains Mono',monospace",
+                                  fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{c}</code>
                               </div>
                             ))}
                           </div>
@@ -488,30 +476,20 @@ export default function BattleArenaPage() {
 
                       {/* Prev / Next */}
                       {totalProblems > 1 && (
-                        <div className="flex gap-2 pt-2">
-                          <button
-                            disabled={currentProblemIdx === 0}
-                            onClick={() => switchProblem(currentProblemIdx - 1)}
-                            className={cn(
-                              "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-                              currentProblemIdx === 0
-                                ? "text-muted-foreground/30 cursor-not-allowed"
-                                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                            )}
-                          >
-                            <ChevronLeft className="w-3.5 h-3.5" /> Prev
+                        <div style={{ display: "flex", gap: 8, paddingTop: 4 }}>
+                          <button disabled={currentProblemIdx === 0} onClick={() => switchProblem(currentProblemIdx - 1)}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px",
+                              borderRadius: 8, border: "none", cursor: "none", background: "transparent",
+                              fontSize: 11, fontWeight: 700, transition: "all 0.15s",
+                              color: currentProblemIdx === 0 ? "rgba(255,255,255,0.1)" : S.textSec }}>
+                            <ChevronLeft size={13} /> Prev
                           </button>
-                          <button
-                            disabled={currentProblemIdx >= totalProblems - 1}
-                            onClick={() => switchProblem(currentProblemIdx + 1)}
-                            className={cn(
-                              "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-                              currentProblemIdx >= totalProblems - 1
-                                ? "text-muted-foreground/30 cursor-not-allowed"
-                                : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                            )}
-                          >
-                            Next <ChevronRight className="w-3.5 h-3.5" />
+                          <button disabled={currentProblemIdx >= totalProblems - 1} onClick={() => switchProblem(currentProblemIdx + 1)}
+                            style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px",
+                              borderRadius: 8, border: "none", cursor: "none", background: "transparent",
+                              fontSize: 11, fontWeight: 700, transition: "all 0.15s",
+                              color: currentProblemIdx >= totalProblems - 1 ? "rgba(255,255,255,0.1)" : S.textSec }}>
+                            Next <ChevronRight size={13} />
                           </button>
                         </div>
                       )}
@@ -519,100 +497,85 @@ export default function BattleArenaPage() {
                   </ScrollArea>
                 </TabsContent>
 
-                {/* ── Results ── */}
-                <TabsContent value="results" className="flex-1 overflow-hidden m-0">
-                  <ScrollArea className="h-full">
-                    <div className="p-5">
+                {/* Results */}
+                <TabsContent value="results" style={{ flex: 1, overflow: "hidden", margin: 0 }}>
+                  <ScrollArea style={{ height: "100%" }}>
+                    <div style={{ padding: "18px 20px" }}>
                       {!submitResult && !runResult && (
-                        <div className="judge-empty-state py-16">
-                          <Terminal className="judge-empty-state-icon" />
-                          <p className="text-sm font-medium">No results yet</p>
-                          <p className="text-xs text-muted-foreground/70">Run or submit your code to see results here</p>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
+                          justifyContent: "center", padding: "48px 0", gap: 12, textAlign: "center" }}>
+                          <div style={{ width: 40, height: 40, borderRadius: 11, background: "rgba(255,255,255,0.03)",
+                            border: `1px solid ${S.borderSub}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <Terminal size={16} color="rgba(255,255,255,0.2)" />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>No results yet</div>
+                            <div style={{ fontSize: 12, color: S.textMeta }}>Run or submit your code to see results</div>
+                          </div>
                         </div>
                       )}
 
-                      {/* Run output */}
                       {runResult && (
-                        <div className="space-y-4">
+                        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
                           <StatusBanner status={runResult.status} time={runResult.time} />
-                          {runResult.stdout && (
-                            <CodeOutput label="Standard Output" icon={<SquareTerminal className="h-3 w-3" />}>{runResult.stdout}</CodeOutput>
-                          )}
-                          {runResult.stderr && (
-                            <CodeOutput label="Error Output" variant="error" icon={<AlertTriangle className="h-3 w-3" />}>{runResult.stderr}</CodeOutput>
-                          )}
+                          {runResult.stdout && <CodeOutput label="Standard Output" icon={<SquareTerminal size={11} />}>{runResult.stdout}</CodeOutput>}
+                          {runResult.stderr && <CodeOutput label="Error Output" variant="error" icon={<AlertTriangle size={11} />}>{runResult.stderr}</CodeOutput>}
                         </div>
                       )}
 
-                      {/* Battle submit result */}
                       {submitResult && !runResult && (
-                        <div className="space-y-5">
+                        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                           <BattleVerdictBanner result={submitResult} />
-                          {submitResult.error && (
-                            <CodeOutput label="Error" variant="error" icon={<AlertTriangle className="h-3 w-3" />}>{submitResult.error}</CodeOutput>
-                          )}
+                          {submitResult.error && <CodeOutput variant="error">{submitResult.error}</CodeOutput>}
+
                           {submitResult.totalProblems > 0 && (
-                            <div className="space-y-3">
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-sm text-foreground">
-                                  <span className="font-bold tabular-nums">{submitResult.problemsSolved}</span>
-                                  <span className="text-muted-foreground"> / {submitResult.totalProblems} problems solved</span>
+                            <div>
+                              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                                <span style={{ fontSize: 13, color: "#fff" }}>
+                                  <strong style={{ fontFamily: BATTLE_FONT_FAMILY, letterSpacing: BATTLE_FONT_LETTER_SPACING, fontWeight: 900 }}>{submitResult.problemsSolved}</strong>
+                                  <span style={{ color: S.textSec }}> / {submitResult.totalProblems} solved</span>
                                 </span>
                               </div>
-                              <div className="judge-progress-track">
-                                <div
-                                  className="judge-progress-fill"
-                                  style={{
-                                    width: `${(submitResult.problemsSolved / submitResult.totalProblems) * 100}%`,
-                                    backgroundColor: submitResult.verdict === "ACCEPTED" ? "var(--color-success)" : "var(--color-danger)",
-                                  }}
-                                />
+                              <div style={{ height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                                <div style={{
+                                  height: "100%", borderRadius: 3, transition: "width 0.8s ease-out",
+                                  width: `${(submitResult.problemsSolved / submitResult.totalProblems) * 100}%`,
+                                  background: submitResult.verdict === "ACCEPTED" ? "#10b981" : "#ef4444",
+                                }} />
                               </div>
                             </div>
                           )}
-                          {/* First failed test case — LeetCode-style */}
+
                           {submitResult.firstFailedInput != null && (
-                            <div className="space-y-3">
-                              <h4 className="judge-section-heading">Last Executed Test</h4>
-                              <div className="judge-failed-card">
-                                <div className="judge-failed-card-header">
-                                  <div className="flex items-center gap-2">
-                                    <XCircle className="h-3.5 w-3.5 text-[var(--color-danger)]" />
-                                    <span className="text-xs font-semibold text-[var(--color-danger)]">Wrong Answer</span>
+                            <div>
+                              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
+                                textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 10 }}>Last Executed Test</div>
+                              <div style={{ borderRadius: 11, border: `1px solid ${S.borderSub}`, overflow: "hidden" }}>
+                                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                                  padding: "9px 14px", borderBottom: `1px solid ${S.borderSub}`, background: "rgba(255,255,255,0.02)" }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <XCircle size={13} color={S.red} />
+                                    <span style={{ fontSize: 12, fontWeight: 700, color: S.red }}>Wrong Answer</span>
                                   </div>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <button
-                                        onClick={() => useFailedAsTestCase(submitResult.firstFailedInput, submitResult.firstFailedExpected)}
-                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-[var(--color-accent-primary-light)] text-[var(--color-accent-primary)] hover:bg-[var(--color-accent-primary)] hover:text-white transition-colors"
-                                      >
-                                        <ArrowUpRight className="h-3 w-3" />
-                                        Debug
-                                      </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent side="left" className="text-xs">Load this input as a custom test case</TooltipContent>
-                                  </Tooltip>
+                                  <button onClick={() => useFailedAsTestCase(submitResult.firstFailedInput, submitResult.firstFailedExpected)}
+                                    style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 10px",
+                                      borderRadius: 7, border: "none", cursor: "none",
+                                      background: "rgba(237,255,102,0.08)", border: "1px solid rgba(237,255,102,0.15)",
+                                      fontSize: 10, fontWeight: 800, color: S.acid, transition: "opacity 0.15s" }}
+                                    onMouseEnter={e => e.currentTarget.style.opacity = "0.75"}
+                                    onMouseLeave={e => e.currentTarget.style.opacity = "1"}
+                                  >
+                                    <ArrowUpRight size={11} /> Debug
+                                  </button>
                                 </div>
-                                <div className="p-3.5 space-y-3">
-                                  <div>
-                                    <div className="judge-label">Input</div>
-                                    <pre className="judge-codeblock text-[12px]">{submitResult.firstFailedInput}</pre>
-                                  </div>
-                                  <div className="grid grid-cols-2 gap-3">
-                                    <div>
-                                      <div className="judge-label" style={{ color: 'var(--color-success)' }}>Expected</div>
-                                      <pre className="judge-codeblock text-[12px]" style={{ borderColor: 'rgba(34,197,94,0.2)' }}>{submitResult.firstFailedExpected}</pre>
-                                    </div>
-                                    <div>
-                                      <div className="judge-label" style={{ color: 'var(--color-danger)' }}>Your Output</div>
-                                      <pre className="judge-codeblock text-[12px]" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>{submitResult.firstFailedActual}</pre>
-                                    </div>
+                                <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 10 }}>
+                                  <CodeOutput label="Input">{submitResult.firstFailedInput}</CodeOutput>
+                                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+                                    <CodeOutput label="Expected" labelColor={S.green}>{submitResult.firstFailedExpected}</CodeOutput>
+                                    <CodeOutput label="Your Output" labelColor={S.red} variant="error">{submitResult.firstFailedActual}</CodeOutput>
                                   </div>
                                   {submitResult.firstFailedError && (
-                                    <div>
-                                      <div className="judge-label" style={{ color: 'var(--color-danger)' }}>Runtime Error</div>
-                                      <pre className="judge-codeblock judge-codeblock--error text-[12px]">{submitResult.firstFailedError}</pre>
-                                    </div>
+                                    <CodeOutput label="Runtime Error" variant="error">{submitResult.firstFailedError}</CodeOutput>
                                   )}
                                 </div>
                               </div>
@@ -629,92 +592,135 @@ export default function BattleArenaPage() {
 
           <ResizableHandle orientation="horizontal" withHandle />
 
-          {/* ─── RIGHT PANEL: Editor + Testcases ─── */}
+          {/* ── RIGHT: Editor + Testcases ── */}
           <ResizablePanel id="right" defaultSize="60%" minSize="35%">
             <ResizablePanelGroup orientation="vertical">
 
-              {/* ── Code editor ── */}
+              {/* Editor */}
               <ResizablePanel id="right-top" defaultSize="60%" minSize="25%">
-                <div className="flex flex-col h-full">
+                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+
                   {/* Toolbar */}
-                  <div className="judge-toolbar flex items-center justify-between h-10 px-2.5 flex-shrink-0">
-                    <div className="flex items-center gap-2">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger className="judge-lang-trigger">
-                          <Braces className="h-3 w-3 text-[var(--color-accent-primary)]" />
-                          {currentLang?.label}
-                          <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="min-w-[140px]">
-                          <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground">Language</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          {LANGUAGES.map((l) => (
-                            <DropdownMenuItem
-                              key={l.value}
-                              onClick={() => handleLanguageChange(l.value)}
-                              className={`text-xs font-medium cursor-pointer ${language === l.value ? "text-[var(--color-accent-primary)] bg-[var(--color-accent-primary-light)]" : ""}`}
-                            >
-                              <Braces className="h-3 w-3 mr-1.5" />
-                              {l.label}
-                              {language === l.value && <Check className="h-3 w-3 ml-auto" />}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+                    height: 40, padding: "0 10px", flexShrink: 0,
+                    borderBottom: `1px solid ${S.border}`, background: S.bg }}>
 
-                    <div className="flex items-center gap-1">
+                    {/* Language picker */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger style={{ display: "flex", alignItems: "center", gap: 6,
+                        padding: "4px 10px", borderRadius: 8, border: `1px solid ${S.border}`,
+                        background: "transparent", cursor: "none",
+                        fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)",
+                        transition: "all 0.15s" }}
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#fff"; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; }}
+                      >
+                        <Braces size={11} color="rgba(255,255,255,0.4)" />
+                        {currentLang?.label}
+                        <ChevronDown size={11} color="rgba(255,255,255,0.3)" />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" style={{ background: "#0d0d10", border: `1px solid ${S.border}`,
+                        borderRadius: 10, padding: 4, minWidth: 140 }}>
+                        <DropdownMenuLabel style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
+                          textTransform: "uppercase", color: S.textMeta, padding: "4px 8px" }}>Language</DropdownMenuLabel>
+                        <DropdownMenuSeparator style={{ background: S.border, margin: "4px 0" }} />
+                        {LANGUAGES.map(l => (
+                          <DropdownMenuItem key={l.value} onClick={() => handleLanguageChange(l.value)}
+                            style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 8px",
+                              borderRadius: 7, cursor: "none", fontSize: 12, fontWeight: 600,
+                              color: language === l.value ? S.acid : "rgba(255,255,255,0.5)",
+                              background: "transparent", transition: "background 0.1s" }}
+                            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+                            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          >
+                            <Braces size={11} />
+                            {l.label}
+                            {language === l.value && <Check size={11} style={{ marginLeft: "auto" }} />}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+
+                    {/* Right side buttons */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                      {/* Reset */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="judge-icon-btn" onClick={handleResetCode}>
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </button>
+                          <button onClick={handleResetCode}
+                            style={{ width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none",
+                              background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
+                              color: "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
+                          ><RotateCcw size={13} /></button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Reset to boilerplate</TooltipContent>
+                        <TooltipContent style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Reset to boilerplate</TooltipContent>
                       </Tooltip>
+
+                      {/* Copy */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="judge-icon-btn" onClick={handleCopyCode}>
-                            {copied ? <Check className="h-3.5 w-3.5 text-[var(--color-success)]" /> : <Copy className="h-3.5 w-3.5" />}
-                          </button>
+                          <button onClick={handleCopyCode}
+                            style={{ width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none",
+                              background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
+                              color: copied ? S.green : "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; if (!copied) e.currentTarget.style.color = "#fff"; }}
+                            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = copied ? S.green : "rgba(255,255,255,0.3)"; }}
+                          >{copied ? <Check size={13} /> : <Copy size={13} />}</button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">{copied ? "Copied!" : "Copy code"}</TooltipContent>
+                        <TooltipContent style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>
+                          {copied ? "Copied!" : "Copy code"}
+                        </TooltipContent>
                       </Tooltip>
 
-                      <Separator orientation="vertical" className="h-4 mx-1" />
+                      <div style={{ width: 1, height: 14, background: S.border, margin: "0 4px" }} />
 
+                      {/* Run */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button className="judge-btn-run" onClick={handleRun} disabled={running || submitting}>
-                            {running ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Play className="h-3.5 w-3.5" />}
+                          <button onClick={handleRun} disabled={running || submitting}
+                            style={{ display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px",
+                              borderRadius: 7, cursor: "none", border: `1px solid ${S.border}`, background: "transparent",
+                              fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)",
+                              opacity: (running || submitting) ? 0.4 : 1, transition: "all 0.15s" }}
+                            onMouseEnter={e => { if (!running && !submitting) { e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = "rgba(255,255,255,0.45)"; e.currentTarget.style.background = "transparent"; }}
+                          >
+                            {running ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Play size={12} />}
                             Run
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Run against active test case</TooltipContent>
+                        <TooltipContent style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Run against active test case</TooltipContent>
                       </Tooltip>
 
+                      {/* Submit */}
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <button
-                            className="judge-btn-submit"
-                            onClick={handleSubmit}
-                            disabled={submitting || running || currentProblem?.isSolved}
+                          <button onClick={handleSubmit} disabled={submitting || running || currentProblem?.isSolved}
+                            style={{ display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 14px",
+                              borderRadius: 7, cursor: "none", border: "none",
+                              background: S.acid, color: "#09090b",
+                              fontSize: 11, fontWeight: 900, letterSpacing: "0.06em",
+                              opacity: (submitting || running || currentProblem?.isSolved) ? 0.45 : 1,
+                              transition: "opacity 0.15s", marginLeft: 2 }}
+                            onMouseEnter={e => { if (!submitting && !running && !currentProblem?.isSolved) e.currentTarget.style.opacity = "0.82"; }}
+                            onMouseLeave={e => e.currentTarget.style.opacity = (submitting || running || currentProblem?.isSolved) ? "0.45" : "1"}
                           >
-                            {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Zap className="h-3.5 w-3.5" />}
+                            {submitting ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Zap size={12} />}
                             Submit
                           </button>
                         </TooltipTrigger>
-                        <TooltipContent side="bottom" className="text-xs">Submit against all test cases (battle scoring)</TooltipContent>
+                        <TooltipContent style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Submit against all test cases</TooltipContent>
                       </Tooltip>
                     </div>
                   </div>
 
-                  {/* Monaco Editor */}
-                  <div className="flex-1 min-h-0">
+                  {/* Monaco */}
+                  <div style={{ flex: 1, minHeight: 0 }}>
                     <Editor
                       height="100%"
                       language={currentLang?.monacoId || "cpp"}
-                      theme={editorTheme}
+                      theme="vs-dark"
                       value={code}
                       onChange={(val) => setCode(val || "")}
                       onMount={handleEditorMount}
@@ -743,77 +749,113 @@ export default function BattleArenaPage() {
 
               <ResizableHandle orientation="vertical" />
 
-              {/* ── Bottom: Testcases / Output ── */}
+              {/* Bottom: Testcases / Output */}
               <ResizablePanel id="right-bottom" defaultSize="40%" minSize="15%" maxSize="60%">
-                <div className="flex flex-col h-full judge-panel">
-                  <Tabs value={bottomTab} onValueChange={setBottomTab} className="flex flex-col h-full">
-                    <div className="flex items-center border-b border-border px-1 flex-shrink-0">
-                      <TabsList className="bg-transparent h-9 p-0 gap-0">
-                        <TabsTrigger value="testcases" className="judge-tab-trigger h-9">
-                          <FlaskConical className="h-3.5 w-3.5" /> Testcases
-                        </TabsTrigger>
-                        <TabsTrigger value="result" className="judge-tab-trigger h-9">
-                          <SquareTerminal className="h-3.5 w-3.5" /> Output
-                          {(runResult || submitResult) && (
-                            <span className={`judge-result-dot ${
-                              runResult?.status === "Success" || submitResult?.verdict === "ACCEPTED"
-                                ? "judge-result-dot--success" : "judge-result-dot--error"
-                            }`} />
-                          )}
-                        </TabsTrigger>
+                <div style={{ display: "flex", flexDirection: "column", height: "100%", background: S.bg }}>
+                  <Tabs value={bottomTab} onValueChange={setBottomTab} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+
+                    {/* Tab bar */}
+                    <div style={{ display: "flex", alignItems: "center",
+                      borderBottom: `1px solid ${S.border}`, padding: "0 4px", flexShrink: 0 }}>
+                      <TabsList style={{ background: "transparent", height: 36, padding: 0, display: "flex", gap: 0 }}>
+                        {[
+                          { value: "testcases", Icon: FlaskConical,    label: "Testcases" },
+                          { value: "result",    Icon: SquareTerminal,  label: "Output",
+                            dot: (runResult || submitResult)
+                              ? (runResult?.status === "Success" || submitResult?.verdict === "ACCEPTED" ? S.green : S.red)
+                              : null },
+                        ].map(tab => (
+                          <TabsTrigger key={tab.value} value={tab.value}
+                            style={{ display: "flex", alignItems: "center", gap: 5,
+                              padding: "0 12px", height: 36, borderRadius: 0, border: "none",
+                              background: "transparent", cursor: "none",
+                              fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
+                              color: bottomTab === tab.value ? "#fff" : "rgba(255,255,255,0.28)",
+                              borderBottom: bottomTab === tab.value ? `1px solid ${S.acid}` : "1px solid transparent",
+                              transition: "color 0.15s, border-color 0.15s", marginBottom: -1,
+                            }}>
+                            <tab.Icon size={12} />
+                            {tab.label}
+                            {tab.dot && <div style={{ width: 5, height: 5, borderRadius: "50%", background: tab.dot }} />}
+                          </TabsTrigger>
+                        ))}
                       </TabsList>
                     </div>
 
                     {/* Testcases */}
-                    <TabsContent value="testcases" className="flex-1 overflow-hidden m-0">
-                      <div className="flex flex-col h-full">
-                        <div className="flex items-center gap-1.5 px-3 pt-3 pb-2 flex-shrink-0 flex-wrap">
+                    <TabsContent value="testcases" style={{ flex: 1, overflow: "hidden", margin: 0 }}>
+                      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
+                        {/* Test case tabs row */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 5,
+                          padding: "8px 12px", flexShrink: 0, flexWrap: "wrap" }}>
                           {testCases.map((tc, idx) => (
-                            <div key={idx} className="relative group">
-                              <button
-                                className={`judge-tc-pill ${tc.isCustom ? "judge-tc-pill-custom" : ""}`}
-                                data-active={activeTestCase === idx}
-                                onClick={() => setActiveTestCase(idx)}
-                              >
-                                <CircleDot className="h-2.5 w-2.5" />
+                            <div key={idx} style={{ position: "relative" }}>
+                              <button onClick={() => setActiveTestCase(idx)}
+                                style={{ display: "flex", alignItems: "center", gap: 5,
+                                  padding: "4px 10px", borderRadius: 7, border: "none", cursor: "none",
+                                  fontSize: 11, fontWeight: 700, transition: "all 0.15s",
+                                  background: activeTestCase === idx ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
+                                  outline: activeTestCase === idx
+                                    ? tc.isCustom ? `1px solid rgba(237,255,102,0.2)` : `1px solid ${S.border}`
+                                    : "1px solid rgba(255,255,255,0.04)",
+                                  color: activeTestCase === idx ? "#fff" : "rgba(255,255,255,0.35)" }}>
+                                <CircleDot size={9} />
                                 {tc.isCustom ? `Custom ${idx - sampleCount + 1}` : `Case ${idx + 1}`}
                               </button>
                               {tc.isCustom && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); removeTestCase(idx); }}
-                                  className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 flex items-center justify-center rounded-full bg-secondary border border-border text-muted-foreground/60 hover:text-[var(--color-danger)] hover:bg-[var(--color-danger-light)] hover:border-[var(--color-danger)]/30 transition-colors opacity-0 group-hover:opacity-100"
+                                <button onClick={(e) => { e.stopPropagation(); removeTestCase(idx); }}
+                                  style={{ position: "absolute", top: -3, right: -3, width: 13, height: 13,
+                                    borderRadius: "50%", border: `1px solid ${S.border}`,
+                                    background: "#0c0c0f", cursor: "none", display: "none",
+                                    alignItems: "center", justifyContent: "center",
+                                    fontSize: 7, color: "rgba(255,255,255,0.4)", transition: "color 0.15s" }}
+                                  onMouseEnter={e => { e.currentTarget.style.display = "flex"; e.currentTarget.style.color = S.red; }}
+                                  className="test-remove-btn"
                                 >
-                                  <X className="h-2 w-2" />
+                                  <X size={8} />
                                 </button>
                               )}
                             </div>
                           ))}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button onClick={addCustomTestCase} className="judge-tc-pill judge-tc-pill-add">
-                                <Plus className="h-3 w-3" />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" className="text-xs">Add custom test case</TooltipContent>
-                          </Tooltip>
+                          <button onClick={addCustomTestCase}
+                            style={{ width: 26, height: 26, borderRadius: 7, border: `1px solid ${S.border}`,
+                              background: "transparent", cursor: "none", display: "flex",
+                              alignItems: "center", justifyContent: "center",
+                              color: "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#fff"; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
+                          ><Plus size={11} /></button>
                         </div>
 
-                        <ScrollArea className="flex-1 px-3 pb-3">
-                          <div className="space-y-3">
+                        <ScrollArea style={{ flex: 1, padding: "0 12px 12px" }}>
+                          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                             <div>
-                              <div className="judge-label">Input</div>
+                              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em",
+                                textTransform: "uppercase", color: S.textMeta, marginBottom: 6 }}>Input</div>
                               <textarea
-                                className="judge-input"
                                 value={testCases[activeTestCase]?.input || ""}
                                 onChange={(e) => updateActiveInput(e.target.value)}
                                 placeholder="Enter test input…"
                                 spellCheck={false}
+                                style={{ width: "100%", minHeight: 80, borderRadius: 9,
+                                  border: `1px solid ${S.border}`, background: S.surface,
+                                  padding: "8px 12px", fontFamily: "'JetBrains Mono',monospace",
+                                  fontSize: 12, color: "rgba(255,255,255,0.7)", outline: "none",
+                                  resize: "vertical", lineHeight: 1.65, transition: "border-color 0.15s" }}
+                                onFocus={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.16)"}
+                                onBlur={e => e.currentTarget.style.borderColor = S.border}
                               />
                             </div>
                             {testCases[activeTestCase]?.output && (
                               <div>
-                                <div className="judge-label">Expected Output</div>
-                                <pre className="judge-codeblock text-[12px]">{testCases[activeTestCase].output}</pre>
+                                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em",
+                                  textTransform: "uppercase", color: S.textMeta, marginBottom: 6 }}>Expected Output</div>
+                                <pre style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12,
+                                  background: S.surface, border: `1px solid ${S.border}`,
+                                  borderRadius: 9, padding: "8px 12px", color: "rgba(255,255,255,0.7)",
+                                  whiteSpace: "pre-wrap", lineHeight: 1.65, margin: 0 }}>
+                                  {testCases[activeTestCase].output}
+                                </pre>
                               </div>
                             )}
                           </div>
@@ -822,25 +864,26 @@ export default function BattleArenaPage() {
                     </TabsContent>
 
                     {/* Output */}
-                    <TabsContent value="result" className="flex-1 overflow-hidden m-0">
-                      <ScrollArea className="h-full p-3">
+                    <TabsContent value="result" style={{ flex: 1, overflow: "hidden", margin: 0 }}>
+                      <ScrollArea style={{ height: "100%", padding: "12px 14px" }}>
                         {!runResult && !submitResult && (
-                          <div className="judge-empty-state py-8">
-                            <SquareTerminal className="judge-empty-state-icon" />
-                            <p className="text-xs font-medium">Run your code to see output</p>
+                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center",
+                            justifyContent: "center", padding: "32px 0", gap: 8, textAlign: "center" }}>
+                            <SquareTerminal size={16} color="rgba(255,255,255,0.18)" />
+                            <span style={{ fontSize: 12, color: S.textMeta }}>Run your code to see output</span>
                           </div>
                         )}
                         {runResult && (
-                          <div className="space-y-3">
+                          <div style={{ padding: "12px 0", display: "flex", flexDirection: "column", gap: 10 }}>
                             <StatusBanner status={runResult.status} time={runResult.time} compact />
-                            {runResult.stdout && <CodeOutput label="Stdout" size="sm" icon={<SquareTerminal className="h-3 w-3" />}>{runResult.stdout}</CodeOutput>}
-                            {runResult.stderr && <CodeOutput label="Stderr" variant="error" size="sm" icon={<AlertTriangle className="h-3 w-3" />}>{runResult.stderr}</CodeOutput>}
+                            {runResult.stdout && <CodeOutput label="Stdout" icon={<SquareTerminal size={10} />}>{runResult.stdout}</CodeOutput>}
+                            {runResult.stderr && <CodeOutput label="Stderr" variant="error" icon={<AlertTriangle size={10} />}>{runResult.stderr}</CodeOutput>}
                           </div>
                         )}
                         {submitResult && !runResult && (
-                          <div className="space-y-3">
+                          <div style={{ padding: "12px 0", display: "flex", flexDirection: "column", gap: 10 }}>
                             <BattleVerdictBanner result={submitResult} compact />
-                            {submitResult.error && <CodeOutput variant="error" size="sm">{submitResult.error}</CodeOutput>}
+                            {submitResult.error && <CodeOutput variant="error">{submitResult.error}</CodeOutput>}
                           </div>
                         )}
                       </ScrollArea>
@@ -852,80 +895,86 @@ export default function BattleArenaPage() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
+
+      <style>{`
+        *, *::before, *::after { box-sizing: border-box; }
+        ::-webkit-scrollbar { width: 0; height: 0; }
+        @keyframes spin  { 0%{transform:rotate(0deg)}  100%{transform:rotate(360deg)} }
+        @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.1} }
+      `}</style>
     </TooltipProvider>
   );
 }
 
-/* ────────────────────────────────────────────
-   SUB-COMPONENTS
-   ──────────────────────────────────────────── */
-
-const RUN_STATUS_MAP = {
-  Success:         { icon: CheckCircle2,  color: "var(--color-success)", variant: "accepted" },
-  Error:           { icon: AlertTriangle, color: "var(--color-danger)",  variant: "failed" },
-  "Runtime Error": { icon: AlertTriangle, color: "var(--color-orange)",  variant: "warning" },
-};
+/* ── Sub-components ── */
 
 function StatusBanner({ status, time, compact }) {
-  const cfg = RUN_STATUS_MAP[status] || RUN_STATUS_MAP.Error;
-  const Icon = cfg.icon;
+  const cfg  = STATUS_CFG[status] || STATUS_CFG.Error;
+  const Icon = cfg.Icon;
   return (
-    <div className={`judge-status-banner judge-status-banner--${cfg.variant} ${compact ? "!py-2 !px-3" : ""}`}>
-      <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} style={{ color: cfg.color }} />
-      <span className={`${compact ? "text-sm" : "text-base"} font-bold leading-tight`} style={{ color: cfg.color }}>
-        {status}
-      </span>
+    <div style={{ display: "flex", alignItems: "center", gap: 10,
+      borderRadius: 10, border: `1px solid ${cfg.border}`,
+      background: cfg.bgColor, padding: compact ? "7px 12px" : "9px 14px" }}>
+      <Icon size={compact ? 14 : 16} color={cfg.color} />
+      <span style={{ fontFamily: BATTLE_FONT_FAMILY, letterSpacing: BATTLE_FONT_LETTER_SPACING,
+        fontWeight: 900, fontSize: compact ? 13 : 14, color: cfg.color, flex: 1 }}>{status}</span>
       {time > 0 && (
-        <span className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums bg-secondary/80 px-2 py-0.5 rounded-md">
-          <Clock className="h-3 w-3" /> {time}ms
+        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, fontWeight: 700,
+          color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.07)", padding: "2px 7px", borderRadius: 6,
+          fontFamily: "monospace" }}>
+          <Clock size={10} /> {time}ms
         </span>
       )}
     </div>
   );
 }
 
-const VERDICT_MAP = {
-  ACCEPTED:      { icon: CheckCircle2,  color: "var(--color-success)", variant: "accepted", label: "Accepted" },
-  WRONG_ANSWER:  { icon: XCircle,       color: "var(--color-danger)",  variant: "failed",   label: "Wrong Answer" },
-  TIME_LIMIT:    { icon: Clock,         color: "var(--color-warning)", variant: "warning",  label: "Time Limit Exceeded" },
-  COMPILE_ERROR: { icon: AlertTriangle, color: "var(--color-danger)",  variant: "failed",   label: "Compilation Error" },
-  RUNTIME_ERROR: { icon: AlertTriangle, color: "var(--color-orange)",  variant: "warning",  label: "Runtime Error" },
-  ERROR:         { icon: AlertTriangle, color: "var(--color-danger)",  variant: "failed",   label: "Error" },
-};
-
 function BattleVerdictBanner({ result, compact }) {
-  const cfg = VERDICT_MAP[result.verdict] || VERDICT_MAP.ERROR;
-  const Icon = cfg.icon;
+  const cfg  = VERDICT_CFG[result.verdict] || VERDICT_CFG.ERROR;
+  const Icon = result.verdict === "ACCEPTED" ? CheckCircle2 : AlertTriangle;
   return (
-    <div className={`judge-status-banner judge-status-banner--${cfg.variant} ${compact ? "!py-2 !px-3" : ""}`}>
-      <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} style={{ color: cfg.color }} />
-      <div className="flex flex-col">
-        <span className={`${compact ? "text-sm" : "text-base"} font-bold leading-tight`} style={{ color: cfg.color }}>
-          {cfg.label}
-        </span>
+    <div style={{ display: "flex", alignItems: "center", gap: 10,
+      borderRadius: 10, border: `1px solid ${cfg.border}`,
+      background: cfg.bgColor, padding: compact ? "7px 12px" : "9px 14px" }}>
+      <Icon size={compact ? 14 : 16} color={cfg.color} />
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: BATTLE_FONT_FAMILY, letterSpacing: BATTLE_FONT_LETTER_SPACING,
+          fontWeight: 900, fontSize: compact ? 13 : 14, color: cfg.color }}>{cfg.label}</div>
         {!compact && result.executionTimeMs > 0 && (
-          <span className="text-[10px] text-muted-foreground mt-0.5">Executed in {result.executionTimeMs}ms</span>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 2 }}>
+            Executed in {result.executionTimeMs}ms
+          </div>
         )}
       </div>
       {result.executionTimeMs > 0 && (
-        <span className="ml-auto flex items-center gap-1.5 text-[11px] text-muted-foreground tabular-nums bg-secondary/80 px-2 py-0.5 rounded-md">
-          <Clock className="h-3 w-3" /> {result.executionTimeMs}ms
+        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, fontWeight: 700,
+          color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.05)",
+          border: "1px solid rgba(255,255,255,0.07)", padding: "2px 7px", borderRadius: 6,
+          fontFamily: "monospace" }}>
+          <Clock size={10} /> {result.executionTimeMs}ms
         </span>
       )}
     </div>
   );
 }
 
-function CodeOutput({ label, variant, size = "md", icon, children }) {
-  const isError = variant === "error";
+function CodeOutput({ label, variant, labelColor, icon, children }) {
+  const isErr = variant === "error";
   return (
     <div>
       {label && (
-        <div className="judge-label flex items-center gap-1.5" style={isError ? { color: "var(--color-danger)" } : undefined}>
-          {icon} {label}
+        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5,
+          fontSize: 9, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase",
+          color: labelColor || (isErr ? "#f87171" : "rgba(255,255,255,0.22)") }}>
+          {icon}{label}
         </div>
       )}
-      <pre className={`judge-codeblock ${size === "sm" ? "text-[12px]" : "text-[13px]"} ${isError ? "judge-codeblock--error" : ""}`}>
+      <pre style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12,
+        borderRadius: 9, border: `1px solid ${isErr ? "rgba(248,113,113,0.15)" : S.borderSub}`,
+        background: isErr ? "rgba(127,29,29,0.2)" : S.surface,
+        padding: "8px 12px", color: isErr ? "#fca5a5" : "rgba(255,255,255,0.65)",
+        whiteSpace: "pre-wrap", lineHeight: 1.65, margin: 0, overflowX: "auto" }}>
         {children}
       </pre>
     </div>

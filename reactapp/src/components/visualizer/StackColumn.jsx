@@ -4,7 +4,7 @@ import { Layers } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * StackColumn — vertical LIFO stack.
+ * StackColumn - vertical LIFO stack.
  *
  * Clean card, items stacked bottom-up, top element accented.
  */

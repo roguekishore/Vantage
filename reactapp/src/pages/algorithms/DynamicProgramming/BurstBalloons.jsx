@@ -631,8 +631,8 @@ const BurstBalloonsVisualizer = () => {
             <div className="p-4 bg-theme-tertiary/50 rounded-xl border border-theme-primary/60 shadow-2xl">
               <h4 className="text-success font-semibold flex items-center gap-2"><Clock size={16} /> Complexity & Notes</h4>
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
-                <div><strong>Time:</strong> <span className="font-mono text-teal300">O(N³)</span> — We have three nested loops (length, i, k).</div>
-                <div><strong>Space:</strong> <span className="font-mono text-teal300">O(N²)</span> — Storing the 2D DP table.</div>
+                <div><strong>Time:</strong> <span className="font-mono text-teal300">O(N³)</span> - We have three nested loops (length, i, k).</div>
+                <div><strong>Space:</strong> <span className="font-mono text-teal300">O(N²)</span> - Storing the 2D DP table.</div>
                 <div><strong>Approach:</strong> This is an Interval DP problem, similar to Matrix Chain Multiplication. `dp[i][j]` stores the max coins from bursting balloons in the interval (i, j).</div>
               </div>
             </div>

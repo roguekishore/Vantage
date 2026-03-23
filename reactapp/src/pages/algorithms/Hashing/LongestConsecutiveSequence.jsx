@@ -689,12 +689,12 @@ const LongestConsecutiveSequence = () => {
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n)</span> — each
+                  <span className="font-mono text-teal300">O(n)</span> - each
                   number is visited at most twice
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n)</span> — hash
+                  <span className="font-mono text-teal300">O(n)</span> - hash
                   set stores all unique numbers
                 </div>
                 <div>

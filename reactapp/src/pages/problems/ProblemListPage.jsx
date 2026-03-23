@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { fetchProblems, fetchProblemById, fetchStages } from "../../services/problemApi";
 import ProblemsTable from "../../components/ProblemsTable";
-import { ALL_PROBLEMS } from "../../data/dsa-conquest-map";
+import { resolveJudgeProblemId } from "../../lib/judgeProblemIdResolver";
 
 export default function ProblemListPage() {
   const navigate = useNavigate();
@@ -26,9 +26,11 @@ export default function ProblemListPage() {
       showLeetCode
       showStage
       onRowClick={(id, problem) => {
-        // Try to find the matching problem in our local map to get its judgeId
-        const localProblem = ALL_PROBLEMS.find(p => p.lcSlug === problem.lcslug);
-        const targetId = localProblem?.judgeId || problem.lcslug || problem.id || id;
+        const targetId = resolveJudgeProblemId({
+          lcslug: problem?.lcslug,
+          title: problem?.title,
+          fallbackId: problem?.id || id,
+        });
         navigate(`/problem/${targetId}`);
       }}
     />

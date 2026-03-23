@@ -221,7 +221,7 @@ export default function PixelCard({ variant = 'default', gap, speed, colors, noF
     let resizeRaf = null;
     const observer = new ResizeObserver(() => {
       // Debounce via rAF so the heavy canvas work doesn't run
-      // synchronously inside the observer callback — this prevents
+      // synchronously inside the observer callback - this prevents
       // the "ResizeObserver loop completed with undelivered notifications" error.
       if (resizeRaf) cancelAnimationFrame(resizeRaf);
       resizeRaf = requestAnimationFrame(() => {

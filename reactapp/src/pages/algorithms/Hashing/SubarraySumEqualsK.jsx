@@ -705,12 +705,12 @@ const SubarraySumEqualsK = () => {
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n)</span> — single
+                  <span className="font-mono text-teal300">O(n)</span> - single
                   pass through the array
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(n)</span> — hash
+                  <span className="font-mono text-teal300">O(n)</span> - hash
                   map stores prefix sum frequencies
                 </div>
                 <div>

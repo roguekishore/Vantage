@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getToken } from "../services/api";
+import { getSockJsUrl, getStompBrokerUrl } from "../services/realtimeUrls";
 import {
   createRoom as apiCreateRoom,
   fetchRoomByCode,
@@ -11,10 +12,12 @@ import {
   startGroupBattle as apiStartGroupBattle,
   fetchGroupBattleState,
   submitGroupBattleCode,
+  forfeitGroupBattle,
   fetchGroupBattleResult,
 } from "../services/groupBattleApi";
 
-const WS_URL = "http://localhost:8080/ws";
+const SOCKJS_URL = getSockJsUrl();
+const STOMP_BROKER_URL = getStompBrokerUrl();
 const POLL_INTERVAL = 3000;
 
 /**
@@ -23,11 +26,11 @@ const POLL_INTERVAL = 3000;
  */
 const useGroupBattleStore = create((set, get) => ({
   /* ── State ── */
-  room: null,           // RoomLobbyDTO — room lobby snapshot
+  room: null,           // RoomLobbyDTO - room lobby snapshot
   roomCode: null,       // 6-char code
   battleId: null,
-  groupState: null,     // GroupBattleStateDTO — live scoreboard
-  result: null,         // GroupBattleResultDTO — final placement
+  groupState: null,     // GroupBattleStateDTO - live scoreboard
+  result: null,         // GroupBattleResultDTO - final placement
   error: null,
   loading: false,
   submitting: false,
@@ -53,8 +56,9 @@ const useGroupBattleStore = create((set, get) => ({
       }
 
       const client = new Client({
-        webSocketFactory: () => new SockJS(WS_URL),
-        connectHeaders: { Authorization: `Bearer ${getToken() || ''}` },
+        brokerURL: STOMP_BROKER_URL,
+        webSocketFactory: () => new SockJS(SOCKJS_URL),
+        connectHeaders: { Authorization: `Bearer ${getToken() || ""}` },
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
@@ -269,8 +273,24 @@ const useGroupBattleStore = create((set, get) => ({
     }
   },
 
+  /**
+   * Forfeit an active group battle.
+   * @param {number} battleId
+   * @param {number} userId
+   */
+  forfeit: async (battleId, userId) => {
+    set({ loading: true, error: null });
+    try {
+      await forfeitGroupBattle(battleId, userId);
+      set({ loading: false });
+    } catch (e) {
+      set({ error: e.message, loading: false });
+      throw e;
+    }
+  },
+
   /* ═══════════════════════════════════════════════════════════
-   * INTERNAL — ROOM SUBSCRIPTION
+   * INTERNAL - ROOM SUBSCRIPTION
    * ═══════════════════════════════════════════════════════════ */
 
   _subscribeToRoom: async (battleId, userId) => {
@@ -283,13 +303,19 @@ const useGroupBattleStore = create((set, get) => ({
     subs.push(client.subscribe(`/topic/battle/${battleId}/room`, (msg) => {
       const payload = JSON.parse(msg.body);
       if (payload.state === "CANCELLED") {
-        set({ room: { ...get().room, state: "CANCELLED" } });
+        set({
+          room: {
+            ...get().room,
+            state: "CANCELLED",
+            cancelMessage: payload.message || "Room was cancelled",
+          },
+        });
       } else {
         set({ room: payload });
       }
     }));
 
-    // Battle started — transition from lobby to arena
+    // Battle started - transition from lobby to arena
     subs.push(client.subscribe(`/topic/battle/${battleId}/started`, (msg) => {
       const payload = JSON.parse(msg.body);
       set({ room: { ...get().room, state: "ACTIVE" } });

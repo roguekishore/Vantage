@@ -91,7 +91,12 @@ export async function submitBattleCode(battleId, { userId, problemIndex, languag
  */
 export async function fetchBattleResult(battleId, userId) {
   const res = await authFetch(`${API_BASE}/${battleId}/result`);
-  if (!res.ok) throw new Error("Failed to fetch battle result");
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    const error = new Error(err.message || err.error || "Failed to fetch battle result");
+    error.status = res.status;
+    throw error;
+  }
   return res.json();
 }
 
@@ -120,5 +125,21 @@ export async function abandonBattle(battleId, userId) {
 export async function fetchBattleHistory(userId, page = 0, size = 20) {
   const res = await authFetch(`${API_BASE}/history?page=${page}&size=${size}`);
   if (!res.ok) throw new Error("Failed to fetch battle history");
+  return res.json();
+}
+
+/**
+ * Check for an active battle.
+ */
+export async function checkActiveBattle(userId) {
+  const res = await authFetch(`${API_BASE}/active`);
+  if (res.status === 204) {
+    return null; // No active battle
+  }
+  if (!res.ok) {
+    // We expect 401 if not logged in, don't throw for that.
+    if (res.status === 401) return null;
+    throw new Error("Failed to check for active battle");
+  }
   return res.json();
 }

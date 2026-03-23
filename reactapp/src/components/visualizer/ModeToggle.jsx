@@ -3,7 +3,7 @@ import { cn } from "../../lib/utils";
 import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
 
 /**
- * ModeToggle — Brute Force / Optimal tab switcher.
+ * ModeToggle - Brute Force / Optimal tab switcher.
  *
  * Uses shadcn Tabs primitive for a professional pill toggle.
  */

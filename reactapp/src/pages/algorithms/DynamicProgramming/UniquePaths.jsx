@@ -598,10 +598,10 @@ const UniquePathsVisualizer = () => {
               </h4>
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
-                  <strong>Time:</strong> <span className="font-mono text-teal300">O(m × n)</span> — Each cell computed once and memoized
+                  <strong>Time:</strong> <span className="font-mono text-teal300">O(m × n)</span> - Each cell computed once and memoized
                 </div>
                 <div>
-                  <strong>Space:</strong> <span className="font-mono text-teal300">O(m × n)</span> — Memoization table + recursion stack
+                  <strong>Space:</strong> <span className="font-mono text-teal300">O(m × n)</span> - Memoization table + recursion stack
                 </div>
                 <div>
                   <strong>Optimization:</strong> Can be further optimized to O(n) space using bottom-up DP with a 1D array

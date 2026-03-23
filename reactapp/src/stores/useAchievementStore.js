@@ -10,10 +10,10 @@ import { fetchAllAchievements, fetchMyAchievements } from "@/services/achievemen
  *   - AchievementsPage → full catalog grid (avoids a redundant fetch)
  *
  * Refresh flow:
- *   loadAchievements(uid)   — full load on login / app init
- *   refresh(uid)            — lightweight re-fetch after a problem solve /
+ *   loadAchievements(uid)   - full load on login / app init
+ *   refresh(uid)            - lightweight re-fetch after a problem solve /
  *                             sync, so new badges appear without page refresh
- *   clearAchievements()     — on logout
+ *   clearAchievements()     - on logout
  */
 const useAchievementStore = create((set, get) => ({
   /* ── state ── */

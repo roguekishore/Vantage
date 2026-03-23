@@ -3,7 +3,7 @@ import { fetchPlayerStats, fetchStreak } from "@/services/gamificationApi";
 import { getStoredUser } from "@/services/userApi";
 
 /**
- * Global gamification store — coins, XP, level, streaks.
+ * Global gamification store - coins, XP, level, streaks.
  * Loaded once on app start for logged-in users.
  * Updated optimistically after problem solves.
  */

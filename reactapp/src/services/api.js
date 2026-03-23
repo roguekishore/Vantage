@@ -1,12 +1,11 @@
 /**
- * Phase 3 — Shared API client with JWT authentication.
+ * Shared API client.
  *
- * Every Spring Boot call should go through authFetch() so the JWT
- * is automatically injected. The backend's JwtAuthFilter then extracts
- * the userId from the token and injects it as a request parameter,
- * meaning existing @RequestParam Long userId annotations still work
- * without any controller changes.
+ * Primary auth mode: HttpOnly cookie (credentials: include).
+ * Bridge mode: in-memory JWT header (for flows that still expect Bearer).
  */
+
+import useUserStore from "../stores/useUserStore";
 
 export const API_BASE =
   (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api";
@@ -14,19 +13,46 @@ export const API_BASE =
 /** Read the JWT token from the stored user object. */
 export function getToken() {
   try {
-    const raw = localStorage.getItem("user");
-    const user = raw ? JSON.parse(raw) : null;
-    return user?.token ?? null;
+    const user = useUserStore.getState().user;
+    if (user?.token) return user.token;
+    if (user?.jwt) return user.jwt;
+    if (user?.accessToken) return user.accessToken;
+    if (user?.tsession) return user.tsession;
+
+    // Legacy browser storage compatibility (pre-zustand / old auth migrations)
+    const directKeys = ["tsession", "token", "jwt", "accessToken", "vantage_token"];
+    for (const key of directKeys) {
+      const raw = localStorage.getItem(key);
+      if (raw && raw !== "null" && raw !== "undefined") return raw;
+    }
+
+    // Some old builds stored a serialized user in localStorage without
+    // using the current zustand store shape.
+    const legacyUserRaw = localStorage.getItem("user");
+    if (legacyUserRaw) {
+      try {
+        const legacyUser = JSON.parse(legacyUserRaw);
+        const legacyToken =
+          legacyUser?.token ||
+          legacyUser?.jwt ||
+          legacyUser?.accessToken ||
+          legacyUser?.tsession ||
+          null;
+        if (legacyToken) return legacyToken;
+      } catch {
+        // ignore malformed legacy payload
+      }
+    }
   } catch {
-    return null;
+    // non-critical
   }
+  return null;
 }
 
 /** Read the current user's ID from the stored user object. */
 export function getCurrentUserId() {
   try {
-    const raw = localStorage.getItem("user");
-    const user = raw ? JSON.parse(raw) : null;
+    const user = useUserStore.getState().user;
     return user?.uid ?? user?.id ?? null;
   } catch {
     return null;
@@ -36,7 +62,7 @@ export function getCurrentUserId() {
 /**
  * Authenticated fetch wrapper.
  * Injects `Authorization: Bearer <jwt>` when a token is available.
- * Safe to call even when logged out — just skips the header.
+ * Safe to call even when logged out - just skips the header.
  */
 export async function authFetch(url, options = {}) {
   const token = getToken();
@@ -44,5 +70,9 @@ export async function authFetch(url, options = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  return fetch(url, { ...options, headers });
+  return fetch(url, {
+    ...options,
+    headers,
+    credentials: options.credentials ?? "include",
+  });
 }

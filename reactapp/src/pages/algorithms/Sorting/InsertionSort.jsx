@@ -515,7 +515,7 @@ const InsertionSortVisualizer = () => {
                     Worst Case: O(N²)
                   </strong>
                   <br />
-                  Occurs when the array is sorted in reverse order — each
+                  Occurs when the array is sorted in reverse order - each
                   element has to be compared and shifted.
                 </p>
                 <p className="text-theme-tertiary">

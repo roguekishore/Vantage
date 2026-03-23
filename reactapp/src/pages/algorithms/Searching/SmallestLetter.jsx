@@ -707,7 +707,7 @@ const SmallestLetter = () => {
                       Current Letter
                     </h4>
                     <div className="font-mono text-xl font-bold text-center text-teal">
-                      {currentIndex >= 0 ? `'${letters[currentIndex]}'` : "—"}
+                      {currentIndex >= 0 ? `'${letters[currentIndex]}'` : "-"}
                     </div>
                   </div>
                   <div className="bg-gradient-to-br from-success900/40 to-success900/40 backdrop-blur-sm p-5 rounded-xl border border-success700/50">
@@ -790,7 +790,7 @@ const SmallestLetter = () => {
                     <div className="space-y-2">
                       <div className="text-theme-tertiary">Current Index</div>
                       <div className="font-mono text-xl font-bold text-success bg-theme-secondary/50 py-2 rounded-lg text-center border border-success700/30">
-                        {currentIndex >= 0 ? currentIndex : "—"}
+                        {currentIndex >= 0 ? currentIndex : "-"}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -828,7 +828,7 @@ const SmallestLetter = () => {
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">
                     <span className="text-theme-secondary">Current Letter</span>
                     <span className="font-mono font-bold text-success text-lg">
-                      {currentIndex >= 0 ? `'${letters[currentIndex]}'` : "—"}
+                      {currentIndex >= 0 ? `'${letters[currentIndex]}'` : "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">
@@ -840,7 +840,7 @@ const SmallestLetter = () => {
                     <span className={`font-mono font-bold ${
                       currentIndex >= 0 ? getComparisonColor(letters[currentIndex]) : "text-theme-tertiary"
                     } text-lg`}>
-                      {currentIndex >= 0 ? `${letters[currentIndex]} ${getComparisonSymbol(letters[currentIndex])} ${target}` : "—"}
+                      {currentIndex >= 0 ? `${letters[currentIndex]} ${getComparisonSymbol(letters[currentIndex])} ${target}` : "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2">

@@ -351,15 +351,15 @@ export const ALL_PROBLEMS = [
   // Pattern: Graph Traversal (BFS/DFS)
   // Countries: Scandinavia + UK + Western Europe
   // =================================================================
-  { id: 'stage20-1', title: 'DFS (Graph)', route: '/graphs/DFS', stage: 20, order: 1, lcNumber: null, lcSlug: null, countryId: 'NO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'DFS' },
-  { id: 'stage20-2', title: 'BFS (Graph)', route: '/graphs/BFS', stage: 20, order: 2, lcNumber: null, lcSlug: null, countryId: 'SE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BFS' },
-  { id: 'stage20-3', title: 'Number of Islands', route: '/pathfinding/ColorIslands', stage: 20, order: 3, lcNumber: 200, lcSlug: 'number-of-islands', countryId: 'FI', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ColorIslands' },
-  { id: 'stage20-4', title: 'Flood Fill', route: '/pathfinding/FloodFill', stage: 20, order: 4, lcNumber: 733, lcSlug: 'flood-fill', countryId: 'DK', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'FloodFill' },
-  { id: 'stage20-5', title: "Dijkstra's Algorithm", route: '/graphs/Dijkstra', stage: 20, order: 5, lcNumber: null, lcSlug: null, countryId: 'NL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Dijkstra' },
-  { id: 'stage20-6', title: 'Topological Sort', route: '/graphs/TopologicalSort', stage: 20, order: 6, lcNumber: 207, lcSlug: 'course-schedule', countryId: 'BE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TopologicalSort' },
-  { id: 'stage20-7', title: "Kruskal's MST", route: '/graphs/Kruskal', stage: 20, order: 7, lcNumber: null, lcSlug: null, countryId: 'DE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Kruskal' },
-  { id: 'stage20-8', title: 'A* Pathfinding', route: '/pathfinding/AStar', stage: 20, order: 8, lcNumber: null, lcSlug: null, countryId: 'FR', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'AStar' },
-  { id: 'stage20-9', title: 'Network Flow (Edmonds-Karp/Dinic)', route: '/graphs/NetworkFlow', stage: 20, order: 9, lcNumber: null, lcSlug: null, countryId: 'GB', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'NetworkFlow' },
+  { id: 'stage20-1', title: 'DFS (Graph)', route: '/graphs/DFS', stage: 20, order: 1, lcNumber: null, lcSlug: null, countryId: 'NO', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'DFS', judgeId: 'dfs-graph' },
+  { id: 'stage20-2', title: 'BFS (Graph)', route: '/graphs/BFS', stage: 20, order: 2, lcNumber: null, lcSlug: null, countryId: 'SE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BFS', judgeId: 'bfs-graph' },
+  { id: 'stage20-3', title: 'Number of Islands', route: '/pathfinding/ColorIslands', stage: 20, order: 3, lcNumber: 200, lcSlug: 'number-of-islands', countryId: 'FI', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'ColorIslands', judgeId: 'number-of-islands' },
+  { id: 'stage20-4', title: 'Flood Fill', route: '/pathfinding/FloodFill', stage: 20, order: 4, lcNumber: 733, lcSlug: 'flood-fill', countryId: 'DK', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'FloodFill', judgeId: 'flood-fill' },
+  { id: 'stage20-5', title: "Dijkstra's Algorithm", route: '/graphs/Dijkstra', stage: 20, order: 5, lcNumber: null, lcSlug: null, countryId: 'NL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Dijkstra', judgeId: 'dijkstras-algorithm' },
+  { id: 'stage20-6', title: 'Topological Sort', route: '/graphs/TopologicalSort', stage: 20, order: 6, lcNumber: 207, lcSlug: 'course-schedule', countryId: 'BE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TopologicalSort', judgeId: 'topological-sort' },
+  { id: 'stage20-7', title: "Kruskal's MST", route: '/graphs/Kruskal', stage: 20, order: 7, lcNumber: null, lcSlug: null, countryId: 'DE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Kruskal', judgeId: 'kruskals-mst' },
+  { id: 'stage20-8', title: 'A* Pathfinding', route: '/pathfinding/AStar', stage: 20, order: 8, lcNumber: null, lcSlug: null, countryId: 'FR', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'AStar', judgeId: 'a-star-pathfinding' },
+  { id: 'stage20-9', title: 'Network Flow (Edmonds-Karp/Dinic)', route: '/graphs/NetworkFlow', stage: 20, order: 9, lcNumber: null, lcSlug: null, countryId: 'GB', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'NetworkFlow', judgeId: 'network-flow-max-flow' },
 
   // =================================================================
   // STAGE 21: Recursion & Backtracking (13 problems)
@@ -367,88 +367,88 @@ export const ALL_PROBLEMS = [
   // Countries: Spain, Portugal, Italy, Balkans, Greece
   // INCLUDES 1 NEW BASIC PROBLEM
   // =================================================================
-  { id: 'stage21-1', title: 'Recursion Call Stack Visualization', route: '/recursion/CallStackVisualization', stage: 21, order: 1, lcNumber: null, lcSlug: null, countryId: 'PT', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true },
-  { id: 'stage21-2', title: 'Fibonacci', route: '/recursion/Fibonacci', stage: 21, order: 2, lcNumber: 509, lcSlug: 'fibonacci-number', countryId: 'ES', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'Fibonacci' },
-  { id: 'stage21-3', title: 'Factorial', route: '/recursion/Factorial', stage: 21, order: 3, lcNumber: null, lcSlug: null, countryId: 'IT', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'Factorial' },
-  { id: 'stage21-4', title: 'Binary Search (Recursive)', route: '/recursion/BinarySearchRecursive', stage: 21, order: 4, lcNumber: 704, lcSlug: 'binary-search', countryId: 'CH', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BinarySearchRecursive' },
-  { id: 'stage21-5', title: 'Tower of Hanoi', route: '/recursion/TowerOfHanoi', stage: 21, order: 5, lcNumber: null, lcSlug: null, countryId: 'SI', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TowerOfHanoi' },
-  { id: 'stage21-6', title: 'Subset Sum', route: '/recursion/SubsetSum', stage: 21, order: 6, lcNumber: null, lcSlug: null, countryId: 'HR', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SubsetSum' },
-  { id: 'stage21-7', title: 'Permutations', route: '/backtracking/Permutations', stage: 21, order: 7, lcNumber: 46, lcSlug: 'permutations', countryId: 'BA', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Permutations' },
-  { id: 'stage21-8', title: 'N-Queens', route: '/recursion/NQueens', stage: 21, order: 8, lcNumber: 51, lcSlug: 'n-queens', countryId: 'RS', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'NQueens' },
-  { id: 'stage21-9', title: 'Rat in a Maze', route: '/pathfinding/RatInMaze', stage: 21, order: 9, lcNumber: null, lcSlug: null, countryId: 'ME', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'RatInMaze' },
-  { id: 'stage21-10', title: 'Word Search', route: '/backtracking/WordSearch', stage: 21, order: 10, lcNumber: 79, lcSlug: 'word-search', countryId: 'AL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'WordSearch' },
-  { id: 'stage21-11', title: 'Sudoku Solver', route: '/backtracking/SudokuSolver', stage: 21, order: 11, lcNumber: 37, lcSlug: 'sudoku-solver', countryId: 'MK', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'SudokuSolver' },
-  { id: 'stage21-12', title: 'Expression Add Operators', route: '/backtracking/ExpressionAddOperators', stage: 21, order: 12, lcNumber: 282, lcSlug: 'expression-add-operators', countryId: 'GR', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'ExpressionAddOperators' },
-  { id: 'stage21-13', title: "Knight's Tour", route: '/backtracking/KnightsTour', stage: 21, order: 13, lcNumber: null, lcSlug: null, countryId: 'BG', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'KnightsTour' },
+  { id: 'stage21-1', title: 'Recursion Call Stack Visualization', route: '/recursion/CallStackVisualization', stage: 21, order: 1, lcNumber: null, lcSlug: null, countryId: 'PT', difficulty: Difficulty.EASY, hasVisualizer: false, isNew: true, judgeId: 'recursion-call-stack-visualization' },
+  { id: 'stage21-2', title: 'Fibonacci', route: '/recursion/Fibonacci', stage: 21, order: 2, lcNumber: 509, lcSlug: 'fibonacci-number', countryId: 'ES', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'Fibonacci', judgeId: 'fibonacci' },
+  { id: 'stage21-3', title: 'Factorial', route: '/recursion/Factorial', stage: 21, order: 3, lcNumber: null, lcSlug: null, countryId: 'IT', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'Factorial', judgeId: 'factorial' },
+  { id: 'stage21-4', title: 'Binary Search (Recursive)', route: '/recursion/BinarySearchRecursive', stage: 21, order: 4, lcNumber: 704, lcSlug: 'binary-search', countryId: 'CH', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BinarySearchRecursive', judgeId: 'binary-search-recursive' },
+  { id: 'stage21-5', title: 'Tower of Hanoi', route: '/recursion/TowerOfHanoi', stage: 21, order: 5, lcNumber: null, lcSlug: null, countryId: 'SI', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TowerOfHanoi', judgeId: 'tower-of-hanoi' },
+  { id: 'stage21-6', title: 'Subset Sum', route: '/recursion/SubsetSum', stage: 21, order: 6, lcNumber: null, lcSlug: null, countryId: 'HR', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'SubsetSum', judgeId: 'subset-sum' },
+  { id: 'stage21-7', title: 'Permutations', route: '/backtracking/Permutations', stage: 21, order: 7, lcNumber: 46, lcSlug: 'permutations', countryId: 'BA', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Permutations', judgeId: 'permutations' },
+  { id: 'stage21-8', title: 'N-Queens', route: '/recursion/NQueens', stage: 21, order: 8, lcNumber: 51, lcSlug: 'n-queens', countryId: 'RS', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'NQueens', judgeId: 'n-queens' },
+  { id: 'stage21-9', title: 'Rat in a Maze', route: '/pathfinding/RatInMaze', stage: 21, order: 9, lcNumber: null, lcSlug: null, countryId: 'ME', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'RatInMaze', judgeId: 'rat-in-a-maze' },
+  { id: 'stage21-10', title: 'Word Search', route: '/backtracking/WordSearch', stage: 21, order: 10, lcNumber: 79, lcSlug: 'word-search', countryId: 'AL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'WordSearch', judgeId: 'word-search' },
+  { id: 'stage21-11', title: 'Sudoku Solver', route: '/backtracking/SudokuSolver', stage: 21, order: 11, lcNumber: 37, lcSlug: 'sudoku-solver', countryId: 'MK', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'SudokuSolver', judgeId: 'sudoku-solver' },
+  { id: 'stage21-12', title: 'Expression Add Operators', route: '/backtracking/ExpressionAddOperators', stage: 21, order: 12, lcNumber: 282, lcSlug: 'expression-add-operators', countryId: 'GR', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'ExpressionAddOperators', judgeId: 'expression-add-operators' },
+  { id: 'stage21-13', title: "Knight's Tour", route: '/backtracking/KnightsTour', stage: 21, order: 13, lcNumber: null, lcSlug: null, countryId: 'BG', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'KnightsTour', judgeId: 'knights-tour' },
 
   // =================================================================
   // STAGE 22: Dynamic Programming (9 problems)
   // Pattern: Optimal Substructure
   // Countries: Baltic States + Iceland + Greenland + North America
   // =================================================================
-  { id: 'stage22-1', title: 'Unique Paths', route: '/dynamic-programming/UniquePaths', stage: 22, order: 1, lcNumber: 62, lcSlug: 'unique-paths', countryId: 'EE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'UniquePaths' },
-  { id: 'stage22-2', title: '0/1 Knapsack', route: '/dynamic-programming/KnapSack', stage: 22, order: 2, lcNumber: 416, lcSlug: 'partition-equal-subset-sum', countryId: 'LV', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'KnapSack' },
-  { id: 'stage22-3', title: 'Coin Change', route: '/dynamic-programming/CoinChange', stage: 22, order: 3, lcNumber: 322, lcSlug: 'coin-change', countryId: 'LT', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CoinChange' },
-  { id: 'stage22-4', title: 'Longest Increasing Subsequence', route: '/dynamic-programming/LISubsequence', stage: 22, order: 4, lcNumber: 300, lcSlug: 'longest-increasing-subsequence', countryId: 'IE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LISubsequence' },
-  { id: 'stage22-5', title: 'Longest Common Subsequence', route: '/dynamic-programming/LongestCommonSubsequence', stage: 22, order: 5, lcNumber: 1143, lcSlug: 'longest-common-subsequence', countryId: 'IS', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LongestCommonSubsequence' },
-  { id: 'stage22-6', title: 'Edit Distance', route: '/dynamic-programming/EditDistance', stage: 22, order: 6, lcNumber: 72, lcSlug: 'edit-distance', countryId: 'GL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'EditDistance' },
-  { id: 'stage22-7', title: 'Burst Balloons', route: '/dynamic-programming/BurstBalloons', stage: 22, order: 7, lcNumber: 312, lcSlug: 'burst-balloons', countryId: 'CA', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'BurstBalloons' },
-  { id: 'stage22-8', title: 'Burst Balloons (Top Down)', route: '/dynamic-programming/BurstBalloonsTopDown', stage: 22, order: 8, lcNumber: 312, lcSlug: 'burst-balloons', countryId: 'US', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'BurstBalloonsTopDown' },
-  { id: 'stage22-9', title: 'Best Time to Buy and Sell Stock IV', route: '/dynamic-programming/SellStockIV', stage: 22, order: 9, lcNumber: 188, lcSlug: 'best-time-to-buy-and-sell-stock-iv', countryId: 'RU', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'SellStockIV' },
+  { id: 'stage22-1', title: 'Unique Paths', route: '/dynamic-programming/UniquePaths', stage: 22, order: 1, lcNumber: 62, lcSlug: 'unique-paths', countryId: 'EE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'UniquePaths', judgeId: 'unique-paths' },
+  { id: 'stage22-2', title: '0/1 Knapsack', route: '/dynamic-programming/KnapSack', stage: 22, order: 2, lcNumber: 416, lcSlug: 'partition-equal-subset-sum', countryId: 'LV', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'KnapSack', judgeId: 'zero-one-knapsack' },
+  { id: 'stage22-3', title: 'Coin Change', route: '/dynamic-programming/CoinChange', stage: 22, order: 3, lcNumber: 322, lcSlug: 'coin-change', countryId: 'LT', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CoinChange', judgeId: 'coin-change' },
+  { id: 'stage22-4', title: 'Longest Increasing Subsequence', route: '/dynamic-programming/LISubsequence', stage: 22, order: 4, lcNumber: 300, lcSlug: 'longest-increasing-subsequence', countryId: 'IE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LISubsequence', judgeId: 'longest-increasing-subsequence' },
+  { id: 'stage22-5', title: 'Longest Common Subsequence', route: '/dynamic-programming/LongestCommonSubsequence', stage: 22, order: 5, lcNumber: 1143, lcSlug: 'longest-common-subsequence', countryId: 'IS', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LongestCommonSubsequence', judgeId: 'longest-common-subsequence' },
+  { id: 'stage22-6', title: 'Edit Distance', route: '/dynamic-programming/EditDistance', stage: 22, order: 6, lcNumber: 72, lcSlug: 'edit-distance', countryId: 'GL', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'EditDistance', judgeId: 'edit-distance' },
+  { id: 'stage22-7', title: 'Burst Balloons', route: '/dynamic-programming/BurstBalloons', stage: 22, order: 7, lcNumber: 312, lcSlug: 'burst-balloons', countryId: 'CA', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'BurstBalloons', judgeId: 'burst-balloons' },
+  { id: 'stage22-8', title: 'Burst Balloons (Top Down)', route: '/dynamic-programming/BurstBalloonsTopDown', stage: 22, order: 8, lcNumber: 312, lcSlug: 'burst-balloons', countryId: 'US', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'BurstBalloonsTopDown', judgeId: 'burst-balloons-top-down' },
+  { id: 'stage22-9', title: 'Best Time to Buy and Sell Stock IV', route: '/dynamic-programming/SellStockIV', stage: 22, order: 9, lcNumber: 188, lcSlug: 'best-time-to-buy-and-sell-stock-iv', countryId: 'RU', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'SellStockIV', judgeId: 'best-time-to-buy-and-sell-stock-iv' },
 
   // =================================================================
   // STAGE 23: Greedy Algorithms (8 problems)
   // Pattern: Greedy Choice Property
   // Countries: Australia + Oceania
   // =================================================================
-  { id: 'stage23-1', title: 'Best Time to Buy and Sell Stock', route: '/greedy/BestTimeStock', stage: 23, order: 1, lcNumber: 121, lcSlug: 'best-time-to-buy-and-sell-stock', countryId: 'AU', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BestTimeStock' },
-  { id: 'stage23-2', title: 'Best Time to Buy and Sell Stock II', route: '/greedy/BestTimeStockII', stage: 23, order: 2, lcNumber: 122, lcSlug: 'best-time-to-buy-and-sell-stock-ii', countryId: 'NZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BestTimeStockII' },
-  { id: 'stage23-3', title: 'Assign Cookies', route: '/greedy/AssignCookies', stage: 23, order: 3, lcNumber: 455, lcSlug: 'assign-cookies', countryId: 'FJ', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'AssignCookies' },
-  { id: 'stage23-4', title: 'Two City Scheduling', route: '/greedy/TwoCityScheduling', stage: 23, order: 4, lcNumber: 1029, lcSlug: 'two-city-scheduling', countryId: 'VU', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TwoCityScheduling' },
-  { id: 'stage23-5', title: 'Maximum Profit in Job Scheduling', route: '/greedy/JobScheduling', stage: 23, order: 5, lcNumber: 1235, lcSlug: 'maximum-profit-in-job-scheduling', countryId: 'NC', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'JobScheduling' },
-  { id: 'stage23-6', title: 'Merge Intervals', route: '/arrays/MergeIntervals', stage: 23, order: 6, lcNumber: 56, lcSlug: 'merge-intervals', countryId: 'SB', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MergeIntervals' },
-  { id: 'stage23-7', title: 'Jump Game II', route: '/greedy/JumpGameII', stage: 23, order: 7, lcNumber: 45, lcSlug: 'jump-game-ii', countryId: 'WS', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true },
-  { id: 'stage23-8', title: 'Gas Station', route: '/greedy/GasStation', stage: 23, order: 8, lcNumber: 134, lcSlug: 'gas-station', countryId: 'TO', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true },
+  { id: 'stage23-1', title: 'Best Time to Buy and Sell Stock', route: '/greedy/BestTimeStock', stage: 23, order: 1, lcNumber: 121, lcSlug: 'best-time-to-buy-and-sell-stock', countryId: 'AU', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'BestTimeStock', judgeId: 'best-time-to-buy-and-sell-stock' },
+  { id: 'stage23-2', title: 'Best Time to Buy and Sell Stock II', route: '/greedy/BestTimeStockII', stage: 23, order: 2, lcNumber: 122, lcSlug: 'best-time-to-buy-and-sell-stock-ii', countryId: 'NZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'BestTimeStockII', judgeId: 'best-time-to-buy-and-sell-stock-ii' },
+  { id: 'stage23-3', title: 'Assign Cookies', route: '/greedy/AssignCookies', stage: 23, order: 3, lcNumber: 455, lcSlug: 'assign-cookies', countryId: 'FJ', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'AssignCookies', judgeId: 'assign-cookies' },
+  { id: 'stage23-4', title: 'Two City Scheduling', route: '/greedy/TwoCityScheduling', stage: 23, order: 4, lcNumber: 1029, lcSlug: 'two-city-scheduling', countryId: 'VU', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'TwoCityScheduling', judgeId: 'two-city-scheduling' },
+  { id: 'stage23-5', title: 'Maximum Profit in Job Scheduling', route: '/greedy/JobScheduling', stage: 23, order: 5, lcNumber: 1235, lcSlug: 'maximum-profit-in-job-scheduling', countryId: 'NC', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'JobScheduling', judgeId: 'maximum-profit-in-job-scheduling' },
+  { id: 'stage23-6', title: 'Merge Intervals', route: '/arrays/MergeIntervals', stage: 23, order: 6, lcNumber: 56, lcSlug: 'merge-intervals', countryId: 'SB', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'MergeIntervals', judgeId: 'merge-intervals' },
+  { id: 'stage23-7', title: 'Jump Game II', route: '/greedy/JumpGameII', stage: 23, order: 7, lcNumber: 45, lcSlug: 'jump-game-ii', countryId: 'WS', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true, judgeId: 'jump-game-ii' },
+  { id: 'stage23-8', title: 'Gas Station', route: '/greedy/GasStation', stage: 23, order: 8, lcNumber: 134, lcSlug: 'gas-station', countryId: 'TO', difficulty: Difficulty.MEDIUM, hasVisualizer: false, isNew: true, judgeId: 'gas-station' },
 
   // =================================================================
   // STAGE 24: Design & Systems (4 problems)
   // Pattern: System Design
   // Countries: East Africa (Kenya, Uganda, Tanzania, Rwanda)
   // =================================================================
-  { id: 'stage24-1', title: 'Design HashMap', route: '/design/DesignHashMap', stage: 24, order: 1, lcNumber: 706, lcSlug: 'design-hashmap', countryId: 'KE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'DesignHashMap' },
+  { id: 'stage24-1', title: 'Design HashMap', route: '/design/DesignHashMap', stage: 24, order: 1, lcNumber: 706, lcSlug: 'design-hashmap', countryId: 'KE', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'DesignHashMap', judgeId: 'design-hashmap' },
   { id: 'stage24-2', title: 'Design Linked List', route: '/design/DesignLinkedList', stage: 24, order: 2, lcNumber: 707, lcSlug: 'design-linked-list', countryId: 'UG', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'DesignLinkedList' },
-  { id: 'stage24-3', title: 'LRU Cache', route: '/design/LRUCache', stage: 24, order: 3, lcNumber: 146, lcSlug: 'lru-cache', countryId: 'TZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LRUCache' },
-  { id: 'stage24-4', title: 'LFU Cache', route: '/design/LFUCache', stage: 24, order: 4, lcNumber: 460, lcSlug: 'lfu-cache', countryId: 'RW', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'LFUCache' },
+  { id: 'stage24-3', title: 'LRU Cache', route: '/design/LRUCache', stage: 24, order: 3, lcNumber: 146, lcSlug: 'lru-cache', countryId: 'TZ', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LRUCache', judgeId: 'lru-cache' },
+  { id: 'stage24-4', title: 'LFU Cache', route: '/design/LFUCache', stage: 24, order: 4, lcNumber: 460, lcSlug: 'lfu-cache', countryId: 'RW', difficulty: Difficulty.HARD, hasVisualizer: true, component: 'LFUCache', judgeId: 'lfu-cache' },
 
   // =================================================================
   // BONUS STAGE A: Bit Manipulation (5 problems)
   // Pattern: Binary Representation
   // Countries: Caribbean islands
   // =================================================================
-  { id: 'bonusA-1', title: 'Single Number', route: '/bit-manipulation/SingleNumber', stage: 'A', order: 1, lcNumber: 136, lcSlug: 'single-number', countryId: 'PR', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SingleNumber' },
-  { id: 'bonusA-2', title: 'Number of 1 Bits', route: '/bit-manipulation/NumberOf1Bits', stage: 'A', order: 2, lcNumber: 191, lcSlug: 'number-of-1-bits', countryId: 'TT', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'NumberOf1Bits' },
-  { id: 'bonusA-3', title: 'Counting Bits', route: '/bit-manipulation/CountingBits', stage: 'A', order: 3, lcNumber: 338, lcSlug: 'counting-bits', countryId: 'BB', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'CountingBits' },
-  { id: 'bonusA-4', title: 'Reverse Bits', route: '/bit-manipulation/ReverseBits', stage: 'A', order: 4, lcNumber: 190, lcSlug: 'reverse-bits', countryId: 'LC', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ReverseBits' },
-  { id: 'bonusA-5', title: 'Power of Two', route: '/bit-manipulation/PowerOfTwo', stage: 'A', order: 5, lcNumber: 231, lcSlug: 'power-of-two', countryId: 'VC', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'PowerOfTwo' },
+  { id: 'bonusA-1', title: 'Single Number', route: '/bit-manipulation/SingleNumber', stage: 'A', order: 1, lcNumber: 136, lcSlug: 'single-number', countryId: 'PR', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'SingleNumber', judgeId: 'single-number' },
+  { id: 'bonusA-2', title: 'Number of 1 Bits', route: '/bit-manipulation/NumberOf1Bits', stage: 'A', order: 2, lcNumber: 191, lcSlug: 'number-of-1-bits', countryId: 'TT', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'NumberOf1Bits', judgeId: 'number-of-1-bits' },
+  { id: 'bonusA-3', title: 'Counting Bits', route: '/bit-manipulation/CountingBits', stage: 'A', order: 3, lcNumber: 338, lcSlug: 'counting-bits', countryId: 'BB', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'CountingBits', judgeId: 'counting-bits' },
+  { id: 'bonusA-4', title: 'Reverse Bits', route: '/bit-manipulation/ReverseBits', stage: 'A', order: 4, lcNumber: 190, lcSlug: 'reverse-bits', countryId: 'LC', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ReverseBits', judgeId: 'reverse-bits' },
+  { id: 'bonusA-5', title: 'Power of Two', route: '/bit-manipulation/PowerOfTwo', stage: 'A', order: 5, lcNumber: 231, lcSlug: 'power-of-two', countryId: 'VC', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'PowerOfTwo', judgeId: 'power-of-two' },
 
   // =================================================================
   // BONUS STAGE B: Mathematical & Miscellaneous (5 problems)
   // Pattern: Mathematical Properties
   // Countries: Mediterranean islands
   // =================================================================
-  { id: 'bonusB-1', title: 'Count Primes', route: '/maths/CountPrimes', stage: 'B', order: 1, lcNumber: 204, lcSlug: 'count-primes', countryId: 'CY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CountPrimes' },
-  { id: 'bonusB-2', title: 'Excel Sheet Column Title', route: '/maths/ExcelSheetColumnTitle', stage: 'B', order: 2, lcNumber: 168, lcSlug: 'excel-sheet-column-title', countryId: 'MT', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ExcelSheetColumnTitle' },
-  { id: 'bonusB-3', title: 'Factorial Trailing Zeroes', route: '/maths/FactorialZeroes', stage: 'B', order: 3, lcNumber: 172, lcSlug: 'factorial-trailing-zeroes', countryId: 'SC', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FactorialZeroes' },
-  { id: 'bonusB-4', title: 'Pow(x, n)', route: '/maths/Power', stage: 'B', order: 4, lcNumber: 50, lcSlug: 'powx-n', countryId: 'MU', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Power' },
-  { id: 'bonusB-5', title: 'Prime Palindrome', route: '/maths/PrimePalindrome', stage: 'B', order: 5, lcNumber: 866, lcSlug: 'prime-palindrome', countryId: 'MV', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PrimePalindrome' },
+  { id: 'bonusB-1', title: 'Count Primes', route: '/maths/CountPrimes', stage: 'B', order: 1, lcNumber: 204, lcSlug: 'count-primes', countryId: 'CY', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'CountPrimes', judgeId: 'count-primes' },
+  { id: 'bonusB-2', title: 'Excel Sheet Column Title', route: '/maths/ExcelSheetColumnTitle', stage: 'B', order: 2, lcNumber: 168, lcSlug: 'excel-sheet-column-title', countryId: 'MT', difficulty: Difficulty.EASY, hasVisualizer: true, component: 'ExcelSheetColumnTitle', judgeId: 'excel-sheet-column-title' },
+  { id: 'bonusB-3', title: 'Factorial Trailing Zeroes', route: '/maths/FactorialZeroes', stage: 'B', order: 3, lcNumber: 172, lcSlug: 'factorial-trailing-zeroes', countryId: 'SC', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'FactorialZeroes', judgeId: 'factorial-trailing-zeroes' },
+  { id: 'bonusB-4', title: 'Pow(x, n)', route: '/maths/Power', stage: 'B', order: 4, lcNumber: 50, lcSlug: 'powx-n', countryId: 'MU', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'Power', judgeId: 'pow-x-n' },
+  { id: 'bonusB-5', title: 'Prime Palindrome', route: '/maths/PrimePalindrome', stage: 'B', order: 5, lcNumber: 866, lcSlug: 'prime-palindrome', countryId: 'MV', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'PrimePalindrome', judgeId: 'prime-palindrome' },
 
   // =================================================================
   // BONUS STAGE C: Hashing Patterns (2 problems)
   // Pattern: Hash-based Optimization
   // Countries: Indian Ocean islands
   // =================================================================
-  { id: 'bonusC-1', title: 'Longest Consecutive Sequence', route: '/hashing/LongestConsecutiveSequence', stage: 'C', order: 1, lcNumber: 128, lcSlug: 'longest-consecutive-sequence', countryId: 'KM', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LongestConsecutiveSequence' },
-  { id: 'bonusC-2', title: 'Equal Row and Column Pairs', route: '/hashing/EqualRowsColumnPair', stage: 'C', order: 2, lcNumber: 2352, lcSlug: 'equal-row-and-column-pairs', countryId: 'RE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'EqualRowsColumnPair' },
+  { id: 'bonusC-1', title: 'Longest Consecutive Sequence', route: '/hashing/LongestConsecutiveSequence', stage: 'C', order: 1, lcNumber: 128, lcSlug: 'longest-consecutive-sequence', countryId: 'KM', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'LongestConsecutiveSequence', judgeId: 'longest-consecutive-sequence' },
+  { id: 'bonusC-2', title: 'Equal Row and Column Pairs', route: '/hashing/EqualRowsColumnPair', stage: 'C', order: 2, lcNumber: 2352, lcSlug: 'equal-row-and-column-pairs', countryId: 'RE', difficulty: Difficulty.MEDIUM, hasVisualizer: true, component: 'EqualRowsColumnPair', judgeId: 'equal-row-and-column-pairs' },
 ];
 
 // =============================================================================

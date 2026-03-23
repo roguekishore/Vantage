@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { getToken } from "@/services/api";
+import { getSockJsUrl, getStompBrokerUrl } from "@/services/realtimeUrls";
 import {
   acceptFriendChallenge,
   acceptFriendRequest,
@@ -21,7 +22,8 @@ import {
   sendFriendRequest,
 } from "@/services/friendsApi";
 
-const WS_URL = "http://localhost:8080/ws";
+const SOCKJS_URL = getSockJsUrl();
+const STOMP_BROKER_URL = getStompBrokerUrl();
 
 const useFriendsStore = create((set, get) => ({
   friends: [],
@@ -135,6 +137,14 @@ const useFriendsStore = create((set, get) => ({
     const id = setInterval(() => {
       get().pingPresence();
       get().loadFriendsPresence();
+
+      // WebSocket fallback path: keep friend/challenge state fresh even when
+      // STOMP connection is unavailable or dropped.
+      if (!get()._wsConnected) {
+        get().loadOverview();
+        get().loadIncomingChallenges();
+        get().loadChallengeMuteStatus();
+      }
     }, 20000);
     set({ _presenceInterval: id });
   },
@@ -414,9 +424,15 @@ const useFriendsStore = create((set, get) => ({
     if (existing?.connected) return true;
 
     return new Promise((resolve) => {
+      const token = getToken();
+      const sockJsUrl = token
+        ? `${SOCKJS_URL}${SOCKJS_URL.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
+        : SOCKJS_URL;
+
       const client = new Client({
-        webSocketFactory: () => new SockJS(WS_URL),
-        connectHeaders: { Authorization: `Bearer ${getToken() || ""}` },
+        brokerURL: STOMP_BROKER_URL,
+        webSocketFactory: () => new SockJS(sockJsUrl),
+        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
         reconnectDelay: 5000,
         heartbeatIncoming: 10000,
         heartbeatOutgoing: 10000,
@@ -489,9 +505,12 @@ const useFriendsStore = create((set, get) => ({
             }
 
             if (type === "FRIEND_MATCH_REQUEST_ACCEPTED") {
+              const isGroupInvite = (challenge?.mode || "") === "GROUP_FFA";
               set((state) => ({
                 lastNotification: msg,
-                challengeAcceptedBattleId: data?.battleId || state.challengeAcceptedBattleId,
+                challengeAcceptedBattleId: isGroupInvite
+                  ? state.challengeAcceptedBattleId
+                  : (data?.battleId || state.challengeAcceptedBattleId),
                 activeOutgoingChallenge:
                   challenge?.id && state.activeOutgoingChallenge?.id === challenge.id
                     ? null

@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "../../lib/utils";
 
 /**
- * ColorLegend — a row of colored dots with labels.
+ * ColorLegend - a row of colored dots with labels.
  *
  * Minimal styling, muted-foreground text, small dots.
  */

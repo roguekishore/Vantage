@@ -4,7 +4,7 @@ import { ArrowRightLeft } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * QueueRow — horizontal FIFO queue.
+ * QueueRow - horizontal FIFO queue.
  *
  * Clean card, front element accented, optional front/back labels.
  */

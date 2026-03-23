@@ -4,7 +4,7 @@ import { Clock, Zap, Cpu, Lightbulb } from "lucide-react";
 import { Separator } from "../ui/separator";
 
 /**
- * ComplexityCard — time/space complexity analysis.
+ * ComplexityCard - time/space complexity analysis.
  *
  * Clean card, no shadow. Uses consistent typography hierarchy.
  */

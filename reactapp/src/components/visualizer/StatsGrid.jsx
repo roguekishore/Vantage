@@ -2,7 +2,7 @@ import React from "react";
 import { cn } from "../../lib/utils";
 
 /**
- * StatsGrid — clean metric counters.
+ * StatsGrid - clean metric counters.
  *
  * Monochrome design: neutral cards, muted labels, foreground values.
  * No colored borders or rainbow accents.

@@ -1,32 +1,23 @@
 /* ========================================
-   DSA CONQUEST MAP — Minimal CSS
-   SVG country states + map layout
-   Dual-theme: light (.light) & dark (.dark)
+   DSA CONQUEST MAP
+   SVG country states (UNCHANGED) + new chrome
    ======================================== */
 
 /* ── CSS variables ── */
 .skill-tree-wrapper {
-  --wm-grid: rgba(0, 0, 0, 0.07);
-  --worldmap-icons: #000000;
-  --wm-yellow: #EDFF66;
-  --wm-purple: #5542FF;
-  --wm-purple-light: #B28EF2;
-}
-.dark .skill-tree-wrapper {
-  --wm-grid: rgba(255, 255, 255, 0.06);
-  --worldmap-icons: #ffffff;
+  --wm-grid:         rgba(255, 255, 255, 0.04);
+  --worldmap-icons:  rgba(255, 255, 255, 0.65);
+  --wm-yellow:       #EDFF66;
+  --wm-purple:       #7c3aed;
+  --wm-purple-light: #a78bfa;
 }
 
-.wm-icon {
-  color: var(--worldmap-icons) !important;
+/* Light theme override for grid */
+.light .skill-tree-wrapper {
+  --wm-grid: rgba(0, 0, 0, 0.05);
 }
 
-/* Purple accent icon (stays purple across themes) */
-.wm-icon-purple {
-  color: var(--wm-purple) !important;
-}
-
-/* Lucide SVG icons: prevent country-fill bleed, force correct icon color */
+/* ── Lucide icon color override for dock ── */
 .skill-tree-wrapper .lucide {
   color: var(--worldmap-icons) !important;
 }
@@ -35,23 +26,97 @@
 .skill-tree-wrapper .lucide circle,
 .skill-tree-wrapper .lucide polyline,
 .skill-tree-wrapper .lucide rect {
-  fill: none !important;
+  fill:   none !important;
   stroke: var(--worldmap-icons) !important;
 }
 
-/* ── SVG Base (world map paths only) ── */
+/* ── Dock icon classes kept from original ── */
+.wm-icon { color: var(--worldmap-icons) !important; }
+.wm-icon-purple { color: var(--wm-purple) !important; }
+
+/* ═══════════════════════════════════════
+   SIDEBAR BUTTON SYSTEM (new)
+   ═══════════════════════════════════════ */
+
+.wm-sidebar-btn {
+  display:         flex;
+  align-items:     center;
+  justify-content: center;
+  width:           36px;
+  height:          36px;
+  border-radius:   10px;
+  background:      rgba(255, 255, 255, 0.04);
+  border:          1px solid rgba(255, 255, 255, 0.07);
+  color:           rgba(255, 255, 255, 0.4);
+  cursor:          pointer;
+  transition:      color 0.15s, border-color 0.15s, background 0.15s;
+  flex-shrink:     0;
+}
+.wm-sidebar-btn:hover {
+  color:        rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 255, 255, 0.14);
+  background:   rgba(255, 255, 255, 0.07);
+}
+
+.wm-sidebar-btn--accent {
+  background:   rgba(196, 181, 253, 0.1) !important;
+  border-color: rgba(196, 181, 253, 0.2) !important;
+  color:        #c4b5fd !important;
+}
+.wm-sidebar-btn--accent:hover {
+  background:   rgba(196, 181, 253, 0.18) !important;
+  border-color: rgba(196, 181, 253, 0.35) !important;
+}
+
+.wm-sidebar-btn--active {
+  background:   rgba(196, 181, 253, 0.12) !important;
+  border-color: rgba(196, 181, 253, 0.3) !important;
+  color:        #c4b5fd !important;
+}
+
+.wm-sidebar-btn--danger:hover {
+  color:        #f87171 !important;
+  border-color: rgba(248, 113, 113, 0.3) !important;
+  background:   rgba(248, 113, 113, 0.08) !important;
+}
+
+.wm-sidebar-btn--text {
+  font-size:      9px;
+  font-weight:    900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── HUD pulsing dot ── */
+.wm-hud-dot {
+  width:         6px;
+  height:        6px;
+  border-radius: 50%;
+  background:    #EDFF66;
+  box-shadow:    0 0 8px rgba(237, 255, 102, 0.6);
+  animation:     hudPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes hudPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(237, 255, 102, 0.6); }
+  50%       { opacity: 0.5; box-shadow: 0 0 4px rgba(237, 255, 102, 0.3); }
+}
+
+/* ═══════════════════════════════════════
+   SVG BASE
+   ═══════════════════════════════════════ */
+
 .skill-tree-wrapper .world-svg path {
   contain: layout style;
 }
 
-/* High-res mode */
 .skill-tree-wrapper.high-res-mode .world-svg path {
   contain: none;
   transition: fill 0.2s ease, opacity 0.2s ease;
 }
 .skill-tree-wrapper.high-res-mode .map-container,
 .skill-tree-wrapper.high-res-mode .world-svg {
-  transform: none;
+  transform:           none;
   backface-visibility: visible;
 }
 .skill-tree-wrapper.high-res-mode .react-transform-wrapper,
@@ -60,131 +125,126 @@
 }
 
 /* ═══════════════════════════════════════
-   COUNTRY STATES — DARK THEME (default)
+   COUNTRY STATES - DARK (default)
    ═══════════════════════════════════════ */
 
-/* Placeholder */
-.dark .skill-tree-wrapper .world-svg path.country-placeholder,
-.dark .skill-tree-wrapper .world-svg path:not(.country-placeholder):not(.country-completed):not(.country-current):not(.country-available):not(.country-locked) {
-  fill: #27272a;
-  opacity: 0.8;
-  stroke: #3f3f46;
+/* Placeholder / unmapped */
+.skill-tree-wrapper .world-svg path.country-placeholder,
+.skill-tree-wrapper .world-svg path:not(.country-placeholder):not(.country-completed):not(.country-current):not(.country-available):not(.country-locked) {
+  fill:         #27272a;
+  opacity:      0.8;
+  stroke:       #3f3f46;
   stroke-width: 0.6;
-  cursor: default;
+  cursor:       default;
 }
 
 /* Completed */
-.dark .skill-tree-wrapper .world-svg path.country-completed {
-  fill: var(--topic-color, #a1a1aa);
-  opacity: 0.95;
-  stroke: #09090b;
+.skill-tree-wrapper .world-svg path.country-completed {
+  fill:         var(--topic-color, #a1a1aa);
+  opacity:      0.95;
+  stroke:       #09090b;
   stroke-width: 0.8;
-  cursor: pointer;
+  cursor:       pointer;
 }
-.dark .skill-tree-wrapper .world-svg path.country-completed:hover {
+.skill-tree-wrapper .world-svg path.country-completed:hover {
   opacity: 1;
-  filter: brightness(1.2);
+  filter:  brightness(1.2);
 }
 
 /* Current */
-.dark .skill-tree-wrapper .world-svg path.country-current {
-  fill: var(--wm-yellow);
-  opacity: 1;
-  stroke: var(--wm-purple);
+.skill-tree-wrapper .world-svg path.country-current {
+  fill:         var(--wm-yellow);
+  opacity:      1;
+  stroke:       var(--wm-purple);
   stroke-width: 2;
-  cursor: pointer;
-  filter: drop-shadow(0 0 8px rgba(85, 66, 255, 0.55));
+  cursor:       pointer;
+  filter:       drop-shadow(0 0 8px rgba(124, 58, 237, 0.55));
 }
-.dark .skill-tree-wrapper .world-svg path.country-current:hover {
+.skill-tree-wrapper .world-svg path.country-current:hover {
   opacity: 0.9;
 }
 
 /* Available */
-.dark .skill-tree-wrapper .world-svg path.country-available {
-  fill: #d4d4d8;
-  opacity: 1;
-  stroke: var(--topic-color, #a1a1aa);
+.skill-tree-wrapper .world-svg path.country-available {
+  fill:         #d4d4d8;
+  opacity:      1;
+  stroke:       var(--topic-color, #a1a1aa);
   stroke-width: 1.4;
-  cursor: pointer;
+  cursor:       pointer;
 }
-.dark .skill-tree-wrapper .world-svg path.country-available:hover {
+.skill-tree-wrapper .world-svg path.country-available:hover {
   opacity: 1;
-  fill: #e4e4e7;
-  filter: brightness(1.1);
+  fill:    #e4e4e7;
+  filter:  brightness(1.1);
 }
 
 /* Locked */
-.dark .skill-tree-wrapper .world-svg path.country-locked {
-  fill: #27272a;
-  opacity: 0.65;
-  stroke: #3f3f46;
+.skill-tree-wrapper .world-svg path.country-locked {
+  fill:         #27272a;
+  opacity:      0.65;
+  stroke:       #3f3f46;
   stroke-width: 0.6;
-  cursor: not-allowed;
+  cursor:       not-allowed;
 }
 
 /* ═══════════════════════════════════════
-   COUNTRY STATES — LIGHT THEME
+   COUNTRY STATES - LIGHT THEME
    ═══════════════════════════════════════ */
 
-/* Placeholder */
 .light .skill-tree-wrapper .world-svg path.country-placeholder,
 .light .skill-tree-wrapper .world-svg path:not(.country-placeholder):not(.country-completed):not(.country-current):not(.country-available):not(.country-locked) {
-  fill: #d4d4d8;
-  opacity: 0.70;
-  stroke: #a1a1aa;
+  fill:         #d4d4d8;
+  opacity:      0.70;
+  stroke:       #a1a1aa;
   stroke-width: 0.5;
-  cursor: default;
+  cursor:       default;
 }
 
-/* Completed */
 .light .skill-tree-wrapper .world-svg path.country-completed {
-  fill: var(--topic-color, #71717a);
-  opacity: 0.95;
-  stroke: #ffffff;
+  fill:         var(--topic-color, #71717a);
+  opacity:      0.95;
+  stroke:       #ffffff;
   stroke-width: 1;
-  cursor: pointer;
-  filter: saturate(1.2);
+  cursor:       pointer;
+  filter:       saturate(1.2);
 }
 .light .skill-tree-wrapper .world-svg path.country-completed:hover {
   opacity: 1;
-  filter: saturate(1.4) brightness(1.1);
+  filter:  saturate(1.4) brightness(1.1);
 }
 
-/* Current */
 .light .skill-tree-wrapper .world-svg path.country-current {
-  fill: var(--wm-yellow);
-  opacity: 1;
-  stroke: var(--wm-purple);
+  fill:         var(--wm-yellow);
+  opacity:      1;
+  stroke:       var(--wm-purple);
   stroke-width: 2.5;
-  cursor: pointer;
-  filter: drop-shadow(0 0 6px rgba(85, 66, 255, 0.45));
+  cursor:       pointer;
+  filter:       drop-shadow(0 0 6px rgba(124, 58, 237, 0.45));
 }
 .light .skill-tree-wrapper .world-svg path.country-current:hover {
   opacity: 0.95;
-  filter: drop-shadow(0 0 10px rgba(85, 66, 255, 0.6));
+  filter:  drop-shadow(0 0 10px rgba(124, 58, 237, 0.6));
 }
 
-/* Available */
 .light .skill-tree-wrapper .world-svg path.country-available {
-  fill: #93939e;
-  opacity: 1;
-  stroke: var(--topic-color, #71717a);
+  fill:         #93939e;
+  opacity:      1;
+  stroke:       var(--topic-color, #71717a);
   stroke-width: 1.4;
-  cursor: pointer;
+  cursor:       pointer;
 }
 .light .skill-tree-wrapper .world-svg path.country-available:hover {
   opacity: 1;
-  fill: #71717a;
-  filter: brightness(0.95);
+  fill:    #71717a;
+  filter:  brightness(0.95);
 }
 
-/* Locked */
 .light .skill-tree-wrapper .world-svg path.country-locked {
-  fill: #e4e4e7;
-  opacity: 0.75;
-  stroke: #a1a1aa;
+  fill:         #e4e4e7;
+  opacity:      0.75;
+  stroke:       #a1a1aa;
   stroke-width: 0.6;
-  cursor: not-allowed;
+  cursor:       not-allowed;
 }
 
 /* ═══════════════════════════════════════
@@ -192,33 +252,27 @@
    ═══════════════════════════════════════ */
 
 .skill-tree-wrapper .map-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  transform: translateZ(0);
+  flex:                1;
+  display:             flex;
+  align-items:         center;
+  justify-content:     center;
+  width:               100%;
+  height:              100%;
+  transform:           translateZ(0);
   backface-visibility: hidden;
 }
 
 .skill-tree-wrapper .world-svg {
-  width: 100%;
-  height: auto;
-  max-height: 100vh;
-  transform: translateZ(0);
+  width:               100%;
+  height:              auto;
+  max-height:          100vh;
+  transform:           translateZ(0);
   backface-visibility: hidden;
 }
 
-/* GPU accel */
-.skill-tree-wrapper .react-transform-wrapper {
-  will-change: transform;
-}
-.skill-tree-wrapper .react-transform-component {
-  will-change: transform;
-}
+.skill-tree-wrapper .react-transform-wrapper  { will-change: transform; }
+.skill-tree-wrapper .react-transform-component { will-change: transform; }
 
-/* Kill transitions during active pan/zoom */
 .skill-tree-wrapper .react-transform-wrapper:active .world-svg path,
 .skill-tree-wrapper .map-container:active .world-svg path {
   transition: none !important;
@@ -245,5 +299,9 @@
 @media (max-width: 768px) {
   .skill-tree-wrapper .map-container {
     min-height: 100vh;
+  }
+  .wm-sidebar-btn {
+    width:  30px;
+    height: 30px;
   }
 }

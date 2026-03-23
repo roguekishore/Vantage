@@ -5,7 +5,7 @@ import { Separator } from "../ui/separator";
 import VisualizerPointer from "../VisualizerPointer";
 
 /**
- * ArrayBar — horizontal row of value boxes with optional pointers.
+ * ArrayBar - horizontal row of value boxes with optional pointers.
  *
  * Clean card, no shadow, minimal border boxes per element.
  */

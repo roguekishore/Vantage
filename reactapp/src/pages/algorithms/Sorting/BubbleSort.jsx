@@ -174,7 +174,7 @@ const SPACE_COMPLEXITY = [
 ];
 
 const INSIGHTS = [
-  "Bubble Sort is a stable sorting algorithm — equal elements retain their relative order.",
+  "Bubble Sort is a stable sorting algorithm - equal elements retain their relative order.",
   "The early-termination optimisation (no swaps → break) gives O(N) best-case performance.",
   "Our visualizer stores the full history for educational replay. The algorithm itself uses O(1) space.",
 ];

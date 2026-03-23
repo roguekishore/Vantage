@@ -913,13 +913,13 @@ const BurstBalloonsTopDownVisualizer = () => {
               <div className="mt-3 text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(N³)</span> — Each
+                  <span className="font-mono text-teal300">O(N³)</span> - Each
                   state `dp[i][j]` is computed once. Inside, there's an O(N)
                   loop (for k). Total states: O(N²). Total time: O(N³)
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(N²)</span> — For the
+                  <span className="font-mono text-teal300">O(N²)</span> - For the
                   memoization table `dp` and O(N) for the recursion stack depth.
                 </div>
                 <div>

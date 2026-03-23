@@ -685,7 +685,7 @@ const LinearSearch = () => {
                     <div className="space-y-2">
                       <div className="text-theme-tertiary">Current Index</div>
                       <div className="font-mono text-2xl font-bold text-accent-primary bg-theme-secondary/50 py-2 rounded-lg text-center border border-accent-primary700/30">
-                        {currentIndex >= 0 ? currentIndex : "—"}
+                        {currentIndex >= 0 ? currentIndex : "-"}
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -711,7 +711,7 @@ const LinearSearch = () => {
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">
                     <span className="text-theme-secondary">Current Element</span>
                     <span className="font-mono font-bold text-orange text-lg">
-                      {currentIndex >= 0 ? array[currentIndex] : "—"}
+                      {currentIndex >= 0 ? array[currentIndex] : "-"}
                     </span>
                   </div>
                   <div className="flex justify-between items-center py-2 border-b border-orange700/30">

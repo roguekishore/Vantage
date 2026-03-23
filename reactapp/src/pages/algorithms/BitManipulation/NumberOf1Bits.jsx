@@ -578,7 +578,7 @@ const NumberOf1Bits = ({ navigate }) => {
                         <div className="p-3 bg-theme-secondary/30 rounded-lg">
                           <div className="text-theme-tertiary text-sm">Active Bit</div>
                           <div className="text-orange300 font-mono text-xl">
-                            {currentBit !== null ? currentBit : "—"}
+                            {currentBit !== null ? currentBit : "-"}
                           </div>
                         </div>
                       </div>
@@ -686,7 +686,7 @@ const NumberOf1Bits = ({ navigate }) => {
                       <div className="flex justify-between items-center py-2 border-b border-accent-primary700/30">
                         <span className="text-theme-secondary">Active Line</span>
                         <span className="font-mono font-bold text-success">
-                          {line || "—"}
+                          {line || "-"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center py-2">

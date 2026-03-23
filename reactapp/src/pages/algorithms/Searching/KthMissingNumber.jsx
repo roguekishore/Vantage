@@ -530,12 +530,12 @@ const KthMissingNumber = () => {
               <div className="text-sm text-theme-secondary space-y-2">
                 <div>
                   <strong>Time:</strong>{" "}
-                  <span className="font-mono text-teal300">O(N + K)</span> —
+                  <span className="font-mono text-teal300">O(N + K)</span> -
                   linear scan through array + missing numbers
                 </div>
                 <div>
                   <strong>Space:</strong>{" "}
-                  <span className="font-mono text-teal300">O(1)</span> —
+                  <span className="font-mono text-teal300">O(1)</span> -
                   constant extra space
                 </div>
                 <div>
