@@ -1,5 +1,5 @@
 /**
- * Lowest Common Ancestor of Deepest Leaves — Problem Definition
+ * Lowest Common Ancestor of Deepest Leaves - Problem Definition
  *
  * Input format (stdin):
  * A single line of space-separated values representing the level-order traversal.

@@ -1,7 +1,7 @@
 FROM node:20-slim
 
 # Install Docker CLI so the judge can manage worker pool containers.
-# The Docker *daemon* runs on the host — the judge talks to it via the Docker socket.
+# The Docker *daemon* runs on the host - the judge talks to it via the Docker socket.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends ca-certificates curl gnupg && \
     install -m 0755 -d /etc/apt/keyrings && \

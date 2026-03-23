@@ -1,7 +1,7 @@
 {
   "name": "vantage-judge",
   "version": "1.0.0",
-  "description": "Online Judge backend for Vantage — compiles and runs C++/Java code against test cases",
+  "description": "Online Judge backend for Vantage - compiles and runs C++/Java code against test cases",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

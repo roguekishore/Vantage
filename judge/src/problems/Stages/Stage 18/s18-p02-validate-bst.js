@@ -1,5 +1,5 @@
 /**
- * Validate Binary Search Tree — Problem Definition
+ * Validate Binary Search Tree - Problem Definition
  *
  * Input format (stdin):
  * A single line of space-separated values representing the level-order traversal of the tree.

@@ -1,5 +1,5 @@
 /**
- * Longest Consecutive Sequence — Problem Definition
+ * Longest Consecutive Sequence - Problem Definition
  *
  * Input format (stdin):
  *   First line: integer n (size of array)
@@ -11,7 +11,7 @@
 
 module.exports = {
   id: 'longest-consecutive-sequence',
-  conquestId: 'bonusA-11',
+  conquestId: 'bonusC-1',
   title: 'Longest Consecutive Sequence',
   difficulty: 'Medium',
   category: 'Array',

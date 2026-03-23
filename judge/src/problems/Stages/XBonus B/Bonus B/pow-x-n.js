@@ -1,5 +1,5 @@
 /**
- * Pow(x, n) — Problem Definition
+ * Pow(x, n) - Problem Definition
  *
  * Input format (stdin):
  *   Two numbers:
@@ -11,7 +11,7 @@
 
 module.exports = {
   id: 'pow-x-n',
-  conquestId: 'bonusA-9',
+  conquestId: 'bonusB-4',
   title: 'Pow(x, n)',
   difficulty: 'Medium',
   category: 'Math',

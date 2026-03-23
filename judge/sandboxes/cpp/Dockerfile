@@ -1,6 +1,6 @@
 FROM gcc:14-bookworm
 
-# Minimal image — g++ pre-installed, stays alive as a long-lived worker
+# Minimal image - g++ pre-installed, stays alive as a long-lived worker
 RUN apt-get update && apt-get install -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for running submissions
@@ -12,5 +12,5 @@ WORKDIR /workspace
 
 USER sandbox
 
-# Keep the container alive — the judge server sends work via `docker exec`
+# Keep the container alive - the judge server sends work via `docker exec`
 CMD ["sleep", "infinity"]

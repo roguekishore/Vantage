@@ -1,5 +1,5 @@
 /**
- * Insert at Position — Problem Definition
+ * Insert at Position - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of existing nodes.

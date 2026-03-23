@@ -1,5 +1,5 @@
 /**
- * Stack Operations: Advanced Features — Problem Definition
+ * Stack Operations: Advanced Features - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer q, the number of operations.

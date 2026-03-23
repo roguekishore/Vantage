@@ -1,5 +1,5 @@
 /**
- * Assign Cookies — Problem Definition
+ * Assign Cookies - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of children
@@ -13,7 +13,7 @@
 
 module.exports = {
   id: 'assign-cookies',
-  conquestId: 'stage21-3',
+  conquestId: 'stage23-3',
   title: 'Assign Cookies',
   difficulty: 'Easy',
   category: 'Greedy',
@@ -22,8 +22,8 @@ module.exports = {
   description: `
 You are given two integer arrays:
 
-- **g[i]** — the greed factor of the **iᵗʰ child**
-- **s[j]** — the size of the **jᵗʰ cookie**
+- **g[i]** - the greed factor of the **iᵗʰ child**
+- **s[j]** - the size of the **jᵗʰ cookie**
 
 A child **i** can be satisfied if:
 

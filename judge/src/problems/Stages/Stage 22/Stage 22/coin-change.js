@@ -1,5 +1,5 @@
 /**
- * Coin Change — Problem Definition
+ * Coin Change - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: Two integers n and amount representing the number of coin types and the target amount

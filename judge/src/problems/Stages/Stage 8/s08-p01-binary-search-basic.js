@@ -1,5 +1,5 @@
 /**
- * Binary Search Basic — Problem Definition
+ * Binary Search Basic - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the size of the sorted array.

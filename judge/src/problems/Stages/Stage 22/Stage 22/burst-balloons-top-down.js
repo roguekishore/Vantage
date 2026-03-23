@@ -1,5 +1,5 @@
 /**
- * Burst Balloons (Top Down) — Problem Definition
+ * Burst Balloons (Top Down) - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of balloons

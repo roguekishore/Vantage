@@ -1,5 +1,5 @@
 /**
- * Unique Paths — Problem Definition
+ * Unique Paths - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: Two integers m and n representing the number of rows and columns in the grid

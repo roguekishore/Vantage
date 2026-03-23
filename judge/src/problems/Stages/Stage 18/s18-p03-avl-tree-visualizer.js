@@ -1,5 +1,5 @@
 /**
- * AVL Tree Visualizer — Implementation
+ * AVL Tree Visualizer - Implementation
  * * An AVL tree maintains a "Balance Factor" for every node.
  * Balance Factor = Height(Left Subtree) - Height(Right Subtree)
  * If |Balance Factor| > 1, a rotation is triggered.

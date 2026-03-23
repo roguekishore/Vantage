@@ -1,5 +1,5 @@
 /**
- * Maximum Profit in Job Scheduling — Problem Definition
+ * Maximum Profit in Job Scheduling - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of jobs
@@ -13,7 +13,7 @@
 
 module.exports = {
   id: 'maximum-profit-in-job-scheduling',
-  conquestId: 'stage21-5',
+  conquestId: 'stage23-5',
   title: 'Maximum Profit in Job Scheduling',
   difficulty: 'Hard',
   category: 'Dynamic Programming',
@@ -22,9 +22,9 @@ module.exports = {
   description: `
 You are given **n jobs**, where every job has:
 
-- **startTime[i]** — start time of the job
-- **endTime[i]** — end time of the job
-- **profit[i]** — profit earned if the job is completed
+- **startTime[i]** - start time of the job
+- **endTime[i]** - end time of the job
+- **profit[i]** - profit earned if the job is completed
 
 Your goal is to select a subset of **non-overlapping jobs** that **maximizes the total profit**.
 

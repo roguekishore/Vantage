@@ -1,5 +1,5 @@
 /**
- * Reverse String — Problem Definition
+ * Reverse String - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string s.

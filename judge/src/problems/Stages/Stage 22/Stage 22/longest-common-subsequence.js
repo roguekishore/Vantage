@@ -1,5 +1,5 @@
 /**
- * Longest Common Subsequence — Problem Definition
+ * Longest Common Subsequence - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: A string text1

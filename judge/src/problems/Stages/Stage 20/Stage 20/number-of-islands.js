@@ -1,13 +1,13 @@
 /**
- * Number of Islands — Problem Definition
+ * Number of Islands - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers m and n — number of rows and columns in the grid
+ *   Line 1: Two integers m and n - number of rows and columns in the grid
  *   Next m lines: n space-separated integers (0 or 1) representing the grid
  *                 1 = land, 0 = water
  *
  * Output format (stdout):
- *   Print a single integer — the total number of islands in the grid
+ *   Print a single integer - the total number of islands in the grid
  */
 
 module.exports = {

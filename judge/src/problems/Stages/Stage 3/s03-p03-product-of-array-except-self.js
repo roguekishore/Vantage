@@ -1,5 +1,5 @@
 /**
- * Product of Array Except Self — Problem Definition
+ * Product of Array Except Self - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements in the array.

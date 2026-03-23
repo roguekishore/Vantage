@@ -1,5 +1,5 @@
 /**
- * Search a 2D Matrix — Problem Definition
+ * Search a 2D Matrix - Problem Definition
  *
  * Input format (stdin):
  * Line 1: Two integers m and n (rows and columns).

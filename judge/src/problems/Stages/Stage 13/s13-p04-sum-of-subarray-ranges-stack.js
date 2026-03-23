@@ -1,5 +1,5 @@
 /**
- * Sum of Subarray Ranges (O(n) Stack) — Problem Definition
+ * Sum of Subarray Ranges (O(n) Stack) - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements in the array.

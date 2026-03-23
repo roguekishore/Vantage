@@ -1,5 +1,5 @@
 /**
- * Factorial — Problem Definition
+ * Factorial - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: Integer n

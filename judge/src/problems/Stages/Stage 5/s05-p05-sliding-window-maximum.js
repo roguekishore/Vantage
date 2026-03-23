@@ -1,5 +1,5 @@
 /**
- * Sliding Window Maximum — Problem Definition
+ * Sliding Window Maximum - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements in the array.

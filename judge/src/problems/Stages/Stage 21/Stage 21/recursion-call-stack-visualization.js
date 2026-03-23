@@ -1,5 +1,5 @@
 /**
- * Recursion Call Stack Visualization — Problem Definition
+ * Recursion Call Stack Visualization - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: Integer n

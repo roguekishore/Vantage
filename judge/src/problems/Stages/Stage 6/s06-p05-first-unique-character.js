@@ -1,5 +1,5 @@
 /**
- * First Unique Character — Problem Definition
+ * First Unique Character - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string s.

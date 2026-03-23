@@ -1,10 +1,10 @@
 /**
- * Subset Sum — Problem Definition
+ * Subset Sum - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer n — number of elements
+ *   Line 1: Integer n - number of elements
  *   Line 2: n space-separated integers
- *   Line 3: Integer target — the desired sum
+ *   Line 3: Integer target - the desired sum
  *
  * Output format (stdout):
  *   Print "true" if there exists a subset whose sum equals the target.

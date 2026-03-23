@@ -1,8 +1,8 @@
 /**
- * Word Search — Problem Definition
+ * Word Search - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers m and n — number of rows and columns
+ *   Line 1: Two integers m and n - number of rows and columns
  *   Next m lines: n space-separated characters representing the board
  *   Last line: A string word
  *

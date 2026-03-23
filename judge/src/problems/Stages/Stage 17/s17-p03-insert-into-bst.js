@@ -1,5 +1,5 @@
 /**
- * Insert into a Binary Search Tree — Problem Definition
+ * Insert into a Binary Search Tree - Problem Definition
  *
  * Input format (stdin):
  * Line 1: Space-separated values representing the initial BST in level-order.

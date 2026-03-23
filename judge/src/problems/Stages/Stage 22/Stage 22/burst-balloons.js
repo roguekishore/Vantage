@@ -1,5 +1,5 @@
 /**
- * Burst Balloons — Problem Definition
+ * Burst Balloons - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of balloons

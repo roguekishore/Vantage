@@ -1,5 +1,5 @@
 /**
- * Binary Tree Right Side View — Problem Definition
+ * Binary Tree Right Side View - Problem Definition
  *
  * Input format (stdin):
  * A single line of space-separated values representing the level-order traversal.

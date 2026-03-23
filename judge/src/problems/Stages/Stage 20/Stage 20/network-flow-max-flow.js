@@ -1,14 +1,14 @@
 /**
- * Network Flow (Edmonds-Karp/Dinic) — Problem Definition
+ * Network Flow (Edmonds-Karp/Dinic) - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers n and m — number of vertices and edges
+ *   Line 1: Two integers n and m - number of vertices and edges
  *   Next m lines: Three integers u v c representing a directed edge
  *                 from u to v with capacity c
- *   Last line: Two integers s t — source and sink vertices
+ *   Last line: Two integers s t - source and sink vertices
  *
  * Output format (stdout):
- *   Print a single integer — the maximum flow from source s to sink t.
+ *   Print a single integer - the maximum flow from source s to sink t.
  */
 
 module.exports = {

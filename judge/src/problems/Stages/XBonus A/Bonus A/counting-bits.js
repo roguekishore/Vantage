@@ -1,5 +1,5 @@
 /**
- * Counting Bits — Problem Definition
+ * Counting Bits - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n.

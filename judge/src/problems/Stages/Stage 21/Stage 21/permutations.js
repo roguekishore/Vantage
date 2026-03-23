@@ -1,8 +1,8 @@
 /**
- * Permutations — Problem Definition
+ * Permutations - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer n — number of elements
+ *   Line 1: Integer n - number of elements
  *   Line 2: n space-separated integers
  *
  * Output format (stdout):

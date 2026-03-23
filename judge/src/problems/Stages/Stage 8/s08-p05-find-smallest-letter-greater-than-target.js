@@ -1,5 +1,5 @@
 /**
- * Find Smallest Letter Greater Than Target — Problem Definition
+ * Find Smallest Letter Greater Than Target - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of characters in the array.

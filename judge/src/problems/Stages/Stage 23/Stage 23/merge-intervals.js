@@ -1,5 +1,5 @@
 /**
- * Merge Intervals — Problem Definition
+ * Merge Intervals - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of intervals
@@ -12,7 +12,7 @@
 
 module.exports = {
   id: 'merge-intervals',
-  conquestId: 'stage21-6',
+  conquestId: 'stage23-6',
   title: 'Merge Intervals',
   difficulty: 'Medium',
   category: 'Intervals',

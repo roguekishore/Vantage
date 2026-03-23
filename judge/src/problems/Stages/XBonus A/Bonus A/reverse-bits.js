@@ -1,5 +1,5 @@
 /**
- * Reverse Bits — Problem Definition
+ * Reverse Bits - Problem Definition
  *
  * Input format (stdin):
  *   A single 32-bit unsigned integer n.

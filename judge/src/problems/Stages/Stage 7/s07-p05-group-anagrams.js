@@ -1,5 +1,5 @@
 /**
- * Group Anagrams — Problem Definition
+ * Group Anagrams - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of strings.

@@ -1,10 +1,10 @@
 /**
- * Binary Search (Recursive) — Problem Definition
+ * Binary Search (Recursive) - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer n — size of the array
+ *   Line 1: Integer n - size of the array
  *   Line 2: n space-separated integers in non-decreasing order
- *   Line 3: Integer target — the value to search
+ *   Line 3: Integer target - the value to search
  *
  * Output format (stdout):
  *   Print the index (0-based) of the target if found.

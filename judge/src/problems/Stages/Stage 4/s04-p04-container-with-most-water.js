@@ -1,5 +1,5 @@
 /**
- * Container With Most Water — Problem Definition
+ * Container With Most Water - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of vertical lines.

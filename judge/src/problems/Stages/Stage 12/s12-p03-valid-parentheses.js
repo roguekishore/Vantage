@@ -1,5 +1,5 @@
 /**
- * Valid Parentheses — Problem Definition
+ * Valid Parentheses - Problem Definition
  *
  * Input format (stdin):
  * A single string s containing just the characters '(', ')', '{', '}', '[' and ']'.

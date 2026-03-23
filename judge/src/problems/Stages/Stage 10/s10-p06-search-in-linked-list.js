@@ -1,5 +1,5 @@
 /**
- * Search in Linked List — Problem Definition
+ * Search in Linked List - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of nodes.

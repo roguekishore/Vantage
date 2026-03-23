@@ -1,5 +1,5 @@
 /**
- * Longest Substring Without Repeating Characters — Problem Definition
+ * Longest Substring Without Repeating Characters - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string s.

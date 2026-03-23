@@ -1,5 +1,5 @@
 /**
- * Prime Palindrome — Problem Definition
+ * Prime Palindrome - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n.
@@ -10,7 +10,7 @@
 
 module.exports = {
   id: 'prime-palindrome',
-  conquestId: 'bonusA-10',
+  conquestId: 'bonusB-5',
   title: 'Prime Palindrome',
   difficulty: 'Medium',
   category: 'Math',

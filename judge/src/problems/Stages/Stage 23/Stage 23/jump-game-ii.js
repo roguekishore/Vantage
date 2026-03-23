@@ -1,5 +1,5 @@
 /**
- * Jump Game II — Problem Definition
+ * Jump Game II - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of elements
@@ -12,7 +12,7 @@
 
 module.exports = {
   id: 'jump-game-ii',
-  conquestId: 'stage21-7',
+  conquestId: 'stage23-7',
   title: 'Jump Game II',
   difficulty: 'Medium',
   category: 'Greedy',
@@ -31,8 +31,8 @@ Greedy Idea:
 
 Maintain two ranges:
 
-- **currentEnd** — the end of the current jump range
-- **farthest** — the farthest index reachable so far
+- **currentEnd** - the end of the current jump range
+- **farthest** - the farthest index reachable so far
 
 Iterate through the array:
 

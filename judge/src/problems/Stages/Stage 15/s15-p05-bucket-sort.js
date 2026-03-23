@@ -1,5 +1,5 @@
 /**
- * Bucket Sort — Problem Definition
+ * Bucket Sort - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of elements.

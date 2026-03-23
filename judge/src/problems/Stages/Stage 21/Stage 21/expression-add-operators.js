@@ -1,5 +1,5 @@
 /**
- * Expression Add Operators — Problem Definition
+ * Expression Add Operators - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: A numeric string `num` consisting of digits (0-9)

@@ -1,5 +1,5 @@
 /**
- * Excel Sheet Column Title — Problem Definition
+ * Excel Sheet Column Title - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n.
@@ -10,7 +10,7 @@
 
 module.exports = {
   id: 'excel-sheet-column-title',
-  conquestId: 'bonusA-7',
+  conquestId: 'bonusB-2',
   title: 'Excel Sheet Column Title',
   difficulty: 'Easy',
   category: 'Math',

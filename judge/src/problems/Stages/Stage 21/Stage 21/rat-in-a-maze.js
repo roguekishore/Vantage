@@ -1,8 +1,8 @@
 /**
- * Rat in a Maze — Problem Definition
+ * Rat in a Maze - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer n — size of the maze (n × n)
+ *   Line 1: Integer n - size of the maze (n × n)
  *   Next n lines: n space-separated integers representing the maze
  *                 1 = open cell
  *                 0 = blocked cell

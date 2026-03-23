@@ -1,5 +1,5 @@
 /**
- * Sudoku Solver — Problem Definition
+ * Sudoku Solver - Problem Definition
  *
  * Input format (stdin):
  *   9 lines follow, each containing 9 space-separated integers.

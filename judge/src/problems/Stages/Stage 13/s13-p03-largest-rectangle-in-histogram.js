@@ -1,5 +1,5 @@
 /**
- * Largest Rectangle in Histogram — Problem Definition
+ * Largest Rectangle in Histogram - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of bars in the histogram.

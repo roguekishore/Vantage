@@ -1,8 +1,8 @@
 /**
- * N-Queens — Problem Definition
+ * N-Queens - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Integer n — size of the chessboard (n × n)
+ *   Line 1: Integer n - size of the chessboard (n × n)
  *
  * Output format (stdout):
  *   Print the total number of distinct ways to place n queens on the board

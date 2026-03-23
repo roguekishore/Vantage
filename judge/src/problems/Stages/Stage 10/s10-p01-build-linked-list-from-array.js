@@ -1,5 +1,5 @@
 /**
- * Build Linked List from Array — Problem Definition
+ * Build Linked List from Array - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the size of the array.

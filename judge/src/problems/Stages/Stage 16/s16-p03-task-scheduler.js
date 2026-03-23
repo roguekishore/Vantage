@@ -1,5 +1,5 @@
 /**
- * Task Scheduler — Problem Definition
+ * Task Scheduler - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n (number of tasks) and k (the cooling time).

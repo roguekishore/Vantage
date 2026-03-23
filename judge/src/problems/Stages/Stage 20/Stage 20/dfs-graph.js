@@ -1,10 +1,10 @@
 /**
- * DFS (Graph) — Problem Definition
+ * DFS (Graph) - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers n and m — number of vertices and edges
+ *   Line 1: Two integers n and m - number of vertices and edges
  *   Next m lines: Two integers u v representing an undirected edge between u and v
- *   Last line: Integer s — starting vertex for DFS traversal
+ *   Last line: Integer s - starting vertex for DFS traversal
  *
  * Output format (stdout):
  *   Print the DFS traversal order starting from vertex s.

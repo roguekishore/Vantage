@@ -1,5 +1,5 @@
 /**
- * Min Stack — Problem Definition
+ * Min Stack - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer q, the number of operations.

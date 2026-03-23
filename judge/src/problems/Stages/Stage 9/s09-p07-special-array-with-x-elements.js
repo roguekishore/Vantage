@@ -1,5 +1,5 @@
 /**
- * Special Array With X Elements Greater Than or Equal X — Problem Definition
+ * Special Array With X Elements Greater Than or Equal X - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the size of the array.

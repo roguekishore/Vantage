@@ -1,13 +1,13 @@
 /**
- * Kruskal's MST — Problem Definition
+ * Kruskal's MST - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: Two integers n and m — number of vertices and edges
+ *   Line 1: Two integers n and m - number of vertices and edges
  *   Next m lines: Three integers u v w representing an undirected edge
  *                 between vertex u and v with weight w
  *
  * Output format (stdout):
- *   Print a single integer — the total weight of the Minimum Spanning Tree (MST).
+ *   Print a single integer - the total weight of the Minimum Spanning Tree (MST).
  */
 
 module.exports = {

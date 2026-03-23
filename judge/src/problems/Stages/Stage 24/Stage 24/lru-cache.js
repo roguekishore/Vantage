@@ -1,9 +1,9 @@
 /**
- * LRU Cache — Problem Definition
+ * LRU Cache - Problem Definition
  *
  * Input format (stdin):
- *   Line 1: An integer `capacity` — the capacity of the LRU cache.
- *   Line 2: An integer `q` — the number of operations.
+ *   Line 1: An integer `capacity` - the capacity of the LRU cache.
+ *   Line 2: An integer `q` - the number of operations.
  *   Next q lines: Each line represents an operation:
  *     - `put key value`
  *     - `get key`

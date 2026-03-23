@@ -1,11 +1,11 @@
 /**
- * Number of 1 Bits — Problem Definition
+ * Number of 1 Bits - Problem Definition
  *
  * Input format (stdin):
  *   A single integer n representing a non-negative integer.
  *
  * Output format (stdout):
- *   Print a single integer — the number of '1' bits in the binary
+ *   Print a single integer - the number of '1' bits in the binary
  *   representation of n (also known as the Hamming weight).
  */
 

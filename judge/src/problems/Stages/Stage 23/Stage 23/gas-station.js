@@ -1,5 +1,5 @@
 /**
- * Gas Station — Problem Definition
+ * Gas Station - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: An integer n representing the number of gas stations
@@ -14,7 +14,7 @@
 
 module.exports = {
   id: 'gas-station',
-  conquestId: 'stage21-8',
+  conquestId: 'stage23-8',
   title: 'Gas Station',
   difficulty: 'Medium',
   category: 'Greedy',
@@ -25,8 +25,8 @@ There are **n gas stations** along a circular route.
 
 You are given two integer arrays:
 
-- **gas[i]** — the amount of gas available at station *i*
-- **cost[i]** — the gas needed to travel from station *i* to station *(i + 1)*
+- **gas[i]** - the amount of gas available at station *i*
+- **cost[i]** - the gas needed to travel from station *i* to station *(i + 1)*
 
 You have a car with an **unlimited gas tank**, but you start with **0 gas**.
 

@@ -1,5 +1,5 @@
 /**
- * Symmetric Tree — Problem Definition
+ * Symmetric Tree - Problem Definition
  *
  * Input format (stdin):
  * A single line of space-separated values representing the level-order traversal.

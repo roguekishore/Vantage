@@ -1,5 +1,5 @@
 /**
- * Trapping Rain Water — Problem Definition
+ * Trapping Rain Water - Problem Definition
  *
  * Input format (stdin):
  * Line 1: An integer n, the number of bars.

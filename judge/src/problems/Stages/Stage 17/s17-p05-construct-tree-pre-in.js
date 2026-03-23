@@ -1,5 +1,5 @@
 /**
- * Construct Binary Tree from Preorder and Inorder Traversal — Problem Definition
+ * Construct Binary Tree from Preorder and Inorder Traversal - Problem Definition
  *
  * Input format (stdin):
  * Line 1: n space-separated integers (Pre-order traversal).

@@ -1,5 +1,5 @@
 /**
- * Edit Distance — Problem Definition
+ * Edit Distance - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: A string word1

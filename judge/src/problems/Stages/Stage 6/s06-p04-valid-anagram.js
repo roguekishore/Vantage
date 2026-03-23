@@ -1,5 +1,5 @@
 /**
- * Valid Anagram — Problem Definition
+ * Valid Anagram - Problem Definition
  *
  * Input format (stdin):
  * Line 1: String s.

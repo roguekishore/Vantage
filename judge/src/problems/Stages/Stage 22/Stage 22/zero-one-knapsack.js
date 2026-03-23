@@ -1,5 +1,5 @@
 /**
- * 0/1 Knapsack — Problem Definition
+ * 0/1 Knapsack - Problem Definition
  *
  * Input format (stdin):
  *   Line 1: Two integers n and W representing the number of items and the knapsack capacity

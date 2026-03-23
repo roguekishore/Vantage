@@ -1,5 +1,5 @@
 /**
- * Palindrome Check — Problem Definition
+ * Palindrome Check - Problem Definition
  *
  * Input format (stdin):
  * Line 1: A string s.

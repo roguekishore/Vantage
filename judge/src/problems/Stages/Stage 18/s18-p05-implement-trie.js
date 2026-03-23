@@ -1,5 +1,5 @@
 /**
- * Implement Trie (Prefix Tree) — Problem Definition
+ * Implement Trie (Prefix Tree) - Problem Definition
  *
  * Input format (stdin):
  * A sequence of commands: "Trie" (initialize), "insert", "search", "startsWith".
