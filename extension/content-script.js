@@ -1,5 +1,5 @@
 /**
- * content-script.js — ISOLATED WORLD bridge.
+ * content-script.js - ISOLATED WORLD bridge.
  *
  * Auth check lives here (not in the background service worker) because
  * content-scripts run inside the LeetCode page and have full cookie access,
@@ -18,6 +18,7 @@ const cfg = globalThis.VANTAGE_CONFIG || {};
 const APP_HOSTNAME = cfg.APP_HOSTNAME;
 const APP_HOSTNAMES = cfg.APP_HOSTNAMES || (APP_HOSTNAME ? [APP_HOSTNAME] : []);
 const IS_APP_HOST = APP_HOSTNAMES.includes(location.hostname);
+const BACKEND_EXTENSION_TOKEN_URL = cfg.BACKEND_EXTENSION_TOKEN_URL;
 
 // ── Context-invalidation guard ──────────────────────────────────────────────
 // After the extension is reloaded / updated, the old content-script instances
@@ -39,7 +40,7 @@ function markContextDead() {
     if (_contextDead) return;       // already handled
     _contextDead = true;
     console.warn(
-        '[Vantage] Extension was reloaded — this tab has a stale content-script. ' +
+        '[Vantage] Extension was reloaded - this tab has a stale content-script. ' +
         'Please refresh the page (F5) to restore sync.'
     );
 }
@@ -86,31 +87,64 @@ function safeSendMessage(msg) {
     catch { markContextDead(); }
 }
 
-const STORAGE_KEYS = ['lcusername', 'uid', 'sessionToken', 'token'];
+const STORAGE_KEYS = ['lcusername', 'uid', 'extensionToken', 'extensionTokenExpiresAt'];
 
 // ── App-origin only: keep chrome.storage in sync with the React ─────────────
 // app's localStorage so the popup always shows the correct linked user.
-// Stores uid, lcusername, and sessionToken so the popup can detect user
-// switches and the background can authenticate sync requests.
 if (IS_APP_HOST) {
 
     let pollTimer = null;   // so we can clear it on context death
 
+    async function ensureExtensionToken(force = false) {
+        if (!BACKEND_EXTENSION_TOKEN_URL || _contextDead) return;
+
+        const existing = await safeStorageGet(['extensionToken', 'extensionTokenExpiresAt']);
+        if (!existing) return;
+
+        const now = Date.now();
+        const expiresAt = Number(existing.extensionTokenExpiresAt || 0);
+        const hasFreshToken = !!existing.extensionToken && expiresAt > now + 60_000;
+        if (!force && hasFreshToken) return;
+
+        try {
+            const res = await fetch(BACKEND_EXTENSION_TOKEN_URL, {
+                method: 'POST',
+                credentials: 'include',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            if (!res.ok) {
+                if (res.status === 401) {
+                    safeStorageRemove(['extensionToken', 'extensionTokenExpiresAt']);
+                }
+                return;
+            }
+
+            const data = await res.json();
+            if (data?.token) {
+                safeStorageSet({
+                    extensionToken: data.token,
+                    extensionTokenExpiresAt: Number(data.expiresAt || (Date.now() + Number(data.expiresInMs || 0)))
+                });
+            }
+        } catch {
+            // non-fatal; retried on next sync tick
+        }
+    }
+
     /**
-     * Read the current user from localStorage and push uid + lcusername +
-     * sessionToken into chrome.storage.local.
+     * Read the current user from localStorage and push uid + lcusername
+     * into chrome.storage.local.
      */
     async function syncLcUsernameFromApp() {
         if (_contextDead) return;
 
-        let lcusername, uid, sessionToken, token;
+        let lcusername, uid;
         try {
             const raw = localStorage.getItem('user');
             const user = raw ? JSON.parse(raw) : null;
             lcusername   = user?.lcusername   || null;
             uid          = user?.uid          ?? null;
-            sessionToken = user?.sessionToken || null;
-            token        = user?.token        || null;
         } catch {
             return; // localStorage not available / corrupt JSON
         }
@@ -120,22 +154,19 @@ if (IS_APP_HOST) {
 
         // Only write when the value actually changed
         if (prev.lcusername === lcusername &&
-            prev.uid === uid &&
-            prev.sessionToken === sessionToken &&
-            prev.token === token) return;
+            prev.uid === uid) return;
 
-        if (uid != null && (token || sessionToken)) {
+        if (uid != null) {
             const update = { uid };
-            if (sessionToken) update.sessionToken = sessionToken;
-            if (token) update.token = token;
             if (lcusername) update.lcusername = lcusername;
             safeStorageSet(update);
+            ensureExtensionToken();
             // If lcusername was removed (e.g. cleared in profile), drop it from storage
             if (!lcusername && prev.lcusername) safeStorageRemove(['lcusername']);
-            console.log('[Vantage] Synced from app — uid:', uid, 'lcusername:', lcusername ?? '(none)');
+            console.log('[Vantage] Synced from app - uid:', uid, 'lcusername:', lcusername ?? '(none)');
         } else {
             safeStorageRemove(STORAGE_KEYS);
-            console.log('[Vantage] No logged-in user in app — cleared storage.');
+            console.log('[Vantage] No logged-in user in app - cleared storage.');
         }
     }
 
@@ -148,24 +179,21 @@ if (IS_APP_HOST) {
         if (e.data?.type === 'VANTAGE_LOGIN') {
             const lc    = e.data.lcusername  || null;
             const uid   = e.data.uid         ?? null;
-            const sToken = e.data.sessionToken || null;
-            const jwtToken = e.data.token || null;
-            if (uid != null && (jwtToken || sToken)) {
+            if (uid != null) {
                 const update = { uid };
-                if (sToken) update.sessionToken = sToken;
-                if (jwtToken) update.token = jwtToken;
                 if (lc) update.lcusername = lc;
                 safeStorageSet(update);
+                ensureExtensionToken(true);
                 // If signup had no lcusername, make sure stale key is removed
                 if (!lc) safeStorageRemove(['lcusername']);
-                console.log('[Vantage] Login signal — uid:', uid, 'lcusername:', lc ?? '(none)');
+                console.log('[Vantage] Login signal - uid:', uid, 'lcusername:', lc ?? '(none)');
             } else {
                 safeStorageRemove(STORAGE_KEYS);
             }
         }
         if (e.data?.type === 'VANTAGE_LOGOUT') {
             safeStorageRemove(STORAGE_KEYS);
-            console.log('[Vantage] Logout signal — cleared lcusername.');
+            console.log('[Vantage] Logout signal - cleared lcusername.');
         }
     });
 
@@ -174,7 +202,7 @@ if (IS_APP_HOST) {
     window.addEventListener('storage', (e) => {
         if (_contextDead) return;
         if (e.key === 'user' || e.key === null /* clear() */) {
-            console.log('[Vantage] Cross-tab localStorage change detected — re-syncing.');
+            console.log('[Vantage] Cross-tab localStorage change detected - re-syncing.');
             syncLcUsernameFromApp();
         }
     });
@@ -188,7 +216,7 @@ if (IS_APP_HOST) {
         }
     });
 
-    // 5. Safety-net poll — catches any edge-case where postMessage or
+    // 5. Safety-net poll - catches any edge-case where postMessage or
     //    storage events were missed (e.g. extension reloaded mid-session).
     //    Starts fast (3 s) for the first minute, then backs off to 15 s.
     let pollCount = 0;
@@ -209,7 +237,7 @@ if (IS_APP_HOST) {
         }
     }, 3_000);
 
-    // 6. Direct query from popup — the popup can ask us for the current
+    // 6. Direct query from popup - the popup can ask us for the current
     //    user data from localStorage without going through chrome.storage.
     //    This is the most reliable path because it's synchronous (request → response).
     chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
@@ -221,16 +249,16 @@ if (IS_APP_HOST) {
                 sendResponse({
                     lcusername:   user?.lcusername   || null,
                     uid:          user?.uid          ?? null,
-                    sessionToken: user?.sessionToken  || null,
+                    extensionToken: null,
                 });
             } catch {
-                sendResponse({ lcusername: null, uid: null, sessionToken: null });
+                sendResponse({ lcusername: null, uid: null, extensionToken: null });
             }
             return false; // synchronous response
         }
     });
 
-    // Done — rest of the file is LeetCode-specific
+    // Done - rest of the file is LeetCode-specific
 }
 
 if (!IS_APP_HOST) {
@@ -270,7 +298,7 @@ window.addEventListener('lc-vantage-user', (e) => {
             console.log('[Vantage] Recovered LC user from DOM data attribute.');
             return;
         }
-    } catch { /* malformed JSON — fall through */ }
+    } catch { /* malformed JSON - fall through */ }
 
     // Ask injected.js (MAIN world) to re-dispatch the event
     window.dispatchEvent(new CustomEvent('lc-vantage-user-request'));
@@ -292,7 +320,7 @@ let lastEventKey = '';
 
 /**
  * Compare the live LC session with the stored linked account.
- * Returns { ok, username, reason } — mirrors background.js authGuard shape.
+ * Returns { ok, username, reason } - mirrors background.js authGuard shape.
  */
 async function authCheck() {
     if (_contextDead) return { ok: false, reason: 'context_dead' };
@@ -332,7 +360,7 @@ window.addEventListener('lc-vantage-result', async (e) => {
     if (!auth.ok) {
         if (auth.reason === 'mismatch') {
             console.warn(
-                `[Vantage] ⛔ Blocked — LC session is @${auth.current} ` +
+                `[Vantage] ⛔ Blocked - LC session is @${auth.current} ` +
                 `but the app is linked to @${auth.linked}. ` +
                 `Open the popup and click "Sync Now" to re-link.`
             );

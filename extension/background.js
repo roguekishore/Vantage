@@ -1,5 +1,5 @@
 /**
- * background.js — MV3 service worker.
+ * background.js - MV3 service worker.
  *
  * Auth is handled in content-script.js (which has reliable cookie access
  * to LeetCode). By the time a message arrives here, the account-match check
@@ -30,22 +30,23 @@ function flashBadge(text, color, ms = 4000) {
 
 // ── Backend calls ─────────────────────────────────────────────────────────────
 
-/** Read the auth token from chrome.storage.local (JWT preferred, sessionToken fallback). */
-function getSessionToken() {
+/** Read scoped extension auth token from chrome.storage.local. */
+function getExtensionToken() {
     return new Promise(resolve => {
-        chrome.storage.local.get(['token', 'sessionToken'], ({ token, sessionToken }) => {
-            resolve(token || sessionToken || null);
+        chrome.storage.local.get(['extensionToken'], ({ extensionToken }) => {
+            resolve(extensionToken || null);
         });
     });
 }
 
 async function postSolved(lcusername, slugs) {
-    const token = await getSessionToken();
+    const token = await getExtensionToken();
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const res = await fetch(BACKEND_SYNC, {
         method:  'POST',
+        credentials: 'include',
         headers,
         body:    JSON.stringify({ lcusername, leetcodeSlugs: slugs }),
     });
@@ -54,12 +55,13 @@ async function postSolved(lcusername, slugs) {
 }
 
 async function postAttempt(lcusername, lcslug) {
-    const token = await getSessionToken();
+    const token = await getExtensionToken();
     const headers = { 'Content-Type': 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
     const res = await fetch(BACKEND_ATTEMPT, {
         method:  'POST',
+        credentials: 'include',
         headers,
         body:    JSON.stringify({ lcusername, lcslug }),
     });
@@ -78,7 +80,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
     if (msg.action === 'authMismatch') {
         flashBadge('!', '#ef4444', 8000);
         console.warn(
-            `[Vantage] ⚠ Account mismatch — LC session is @${msg.current} ` +
+            `[Vantage] ⚠ Account mismatch - LC session is @${msg.current} ` +
             `but the app is linked to @${msg.linked}.`
         );
         return false;
@@ -111,7 +113,7 @@ chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
             try {
                 const result = await postAttempt(lcusername, slug);
                 if (result) {
-                    console.log(`[Vantage] ↩ ${slug} ATTEMPTED — recorded:`, result.recorded);
+                    console.log(`[Vantage] ↩ ${slug} ATTEMPTED - recorded:`, result.recorded);
                     if (result.recorded) flashBadge('↩', '#6366f1');
                 }
             } catch (err) {

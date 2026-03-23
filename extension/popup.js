@@ -29,7 +29,7 @@ async function lcQuery(query, variables = {}, retries = 3) {
         // Retry on 429 (Too Many Requests) or LeetCode's non-standard 499
         if ((res.status === 429 || res.status === 499) && attempt < retries) {
             const wait = 1000 * attempt;           // 1s, 2s, 3s …
-            console.warn(`[Vantage] LeetCode ${res.status} — retry ${attempt}/${retries} in ${wait}ms`);
+            console.warn(`[Vantage] LeetCode ${res.status} - retry ${attempt}/${retries} in ${wait}ms`);
             await new Promise(r => setTimeout(r, wait));
             continue;
         }
@@ -136,7 +136,7 @@ async function fetchLinkedProfile(uid) {
 /**
  * Ask the content-script in an app tab to read localStorage
  * directly and return the current user data.  This bypasses chrome.storage
- * completely — it's a synchronous request → response over chrome.tabs.
+ * completely - it's a synchronous request → response over chrome.tabs.
  */
 async function fetchUserFromContentScript() {
     try {
@@ -148,7 +148,7 @@ async function fetchUserFromContentScript() {
                         tab.id, { action: 'getUserFromLocalStorage' });
                     if (resp && resp.uid != null) {
                         console.log('[Vantage] Got user directly from content-script:', resp);
-                        return resp;   // { lcusername, uid, sessionToken }
+                        return resp;   // { lcusername, uid }
                     }
                 } catch { /* content-script not ready in this tab */ }
             }
@@ -187,10 +187,17 @@ async function fetchLcSessionFromContentScript() {
 }
 
 async function checkAuthStatus() {
-    // chrome.storage now stores uid, lcusername, and sessionToken, kept fresh
+    // chrome.storage now stores uid/lcusername plus scoped extension token.
     // by the content-script running on the app origin.
-    let { lcusername: storedLc, uid: storedUid, sessionToken: storedToken, token: storedJwt } =
-        await chrome.storage.local.get(['lcusername', 'uid', 'sessionToken', 'token']);
+    let {
+        lcusername: storedLc,
+        uid: storedUid,
+        extensionToken: storedExtToken,
+        extensionTokenExpiresAt: storedExtTokenExp,
+    } = await chrome.storage.local.get([
+        'lcusername', 'uid',
+        'extensionToken', 'extensionTokenExpiresAt'
+    ]);
 
     // ── Fallback: if chrome.storage is empty, ask the content-script directly
     if (storedUid == null) {
@@ -198,13 +205,11 @@ async function checkAuthStatus() {
         if (direct && direct.uid != null) {
             storedUid   = direct.uid;
             storedLc    = direct.lcusername;
-            storedToken = direct.sessionToken;
-            storedJwt   = direct.token;
             // Persist to chrome.storage so future opens are instant
             const update = { uid: storedUid };
             if (storedLc) update.lcusername = storedLc;
-            if (storedToken) update.sessionToken = storedToken;
-            if (storedJwt) update.token = storedJwt;
+            if (storedExtToken) update.extensionToken = storedExtToken;
+            if (storedExtTokenExp) update.extensionTokenExpiresAt = storedExtTokenExp;
             chrome.storage.local.set(update);
         }
     }
@@ -226,13 +231,12 @@ async function checkAuthStatus() {
                         chrome.storage.local.set({ lcusername: linked });
                     }
                 } else {
-                    // User exists but hasn't set an lcusername yet — keep uid
-                    // and sessionToken so the popup knows they're logged in.
+                    // User exists but hasn't set an lcusername yet - keep uid.
                     if (storedLc) chrome.storage.local.remove(['lcusername']);
                 }
             } else {
-                // User doesn't exist in backend (deleted?) — clear everything
-                chrome.storage.local.remove(['lcusername', 'uid', 'sessionToken', 'token']);
+                // User doesn't exist in backend (deleted?) - clear everything
+                chrome.storage.local.remove(['lcusername', 'uid', 'extensionToken', 'extensionTokenExpiresAt']);
             }
         } catch {
             backendOnline = false;
@@ -244,13 +248,14 @@ async function checkAuthStatus() {
         try {
             const res = await fetch(SPRING_BOOT_URL, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ lcusername: storedLc, leetcodeSlugs: [] }),
             });
             if (res.ok) {
                 linked = storedLc;
             } else {
-                chrome.storage.local.remove(['lcusername', 'uid', 'sessionToken', 'token']);
+                chrome.storage.local.remove(['lcusername', 'uid', 'extensionToken', 'extensionTokenExpiresAt']);
             }
         } catch {
             backendOnline = false;
@@ -260,8 +265,8 @@ async function checkAuthStatus() {
     // ── Detect the live LeetCode session ─────────────────────────────────
     // Priority chain (most → least reliable):
     //   1. Cached lcSessionUser in chrome.storage (written by LeetCode content-script)
-    //   2. Ask a LeetCode tab's content-script directly (new — reliable in MV3)
-    //   3. Direct GraphQL query from the popup (least reliable — MV3 cookie issues)
+    //   2. Ask a LeetCode tab's content-script directly (new - reliable in MV3)
+    //   3. Direct GraphQL query from the popup (least reliable - MV3 cookie issues)
     let lcSessionUser = null;
     try {
         const { lcSessionUser: cached } =
@@ -290,7 +295,7 @@ async function checkAuthStatus() {
         setLinkedUser(storedLc || null);
         setAuthChip("offline", "");
         showSignInPrompt(false);
-        setStatus("Backend offline — cannot verify linked account.", "fail");
+        setStatus("Backend offline - cannot verify linked account.", "fail");
         setSyncDisabled(true, "Backend offline");
         return;
     }
@@ -298,7 +303,7 @@ async function checkAuthStatus() {
     if (!linked && storedUid == null) {
         setLinkedUser(null);
         showSignInPrompt(true);
-        setAuthChip("—", "");
+        setAuthChip("-", "");
         setStatus("Sign in to the app to enable sync.", "idle");
         setSyncDisabled(true, "Sign in to the app first");
         return;
@@ -341,7 +346,8 @@ async function checkAuthStatus() {
 chrome.storage.onChanged.addListener((changes, area) => {
     if (area === 'local' && (
         changes.lcusername || changes.uid ||
-        changes.sessionToken || changes.token || changes.lcSessionUser
+        changes.extensionToken || changes.extensionTokenExpiresAt ||
+        changes.lcSessionUser
     )) {
         checkAuthStatus();
     }
@@ -385,7 +391,7 @@ document.getElementById("syncBtn").addEventListener("click", async () => {
         // Also update the cached LC session so the popup always has it
         chrome.storage.local.set({ lcSessionUser: username });
 
-        setStatus(`Found @${username} — fetching accepted solutions...`, "busy");
+        setStatus(`Found @${username} - fetching accepted solutions...`, "busy");
 
         // 2. Fetch all accepted problem slugs (up to 3000)
         const solvedData = await lcQuery(`
@@ -406,25 +412,28 @@ document.getElementById("syncBtn").addEventListener("click", async () => {
 
         // 3. Push directly to our backend (with Bearer token for authentication)
         try {
-            const { token: jwtToken, sessionToken } = await chrome.storage.local.get(['token', 'sessionToken']);
+            const { extensionToken } = await chrome.storage.local.get(['extensionToken']);
             const headers = { "Content-Type": "application/json" };
-            const authToken = jwtToken || sessionToken;
-            if (authToken) headers["Authorization"] = `Bearer ${authToken}`;
+            if (extensionToken) headers["Authorization"] = `Bearer ${extensionToken}`;
 
             const backendRes = await fetch(SPRING_BOOT_URL, {
                 method: "POST",
+                credentials: "include",
                 headers,
                 body: JSON.stringify({ lcusername: username, leetcodeSlugs: slugs })
             });
 
             if (backendRes.ok) {
-                // Backend confirmed — now persist lcusername to chrome.storage.
-                const { uid: existingUid, sessionToken: existingToken, token: existingJwt } =
-                    await chrome.storage.local.get(['uid', 'sessionToken', 'token']);
+                // Backend confirmed - now persist lcusername to chrome.storage.
+                const {
+                    uid: existingUid,
+                    extensionToken: existingExtToken,
+                    extensionTokenExpiresAt: existingExtTokenExp,
+                } = await chrome.storage.local.get(['uid', 'extensionToken', 'extensionTokenExpiresAt']);
                 const storageUpdate = { lcusername: username };
                 if (existingUid != null) storageUpdate.uid = existingUid;
-                if (existingToken) storageUpdate.sessionToken = existingToken;
-                if (existingJwt) storageUpdate.token = existingJwt;
+                if (existingExtToken) storageUpdate.extensionToken = existingExtToken;
+                if (existingExtTokenExp) storageUpdate.extensionTokenExpiresAt = existingExtTokenExp;
                 chrome.storage.local.set(storageUpdate);
 
                 setLinkedUser(username);
@@ -450,7 +459,7 @@ document.getElementById("syncBtn").addEventListener("click", async () => {
             }
         } catch (fetchErr) {
             console.error("Backend unreachable:", fetchErr);
-            setStatus("Backend offline — is the server running?", "fail");
+            setStatus("Backend offline - is the server running?", "fail");
             setBusy(false);
         }
 

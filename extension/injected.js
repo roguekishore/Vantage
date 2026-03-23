@@ -1,5 +1,5 @@
 /**
- * injected.js — PAGE WORLD (MAIN) script.
+ * injected.js - PAGE WORLD (MAIN) script.
  *
  * Runs at document_start in the page's own JavaScript context so it can wrap
  * window.fetch and XMLHttpRequest before LeetCode's React app executes.
@@ -45,10 +45,10 @@
         _lastUserDetail = detail;
         window.dispatchEvent(new CustomEvent('lc-vantage-user', { detail }));
         // Persist to a DOM data attribute so the content-script can read it
-        // after loading — the ISOLATED world shares the DOM with MAIN.
+        // after loading - the ISOLATED world shares the DOM with MAIN.
         try {
             document.documentElement.dataset.lcVantageUser = JSON.stringify(detail);
-        } catch { /* ignored — DOM not ready yet at document_start */ }
+        } catch { /* ignored - DOM not ready yet at document_start */ }
     }
 
     // ── Re-request listener ──────────────────────────────────────────────────

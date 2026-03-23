@@ -23,6 +23,7 @@
         BACKEND_SYNC_URL: `${BACKEND_ORIGIN}/api/sync`,
         BACKEND_ATTEMPT_URL: `${BACKEND_ORIGIN}/api/sync/attempt`,
         BACKEND_USERS_URL: `${BACKEND_ORIGIN}/api/users`,
+        BACKEND_EXTENSION_TOKEN_URL: `${BACKEND_ORIGIN}/api/auth/extension/token`,
 
         LEETCODE_GRAPHQL_URL: `${LEETCODE_ORIGIN}/graphql`,
 
