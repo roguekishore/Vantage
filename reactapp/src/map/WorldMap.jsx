@@ -44,9 +44,11 @@ const WorldMap = () => {
   const navigate        = useNavigate();
   const transformRef    = useRef(null);
   const mapContainerRef = useRef(null);
+  const popupAnchorRafRef = useRef(null);
 
   const [selectedProblem, setSelectedProblem]             = useState(null);
   const [selectedCountryAnchor, setSelectedCountryAnchor] = useState(null);
+  const [popupDisplayAnchor, setPopupDisplayAnchor]       = useState(null);
   const [tooltip, setTooltip]                             = useState({ visible: false, x: 0, y: 0, content: '' });
   const [currentPositionMarker, setCurrentPositionMarker] = useState(null);
   const [isHighRes, setIsHighRes]                         = useState(false);
@@ -140,6 +142,30 @@ const WorldMap = () => {
     };
   }, []);
 
+  const refreshSelectedPopupAnchor = useCallback(() => {
+    if (!selectedProblem?.countryId) return;
+    const nextAnchor = getPopupAnchorForCountry(selectedProblem.countryId);
+    if (!nextAnchor) return;
+    setSelectedCountryAnchor(prev => {
+      if (!prev) return nextAnchor;
+      const changed =
+        Math.abs(prev.x - nextAnchor.x) > 0.5 ||
+        Math.abs(prev.y - nextAnchor.y) > 0.5 ||
+        prev.side !== nextAnchor.side ||
+        prev.placeAbove !== nextAnchor.placeAbove;
+      return changed ? nextAnchor : prev;
+    });
+  }, [selectedProblem?.countryId, getPopupAnchorForCountry]);
+
+  const schedulePopupAnchorRefresh = useCallback(() => {
+    if (!selectedProblem?.countryId) return;
+    if (popupAnchorRafRef.current) return;
+    popupAnchorRafRef.current = requestAnimationFrame(() => {
+      popupAnchorRafRef.current = null;
+      refreshSelectedPopupAnchor();
+    });
+  }, [selectedProblem?.countryId, refreshSelectedPopupAnchor]);
+
   const updatePositionMarker = useCallback(() => {
     const cur = getCurrentRoadmapProblem();
     if (!cur) { setCurrentPositionMarker(null); return; }
@@ -172,6 +198,48 @@ const WorldMap = () => {
 
   useEffect(() => { applyCountryStyles(); const t = setTimeout(applyCountryStyles, 100); return () => clearTimeout(t); }, [applyCountryStyles]);
   useEffect(() => { updatePositionMarker(); }, [completedProblems, updatePositionMarker]);
+  useEffect(() => {
+    if (!selectedProblem?.countryId) return;
+    refreshSelectedPopupAnchor();
+    const onResize = () => schedulePopupAnchorRefresh();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [selectedProblem?.countryId, refreshSelectedPopupAnchor, schedulePopupAnchorRefresh]);
+
+  useEffect(() => () => {
+    if (popupAnchorRafRef.current) cancelAnimationFrame(popupAnchorRafRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCountryAnchor) {
+      setPopupDisplayAnchor(null);
+      return;
+    }
+
+    setPopupDisplayAnchor(prev => prev || selectedCountryAnchor);
+
+    let rafId;
+    const lerp = 0.22;
+
+    const animate = () => {
+      setPopupDisplayAnchor(prev => {
+        const current = prev || selectedCountryAnchor;
+        const target = selectedCountryAnchor;
+        const nx = current.x + (target.x - current.x) * lerp;
+        const ny = current.y + (target.y - current.y) * lerp;
+        const done = Math.abs(target.x - nx) < 0.4 && Math.abs(target.y - ny) < 0.4;
+
+        if (done) return target;
+        return { ...target, x: nx, y: ny };
+      });
+
+      rafId = requestAnimationFrame(animate);
+    };
+
+    rafId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafId);
+  }, [selectedCountryAnchor]);
+
   useEffect(() => {
     const check = () => {
       const svg = mapContainerRef.current?.querySelector('svg');
@@ -284,6 +352,7 @@ const WorldMap = () => {
         doubleClick={{ disabled: true }}
         alignmentAnimation={{ disabled: true }}
         velocityAnimation={{ disabled: true }}
+        onTransformed={schedulePopupAnchorRefresh}
       >
         <TransformComponent
           wrapperStyle={{ width: '100%', height: '100%' }}
@@ -540,7 +609,7 @@ const WorldMap = () => {
       )}
 
       {/* ══════════ COUNTRY POPUP ══════════ */}
-      {selectedProblem && selectedCountryAnchor && (() => {
+      {selectedProblem && selectedCountryAnchor && popupDisplayAnchor && (() => {
         const cfg       = STATUS_CFG[selectedProblem.state] || STATUS_CFG.locked;
         const CfgIcon   = cfg.icon;
         const stageInfo = STAGES[selectedProblem.stage];
@@ -550,8 +619,8 @@ const WorldMap = () => {
           <div
             className="fixed z-[220] w-[320px] max-w-[calc(100vw-24px)] rounded-2xl overflow-hidden"
             style={{
-              left: `${selectedCountryAnchor.x}px`,
-              top: `${selectedCountryAnchor.y}px`,
+              left: `${popupDisplayAnchor.x}px`,
+              top: `${popupDisplayAnchor.y}px`,
               transform: `translate(${selectedCountryAnchor.side === 'right' ? '18px' : 'calc(-100% - 18px)'}, ${selectedCountryAnchor.placeAbove ? 'calc(-100% - 14px)' : '-20px'})`,
               background: 'rgba(7,7,10,0.92)',
               border: '1px solid rgba(255,255,255,0.07)',

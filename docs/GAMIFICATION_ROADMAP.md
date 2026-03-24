@@ -1,4 +1,4 @@
-# Vantage — Gamification Roadmap
+# Vantage - Gamification Roadmap
 
 > **Last updated:** February 2026  
 > **Approach:** Phased, independently testable stages  
@@ -10,16 +10,16 @@
 ## Table of Contents
 
 - [Pre-Requisites: Critical Bug Fixes](#pre-requisites-critical-bug-fixes)
-- [Phase 0 — Foundation: Coins + XP](#phase-0--foundation-coins--xp)
-- [Phase 1 — Streaks](#phase-1--streaks)
-- [Phase 2 — Store + Inventory](#phase-2--store--inventory)
-- [Phase 3 — Streak Shield (First Live Powerup)](#phase-3--streak-shield-first-live-powerup)
-- [Phase 4 — Leaderboard](#phase-4--leaderboard)
-- [Phase 5 — 1v1 Battle via HTTP Polling](#phase-5--1v1-battle-via-http-polling)
-- [Phase 6 — WebSocket Upgrade](#phase-6--websocket-upgrade)
-- [Phase 7 — Badges + Achievements](#phase-7--badges--achievements)
-- [Phase 8 — Group Battle](#phase-8--group-battle)
-- [Phase 9 — Institutions](#phase-9--institutions)
+- [Phase 0 - Foundation: Coins + XP](#phase-0--foundation-coins--xp)
+- [Phase 1 - Streaks](#phase-1--streaks)
+- [Phase 2 - Store + Inventory](#phase-2--store--inventory)
+- [Phase 3 - Streak Shield (First Live Powerup)](#phase-3--streak-shield-first-live-powerup)
+- [Phase 4 - Leaderboard](#phase-4--leaderboard)
+- [Phase 5 - 1v1 Battle via HTTP Polling](#phase-5--1v1-battle-via-http-polling)
+- [Phase 6 - WebSocket Upgrade](#phase-6--websocket-upgrade)
+- [Phase 7 - Badges + Achievements](#phase-7--badges--achievements)
+- [Phase 8 - Group Battle](#phase-8--group-battle)
+- [Phase 9 - Institutions](#phase-9--institutions)
 - [Architecture Reference](#architecture-reference)
 - [Appendix A: Audit Findings](#appendix-a-audit-findings)
 
@@ -30,14 +30,14 @@
 > **DO NOT start any gamification phase until these are resolved.**  
 > The current codebase has critical issues that would corrupt gamification data.
 
-### P0 — Blockers (Fix First)
+### P0 - Blockers (Fix First)
 
 | # | Layer | Issue | Why It Blocks Gamification |
 |---|-------|-------|---------------------------|
-| 1 | **Spring** | `ddl-auto=create` drops all tables on restart | Every restart wipes coins, XP, streaks, inventory — everything |
+| 1 | **Spring** | `ddl-auto=create` drops all tables on restart | Every restart wipes coins, XP, streaks, inventory - everything |
 | 2 | **Spring** | Plaintext password storage | Users must be securely authenticated before any coin/rating system exists |
 | 3 | **Spring** | Zero authentication on all endpoints | Anyone can call `POST /api/progress/:id/solve` for any user, farming infinite coins |
-| 4 | **Spring** | IDOR — userId passed as query param, no ownership check | Same as above — impersonate any user to earn rewards |
+| 4 | **Spring** | IDOR - userId passed as query param, no ownership check | Same as above - impersonate any user to earn rewards |
 | 5 | **Spring** | Session tokens leaked in `GET /api/users` response | Attackers can grab tokens and impersonate users to farm coins |
 | 6 | **Spring** | No `@ControllerAdvice` global error handler | Unhandled exceptions return stack traces with internal details |
 | 7 | **React** | 5+ hardcoded `localhost:8080` URLs with no env-var fallback | App is non-functional outside localhost |
@@ -51,7 +51,7 @@
 [ ] Change spring.jpa.hibernate.ddl-auto from 'create' to 'update' (or add Flyway)
 [ ] Add Spring Security with BCrypt password hashing
 [ ] Add JWT-based authentication (or session-based with Spring Security)
-[ ] Remove userId from query params — derive from authenticated principal
+[ ] Remove userId from query params - derive from authenticated principal
 [ ] Remove sessionToken from user list DTOs
 [ ] Add @ControllerAdvice with proper error responses
 [ ] Extract all API URLs to environment variables (REACT_APP_API_BASE)
@@ -60,28 +60,28 @@
 [ ] Replace Docker socket mount with docker-socket-proxy or rootless Docker
 ```
 
-### P1 — High Priority (Fix During Phase 0)
+### P1 - High Priority (Fix During Phase 0)
 
 | # | Layer | Issue |
 |---|-------|-------|
-| 11 | **Spring** | N+1 queries in `ProblemService.toProblemResponseDTO` — 40 extra queries per page |
+| 11 | **Spring** | N+1 queries in `ProblemService.toProblemResponseDTO` - 40 extra queries per page |
 | 12 | **Spring** | `deleteUser` fails with FK constraint (no cascade to UserProgress) |
 | 13 | **Spring** | `deleteProblem` fails with FK constraint (no cascade to UserProgress) |
-| 14 | **Spring** | Mixed `@Transactional` annotations (Jakarta vs Spring) — rollback may not work |
-| 15 | **Spring** | `@Data` on entities with lazy collections — StackOverflow / LazyInitException |
+| 14 | **Spring** | Mixed `@Transactional` annotations (Jakarta vs Spring) - rollback may not work |
+| 15 | **Spring** | `@Data` on entities with lazy collections - StackOverflow / LazyInitException |
 | 16 | **Spring** | Race condition on progress upsert (read-then-write not atomic) |
 | 17 | **React** | SSE EventSource has no reconnection management / backoff |
 | 18 | **React** | Stale closure bugs in useEffect with empty dependency arrays |
 | 19 | **React** | WorldMap subscribes to entire Zustand store (re-renders on every change) |
-| 20 | **Judge** | All Docker operations use synchronous `execSync` — blocks event loop |
+| 20 | **Judge** | All Docker operations use synchronous `execSync` - blocks event loop |
 | 21 | **Judge** | Shell injection possible via test-case data in batch runner |
-| 22 | **Judge** | No `unhandledRejection` handler — silent crash kills server |
+| 22 | **Judge** | No `unhandledRejection` handler - silent crash kills server |
 | 23 | **Judge** | No rate limiting on submission endpoints |
 | 24 | **Judge** | No code-size or input-size validation (5MB allowed) |
 
 ---
 
-## Phase 0 — Foundation: Coins + XP
+## Phase 0 - Foundation: Coins + XP
 
 > **Goal:** Solving a problem earns coins and XP. A player has a stats profile.  
 > **New tech:** None  
@@ -119,7 +119,7 @@ Create package `com.backend.springapp.gamification` with these files:
 | `amount` | Integer | Positive = earn, Negative = spend |
 | `source` | Enum | PROBLEM_SOLVED, BATTLE_WIN, STREAK_BONUS, MISSION, STORE_PURCHASE, DAILY_LOGIN |
 | `balanceAfter` | Integer | Snapshot of coin balance after this transaction |
-| `referenceId` | Long | Nullable — problemId, battleId, etc. |
+| `referenceId` | Long | Nullable - problemId, battleId, etc. |
 | `createdAt` | LocalDateTime | Auto-set |
 
 **Coin Reward Table:**
@@ -236,7 +236,7 @@ Hook into the existing `UserProgressService.solveProblem()` method:
 
 ---
 
-## Phase 1 — Streaks
+## Phase 1 - Streaks
 
 > **Goal:** Daily solving maintains a streak. Missing a day breaks it.  
 > **New tech:** None  
@@ -273,12 +273,12 @@ onProblemSolved(userId):
 
 | Milestone | Coin Bonus | XP Bonus |
 |-----------|-----------|----------|
-| 3 days | +50 | — |
+| 3 days | +50 | - |
 | 7 days | +150 | +100 |
 | 14 days | +300 | +200 |
 | 30 days | +500 | +400 |
 | 100 days | +2000 | +1000 |
-| 365 days | +10000 | — |
+| 365 days | +10000 | - |
 
 **Streak Coin Multiplier:**
 
@@ -347,7 +347,7 @@ void resetBrokenStreaks():
 
 ---
 
-## Phase 2 — Store + Inventory
+## Phase 2 - Store + Inventory
 
 > **Goal:** Players can browse a store, spend coins to buy items, and see their inventory.  
 > **New tech:** None  
@@ -369,7 +369,7 @@ Create package `com.backend.springapp.store`:
 | `description` | String | Display text |
 | `type` | Enum | BATTLE_POWERUP, STREAK_POWERUP, BOOST, COSMETIC |
 | `cost` | Integer | In coins |
-| `iconUrl` | String | Nullable — path to icon asset |
+| `iconUrl` | String | Nullable - path to icon asset |
 | `maxOwnable` | Integer | Max a player can hold at once (-1 = unlimited) |
 | `isActive` | Boolean | Can this item be purchased right now? |
 | `createdAt` | LocalDateTime | |
@@ -486,7 +486,7 @@ Battle powerups won't be usable until Phase 5, but they can be bought and held n
 
 ---
 
-## Phase 3 — Streak Shield (First Live Powerup)
+## Phase 3 - Streak Shield (First Live Powerup)
 
 > **Goal:** A Streak Shield in inventory automatically saves your streak on a missed day.  
 > **New tech:** None  
@@ -550,7 +550,7 @@ resetBrokenStreaks():
 
 ---
 
-## Phase 4 — Leaderboard
+## Phase 4 - Leaderboard
 
 > **Goal:** Players can see ranked lists of top performers.  
 > **New tech:** None  
@@ -650,10 +650,10 @@ Methods:
 
 ---
 
-## Phase 5 — 1v1 Battle via HTTP Polling
+## Phase 5 - 1v1 Battle via HTTP Polling
 
 > **Goal:** Two players match, solve the same problems simultaneously, winner gets rewards.  
-> **New tech:** None (uses HTTP polling — WebSocket comes in Phase 6)  
+> **New tech:** None (uses HTTP polling - WebSocket comes in Phase 6)  
 > **Depends on:** Phase 0 (coins/XP for rewards), Phase 4 (rating for matchmaking)  
 > **Estimated time:** 2–3 weeks
 
@@ -964,7 +964,7 @@ Actions:
 The battle submission endpoint proxies to the existing Judge service:
 - POST to `http://judge:9000/api/submit` with the code, language, and problem's test cases
 - The battle controller waits for the judge response, then records the verdict
-- No changes to the Judge service itself — it just receives a standard submission
+- No changes to the Judge service itself - it just receives a standard submission
 
 ### How to Test
 
@@ -1007,7 +1007,7 @@ The battle submission endpoint proxies to the existing Judge service:
 
 ---
 
-## Phase 6 — WebSocket Upgrade
+## Phase 6 - WebSocket Upgrade
 
 > **Goal:** Replace HTTP polling in the battle arena with real-time push via WebSocket.  
 > **New tech:** `spring-boot-starter-websocket` + `@stomp/stompjs`  
@@ -1112,7 +1112,7 @@ stompClient.subscribe(`/topic/battle/${battleId}/state`, (message) => {
 
 ---
 
-## Phase 7 — Badges + Achievements
+## Phase 7 - Badges + Achievements
 
 > **Goal:** Players earn badges for milestones. Badges appear on profile.  
 > **New tech:** None  
@@ -1128,7 +1128,7 @@ stompClient.subscribe(`/topic/battle/${battleId}/state`, (message) => {
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | Long | PK |
-| `key` | String | UNIQUE — e.g., "FIRST_SOLVE", "STREAK_7", "BATTLE_WIN_5" |
+| `key` | String | UNIQUE - e.g., "FIRST_SOLVE", "STREAK_7", "BATTLE_WIN_5" |
 | `name` | String | Display name |
 | `description` | String | How to earn it |
 | `iconUrl` | String | Badge icon path |
@@ -1242,7 +1242,7 @@ Methods:
 
 ---
 
-## Phase 8 — Group Battle
+## Phase 8 - Group Battle
 
 > **Goal:** 3–8 players compete in a shared room.  
 > **New tech:** None  
@@ -1336,7 +1336,7 @@ Total score = sum of points for all solved problems
 
 ---
 
-## Phase 9 — Institutions
+## Phase 9 - Institutions
 
 > **Goal:** Organizations can register, link members, and compete.  
 > **New tech:** None  
@@ -1433,33 +1433,33 @@ Total score = sum of points for all solved problems
 
 ```
 com.backend.springapp
-├── common/                   # EXISTING — add WebSocketConfig, GlobalExceptionHandler
-├── problem/                  # EXISTING — no changes
-├── user/                     # EXISTING — add authentication (Pre-req)
-├── gamification/             # NEW (Phase 0) — PlayerStats, CoinTransaction, XP, Streaks
-├── store/                    # NEW (Phase 2) — StoreItem, Inventory, Purchasing
-├── ranking/                  # NEW (Phase 4) — Leaderboards, WeeklyStats
-├── battle/                   # NEW (Phase 5) — Battles, Matchmaking, Submissions
-└── institution/              # NEW (Phase 9) — Institutions, Members
+├── common/                   # EXISTING - add WebSocketConfig, GlobalExceptionHandler
+├── problem/                  # EXISTING - no changes
+├── user/                     # EXISTING - add authentication (Pre-req)
+├── gamification/             # NEW (Phase 0) - PlayerStats, CoinTransaction, XP, Streaks
+├── store/                    # NEW (Phase 2) - StoreItem, Inventory, Purchasing
+├── ranking/                  # NEW (Phase 4) - Leaderboards, WeeklyStats
+├── battle/                   # NEW (Phase 5) - Battles, Matchmaking, Submissions
+└── institution/              # NEW (Phase 9) - Institutions, Members
 ```
 
 ### New Frontend Route Map (Final State)
 
 ```
-/                        # EXISTING — Homepage
-/:category               # EXISTING — Category page
-/:category/:algorithm    # EXISTING — Visualizer page
-/world-map               # EXISTING — DSA Conquest Map
-/store                   # NEW (Phase 2) — Powerup store
-/inventory               # NEW (Phase 2) — Player inventory
-/leaderboard             # NEW (Phase 4) — Rankings
-/achievements            # NEW (Phase 7) — Badge catalog
-/battle                  # NEW (Phase 5) — Battle mode selector + queue
-/battle/match/:battleId  # NEW (Phase 5) — Live battle arena
-/battle/result/:battleId # NEW (Phase 5) — Post-battle results
-/group/:roomCode         # NEW (Phase 8) — Group battle lobby
-/institution/:slug       # NEW (Phase 9) — Institution profile
-/profile/:userId         # NEW (Phase 0) — Enhanced player profile
+/                        # EXISTING - Homepage
+/:category               # EXISTING - Category page
+/:category/:algorithm    # EXISTING - Visualizer page
+/world-map               # EXISTING - DSA Conquest Map
+/store                   # NEW (Phase 2) - Powerup store
+/inventory               # NEW (Phase 2) - Player inventory
+/leaderboard             # NEW (Phase 4) - Rankings
+/achievements            # NEW (Phase 7) - Badge catalog
+/battle                  # NEW (Phase 5) - Battle mode selector + queue
+/battle/match/:battleId  # NEW (Phase 5) - Live battle arena
+/battle/result/:battleId # NEW (Phase 5) - Post-battle results
+/group/:roomCode         # NEW (Phase 8) - Group battle lobby
+/institution/:slug       # NEW (Phase 9) - Institution profile
+/profile/:userId         # NEW (Phase 0) - Enhanced player profile
 ```
 
 ### New Database Tables (Final State)
@@ -1527,32 +1527,32 @@ The following fixes have been applied across all three layers. Items marked ✅ 
 - ✅ #8 No input validation → added `MAX_CODE_SIZE` (64KB) and `MAX_INPUT_SIZE` (1MB) checks on both endpoints
 - ✅ #23 Duplicate Docker socket mount → removed from docker-compose.yml
 
-### Spring Boot Backend — 35 Issues Found
+### Spring Boot Backend - 35 Issues Found
 
 #### CRITICAL (6)
 
 | # | Issue | Files Affected |
 |---|-------|---------------|
-| 1 | **Plaintext password storage** — no BCrypt, no hashing. Passwords readable in DB. | User entity, UserService, login/signup controllers |
-| 2 | **`ddl-auto=create` drops all tables on every restart** — all data lost on redeploy. | application.properties |
-| 3 | **IDOR — any user can modify any user's progress** — userId passed as query param with zero auth check. | UserProgressController (attempt, solve, get endpoints) |
-| 4 | **Unauthenticated sync fallback allows impersonation** — sync endpoint trusts userId from request body when no auth header present. | Sync-related controller |
-| 5 | **Session tokens leaked in user list response** — `GET /api/users` exposes every user's session token. | UserResponseDTO, UserController |
-| 6 | **No authentication on admin endpoints** — anyone can create/update/delete problems and users. | ProblemController, UserController |
+| 1 | **Plaintext password storage** - no BCrypt, no hashing. Passwords readable in DB. | User entity, UserService, login/signup controllers |
+| 2 | **`ddl-auto=create` drops all tables on every restart** - all data lost on redeploy. | application.properties |
+| 3 | **IDOR - any user can modify any user's progress** - userId passed as query param with zero auth check. | UserProgressController (attempt, solve, get endpoints) |
+| 4 | **Unauthenticated sync fallback allows impersonation** - sync endpoint trusts userId from request body when no auth header present. | Sync-related controller |
+| 5 | **Session tokens leaked in user list response** - `GET /api/users` exposes every user's session token. | UserResponseDTO, UserController |
+| 6 | **No authentication on admin endpoints** - anyone can create/update/delete problems and users. | ProblemController, UserController |
 
 #### HIGH (9)
 
 | # | Issue |
 |---|-------|
 | 7 | Hardcoded DB credentials (`root/root`) in properties file |
-| 8 | `@Modifying` query without `clearAutomatically = true` — stale persistence context |
-| 9 | N+1 query in `ProblemService.toProblemResponseDTO` — 40 extra queries per page of 20 |
-| 10 | N+1 query in user progress retrieval — lazy load per row |
-| 11 | `deleteUser` fails with FK constraint — no cascade to UserProgress |
-| 12 | `deleteProblem` fails with FK constraint — no cascade to UserProgress |
-| 13 | Mixed `@Transactional` annotations (Jakarta vs Spring) — rollback may not work |
-| 14 | `@Data` on entities with lazy collections — StackOverflow / LazyInitException risk |
-| 15 | No `@ControllerAdvice` global error handler — stack traces leaked to clients |
+| 8 | `@Modifying` query without `clearAutomatically = true` - stale persistence context |
+| 9 | N+1 query in `ProblemService.toProblemResponseDTO` - 40 extra queries per page of 20 |
+| 10 | N+1 query in user progress retrieval - lazy load per row |
+| 11 | `deleteUser` fails with FK constraint - no cascade to UserProgress |
+| 12 | `deleteProblem` fails with FK constraint - no cascade to UserProgress |
+| 13 | Mixed `@Transactional` annotations (Jakarta vs Spring) - rollback may not work |
+| 14 | `@Data` on entities with lazy collections - StackOverflow / LazyInitException risk |
+| 15 | No `@ControllerAdvice` global error handler - stack traces leaked to clients |
 
 #### MEDIUM (11)
 
@@ -1560,57 +1560,57 @@ The following fixes have been applied across all three layers. Items marked ✅ 
 |---|-------|
 | 16 | Status filter ignores stage/tag parameters when set |
 | 17 | NPE when tag is null in problem filter |
-| 18 | Duplicate CORS configuration (3 places) — can cause duplicate headers |
-| 19 | SyncRequest DTO has no validation annotations — NPE on null fields |
-| 20 | LoginRequest has no validation — null username/password causes NPE |
+| 18 | Duplicate CORS configuration (3 places) - can cause duplicate headers |
+| 19 | SyncRequest DTO has no validation annotations - NPE on null fields |
+| 20 | LoginRequest has no validation - null username/password causes NPE |
 | 21 | Progress upsert creates detached proxy instead of using `getReferenceById` |
 | 22 | No user existence validation in progress attempt/solve |
 | 23 | Institution search loads full result set then limits in memory |
-| 24 | Race condition on progress upsert — read-then-write not atomic |
-| 25 | Inconsistent ranking logic — sequential vs competition ranking |
-| 26 | Error responses return empty 400 body — error message swallowed |
+| 24 | Race condition on progress upsert - read-then-write not atomic |
+| 25 | Inconsistent ranking logic - sequential vs competition ranking |
+| 26 | Error responses return empty 400 body - error message swallowed |
 
 #### LOW (9)
 
 | # | Issue |
 |---|-------|
 | 27 | Unused import in controller |
-| 28 | `@Data` on all JPA entities — equals/hashCode issues with detached instances |
+| 28 | `@Data` on all JPA entities - equals/hashCode issues with detached instances |
 | 29 | Missing `@Table` on ProblemStage entity |
 | 30 | Leaderboard sorts in memory instead of in DB query |
 | 31 | SSE emitter memory leak potential on ungraceful client disconnect |
-| 32 | Manual JSON construction in SSE publisher — fragile string concatenation |
+| 32 | Manual JSON construction in SSE publisher - fragile string concatenation |
 | 33 | Page size parameter not validated for minimum/maximum |
-| 34 | DataInitializer only checks stages, not problems — partial seed unrecoverable |
-| 35 | No size constraint on batch slug query — could send thousands of slugs |
+| 34 | DataInitializer only checks stages, not problems - partial seed unrecoverable |
+| 35 | No size constraint on batch slug query - could send thousands of slugs |
 
 ---
 
-### React Frontend — 30 Issues Found
+### React Frontend - 30 Issues Found
 
 #### CRITICAL (6)
 
 | # | Issue | Files Affected |
 |---|-------|---------------|
-| 1 | Hardcoded `localhost:8080` in API service — no env-var fallback | services/api.js |
+| 1 | Hardcoded `localhost:8080` in API service - no env-var fallback | services/api.js |
 | 2 | Hardcoded `localhost:8080` in login-form fetch call | components/login-form.jsx |
 | 3 | Hardcoded `localhost:8080` in signup-form | components/signup-form.jsx |
 | 4 | Hardcoded `localhost:8080` in progress store | map/useProgressStore.js |
 | 5 | Hardcoded `localhost:8080` in another component | Additional component with fetch call |
-| 6 | **Undefined variable `category`** in useProblems hook — ReferenceError crash at runtime | hooks/useProblems |
+| 6 | **Undefined variable `category`** in useProblems hook - ReferenceError crash at runtime | hooks/useProblems |
 
 #### HIGH (8)
 
 | # | Issue |
 |---|-------|
 | 7 | `useNavigate()` called outside Router context scope on every render |
-| 8 | Empty dependency array useEffect with external references — stale closures |
-| 9 | `JSON.parse(localStorage.getItem(...))` without try/catch — crash on corrupt data |
+| 8 | Empty dependency array useEffect with external references - stale closures |
+| 9 | `JSON.parse(localStorage.getItem(...))` without try/catch - crash on corrupt data |
 | 10 | Redundant/confusing URL construction in progress store |
-| 11 | `localStorage.getItem` in ThemeContext without try/catch — crash in incognito |
-| 12 | Stale closure in SSE event handler — keeps updating after logout |
-| 13 | Subscribing to entire Zustand store in WorldMap — excessive re-renders |
-| 14 | Fetch error swallowed by catch — user sees "not found" instead of "network error" |
+| 11 | `localStorage.getItem` in ThemeContext without try/catch - crash in incognito |
+| 12 | Stale closure in SSE event handler - keeps updating after logout |
+| 13 | Subscribing to entire Zustand store in WorldMap - excessive re-renders |
+| 14 | Fetch error swallowed by catch - user sees "not found" instead of "network error" |
 
 #### MEDIUM (10)
 
@@ -1618,47 +1618,47 @@ The following fixes have been applied across all three layers. Items marked ✅ 
 |---|-------|
 | 15 | No URL encoding for query parameters in search |
 | 16 | SSE EventSource has no reconnection backoff or max-retry |
-| 17 | `fetchSolvedIds` clears state before async fetch — flash of empty state |
-| 18 | No AbortController for sequential API calls — race condition on rapid filter changes |
-| 19 | `useMemo` with empty deps but referencing outer-scope values — stale user object |
-| 20 | No 404/catch-all route — unmatched URLs render blank page |
-| 21 | `markProblemComplete` silently fails when not logged in — no user feedback |
-| 22 | React.lazy inside useMemo — unmount/remount on key change |
-| 23 | `connectSSE` and `fetchSolvedIds` race condition — SSE can overwrite fetch results |
-| 24 | Debounced fetch without AbortController — unmount during fetch causes warning |
+| 17 | `fetchSolvedIds` clears state before async fetch - flash of empty state |
+| 18 | No AbortController for sequential API calls - race condition on rapid filter changes |
+| 19 | `useMemo` with empty deps but referencing outer-scope values - stale user object |
+| 20 | No 404/catch-all route - unmatched URLs render blank page |
+| 21 | `markProblemComplete` silently fails when not logged in - no user feedback |
+| 22 | React.lazy inside useMemo - unmount/remount on key change |
+| 23 | `connectSSE` and `fetchSolvedIds` race condition - SSE can overwrite fetch results |
+| 24 | Debounced fetch without AbortController - unmount during fetch causes warning |
 
 #### LOW (6)
 
 | # | Issue |
 |---|-------|
-| 25 | No listener for system theme changes — OS dark mode switch not detected |
+| 25 | No listener for system theme changes - OS dark mode switch not detected |
 | 26 | `localStorage.setItem` inside SSE handler without try/catch |
 | 27 | Eager import of large catalog on TopicsPage mount |
 | 28 | No-op `useMemo` with inert dependency |
-| 29 | Wrapper component not memoized — recreates element tree on each render |
+| 29 | Wrapper component not memoized - recreates element tree on each render |
 | 30 | Potential off-by-one in array index after push |
 
 ---
 
-### Judge Service — 28 Issues Found
+### Judge Service - 28 Issues Found
 
 #### CRITICAL (4)
 
 | # | Issue | Files Affected |
 |---|-------|---------------|
-| 1 | **Docker socket mount = full host escape** — any compromised code gets root on host | docker-compose.yml |
-| 2 | **Shell injection via test-case data** — double-quoted bash interpolation allows `$(...)` execution | src/executor.js |
-| 3 | **Multiline/special-char breakage** in batch runner — corrupts verdict parsing silently | src/executor.js |
-| 4 | **No `unhandledRejection` handler** — silent crash kills server, orphans containers | src/index.js |
+| 1 | **Docker socket mount = full host escape** - any compromised code gets root on host | docker-compose.yml |
+| 2 | **Shell injection via test-case data** - double-quoted bash interpolation allows `$(...)` execution | src/executor.js |
+| 3 | **Multiline/special-char breakage** in batch runner - corrupts verdict parsing silently | src/executor.js |
+| 4 | **No `unhandledRejection` handler** - silent crash kills server, orphans containers | src/index.js |
 
 #### HIGH (7)
 
 | # | Issue |
 |---|-------|
-| 5 | All Docker operations use synchronous `execSync` — blocks entire event loop |
-| 6 | Path traversal possible in `writeFile` — no validation on filename |
-| 7 | Missing container hardening flags — no `--cap-drop ALL`, no seccomp profile |
-| 8 | No code-size or input-size validation — 5MB source files accepted |
+| 5 | All Docker operations use synchronous `execSync` - blocks entire event loop |
+| 6 | Path traversal possible in `writeFile` - no validation on filename |
+| 7 | Missing container hardening flags - no `--cap-drop ALL`, no seccomp profile |
+| 8 | No code-size or input-size validation - 5MB source files accepted |
 | 9 | Shell metacharacter risk in host-mode g++ compilation |
 | 10 | Shell metacharacter risk in host-mode javac compilation |
 | 11 | Graceful shutdown doesn't drain in-flight requests |
@@ -1669,12 +1669,12 @@ The following fixes have been applied across all three layers. Items marked ✅ 
 |---|-------|
 | 12 | No rate limiting on submission endpoints |
 | 13 | CORS fully open (`*`) |
-| 14 | Unbounded wait queue — thousands of pending promises can exhaust memory |
+| 14 | Unbounded wait queue - thousands of pending promises can exhaust memory |
 | 15 | `rm -rf /workspace/.*` dangerous on some shells |
 | 16 | Stale temp files never cleaned up from previous crashes |
 | 17 | No resource limits on the judge container itself |
-| 18 | Batch timeout scales linearly with test case count — can lock worker for 250s |
-| 19 | Stdout parsing relies on exact marker strings — user code can corrupt it |
+| 18 | Batch timeout scales linearly with test case count - can lock worker for 250s |
+| 19 | Stdout parsing relies on exact marker strings - user code can corrupt it |
 | 20 | No security headers (helmet) |
 | 21 | Java filename fallback (`Main.java`) gives confusing errors |
 

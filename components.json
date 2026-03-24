@@ -9,12 +9,13 @@
     "baseColor": "neutral",
     "cssVariables": true
   },
+  "iconLibrary": "lucide",
   "aliases": {
     "components": "@/components",
     "utils": "@/lib/utils",
     "ui": "@/components/ui",
-    "hooks": "@/hooks",
-    "lib": "@/lib"
+    "lib": "@/lib",
+    "hooks": "@/hooks"
   },
   "registries": {
     "@react-bits": "https://reactbits.dev/r/{name}.json",
@@ -25,6 +26,7 @@
     "@kokonutui": "https://kokonutui.com/r/{name}.json",
     "@v0": "https://v0.dev/chat/b/{name}",
     "@jolly-ui": "https://jollyui.dev/r/{name}.json",
-    "@origin-ui": "https://originui.com/r/{name}.json"
+    "@origin-ui": "https://originui.com/r/{name}.json",
+    "@magicui": "https://magicui.design/r/{name}"
   }
 }

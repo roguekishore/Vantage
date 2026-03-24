@@ -1,4 +1,4 @@
-# LeetCode Sync — Sequence Diagram
+# LeetCode Sync - Sequence Diagram
 
 ```mermaid
 sequenceDiagram

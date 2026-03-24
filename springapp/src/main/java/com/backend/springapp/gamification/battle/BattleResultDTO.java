@@ -6,6 +6,7 @@ package com.backend.springapp.gamification.battle;
 public record BattleResultDTO(
         Long battleId,
         String mode,
+        int problemCount,
         String outcome,       // "WIN", "LOSS", "DRAW"
         Long winnerId,
         ResultStats you,

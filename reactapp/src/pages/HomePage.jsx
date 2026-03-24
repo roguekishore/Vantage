@@ -702,7 +702,7 @@ function BattleSection() {
   const [finding, setFinding] = useState(false);
   const [found, setFound] = useState("");
   const [matchProgress, setMatchProgress] = useState(0);
-  const names = ["CodeMaster99","xAl9xr","bit_wizard","0xff_dev","AlgoKing_23"];
+  const names = ["maverick","rogue","fushiguro","topg"];
 
   const handleFind = () => {
     setFinding(true);
