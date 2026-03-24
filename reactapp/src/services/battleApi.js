@@ -6,11 +6,11 @@ const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/
  * Join the matchmaking queue.
  * Body still includes userId for backward compat; JWT authenticates the request.
  */
-export async function joinQueue({ userId, mode, difficulty, problemCount }) {
+export async function joinQueue({ userId, mode, difficulty, problemCount, durationMinutes }) {
   const res = await authFetch(`${API_BASE}/queue`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, mode, difficulty, problemCount }),
+    body: JSON.stringify({ userId, mode, difficulty, problemCount, durationMinutes }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

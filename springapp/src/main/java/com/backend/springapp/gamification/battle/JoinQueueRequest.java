@@ -12,5 +12,6 @@ public record JoinQueueRequest(
         @NotNull Long userId,
         @NotNull BattleMode mode,
         @NotNull Tag difficulty,
-        @Min(1) @Max(3) int problemCount
+        @Min(1) @Max(3) int problemCount,
+        Integer durationMinutes
 ) {}

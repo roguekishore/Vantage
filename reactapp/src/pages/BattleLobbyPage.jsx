@@ -29,6 +29,7 @@ const DIFFICULTIES = [
   { value: "HARD", label: "Hard", color: "#f87171", dot: "#ef4444" },
 ];
 const PROBLEM_COUNTS = [1, 2, 3];
+const QUICK_DURATION_OPTIONS = [20, 30, 45, 60, 90, 120, 150, 180];
 const LANGUAGES = [{ value: "cpp", label: "C++" }, { value: "java", label: "Java" }];
 
 function timeAgo(dateStr) {
@@ -98,7 +99,7 @@ function CenteredCard({ children }) {
 }
 
 /* ═══ Queue searching screen ═════════════════════════════ */
-function QueueScreen({ mode, difficulty, problemCount, onCancel }) {
+function QueueScreen({ mode, difficulty, problemCount, durationMinutes, onCancel }) {
   const canvasRef = useRef(null);
 
   // Radar animation on canvas
@@ -233,6 +234,7 @@ function QueueScreen({ mode, difficulty, problemCount, onCancel }) {
               { label: mode.replace("_1V1", ""), color: mode === "RANKED_1V1" ? "#EDFF66" : "rgba(255,255,255,0.4)" },
               { label: difficulty, color: diffColor },
               { label: `${problemCount}P`, color: "rgba(255,255,255,0.4)" },
+              { label: `${durationMinutes}M`, color: "rgba(255,255,255,0.4)" },
             ].map(({ label, color }) => (
               <span key={label} style={{
                 fontSize: 9, fontWeight: 900, letterSpacing: "0.2em",
@@ -604,6 +606,7 @@ export default function BattleLobbyPage() {
   const [mode, setMode] = useState("RANKED_1V1");
   const [difficulty, setDifficulty] = useState("MEDIUM");
   const [problemCount, setProblemCount] = useState(2);
+  const [durationMinutes, setDurationMinutes] = useState(60);
   const language = "cpp";
   const [stats, setStats] = useState(null);
   const [history, setHistory] = useState([]);
@@ -644,7 +647,9 @@ export default function BattleLobbyPage() {
       { opacity: 1, y: 0, duration: 0.7, stagger: 0.08, ease: "power3.out", delay: 0.05 });
   }, { scope: pageRef });
 
-  const handleFindBattle = () => { if (userId) joinQueue(userId, mode, difficulty, problemCount); };
+  const handleFindBattle = () => {
+    if (userId) joinQueue(userId, mode, difficulty, problemCount, durationMinutes);
+  };
   const handleCancel = () => { if (userId) leaveQueue(userId); };
   const handleReady = () => { if (battleId && userId) readyUp(battleId, userId, language); };
   const handleRejoin = () => {
@@ -672,7 +677,15 @@ export default function BattleLobbyPage() {
   const handleChallengeFriend = async (friend) => {
     if (!friend?.uid) return;
     setSendingFriendId(friend.uid);
-    try { await sendChallenge({ targetUserId: friend.uid, mode, difficulty, problemCount }); }
+    try {
+      await sendChallenge({
+        targetUserId: friend.uid,
+        mode,
+        difficulty,
+        problemCount,
+        durationMinutes,
+      });
+    }
     finally { setSendingFriendId(null); }
   };
 
@@ -768,7 +781,7 @@ export default function BattleLobbyPage() {
   }
 
   if (queueStatus === "QUEUED") {
-    return <QueueScreen mode={mode} difficulty={difficulty} problemCount={problemCount} onCancel={handleCancel} />;
+    return <QueueScreen mode={mode} difficulty={difficulty} problemCount={problemCount} durationMinutes={durationMinutes} onCancel={handleCancel} />;
   }
 
   /* ── Main config page ── */
@@ -1056,7 +1069,31 @@ export default function BattleLobbyPage() {
                         alignItems: "center", gap: 2
                       }}>
                         {c}
-                        <span style={{ fontSize: 9, fontWeight: 700, opacity: 0.6 }}>{c * 15}m</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Time Limit */}
+              <div>
+                <div style={{
+                  fontSize: 9, fontWeight: 900, letterSpacing: "0.28em", textTransform: "uppercase",
+                  color: "rgba(255,255,255,0.22)", marginBottom: 10
+                }}>Time Limit</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 8, marginBottom: 8 }}>
+                  {QUICK_DURATION_OPTIONS.map(m => {
+                    const active = durationMinutes === m;
+                    return (
+                      <button key={m} onClick={() => setDurationMinutes(m)} style={{
+                        padding: "10px 0", borderRadius: 11, border: "none", cursor: "none",
+                        background: active ? "rgba(237,255,102,0.14)" : "rgba(255,255,255,0.02)",
+                        outline: active ? "1px solid rgba(237,255,102,0.25)" : "1px solid rgba(255,255,255,0.06)",
+                        fontSize: 11, fontWeight: 900, letterSpacing: "0.08em",
+                        color: active ? "#EDFF66" : "rgba(255,255,255,0.38)",
+                        transition: "all 0.15s"
+                      }}>
+                        {m}m
                       </button>
                     );
                   })}
@@ -1147,7 +1184,7 @@ export default function BattleLobbyPage() {
                   })}
                 </div>
                 <p style={{ fontSize: 10, color: "rgba(255,255,255,0.16)", marginTop: 8, lineHeight: 1.6 }}>
-                  Uses your selected mode, difficulty, and count.
+                  Uses your selected mode, difficulty, count, and time limit.
                 </p>
               </div>
             </div>

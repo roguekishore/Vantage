@@ -11,6 +11,7 @@ public record FriendChallengeDTO(
         String mode,
         String difficulty,
         int problemCount,
+        Integer durationMinutes,
         String status,
         Long battleId,
         String roomCode,

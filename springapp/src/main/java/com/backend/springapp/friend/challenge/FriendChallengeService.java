@@ -81,6 +81,13 @@ public class FriendChallengeService {
             if (!challengerId.equals(roomBattle.getCreatorId())) {
                 throw new IllegalStateException("Only the room creator can send room invites");
             }
+
+            if (req.durationMinutes() != null && !req.durationMinutes().equals(roomBattle.getDurationMinutes())) {
+                throw new IllegalArgumentException("Group invite duration must match room duration");
+            }
+        } else {
+            // Validate 1v1 duration up-front so invalid requests fail early.
+            battleService.resolveOneVsOneDurationMinutes(req.mode(), req.problemCount(), req.durationMinutes());
         }
 
         if (isMuted(req.targetUserId())) {
@@ -101,11 +108,15 @@ public class FriendChallengeService {
         challenge.setMode(req.mode());
         challenge.setDifficulty(req.difficulty());
         challenge.setProblemCount(req.problemCount());
+        challenge.setDurationMinutes(isGroupInvite
+            ? null
+            : battleService.resolveOneVsOneDurationMinutes(req.mode(), req.problemCount(), req.durationMinutes()));
         challenge.setStatus(FriendChallengeStatus.PENDING);
         challenge.setExpiresAt(LocalDateTime.now().plusMinutes(CHALLENGE_TTL_MINUTES));
         if (isGroupInvite && roomBattle != null) {
             challenge.setBattleId(roomBattle.getId());
             challenge.setRoomCode(roomBattle.getRoomCode());
+            challenge.setDurationMinutes(roomBattle.getDurationMinutes());
         }
         challenge = challengeRepository.saveAndFlush(challenge);
 
@@ -188,7 +199,8 @@ public class FriendChallengeService {
                 challenge.getChallengeeId(),
                 challenge.getMode(),
                 challenge.getDifficulty(),
-                challenge.getProblemCount()
+            challenge.getProblemCount(),
+            challenge.getDurationMinutes()
         );
 
         challenge.setStatus(FriendChallengeStatus.ACCEPTED);
@@ -337,6 +349,7 @@ public class FriendChallengeService {
                 c.getMode().name(),
                 c.getDifficulty().name(),
                 c.getProblemCount(),
+                c.getDurationMinutes(),
                 c.getStatus().name(),
                 c.getBattleId(),
             c.getRoomCode(),

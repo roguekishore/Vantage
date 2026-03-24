@@ -142,7 +142,7 @@ const useBattleStore = create((set, get) => ({
    * QUEUE
    * ═══════════════════════════════════════════════════════════ */
 
-  joinQueue: async (userId, mode, difficulty, problemCount) => {
+  joinQueue: async (userId, mode, difficulty, problemCount, durationMinutes) => {
     // Clean up any lingering state / subscriptions from a previous battle
     get().stopPolling();
     get()._disconnectStomp();
@@ -151,7 +151,7 @@ const useBattleStore = create((set, get) => ({
       battleId: null, lobby: null, battleState: null, result: null,
     });
     try {
-      const response = await apiJoinQueue({ userId, mode, difficulty, problemCount });
+      const response = await apiJoinQueue({ userId, mode, difficulty, problemCount, durationMinutes });
 
       // If user has an active/waiting battle, surface it for rejoin
       if (response.status === "ACTIVE_BATTLE") {

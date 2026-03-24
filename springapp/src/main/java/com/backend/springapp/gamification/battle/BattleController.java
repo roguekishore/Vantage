@@ -25,13 +25,18 @@ public class BattleController {
     @PostMapping("/queue")
     public ResponseEntity<?> joinQueue(@Valid @RequestBody JoinQueueRequest req) {
         Map<String, Object> result = battleService.joinQueue(
-                req.userId(), req.mode(), req.difficulty(), req.problemCount());
+                req.userId(), req.mode(), req.difficulty(), req.problemCount(), req.durationMinutes());
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/queue/status")
     public ResponseEntity<QueueStatusResponse> getQueueStatus(@RequestParam Long userId) {
         return ResponseEntity.ok(battleService.getQueueStatus(userId));
+    }
+
+    @GetMapping("/feature-flags")
+    public ResponseEntity<Map<String, Object>> getBattleFeatureFlags() {
+        return ResponseEntity.ok(battleService.getBattleFeatureFlags());
     }
 
     @DeleteMapping("/queue")

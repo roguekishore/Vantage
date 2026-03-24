@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "VantageCode Sync",
+  "name": "VantageCode",
   "version": "1.0",
-  "description": "Real-time DSA World Map progress tracker with auto-sync and account verification.",
+  "description": "Real-time Vantage progress tracker with auto-sync and account verification.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": [
     "https://leetcode.com/*",

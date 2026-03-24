@@ -1,7 +1,7 @@
 # DSA Skill Tree Sync - Chrome Extension
 
 > Real-time DSA World Map progress tracker with auto-sync, account verification,
-> and token-based authentication for the **AlgoVisualizer (Vantage)** platform.
+> and token-based authentication for the **(Vantage)** platform.
 
 ---
 
@@ -25,7 +25,6 @@
 ## Overview
 
 This Chrome MV3 extension bridges **LeetCode** and the **Vantage** web app
-(AlgoVisualizer). It:
 
 | Feature | Description |
 |---|---|

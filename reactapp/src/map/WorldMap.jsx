@@ -37,6 +37,8 @@ const STATUS_CFG = {
   locked:    { icon: Lock,        label: 'Locked',     color: '#52525b', ringColor: 'rgba(82,82,91,0.2)'     },
 };
 
+const MAP_QUALITY_TIP_DISMISS_KEY = 'vantage.map.qualityTip.dismissed';
+
 /* ═══════════════════════════════════════════════
    WORLD MAP - COMMAND CENTER REDESIGN
    ═══════════════════════════════════════════════ */
@@ -54,8 +56,19 @@ const WorldMap = () => {
   const [isHighRes, setIsHighRes]                         = useState(false);
   const [stagesOpen, setStagesOpen]                       = useState(false);
   const [hudCollapsed, setHudCollapsed]                   = useState(false);
+  const [showQualityTip, setShowQualityTip]               = useState(false);
+  const [dontShowQualityTipAgain, setDontShowQualityTipAgain] = useState(false);
 
   const toggleResolution = useCallback(() => setIsHighRes(p => !p), []);
+
+  const dismissQualityTip = useCallback(() => {
+    if (dontShowQualityTipAgain) {
+      try {
+        localStorage.setItem(MAP_QUALITY_TIP_DISMISS_KEY, '1');
+      } catch { /* ignore localStorage errors */ }
+    }
+    setShowQualityTip(false);
+  }, [dontShowQualityTipAgain]);
 
   /* ── store ── */
   const completedProblems        = useProgressStore(s => s.completedProblems);
@@ -82,6 +95,15 @@ const WorldMap = () => {
     init();
     return () => sseCleanup?.();
   }, [user?.uid, loadProgress, subscribeToLiveUpdates]);
+
+  useEffect(() => {
+    try {
+      const dismissed = localStorage.getItem(MAP_QUALITY_TIP_DISMISS_KEY) === '1';
+      if (!dismissed) setShowQualityTip(true);
+    } catch {
+      setShowQualityTip(true);
+    }
+  }, []);
 
   /* ── country helpers (ALL UNCHANGED) ── */
   const getCountryId = useCallback((path) => {
@@ -543,6 +565,65 @@ const WorldMap = () => {
           )}
         </div>
       </div>
+
+      {/* ══════════ QUALITY TIP ══════════ */}
+      {showQualityTip && (
+        <div
+          className="absolute z-[130]"
+          style={{ left: 76, bottom: 16, maxWidth: 340 }}
+        >
+          <div
+            style={{
+              background: 'rgba(7,7,10,0.95)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              borderRadius: 14,
+              padding: '12px 12px 10px',
+              backdropFilter: 'blur(18px)',
+              boxShadow: '0 12px 30px rgba(0,0,0,0.45)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(237,255,102,0.85)', marginBottom: 5 }}>
+                  Quick tip
+                </div>
+                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.45, color: 'rgba(255,255,255,0.78)' }}>
+                  Click the <strong style={{ color: '#EDFF66' }}>HD/SD</strong> button on the left sidebar to switch map quality.
+                </p>
+              </div>
+              <button
+                onClick={dismissQualityTip}
+                aria-label="Close quality tip"
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: 8,
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.03)',
+                  color: 'rgba(255,255,255,0.5)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                <X size={12} />
+              </button>
+            </div>
+
+            <label style={{ marginTop: 10, display: 'flex', alignItems: 'center', gap: 8, fontSize: 11, color: 'rgba(255,255,255,0.62)', userSelect: 'none', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={dontShowQualityTipAgain}
+                onChange={(e) => setDontShowQualityTipAgain(e.target.checked)}
+                style={{ accentColor: '#EDFF66' }}
+              />
+              Don't show again
+            </label>
+          </div>
+        </div>
+      )}
 
       {/* ══════════ STAGES MODAL ══════════ */}
       {stagesOpen && (

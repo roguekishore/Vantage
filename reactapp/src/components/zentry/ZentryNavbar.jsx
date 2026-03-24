@@ -1,12 +1,13 @@
 import { useRef, useEffect, useState, useCallback } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
 import {
-  Eye, BookOpen, Map as MapIcon, Swords, Trophy,
+  House, Eye, BookOpen, Map as MapIcon, Swords, Trophy,
   Award, Bell, UserRoundPlus, Coins, Sparkles,
   Flame, Shield, VolumeX, ArrowUpRight,
 } from "lucide-react";
+import ExtensionIcon from "@mui/icons-material/Extension";
 import useUserStore from "@/stores/useUserStore";
 import useGamificationStore from "@/stores/useGamificationStore";
 import useAchievementStore from "@/stores/useAchievementStore";
@@ -18,6 +19,7 @@ import BrandLogo from "@/components/Logo";
    CONFIG
 ───────────────────────────────────────────────────────── */
 const LINKS = [
+  { label:"Home",      path:"/",            Icon:House         },
   { label:"Visualize", path:"/visualizers", Icon:Eye           },
   { label:"Problems",  path:"/problems",    Icon:BookOpen      },
   { label:"Battle",    path:"/battle",      Icon:Swords        },
@@ -26,6 +28,8 @@ const LINKS = [
   { label:"Badges",    path:"/achievements",Icon:Award         },
   { label:"Map",       path:"/map",         Icon:MapIcon       },
 ];
+
+const EXTENSION_ZIP_DEMO_URL = "https://github.com/roguekishore/Vantage/releases/download/v1.0/VantageCode.zip";
 
 const GLITCH = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz0123456789!@#%^&*";
 
@@ -420,6 +424,7 @@ function MobileOverlay({ open, onClose, links, isActive, incomingCount, stats, s
 const Navbar = ({ controls, allowTransparency = false }) => {
   const { scrollProgress } = controls;
   const location           = useLocation();
+  const navigate           = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled,   setScrolled]   = useState(false);
 
@@ -445,6 +450,31 @@ const Navbar = ({ controls, allowTransparency = false }) => {
     location.pathname===p || location.pathname.startsWith(p+"/"),
     [location.pathname]
   );
+
+  const handleExtensionDownload = useCallback((e) => {
+    e.preventDefault();
+
+    const dl = document.createElement("a");
+    dl.href = EXTENSION_ZIP_DEMO_URL;
+    dl.setAttribute("download", "algovisualizer-extension.zip");
+    dl.setAttribute("target", "_blank");
+    dl.setAttribute("rel", "noreferrer");
+    document.body.appendChild(dl);
+    dl.click();
+    dl.remove();
+
+    if (location.pathname === "/") {
+      const setupSection = document.getElementById("extension-setup");
+      if (setupSection) {
+        setupSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      } else {
+        window.location.hash = "extension-setup";
+      }
+    } else {
+      navigate("/#extension-setup");
+    }
+  }, [location.pathname, navigate]);
+
   const floated = !allowTransparency || scrolled;
 
   return (
@@ -559,6 +589,42 @@ const Navbar = ({ controls, allowTransparency = false }) => {
                 )}
               </Link>
             )}
+
+            {/* Extension ZIP download */}
+            <button
+              onClick={handleExtensionDownload}
+              data-cursor="EXTENSION"
+              title="Download extension (demo link)"
+              aria-label="Download browser extension ZIP"
+              style={{
+                width:30,
+                height:30,
+                borderRadius:8,
+                display:"flex",
+                alignItems:"center",
+                justifyContent:"center",
+                textDecoration:"none",
+                cursor:"none",
+                padding:0,
+                outline:"none",
+                color:"#09090b",
+                background:"#EDFF66",
+                border:"1px solid rgba(237,255,102,0.55)",
+                transition:"all 0.15s",
+              }}
+              onMouseEnter={e=>{
+                e.currentTarget.style.color="#09090b";
+                e.currentTarget.style.borderColor="rgba(237,255,102,0.75)";
+                e.currentTarget.style.background="#d9f24f";
+              }}
+              onMouseLeave={e=>{
+                e.currentTarget.style.color="#09090b";
+                e.currentTarget.style.borderColor="rgba(237,255,102,0.55)";
+                e.currentTarget.style.background="#EDFF66";
+              }}
+            >
+              <ExtensionIcon sx={{ fontSize: 14 }} />
+            </button>
 
             {/* Avatar / sign-in */}
             {user ? (

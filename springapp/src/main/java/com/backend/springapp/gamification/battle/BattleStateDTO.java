@@ -11,7 +11,9 @@ public record BattleStateDTO(
         long timeRemainingMs,
         ProgressInfo myProgress,
         ProgressInfo opponentProgress,
-        List<ProblemInfo> problems
+        List<ProblemInfo> problems,
+        Long leaderUserId,
+        String leaderReason
 ) {
     public record ProgressInfo(
             int problemsSolved,
