@@ -14,6 +14,7 @@ import { MONUMENT_TYPO as T } from "@/components/MonumentTypography";
 import { Globe } from "@/components/ui/globe";
 
 const PAGE_SIZE = 10;
+const QUICK_DURATION_OPTIONS = [20, 30, 45, 60, 90, 120, 150, 180];
 
 /* ─────────────────────────────────────────────────────────────────
    HERO CANVAS — soft floating nodes + gentle connections
@@ -310,6 +311,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
   const [mode, setMode]   = useState("CASUAL_1V1");
   const [diff, setDiff]   = useState("MEDIUM");
   const [count, setCount] = useState(2);
+  const [durationMinutes, setDurationMinutes] = useState(60);
   const ref = useRef(null);
 
   useGSAP(() => {
@@ -384,7 +386,22 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
                   <button key={n} onClick={() => setCount(n)} data-cursor="SELECT"
                     style={{ padding: "12px 0", borderRadius: 9, border: `1px solid ${act ? "rgba(237,255,102,0.25)" : "rgba(255,255,255,0.06)"}`, cursor: "none", background: act ? "#EDFF66" : "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, fontSize: 17, fontWeight: 900, color: act ? "#09090b" : "rgba(255,255,255,0.32)", transition: "all 0.15s" }}>
                     {n}
-                    <span style={{ fontSize: 8, fontWeight: 700, opacity: 0.6, letterSpacing: "0.1em" }}>{n * 15}m</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Time Limit */}
+          <div className="cm-row" style={{ opacity: 0 }}>
+            <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: 8 }}>Time Limit</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 7, marginBottom: 7 }}>
+              {QUICK_DURATION_OPTIONS.map((m) => {
+                const act = durationMinutes === m;
+                return (
+                  <button key={m} onClick={() => setDurationMinutes(m)} data-cursor="SELECT"
+                    style={{ padding: "10px 0", borderRadius: 9, border: `1px solid ${act ? "rgba(237,255,102,0.25)" : "rgba(255,255,255,0.06)"}`, cursor: "none", background: act ? "rgba(237,255,102,0.12)" : "rgba(255,255,255,0.02)", fontSize: 10, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", color: act ? "#EDFF66" : "rgba(255,255,255,0.35)", transition: "all 0.15s" }}>
+                    {m}m
                   </button>
                 );
               })}
@@ -398,7 +415,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
               onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#fff"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
             >Cancel</button>
-            <button onClick={() => onSubmit({ mode, difficulty: diff, count })} disabled={loading} data-cursor="FIGHT"
+            <button onClick={() => onSubmit({ mode, difficulty: diff, count, durationMinutes })} disabled={loading} data-cursor="FIGHT"
               style={{ flex: 1, height: 44, borderRadius: 11, border: "none", cursor: "none", background: loading ? "rgba(248,113,113,0.4)" : "#f87171", color: "#fff", fontSize: 11, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, transition: "opacity 0.15s" }}
               onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = "0.85"; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
@@ -500,9 +517,15 @@ export default function FriendsPage() {
     ? Math.round((onlineFriends.length / friends.length) * 100)
     : 0;
 
-  const handleChallenge = async ({ mode, difficulty, count }) => {
+  const handleChallenge = async ({ mode, difficulty, count, durationMinutes }) => {
     if (!challengeTarget?.uid) return;
-    const res = await sendChallenge({ targetUserId: challengeTarget.uid, mode, difficulty, problemCount: count });
+    const res = await sendChallenge({
+      targetUserId: challengeTarget.uid,
+      mode,
+      difficulty,
+      problemCount: count,
+      durationMinutes,
+    });
     if (res?.ok) setChallengeTarget(null);
   };
 

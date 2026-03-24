@@ -12,5 +12,6 @@ public record FriendChallengeCreateDTO(
         @NotNull BattleMode mode,
         @NotNull Tag difficulty,
         @Min(1) @Max(3) int problemCount,
-        @Size(min = 6, max = 6) String roomCode
+        @Size(min = 6, max = 6) String roomCode,
+        Integer durationMinutes
 ) {}

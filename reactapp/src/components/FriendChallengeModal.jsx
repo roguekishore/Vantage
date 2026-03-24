@@ -162,6 +162,9 @@ export default function FriendChallengeModal() {
             <p><span style={{ color: S.textDim }}>Mode:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.mode}</span></p>
             <p><span style={{ color: S.textDim }}>Difficulty:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.difficulty}</span></p>
             <p><span style={{ color: S.textDim }}>Problems:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.problemCount}</span></p>
+            {activeOutgoingChallenge.durationMinutes > 0 && (
+              <p><span style={{ color: S.textDim }}>Time:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.durationMinutes} min</span></p>
+            )}
             {activeOutgoingChallenge.roomCode && (
               <p><span style={{ color: S.textDim }}>Room:</span> <span style={{ color: S.acid }}>{activeOutgoingChallenge.roomCode}</span></p>
             )}
@@ -247,6 +250,9 @@ export default function FriendChallengeModal() {
           <p><span style={{ color: S.textDim }}>Mode:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.mode}</span></p>
           <p><span style={{ color: S.textDim }}>Difficulty:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.difficulty}</span></p>
           <p><span style={{ color: S.textDim }}>Problems:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.problemCount}</span></p>
+          {activeIncomingChallenge.durationMinutes > 0 && (
+            <p><span style={{ color: S.textDim }}>Time:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.durationMinutes} min</span></p>
+          )}
           {activeIncomingChallenge.roomCode && (
             <p><span style={{ color: S.textDim }}>Room:</span> <span style={{ color: S.acid }}>{activeIncomingChallenge.roomCode}</span></p>
           )}

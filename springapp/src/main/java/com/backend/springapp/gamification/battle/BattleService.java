@@ -11,8 +11,10 @@ import com.backend.springapp.problem.Tag;
 import com.backend.springapp.user.User;
 import com.backend.springapp.user.UserProgressRepository;
 import com.backend.springapp.user.UserRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.Duration;
@@ -51,9 +54,19 @@ public class BattleService {
     private final RestTemplate judgeRestTemplate;
     @Value("${judge.base-url:http://localhost:9000}")
     private String judgeBaseUrl;
+    @Value("${battle.customTimer1v1.enabled:true}")
+    private boolean customTimer1v1Enabled = true;
+    @Value("${battle.continueAfterFirstFinisher.enabled:true}")
+    private boolean continueAfterFirstFinisherEnabled = true;
+    @Autowired(required = false)
+    private MeterRegistry meterRegistry;
 
     private static final long JUDGE_PROBLEM_CACHE_TTL_MS = 5 * 60 * 1000;
     private static final int RATE_LIMIT_SECONDS = 10;
+    private static final int MIN_1V1_DURATION_MINUTES = 10;
+    private static final int MAX_1V1_DURATION_MINUTES = 180;
+    private static final int MIN_GROUP_DURATION_MINUTES = 10;
+    private static final int MAX_GROUP_DURATION_MINUTES = 180;
     private static final String ROOM_CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
     private final java.util.Random random = new java.util.Random();
     private volatile List<JudgeProblemSummary> judgeProblemCatalogCache = List.of();
@@ -64,7 +77,15 @@ public class BattleService {
      * ═══════════════════════════════════════════════════════════ */
 
     @Transactional
-    public Map<String, Object> joinQueue(Long userId, BattleMode mode, Tag difficulty, int problemCount) {
+    public Map<String, Object> joinQueue(Long userId, BattleMode mode, Tag difficulty, int problemCount,
+                                          Integer durationMinutes) {
+        if (mode != BattleMode.CASUAL_1V1 && mode != BattleMode.RANKED_1V1) {
+            throw new IllegalArgumentException("Queue supports only 1v1 modes");
+        }
+        if (problemCount < 1 || problemCount > 3) {
+            throw new IllegalArgumentException("problemCount must be between 1 and 3");
+        }
+
         // Auto-clean stale entry if user is already in queue (e.g. page refresh, app restart)
         if (queueRepo.existsByUserId(userId)) {
             queueRepo.deleteByUserId(userId);
@@ -97,11 +118,13 @@ public class BattleService {
         entry.setMode(mode);
         entry.setDifficulty(difficulty);
         entry.setProblemCount(problemCount);
+        entry.setDurationMinutes(resolveOneVsOneDurationMinutes(mode, problemCount, durationMinutes));
         entry.setBattleRating(stats.getBattleRating());
         queueRepo.saveAndFlush(entry);
+        incrementMetric("battle.queue.join", "mode", mode.name(), "durationMinutes", String.valueOf(entry.getDurationMinutes()));
 
-        log.info("⚔️ User {} joined {} queue (difficulty={}, count={}, BR={})",
-                userId, mode, difficulty, problemCount, stats.getBattleRating());
+        log.info("⚔️ User {} joined {} queue (difficulty={}, count={}, duration={}m, BR={})",
+            userId, mode, difficulty, problemCount, entry.getDurationMinutes(), stats.getBattleRating());
 
         return Map.of("status", "QUEUED", "queueId", entry.getId());
     }
@@ -191,10 +214,10 @@ public class BattleService {
                     if (matched.contains(group.get(j).getId())) continue;
                     MatchmakingQueue b = group.get(j);
 
-                    if (isRatingCompatible(a, b)) {
+                    if (isRatingCompatible(a, b) && isDurationCompatible(a, b)) {
                         // Use the smaller problem count (both must agree on count)
                         int count = Math.min(a.getProblemCount(), b.getProblemCount());
-                        Battle battle = createBattle(a, b, count);
+                        Battle battle = createBattle(a, b, count, a.getDurationMinutes());
                         matched.add(a.getId());
                         matched.add(b.getId());
 
@@ -233,14 +256,21 @@ public class BattleService {
         return diff <= (200 + widening);
     }
 
+    private boolean isDurationCompatible(MatchmakingQueue a, MatchmakingQueue b) {
+        if (!customTimer1v1Enabled) {
+            return true;
+        }
+        return a.getDurationMinutes() == b.getDurationMinutes();
+    }
+
     @Transactional
-    public Battle createBattle(MatchmakingQueue a, MatchmakingQueue b, int problemCount) {
+    public Battle createBattle(MatchmakingQueue a, MatchmakingQueue b, int problemCount, int durationMinutes) {
         // Create battle
         Battle battle = new Battle();
         battle.setMode(a.getMode());
         battle.setDifficulty(a.getDifficulty());
         battle.setProblemCount(problemCount);
-        battle.setDurationMinutes(problemCount * 15);
+        battle.setDurationMinutes(resolveOneVsOneDurationMinutes(a.getMode(), problemCount, durationMinutes));
         battle.setState(BattleState.WAITING);
         battleRepo.saveAndFlush(battle);
 
@@ -265,7 +295,8 @@ public class BattleService {
 
     @Transactional
     public Battle createDirectChallengeBattle(Long challengerId, Long challengeeId,
-                                              BattleMode mode, Tag difficulty, int problemCount) {
+                                              BattleMode mode, Tag difficulty, int problemCount,
+                                              Integer durationMinutes) {
         if (mode != BattleMode.CASUAL_1V1 && mode != BattleMode.RANKED_1V1) {
             throw new IllegalArgumentException("Friend challenge supports only 1v1 modes");
         }
@@ -281,7 +312,7 @@ public class BattleService {
         battle.setMode(mode);
         battle.setDifficulty(difficulty);
         battle.setProblemCount(problemCount);
-        battle.setDurationMinutes(problemCount * 15);
+        battle.setDurationMinutes(resolveOneVsOneDurationMinutes(mode, problemCount, durationMinutes));
         battle.setState(BattleState.WAITING);
         battleRepo.saveAndFlush(battle);
 
@@ -482,7 +513,9 @@ public class BattleService {
                 timeRemainingMs,
                 new BattleStateDTO.ProgressInfo(me.getProblemsSolved(), me.getTotalSubmissions()),
                 new BattleStateDTO.ProgressInfo(opp.getProblemsSolved(), opp.getTotalSubmissions()),
-                problemInfos
+            problemInfos,
+            determineWinner(me, opp),
+            determineLeaderReason(me, opp)
         );
     }
 
@@ -573,10 +606,14 @@ public class BattleService {
                 log.info("FFA: user {} solved problem {} for {} points (total={})",
                         userId, problemIndex, ffaPoints, me.getGroupScore());
             } else {
-                // 1v1: check if all problems solved → early completion
+                // 1v1: allSolved is informational; battle continues until timer/forfeit
                 if (me.getProblemsSolved() >= battle.getProblemCount()) {
                     allSolved = true;
-                    completeBattle(battleId);
+                    incrementMetric("battle.firstFinisher", "mode", battle.getMode().name());
+                    if (!continueAfterFirstFinisherEnabled) {
+                        incrementMetric("battle.complete.trigger", "reason", "all_solved", "mode", battle.getMode().name());
+                        completeBattle(battleId);
+                    }
                 }
             }
         }
@@ -629,8 +666,9 @@ public class BattleService {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
-            ResponseEntity<Map> response = judgeRestTemplate.exchange(
-                    getJudgeSubmitUrl(), HttpMethod.POST, request, Map.class);
+                    ResponseEntity<Map<String, Object>> response = judgeRestTemplate.exchange(
+                        getJudgeSubmitUrl(), HttpMethod.POST, request,
+                        new ParameterizedTypeReference<>() {});
 
             Map<?, ?> resBody = response.getBody();
             if (resBody == null) {
@@ -753,6 +791,48 @@ public class BattleService {
         }
         // 4. Draw
         return null;
+    }
+
+    private String determineLeaderReason(BattleParticipant p1, BattleParticipant p2) {
+        if (p1.getProblemsSolved() != p2.getProblemsSolved()) {
+            return "PROBLEMS_SOLVED";
+        }
+        if (p1.getTotalSolveTimeMs() != p2.getTotalSolveTimeMs()) {
+            return "SOLVE_TIME";
+        }
+        if (p1.getTotalSubmissions() != p2.getTotalSubmissions()) {
+            return "SUBMISSIONS";
+        }
+        return "TIED";
+    }
+
+    public int resolveOneVsOneDurationMinutes(BattleMode mode, int problemCount, Integer requestedDurationMinutes) {
+        if (mode != BattleMode.CASUAL_1V1 && mode != BattleMode.RANKED_1V1) {
+            throw new IllegalArgumentException("Only 1v1 modes support custom duration");
+        }
+        if (problemCount < 1 || problemCount > 3) {
+            throw new IllegalArgumentException("problemCount must be between 1 and 3");
+        }
+
+        int fallback = problemCount * 15;
+        if (!customTimer1v1Enabled) {
+            return fallback;
+        }
+        int candidate = requestedDurationMinutes == null ? fallback : requestedDurationMinutes;
+
+        if (candidate < MIN_1V1_DURATION_MINUTES || candidate > MAX_1V1_DURATION_MINUTES) {
+            throw new IllegalArgumentException("1v1 duration must be between " + MIN_1V1_DURATION_MINUTES + " and " + MAX_1V1_DURATION_MINUTES + " minutes");
+        }
+        return candidate;
+    }
+
+    private int normalizeGroupDurationMinutes(int problemCount, int requestedDurationMinutes) {
+        int fallback = problemCount * 15;
+        int candidate = requestedDurationMinutes > 0 ? requestedDurationMinutes : fallback;
+        if (candidate < MIN_GROUP_DURATION_MINUTES || candidate > MAX_GROUP_DURATION_MINUTES) {
+            throw new IllegalArgumentException("Group duration must be between " + MIN_GROUP_DURATION_MINUTES + " and " + MAX_GROUP_DURATION_MINUTES + " minutes");
+        }
+        return candidate;
     }
 
     private void applyBattleOutcome(BattleParticipant p1, BattleParticipant p2,
@@ -886,6 +966,7 @@ public class BattleService {
         // Group FFA: mark forfeiter, keep room running for others.
         // Early-complete only when <=1 non-forfeited player remains.
         if (battle.getMode() == BattleMode.GROUP_FFA) {
+            incrementMetric("battle.complete.trigger", "reason", "forfeit", "mode", battle.getMode().name());
             if (battle.getState() != BattleState.ACTIVE) {
                 throw new IllegalStateException("Cannot forfeit before group battle starts");
             }
@@ -928,6 +1009,7 @@ public class BattleService {
                 .filter(p -> p.getUserId().equals(userId))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Not in this battle"));
+        incrementMetric("battle.complete.trigger", "reason", "forfeit", "mode", battle.getMode().name());
 
         BattleParticipant opponent = participants.stream()
                 .filter(p -> !p.getUserId().equals(userId))
@@ -945,11 +1027,6 @@ public class BattleService {
         // Apply ELO (opponent wins)
         if (isRanked) {
             applyElo(forfeiter, opponent, opponent.getUserId());
-
-            // Additional penalty for abandoning ranked
-            PlayerStats forfeiterStats = gamificationService.getOrCreateStats(userId);
-            forfeiterStats.setBattleRating(Math.max(0, forfeiterStats.getBattleRating() - 50));
-            statsRepo.saveAndFlush(forfeiterStats);
         }
 
         // Reward opponent as winner, forfeiter gets nothing
@@ -1028,8 +1105,61 @@ public class BattleService {
     public void checkExpiredBattles() {
         List<Battle> expired = battleRepo.findExpiredActiveBattles();
         for (Battle b : expired) {
-            log.info("⏰ Battle {} timer expired, completing...", b.getId());
-            completeBattle(b.getId());
+            log.info("⏰ Battle {} timer expired, resolving...", b.getId());
+            incrementMetric("battle.complete.trigger", "reason", "timer", "mode", b.getMode().name());
+            completeTimedOutBattle(b.getId());
+        }
+    }
+
+    /**
+     * Timer-expired handling:
+     * - 1v1: cancel with no winner and no result payload / no ELO movement.
+     * - Group FFA: keep existing completion behavior.
+     */
+    @Transactional
+    public void completeTimedOutBattle(Long battleId) {
+        Battle battle = battleRepo.findById(battleId).orElse(null);
+        if (battle == null || battle.getState() == BattleState.COMPLETED
+                         || battle.getState() == BattleState.CANCELLED) return;
+
+        if (battle.getMode() == BattleMode.GROUP_FFA) {
+            completeGroupBattle(battleId);
+            return;
+        }
+
+        battle.setState(BattleState.CANCELLED);
+        battle.setWinnerId(null);
+        battle.setCompletedAt(LocalDateTime.now());
+        battleRepo.saveAndFlush(battle);
+
+        List<BattleParticipant> participants = participantRepo.findByBattleId(battleId);
+        for (BattleParticipant p : participants) {
+            try {
+                BattleStateDTO stateDTO = getBattleState(battleId, p.getUserId());
+                broadcastSafe("/topic/battle/" + battleId + "/state/" + p.getUserId(), stateDTO);
+            } catch (Exception e) {
+                log.warn("Failed to broadcast timeout-cancel state to user {}: {}", p.getUserId(), e.getMessage());
+            }
+        }
+    }
+
+    public Map<String, Object> getBattleFeatureFlags() {
+        return Map.of(
+                "customTimer1v1Enabled", customTimer1v1Enabled,
+                "continueAfterFirstFinisherEnabled", continueAfterFirstFinisherEnabled,
+                "min1v1Duration", MIN_1V1_DURATION_MINUTES,
+                "max1v1Duration", MAX_1V1_DURATION_MINUTES,
+                "minGroupDuration", MIN_GROUP_DURATION_MINUTES,
+                "maxGroupDuration", MAX_GROUP_DURATION_MINUTES
+        );
+    }
+
+    private void incrementMetric(String name, String... tags) {
+        if (meterRegistry == null) return;
+        try {
+            meterRegistry.counter(name, tags).increment();
+        } catch (Exception ignored) {
+            // Keep gameplay path resilient if metrics backend is unavailable.
         }
     }
 
@@ -1225,6 +1355,10 @@ public class BattleService {
             throw new IllegalStateException("You are already in an active battle");
         }
 
+        if (req.problemCount() < 1 || req.problemCount() > 3) {
+            throw new IllegalArgumentException("problemCount must be between 1 and 3");
+        }
+
         if (req.maxPlayers() < 3 || req.maxPlayers() > 8) {
             throw new IllegalArgumentException("Group battles require 3–8 players");
         }
@@ -1255,7 +1389,7 @@ public class BattleService {
         battle.setDifficulty(difficulty);
         battle.setProblemCount(req.problemCount());
         battle.setMaxPlayers(req.maxPlayers());
-        battle.setDurationMinutes(req.durationMinutes() > 0 ? req.durationMinutes() : req.problemCount() * 15);
+        battle.setDurationMinutes(normalizeGroupDurationMinutes(req.problemCount(), req.durationMinutes()));
         battle.setState(BattleState.WAITING);
         battle.setRoomCode(roomCode);
         battle.setCreatorId(userId);
@@ -1570,8 +1704,9 @@ public class BattleService {
         }
 
         try {
-            ResponseEntity<List> response = judgeRestTemplate.exchange(
-                    getJudgeProblemsUrl(), HttpMethod.GET, HttpEntity.EMPTY, List.class);
+                    ResponseEntity<List<Map<String, Object>>> response = judgeRestTemplate.exchange(
+                        getJudgeProblemsUrl(), HttpMethod.GET, HttpEntity.EMPTY,
+                        new ParameterizedTypeReference<>() {});
 
             List<?> rows = response.getBody();
             if (rows == null || rows.isEmpty()) return judgeProblemCatalogCache;

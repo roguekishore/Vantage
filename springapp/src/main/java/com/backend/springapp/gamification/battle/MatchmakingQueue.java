@@ -40,6 +40,10 @@ public class MatchmakingQueue {
     @Column(nullable = false)
     private int problemCount;
 
+    /** Requested duration in minutes. */
+    @Column(nullable = false)
+    private int durationMinutes;
+
     /** Snapshot of the player's battle rating at join time. */
     @Column(nullable = false)
     private int battleRating;

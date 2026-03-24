@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/all";
 import { useGSAP } from "@gsap/react";
@@ -21,6 +21,8 @@ const HOME_TYPO = {
   canvasFontFamily: MONUMENT_TYPO.canvasFontFamily,
   letterSpacing: MONUMENT_TYPO.letterSpacing,
 };
+
+const EXTENSION_ZIP_DEMO_URL = "https://github.com/roguekishore/Vantage/releases/download/v1.0/VantageCode.zip";
 
 const getCanvasPerfProfile = () => {
   const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -699,28 +701,68 @@ function BattleSection() {
   const navigate = useNavigate();
   const ref = useRef(null);
   const vsRef = useRef(null);
+  const progressIntervalRef = useRef(null);
+  const previewIntervalRef = useRef(null);
+  const finishTimeoutRef = useRef(null);
   const [finding, setFinding] = useState(false);
   const [found, setFound] = useState("");
+  const [searchPreview, setSearchPreview] = useState("");
   const [matchProgress, setMatchProgress] = useState(0);
   const names = ["maverick","rogue","fushiguro","topg"];
 
+  const clearMatchmakingTimers = () => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = null;
+    }
+    if (previewIntervalRef.current) {
+      clearInterval(previewIntervalRef.current);
+      previewIntervalRef.current = null;
+    }
+    if (finishTimeoutRef.current) {
+      clearTimeout(finishTimeoutRef.current);
+      finishTimeoutRef.current = null;
+    }
+  };
+
   const handleFind = () => {
+    clearMatchmakingTimers();
     setFinding(true);
     setFound("");
+    setSearchPreview(names[0]);
     setMatchProgress(0);
-    const interval = setInterval(() => {
+
+    let idx = 0;
+    previewIntervalRef.current = setInterval(() => {
+      idx = (idx + 1) % names.length;
+      setSearchPreview(names[idx]);
+    }, 240);
+
+    progressIntervalRef.current = setInterval(() => {
       setMatchProgress(p => {
-        if (p >= 100) { clearInterval(interval); return 100; }
+        if (p >= 100) {
+          if (progressIntervalRef.current) {
+            clearInterval(progressIntervalRef.current);
+            progressIntervalRef.current = null;
+          }
+          return 100;
+        }
         return p + Math.random() * 18;
       });
     }, 120);
-    setTimeout(() => {
-      clearInterval(interval);
+
+    finishTimeoutRef.current = setTimeout(() => {
+      clearMatchmakingTimers();
       setMatchProgress(100);
       setFound(names[Math.floor(Math.random() * names.length)]);
+      setSearchPreview("");
       setFinding(false);
     }, 2000);
   };
+
+  useEffect(() => {
+    return () => clearMatchmakingTimers();
+  }, []);
 
   useGSAP(() => {
     // Section header slides up
@@ -861,12 +903,14 @@ function BattleSection() {
                 <div className={found ? "btl-opponent-card" : ""} style={{ display:"flex",flexDirection:"column",alignItems:"center",gap:8 }}>
                   <div style={{ width:52,height:52,borderRadius:14,background:found?"rgba(248,113,113,0.1)":"rgba(255,255,255,0.04)",border:`1px solid ${found?"rgba(248,113,113,0.28)":"rgba(255,255,255,0.08)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:HOME_TYPO.monumentFontFamily,fontWeight:900,fontSize:22,color:found?"#f87171":"rgba(255,255,255,0.14)",transition:"all 0.35s" }}>
                     {finding
-                      ? <div style={{ display:"flex",gap:3 }}>{[0,1,2].map(i=><div key={i} style={{ width:4,height:4,borderRadius:"50%",background:"#EDFF66",animation:"blink 0.8s step-end infinite",animationDelay:`${i*0.2}s` }}/>)}</div>
+                      ? (searchPreview?.[0]?.toUpperCase() || "?")
                       : found ? found[0].toUpperCase() : "?"
                     }
                   </div>
                   <div>
-                    <div style={{ fontSize:13,fontWeight:900,color:found?"#fff":"rgba(255,255,255,0.25)",textAlign:"center",marginBottom:2,transition:"color 0.3s" }}>{found||"Searching…"}</div>
+                    <div style={{ fontSize:13,fontWeight:900,color:found?"#fff":"rgba(255,255,255,0.25)",textAlign:"center",marginBottom:2,transition:"color 0.3s" }}>
+                      {finding ? (searchPreview || "Searching…") : (found || "Searching…")}
+                    </div>
                     {found
                       ? <div style={{ fontSize:10,color:"#34d399",textAlign:"center" }}>⚡ 1198 ELO</div>
                       : <div style={{ fontSize:10,color:"rgba(255,255,255,0.18)",textAlign:"center" }}>—</div>
@@ -964,6 +1008,86 @@ function HowItWorks() {
 }
 
 /* ═══════════════════════════════════════════════════════
+   EXTENSION INSTALL GUIDE
+═══════════════════════════════════════════════════════ */
+function ExtensionInstallGuide() {
+  return (
+    <section id="extension-setup" style={{ background:"#09090b",padding:"80px clamp(24px,5vw,72px) 20px" }}>
+      <div style={{ maxWidth:1120,margin:"0 auto",borderRadius:18,overflow:"hidden",background:"#EDFF66",position:"relative" }}>
+        <div style={{ position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden",pointerEvents:"none" }}>
+          <div style={{ fontFamily:HOME_TYPO.monumentFontFamily,fontSize:"clamp(6rem,14vw,13rem)",fontWeight:900,color:"rgba(0,0,0,0.055)",letterSpacing:HOME_TYPO.letterSpacing.displayWide,lineHeight:1,whiteSpace:"nowrap",userSelect:"none" }}>EXTENSION</div>
+        </div>
+        <div style={{ position:"absolute",inset:0,pointerEvents:"none",opacity:0.03,
+          backgroundImage:"url(\"data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+          backgroundSize:"220px" }} />
+
+        <div style={{ position:"relative",zIndex:1,padding:"36px clamp(20px,3vw,34px)",borderBottom:"1px solid rgba(0,0,0,0.12)",display:"flex",justifyContent:"space-between",alignItems:"flex-end",gap:20,flexWrap:"wrap" }}>
+          <div>
+            <div style={{ fontSize:9,fontWeight:900,letterSpacing:"0.3em",textTransform:"uppercase",color:"rgba(0,0,0,0.35)",marginBottom:12 }}>- Browser Extension Setup</div>
+            <h2 style={{ fontFamily:HOME_TYPO.monumentFontFamily,fontSize:"clamp(2rem,3.8vw,3.3rem)",fontWeight:900,color:"#09090b",letterSpacing:HOME_TYPO.letterSpacing.displayTight,lineHeight:1,margin:0 }}>
+              Install the Vantage<br/><span style={{ color:"rgba(0,0,0,0.45)" }}>LeetCode Sync extension.</span>
+            </h2>
+            <p style={{ fontSize:13,color:"rgba(0,0,0,0.56)",lineHeight:1.72,maxWidth:560,margin:"16px 0 0" }}>
+              It syncs your already solved LeetCode problems and continues syncing every new problem you solve.
+            </p>
+          </div>
+
+          <a
+            href={EXTENSION_ZIP_DEMO_URL}
+            download
+            target="_blank"
+            rel="noreferrer"
+            data-cursor="DOWNLOAD"
+            style={{ height:44,padding:"0 18px",borderRadius:10,border:"none",cursor:"none",background:"#09090b",color:"#EDFF66",fontSize:11,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:8,textDecoration:"none",transition:"opacity 0.15s",boxShadow:"0 0 20px rgba(0,0,0,0.2)" }}
+            onMouseEnter={e=>e.currentTarget.style.opacity="0.85"}
+            onMouseLeave={e=>e.currentTarget.style.opacity="1"}
+          >
+            Download extension zip <ArrowRight size={12} />
+          </a>
+        </div>
+
+        <div className="ext-grid" style={{ position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"repeat(4,1fr)",borderTop:"1px solid rgba(0,0,0,0.12)" }}>
+          {[
+            {
+              n: "01",
+              title: "Download",
+              desc: "Download the extension ZIP using the button above (or the extension icon in the navbar).",
+              accent: "#09090b",
+            },
+            {
+              n: "02",
+              title: "Extract",
+              desc: "Extract/unzip the downloaded file to any folder on your machine.",
+              accent: "#09090b",
+            },
+            {
+              n: "03",
+              title: "Load in Chrome",
+              desc: "Open chrome://extensions, enable Developer mode, then click Load unpacked.",
+              accent: "#09090b",
+            },
+            {
+              n: "04",
+              title: "Sync LeetCode",
+              desc: "Select the extracted extension folder. It syncs existing solved problems and any new solves automatically.",
+              accent: "#09090b",
+            },
+          ].map((s, i) => (
+            <div key={s.n} style={{ padding:"24px 20px 24px",borderRight:i<3?"1px solid rgba(0,0,0,0.12)":"none",borderBottom:"1px solid rgba(0,0,0,0.12)" }}>
+              <div style={{ display:"inline-flex",alignItems:"center",justifyContent:"center",height:24,padding:"0 8px",borderRadius:7,background:"rgba(0,0,0,0.08)",border:"1px solid rgba(0,0,0,0.2)",fontSize:9,fontWeight:900,letterSpacing:"0.12em",color:s.accent,marginBottom:12 }}>
+                {s.n}
+              </div>
+              <h3 style={{ fontFamily:HOME_TYPO.monumentFontFamily,fontSize:18,fontWeight:900,color:"#09090b",letterSpacing:HOME_TYPO.letterSpacing.displayTight,lineHeight:1.05,margin:"0 0 10px" }}>{s.title}</h3>
+              <p style={{ fontSize:12,color:"rgba(0,0,0,0.62)",lineHeight:1.7,margin:0 }}>{s.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════
    FINAL CTA
 ═══════════════════════════════════════════════════════ */
 function FinalCTA() {
@@ -1041,6 +1165,17 @@ function Footer() {
    ROOT
 ═══════════════════════════════════════════════════════ */
 export default function HomePage() {
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.hash !== "#extension-setup") return;
+    const id = window.setTimeout(() => {
+      const setupSection = document.getElementById("extension-setup");
+      setupSection?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 40);
+    return () => window.clearTimeout(id);
+  }, [location.hash]);
+
   return (
     <main style={{ background:"#09090b",width:"100vw",overflowX:"hidden",cursor:"none" }}>
       <Cursor />
@@ -1048,6 +1183,7 @@ export default function HomePage() {
       <VizShowcase />
       <Features />
       <BattleSection />
+      <ExtensionInstallGuide />
       <HowItWorks />
       <FinalCTA />
       <Footer />
@@ -1069,6 +1205,14 @@ export default function HomePage() {
         }
         @media(max-width:640px){
           .vs-grid{grid-template-columns:1fr!important;}
+        }
+        @media(max-width:980px){
+          .ext-grid{grid-template-columns:repeat(2,1fr)!important;}
+          .ext-grid > div:nth-child(2n){border-right:none!important;}
+        }
+        @media(max-width:640px){
+          .ext-grid{grid-template-columns:1fr!important;}
+          .ext-grid > div{border-right:none!important;}
         }
       `}</style>
     </main>

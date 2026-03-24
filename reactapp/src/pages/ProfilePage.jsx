@@ -545,7 +545,7 @@ const ProfilePage = () => {
 
       <div style={{ position: "relative", zIndex: 1, maxWidth: 1280, margin: "0 auto", padding: "0 clamp(24px,5vw,72px)" }}>
 
-        {/* ══ HERO — auto height, never clips text ══ */}
+        {/* ══ HERO - auto height, never clips text ══ */}
         <div style={{
           position: "relative",
           marginLeft: "calc(-1 * clamp(24px,5vw,72px))",
@@ -570,7 +570,7 @@ const ProfilePage = () => {
           <div style={{ position: "relative", zIndex: 2, padding: "0 clamp(24px,5vw,72px)" }}>
 
             {/* eyebrow */}
-            <div className="hero-eyebrow" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
+            {/* <div className="hero-eyebrow" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
               <div style={{
                 width: 5, height: 5, borderRadius: "50%", background: color,
                 boxShadow: `0 0 8px ${color}`, animation: "blink 1.4s step-end infinite"
@@ -578,7 +578,7 @@ const ProfilePage = () => {
               <span style={{
                 fontSize: 9, fontWeight: 900, letterSpacing: "0.3em",
                 textTransform: "uppercase", color: "rgba(255,255,255,0.22)"
-              }}>— Identity File</span>
+              }}>- Identity File</span>
               <div style={{ height: 1, width: 48, background: `${color}45` }} />
               <span style={{
                 fontSize: 9, fontWeight: 900, letterSpacing: "0.18em",
@@ -586,9 +586,9 @@ const ProfilePage = () => {
               }}>
                 {tierLabel}
               </span>
-            </div>
+            </div> */}
 
-            {/* tape-roll words — overflow:hidden parent is the gate */}
+            {/* tape-roll words - overflow:hidden parent is the gate */}
             <div style={{ marginBottom: 26 }}>
               {[du?.username || "Operative", "Dossier."].map((word, i) => (
                 <div key={word} style={{ overflow: "hidden", lineHeight: 1.05, paddingBottom: 6, marginBottom: i === 0 ? 3 : 0 }}>
@@ -698,7 +698,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 <div style={{ flex: 1, minWidth: 200 }}>
-                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: `${color}90`, marginBottom: 4 }}>— Operative Identity</div>
+                  <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: `${color}90`, marginBottom: 4 }}>- Player Identity</div>
                   <div style={{ fontFamily: MF, fontWeight: 900, fontSize: 32, letterSpacing: MLS.displayWide, color: "#fff", lineHeight: 1, marginBottom: 6 }}>{du?.username}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{du?.email}</div>
                   <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -741,7 +741,7 @@ const ProfilePage = () => {
               <Section>
                 <Card accent="#EDFF66" style={{ border: "1px solid rgba(237,255,102,0.15)", height: "100%" }}>
                   <div style={{ padding: "24px", display: "flex", flexDirection: "column", height: "100%" }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 20 }}>— Progress & XP</div>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 20 }}>- Progress & XP</div>
                     <OverallProgress percentage={totalProgress.percentage} completed={totalProgress.completed} total={totalProgress.total} />
 
                     {gamStats && (
@@ -790,7 +790,7 @@ const ProfilePage = () => {
                     <div style={{ padding: "24px" }}>
                       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
                         <div>
-                          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>— Streak Metrics</div>
+                          <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 14 }}>- Streak Metrics</div>
                           <div style={{ fontFamily: MF, fontWeight: 900, fontSize: "clamp(2.8rem,4vw,4rem)", letterSpacing: "-0.03em", lineHeight: 1, color: fc, textShadow: `0 0 40px ${fc}40` }}>
                             {streakData.currentStreak}
                           </div>
@@ -810,7 +810,7 @@ const ProfilePage = () => {
                           { label: "Record", value: streakData.longestStreak || 0, color: "rgba(255,255,255,0.7)" },
                           { label: "Multi", value: `${(streakData.multiplier || 1).toFixed(1)}×`, color: ACID_YELLOW },
                           { label: "Shields", value: streakData.shieldCount || 0, color: ACID_YELLOW },
-                          { label: "Goal", value: streakData.nextMilestone || "—", color: fc },
+                          { label: "Goal", value: streakData.nextMilestone || "-", color: fc },
                         ].map(s => (
                           <div key={s.label} style={{ textAlign: "center", padding: "12px 6px", background: "rgba(255,255,255,0.03)", borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)" }}>
                             <div style={{ fontFamily: MF, fontWeight: 900, fontSize: 16, color: s.color, lineHeight: 1 }}>{s.value}</div>
@@ -834,7 +834,7 @@ const ProfilePage = () => {
               <Section>
                 <Card accent="#EDFF66" style={{ border: "1px solid rgba(237,255,102,0.1)" }}>
                   <div style={{ padding: "24px" }}>
-                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 20 }}>— Difficulty Split</div>
+                    <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", marginBottom: 20 }}>- Difficulty Split</div>
                     <div style={{ display: "flex", justifyContent: "space-around" }}>
                       {[
                         { label: "Easy", count: diffBreakdown.easy, total: ALL_PROBLEMS.filter(p => p.difficulty === Difficulty.EASY).length, color: ACID_YELLOW },
@@ -854,7 +854,7 @@ const ProfilePage = () => {
             <Section>
               <Card accent="#EDFF66" style={{ border: `1px solid rgba(237,255,102,0.1)`, height: "100%" }}>
                 <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>— Stage Uplink</div>
+                  <div style={{ fontSize: 10, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>- Stage Uplink</div>
                   <Target size={14} color="#EDFF66" />
                 </div>
                 <div style={{ paddingBottom: 12 }}>

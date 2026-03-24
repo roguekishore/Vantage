@@ -22,6 +22,7 @@ const DIFFICULTIES = [
   { value: "HARD", label: "Hard", color: "text-rose-400", dot: "bg-rose-500" },
 ];
 const PROBLEM_COUNTS = [1, 2, 3];
+const QUICK_DURATION_OPTIONS = [20, 30, 45, 60, 90, 120, 150, 180];
 const MAX_PLAYERS_OPTIONS = [3, 4, 5, 6, 7, 8];
 
 /* ═══════════════════════════════════════ Main Component ═══ */
@@ -49,7 +50,7 @@ export default function GroupLobbyPage() {
   const [difficulty, setDifficulty] = useState("MEDIUM");
   const [problemCount, setProblemCount] = useState(2);
   const [maxPlayers, setMaxPlayers] = useState(4);
-  const [durationMinutes, setDurationMinutes] = useState(30);
+  const [durationMinutes, setDurationMinutes] = useState(60);
 
   /* ── Join-room form ── */
   const [joinCode, setJoinCode] = useState(codeParam || "");
@@ -165,6 +166,7 @@ export default function GroupLobbyPage() {
         mode: "GROUP_FFA",
         difficulty: room.difficulty,
         problemCount: room.problemCount,
+        durationMinutes: room.durationMinutes,
         roomCode: room.roomCode,
       });
     } finally {
@@ -494,7 +496,7 @@ export default function GroupLobbyPage() {
                       {PROBLEM_COUNTS.map((n) => {
                         const active = problemCount === n;
                         return (
-                          <button key={n} onClick={() => { setProblemCount(n); setDurationMinutes(n * 15); }}
+                          <button key={n} onClick={() => setProblemCount(n)}
                             className={cn(
                               "py-2 rounded-xl border text-sm font-bold transition-all",
                               active
@@ -502,7 +504,29 @@ export default function GroupLobbyPage() {
                                 : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
                             )}>
                             {n}
-                            <span className="text-[10px] font-normal opacity-60 ml-1">·{n * 15}m</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Time Limit */}
+                  <div className="space-y-2.5">
+                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
+                      Time Limit
+                    </label>
+                    <div className="grid grid-cols-4 gap-2">
+                      {QUICK_DURATION_OPTIONS.map((m) => {
+                        const active = durationMinutes === m;
+                        return (
+                          <button key={m} onClick={() => setDurationMinutes(m)}
+                            className={cn(
+                              "py-2 rounded-xl border text-sm font-bold transition-all",
+                              active
+                                ? "bg-primary text-primary-foreground border-primary"
+                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
+                            )}>
+                            {m}m
                           </button>
                         );
                       })}

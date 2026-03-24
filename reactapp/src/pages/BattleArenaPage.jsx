@@ -102,12 +102,17 @@ export default function BattleArenaPage() {
   }, [battleId, userId, startBattlePolling, stopBattlePolling]);
 
   useEffect(() => {
-    if (
-      (battleState?.state === "COMPLETED" || battleState?.state === "CANCELLED") &&
-      battleState?.battleId === Number(battleId)
-    ) {
+    if (battleState?.battleId !== Number(battleId)) return;
+
+    if (battleState?.state === "COMPLETED") {
       stopBattlePolling();
       navigate(`/battle/result/${battleId}`);
+      return;
+    }
+
+    if (battleState?.state === "CANCELLED") {
+      stopBattlePolling();
+      navigate("/battle", { replace: true });
     }
   }, [battleState?.state, battleState?.battleId, battleId, navigate, stopBattlePolling]);
 
@@ -251,6 +256,16 @@ export default function BattleArenaPage() {
   const mySolved      = battleState.myProgress?.problemsSolved ?? 0;
   const oppSolved     = battleState.opponentProgress?.problemsSolved ?? 0;
   const timerColor    = timerUrgent ? S.red : timerWarn ? S.amber : S.textPri;
+  const leaderUserId  = battleState?.leaderUserId;
+  const leaderReason  = battleState?.leaderReason;
+  const youLeading    = leaderUserId != null && Number(leaderUserId) === Number(userId);
+  const leaderText    = leaderReason === "PROBLEMS_SOLVED"
+    ? "Solved"
+    : leaderReason === "SOLVE_TIME"
+      ? "Time"
+      : leaderReason === "SUBMISSIONS"
+        ? "Submissions"
+        : "Tied";
 
   return (
     <TooltipProvider delayDuration={300}>
@@ -331,6 +346,25 @@ export default function BattleArenaPage() {
                     transition: "background 0.3s" }} />
                 ))}
               </div>
+            </div>
+            <div style={{ width: 1, height: 12, background: S.border }} />
+            <div title={leaderReason ? `Current leader by ${leaderText.toLowerCase()}` : "Currently tied"} style={{
+              display: "flex", alignItems: "center", gap: 5, padding: "4px 9px", borderRadius: 8,
+              border: leaderReason && leaderReason !== "TIED"
+                ? `1px solid ${youLeading ? "rgba(52,211,153,0.28)" : "rgba(248,113,113,0.28)"}`
+                : `1px solid ${S.border}`,
+              background: leaderReason && leaderReason !== "TIED"
+                ? (youLeading ? "rgba(52,211,153,0.1)" : "rgba(248,113,113,0.1)")
+                : "rgba(255,255,255,0.02)",
+              color: leaderReason && leaderReason !== "TIED"
+                ? (youLeading ? S.green : S.red)
+                : "rgba(255,255,255,0.3)",
+              fontSize: 9, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase"
+            }}>
+              <Clock size={10} />
+              {leaderReason && leaderReason !== "TIED"
+                ? `${youLeading ? "You" : "Opp"} lead`
+                : "Tied"}
             </div>
             <div style={{ width: 1, height: 12, background: S.border }} />
             <button onClick={handleForfeit} style={{
