@@ -208,9 +208,9 @@ function RewardChip({ icon:Icon, label, value, color, delay=0 }) {
 }
 
 /* Player side */
-function PlayerSide({ stats, isYou, isWinner, isRanked, animDelay }) {
+function PlayerSide({ stats, isYou, isWinner, isRanked, animDelay, solvedMax }) {
   const avatarColor = isYou ? "#c4b5fd" : "#f87171";
-  const maxSolved   = 3;
+  const maxSolved   = Math.max(1, solvedMax || 1, stats.problemsSolved || 0);
   const maxAttempts = Math.max(stats.totalSubmissions||1,5);
   return (
     <div style={{ display:"flex",flexDirection:"column",gap:22,padding:"clamp(24px,3.5vh,44px) clamp(20px,3.5vw,44px)" }}>
@@ -353,6 +353,12 @@ export default function BattleResultPage() {
   const O          = OUTCOMES[result.outcome]||OUTCOMES.LOSS;
   const isRanked   = result.mode==="RANKED_1V1";
   const ratingDiff = (result.ratingAfter??result.ratingBefore) - result.ratingBefore;
+  const solvedMax  = Math.max(
+    1,
+    Number(result.problemCount || 0),
+    Number(result.you?.problemsSolved || 0),
+    Number(result.opponent?.problemsSolved || 0)
+  );
 
   return (
     <div ref={pageRef} style={{ minHeight:"100vh",background:"#09090b",display:"flex",flexDirection:"column",overflowX:"hidden",paddingTop:56,cursor:"none" }}>
@@ -392,7 +398,7 @@ export default function BattleResultPage() {
         <div className="ri-fade" style={{ background:"#0d0d10",borderRadius:20,overflow:"hidden",border:"1px solid rgba(255,255,255,0.06)",boxShadow:`0 0 60px ${O.glow}`,marginBottom:"clamp(14px,2vh,20px)" }}>
           <div style={{ height:3,background:O.barGrad }}/>
           <div style={{ display:"grid",gridTemplateColumns:"1fr auto 1fr" }}>
-            <PlayerSide stats={result.you}      isYou isWinner={result.winnerId===result.you.userId}      isRanked={isRanked} animDelay={350}/>
+            <PlayerSide stats={result.you}      isYou isWinner={result.winnerId===result.you.userId}      isRanked={isRanked} animDelay={350} solvedMax={solvedMax}/>
             <div style={{ display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:"32px 0",gap:10,borderLeft:"1px solid rgba(255,255,255,0.05)",borderRight:"1px solid rgba(255,255,255,0.05)" }}>
               <div style={{ width:1,height:"clamp(16px,3vh,36px)",background:"rgba(255,255,255,0.06)" }}/>
               <div style={{ width:44,height:44,borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",background:"rgba(255,255,255,0.03)",border:"1px solid rgba(255,255,255,0.07)" }}>
@@ -401,7 +407,7 @@ export default function BattleResultPage() {
               <span style={{ fontFamily:BATTLE_FONT_FAMILY,fontSize:9,fontWeight:900,letterSpacing:BATTLE_FONT_LETTER_SPACING,color:"rgba(255,255,255,0.22)",textTransform:"uppercase" }}>vs</span>
               <div style={{ width:1,height:"clamp(16px,3vh,36px)",background:"rgba(255,255,255,0.06)" }}/>
             </div>
-            <PlayerSide stats={result.opponent} isYou={false} isWinner={result.winnerId===result.opponent.userId} isRanked={isRanked} animDelay={450}/>
+            <PlayerSide stats={result.opponent} isYou={false} isWinner={result.winnerId===result.opponent.userId} isRanked={isRanked} animDelay={450} solvedMax={solvedMax}/>
           </div>
         </div>
 

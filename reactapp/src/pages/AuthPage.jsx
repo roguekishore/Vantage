@@ -14,7 +14,7 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080"
 /* ─────────────────────────────────────────────
    INPUT
 ───────────────────────────────────────────── */
-function VInput({ id, type = "text", placeholder, value, onChange, required, min, max }) {
+function VInput({ id, type = "text", placeholder, value, onChange, required, min, max, maxLength }) {
   const [focused, setFocused] = useState(false)
   const [showPw,  setShowPw]  = useState(false)
   const isPw = type === "password"
@@ -29,6 +29,7 @@ function VInput({ id, type = "text", placeholder, value, onChange, required, min
         required={required}
         min={min}
         max={max}
+        maxLength={maxLength}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         style={{
@@ -100,7 +101,7 @@ function OptionalSection({ children }) {
         <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
         <ChevronDown size={11} style={{ color: "rgba(255,255,255,0.28)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s ease" }} />
       </button>
-      <div ref={bodyRef} style={{ height: 0, opacity: 0, overflow: "hidden" }}>
+      <div ref={bodyRef} style={{ height: 0, opacity: 0, overflow: open ? "visible" : "hidden" }}>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 12, paddingBottom: 6 }}>
           {children}
         </div>
@@ -343,6 +344,11 @@ export default function AuthPage({ initialMode = "login" }) {
 
   async function handleSignup(e) {
     e.preventDefault(); setSignupError("")
+    const usernamePattern = /^[a-z0-9]{1,20}$/
+    if (!usernamePattern.test(username)) {
+      setSignupError("Username must be 1-20 chars using only lowercase letters and numbers")
+      return
+    }
     if (password !== confirmPassword) { setSignupError("Passwords do not match"); return }
     if (password.length < 8) { setSignupError("Password must be at least 8 characters"); return }
     setSignupLoading(true)
@@ -404,7 +410,7 @@ export default function AuthPage({ initialMode = "login" }) {
 
           {/* Form card */}
           <div className="rp-in" ref={formRef}
-            style={{ opacity: 0, background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", width: "100%" }}
+            style={{ opacity: 0, background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "visible", width: "100%" }}
           >
             {/* Top accent line */}
             <div style={{ height: 1, background: "linear-gradient(90deg,#EDFF66,rgba(237,255,102,0.15),transparent)", borderRadius: "16px 16px 0 0" }} />
@@ -439,7 +445,15 @@ export default function AuthPage({ initialMode = "login" }) {
 
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                     <Field label="Username">
-                      <VInput id="su" type="text" placeholder="johndoe" value={username} onChange={e => setUsername(e.target.value)} required />
+                      <VInput
+                        id="su"
+                        type="text"
+                        placeholder="johndoe"
+                        value={username}
+                        onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20))}
+                        maxLength={20}
+                        required
+                      />
                     </Field>
                     <Field label="Email">
                       <VInput id="se" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />

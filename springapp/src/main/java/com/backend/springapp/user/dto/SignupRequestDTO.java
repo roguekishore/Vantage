@@ -2,6 +2,7 @@ package com.backend.springapp.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -9,6 +10,8 @@ import lombok.Data;
 public class SignupRequestDTO {
 
     @NotBlank(message = "Username is required")
+    @Size(max = 20, message = "Username must be at most 20 characters")
+    @Pattern(regexp = "^[a-z0-9]+$", message = "Username can contain only lowercase letters and numbers")
     private String username;
 
     @NotBlank(message = "Email is required")

@@ -997,6 +997,7 @@ public class BattleService {
         return new BattleResultDTO(
                 battleId,
                 battle.getMode().name(),
+            battle.getProblemCount(),
                 outcome,
                 battle.getWinnerId(),
                 toResultStats(me),
