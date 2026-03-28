@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'linear-search',
   conquestId: 'stage2-2',
   title: 'Linear Search',
@@ -19,56 +20,47 @@ module.exports = {
   category: 'Array Index Manipulation',
   tags: ['Array', 'Searching', 'Basics'],
 
-  description: `Given an array of $n$ integers and a target value, perform a linear search to find the index of the target.
+  // ---- Story Layer ----
+  storyBriefing: `After a fruitless search through the first pile, you realize the catalogue is nowhere to be seen. Ron Weasley suggests it might have been accidentally returned to the library. Madam Pince allows you to look, but warns you to be quick. You must now scan the 'New Arrivals' shelf, which is unfortunately in no particular order.`,
 
-Linear search works by checking every element in the array sequentially until the target is found or the end of the array is reached.
+  // ---- Technical Layer ----
+  description: `You are given an array of n integers and a target value. Your task is to find the 0-based index of the first occurrence of the target in the array.
 
-### Task
-Implement a function that iterates through the array and returns the 0-based index of the target. If the target is not present, return -1.
+A linear search is the required strategy. This involves a sequential scan of the array, examining each element one by one from index 0 to n-1. When you find the first element that matches the target, its index is the solution.
 
-### Example
-**Input:**
-\`\`\`
-5
-10 50 30 70 80
-70
-\`\`\`
-
-**Output:**
-\`\`\`
-3
-\`\`\``,
-
+Return a single integer representing the 0-based index of the target. If the target does not appear in the array, return -1.`,
   examples: [
     {
       input: '5\n10 50 30 70 80\n70',
       output: '3',
-      explanation: '70 is located at index 3.'
+      explanation: 'Scan from left: 10!=70, 50!=70, 30!=70, 70==70. The target 70 is at index 3. Return 3.'
     },
     {
-      input: '4\n1 2 3 4\n5',
+      input: '6\n5 8 2 8 4 1\n8',
+      output: '1',
+      explanation: 'The target 8 first appears at index 1. Even though it appears again at index 3, we return the index of the first match. Return 1.'
+    },
+    {
+      input: '3\n-1 -2 -3\n0',
       output: '-1',
-      explanation: '5 is not in the array.'
+      explanation: 'The target 0 is not found in the array of negative numbers. After scanning all elements, we return -1.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 10⁵',
-    '-10⁹ ≤ array[i], target ≤ 10⁹'
+    '1 <= n <= 10^5',
+    '-10^9 <= array[i], target <= 10^9'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
 
-/**
- * Performs linear search and returns the index of the target.
- */
 int solve(int n, const vector<int>& arr, int target) {
     // Your code here
-    
     return -1;
 }
 
@@ -84,15 +76,12 @@ int main() {
     cout << solve(n, arr, target) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Performs linear search and returns the index of the target.
-     */
     public static int solve(int n, int[] arr, int target) {
         // Your code here
-        
         return -1;
     }
 
@@ -109,16 +98,34 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '5\n10 50 30 70 80\n70', expected: '3' },
     { input: '4\n1 2 3 4\n5', expected: '-1' },
-    { input: '1\n100\n100', expected: '0' },
-    { input: '6\n-5 0 10 -15 20 5\n-15', expected: '3' },
+    { input: '1\n-100\n-100', expected: '0' },
     { input: '5\n1 1 1 1 1\n1', expected: '0' },
+    { input: '4\n0 0 0 0\n1', expected: '-1' },
     { input: '3\n10 20 30\n10', expected: '0' },
     { input: '3\n10 20 30\n30', expected: '2' },
     { input: '2\n-1000000000 1000000000\n1000000000', expected: '1' },
-    { input: '4\n0 0 0 0\n1', expected: '-1' },
-    { input: '10\n1 2 3 4 5 6 7 8 9 10\n6', expected: '5' }
-  ]
+    { input: '2\n5 10\n10', expected: '1' },
+    { input: '10\n1 6 2 6 3 6 4 6 5 6\n6', expected: '1' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The linear search algorithm iterates through each element of the array from start to end. It compares each element with the target value. If a match is found, the index of that element is returned immediately. If the end of the array is reached without finding the target, -1 is returned.`,
+    cpp: `for (int i = 0; i < n; ++i) {
+    if (arr[i] == target) {
+        return i;
+    }
+}
+return -1;`,
+    java: `for (int i = 0; i < n; i++) {
+    if (arr[i] == target) {
+        return i;
+    }
+}
+return -1;`
+  }
 };

@@ -11,11 +11,15 @@
 module.exports = {
   id: 'factorial-trailing-zeroes',
   conquestId: 'bonusB-3',
-  title: 'Factorial Trailing Zeroes',
+  title: 'Magical Potential Echoes',
   difficulty: 'Medium',
-  category: 'Math',
-  tags: ['Math'],
+  category: 'Math & Number Theory',
+  tags: ['Math', 'Number Theory'],
+  storyBriefing: `
+In Arithmancy, the factorial of a number (\`n!\`) reveals its "deep magical potential." A key indicator of this potential is the number of trailing zeroes in the resulting integer. These zeroes are considered "echoes" of latent magical power.
 
+Professor Vector challenges you to find an efficient way to count these echoes for any given number 'n' without needing to calculate the enormous factorial itself.
+`,
   description: `Given an integer **n**, return the number of **trailing zeroes** in **n! (n factorial)**.
 
 A trailing zero is created by a factor of **10**, and **10 = 2 × 5**.
@@ -56,12 +60,16 @@ This runs in **O(log₅ n)** time and avoids computing the factorial.`,
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+
 using namespace std;
 
 int trailingZeroes(int n) {
-    // TODO: Implement your solution here
-    return 0;
+    int count = 0;
+    for (long long i = 5; n / i >= 1; i *= 5) {
+        count += n / i;
+    }
+    return count;
 }
 
 int main() {
@@ -70,16 +78,17 @@ int main() {
 
     cout << trailingZeroes(n);
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static int trailingZeroes(int n) {
-        // TODO: Implement your solution here
-        return 0;
+        int count = 0;
+        for (long i = 5; n / i >= 1; i *= 5) {
+            count += n / i;
+        }
+        return count;
     }
 
     public static void main(String[] args) {
@@ -88,8 +97,48 @@ public class Main {
 
         System.out.print(trailingZeroes(n));
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+
+using namespace std;
+
+int trailingZeroes(int n) {
+    int count = 0;
+    for (long long i = 5; n / i >= 1; i *= 5) {
+        count += n / i;
+    }
+    return count;
 }
-`,
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << trailingZeroes(n);
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static int trailingZeroes(int n) {
+        int count = 0;
+        for (long i = 5; n / i >= 1; i *= 5) {
+            count += n / i;
+        }
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        System.out.print(trailingZeroes(n));
+    }
+}`,
   },
 
   testCases: [

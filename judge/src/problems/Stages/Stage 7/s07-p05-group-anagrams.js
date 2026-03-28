@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'group-anagrams',
   conquestId: 'stage7-5',
   title: 'Group Anagrams',
@@ -19,69 +20,42 @@ module.exports = {
   category: 'Advanced Strings',
   tags: ['String', 'Hash Table', 'Sorting'],
 
-  description: `Given an array of strings \`strs\`, group the **anagrams** together. You can return the answer in any order, but for this exercise, please follow the sorting rules in the output format.
+  // ---- Story Layer ----
+  storyBriefing: `Your work organizing the manuscripts has revealed a new puzzle. Many of the spell names appear to be scrambled. Hermione realizes they are anagrams of each other and likely variations of the same core spell. She gives you a list of all the scrambled spell names and asks you to group them together into their correct anagram families.`,
 
-An **Anagram** is a word or phrase formed by rearranging the letters of a different word or phrase, typically using all the original letters exactly once.
+  // ---- Technical Layer ----
+  description: `You are given an array of n strings. Your task is to group the anagrams together. An anagram is a word formed by rearranging the letters of another, using all original letters exactly once.
 
-### Task
-Implement an efficient solution using a **Hash Map**:
-1. Iterate through each string in the array.
-2. For each string, create a "key" that is the same for all anagrams. 
-   - Option A: Sort the characters of the string (e.g., "eat" -> "aet").
-   - Option B: Create a frequency count array of size 26 converted to a string.
-3. Use this key to store the original string in a list within a hash map.
-4. Finally, collect all lists from the map and format them for output.
+The most common solution to this problem involves using a hash map. For each string in the input array, you need to generate a unique key that is the same for all its anagrams. A simple way to create this key is to sort the characters of the string. This sorted string then serves as the key in the hash map, where the value is a list of all original strings that produce this key.
 
-### Example
-**Input:**
-\`\`\`
-6
-eat
-tea
-tan
-ate
-nat
-bat
-\`\`\`
-
-**Output:**
-\`\`\`
-ate eat tea
-bat
-nat tan
-\`\`\`
-
-**Explanation:**
-- "ate", "eat", and "tea" are anagrams.
-- "nat" and "tan" are anagrams.
-- "bat" is in its own group.`,
-
+The output should present each group of anagrams on a new line. Within each group, the words should be sorted alphabetically. The groups themselves should also be sorted based on their first word alphabetically.`,
   examples: [
     {
       input: '6\neat\ntea\ntan\nate\nnat\nbat',
       output: 'ate eat tea\nbat\nnat tan',
-      explanation: 'Strings with the same characters are grouped together.'
+      explanation: '"eat", "tea", and "ate" are anagrams. "tan" and "nat" are anagrams. "bat" has no anagrams in the list.'
     },
     {
-      input: '1\n\n',
-      output: '',
-      explanation: 'An empty string is its own group.'
+      input: '1\na',
+      output: 'a',
+      explanation: 'A single string is in a group by itself.'
     },
     {
-      input: '2\na\nb',
-      output: 'a\nb',
-      explanation: 'No anagrams exist.'
+      input: '2\nab\nba',
+      output: 'ab ba',
+      explanation: '"ab" and "ba" are anagrams and are grouped together.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 10⁴',
-    '0 ≤ strs[i].length ≤ 100',
+    '1 <= n <= 10^4',
+    '0 <= strs[i].length <= 100',
     'strs[i] consists of lowercase English letters.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <string>
 #include <unordered_map>
@@ -90,9 +64,6 @@ nat tan
 
 using namespace std;
 
-/**
- * Groups anagrams and returns them in a sorted fashion.
- */
 vector<vector<string>> solve(int n, vector<string>& strs) {
     // Your code here
     
@@ -116,12 +87,10 @@ int main() {
     }
     return 0;
 }`,
-    java: `import java.util.*;
+    java: `// Do not change this function's name and signature.
+import java.util.*;
 
 public class Main {
-    /**
-     * Groups anagrams and returns them in a sorted fashion.
-     */
     public static List<List<String>> solve(int n, String[] strs) {
         // Your code here
         
@@ -143,16 +112,59 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '6\neat\ntea\ntan\nate\nnat\nbat', expected: 'ate eat tea\nbat\nnat tan' },
     { input: '1\na', expected: 'a' },
+    { input: '1\n', expected: '' },
+    { input: '2\na\na', expected: 'a a' },
+    { input: '4\nstop\ntops\npots\nspot', expected: 'pots spot stop tops' },
+    { input: '3\nabc\nbca\nacb', expected: 'abc acb bca' },
     { input: '3\na\nb\nc', expected: 'a\nb\nc' },
-    { input: '4\nabba\nbaba\nbaab\naabb', expected: 'aabb abba baab baba' },
-    { input: '2\nlisten\nsilent', expected: 'listen silent' },
-    { input: '3\napple\npapel\napply', expected: 'apple papel\napply' },
-    { input: '5\naaa\naa\na\naaa\naa', expected: 'a\naa aa\naaa aaa' },
-    { input: '2\nab\nba', expected: 'ab ba' },
-    { input: '4\nstop\npots\nopts\nspot', expected: 'opts pots spot stop' },
-    { input: '3\ncat\ndog\ntac', expected: 'cat tac\ndog' }
-  ]
+    { input: '2\nab\nac', expected: 'ab\nac' },
+    { input: '5\ncat\ndog\nact\ngod\ntac', expected: 'act cat tac\ndog god' },
+    { input: '5\nill\nlli\nopo\npoo\nlil', expected: 'ill lil lli\nopo poo' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The problem is solved using a hash map to group anagrams. Iterate through each string in the input array. For each string, sort its characters to create a canonical key. Use this sorted string as a key in the hash map. The value associated with each key will be a list of the original strings that, when sorted, produce that key. After populating the map, extract the lists of anagrams from the map's values. For the final output, sort the strings within each group alphabetically and then sort the groups themselves based on their first element.`,
+    cpp: `unordered_map<string, vector<string>> anagram_groups;
+for (const string& s : strs) {
+    string key = s;
+    sort(key.begin(), key.end());
+    anagram_groups[key].push_back(s);
+}
+
+vector<vector<string>> result;
+for (auto const& [key, val] : anagram_groups) {
+    vector<string> group = val;
+    sort(group.begin(), group.end());
+    result.push_back(group);
+}
+
+sort(result.begin(), result.end(), [](const vector<string>& a, const vector<string>& b) {
+    return a[0] < b[0];
+});
+
+return result;`,
+    java: `if (strs == null || n == 0) return new ArrayList<>();
+Map<String, List<String>> map = new HashMap<>();
+for (String s : strs) {
+    char[] charArray = s.toCharArray();
+    Arrays.sort(charArray);
+    String key = String.valueOf(charArray);
+    if (!map.containsKey(key)) {
+        map.put(key, new ArrayList<>());
+    }
+    map.get(key).add(s);
+}
+
+List<List<String>> result = new ArrayList<>(map.values());
+for (List<String> group : result) {
+    Collections.sort(group);
+}
+result.sort(Comparator.comparing(list -> list.get(0)));
+return result;`
+  }
 };

@@ -11,11 +11,15 @@
 module.exports = {
   id: 'power-of-two',
   conquestId: 'bonusA-5',
-  title: 'Power of Two',
+  title: 'Magical Resonance Check',
   difficulty: 'Easy',
   category: 'Bit Manipulation',
   tags: ['Bit Manipulation', 'Math'],
+  storyBriefing: `
+Professor Flitwick explains that a spell's energy is perfectly stable only if its magical frequency (an integer) is a power of two. Any other frequency can cause unpredictable, and often humorous, side effects.
 
+You need to create a simple diagnostic charm that takes a frequency 'n' and determines if it will produce a stable spell.
+`,
   description: `Given an integer **n**, determine whether it is a **power of two**.
 
 An integer is a power of two if there exists an integer **x** such that:
@@ -63,12 +67,13 @@ Explanation:
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+
 using namespace std;
 
 bool isPowerOfTwo(long long n) {
-    // TODO: Implement your solution here
-    return false;
+    if (n <= 0) return false;
+    return (n & (n - 1)) == 0;
 }
 
 int main() {
@@ -77,16 +82,14 @@ int main() {
 
     cout << (isPowerOfTwo(n) ? "true" : "false");
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static boolean isPowerOfTwo(long n) {
-        // TODO: Implement your solution here
-        return false;
+        if (n <= 0) return false;
+        return (n & (n - 1)) == 0;
     }
 
     public static void main(String[] args) {
@@ -95,8 +98,42 @@ public class Main {
 
         System.out.print(isPowerOfTwo(n) ? "true" : "false");
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+
+using namespace std;
+
+bool isPowerOfTwo(long long n) {
+    if (n <= 0) return false;
+    return (n & (n - 1)) == 0;
 }
-`,
+
+int main() {
+    long long n;
+    cin >> n;
+
+    cout << (isPowerOfTwo(n) ? "true" : "false");
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static boolean isPowerOfTwo(long n) {
+        if (n <= 0) return false;
+        return (n & (n - 1)) == 0;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        long n = sc.nextLong();
+
+        System.out.print(isPowerOfTwo(n) ? "true" : "false");
+    }
+}`,
   },
 
   testCases: [

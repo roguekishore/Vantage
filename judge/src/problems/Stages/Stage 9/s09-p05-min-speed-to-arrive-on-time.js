@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'min-speed-to-arrive-on-time',
   conquestId: 'stage9-5',
   title: 'Minimum Speed to Arrive on Time',
@@ -19,88 +20,54 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search', 'Binary Search on Answer'],
 
-  description: `You are given a floating-point number \`hour\`, representing the amount of time you have to reach the office. To get to the office, you must take \`n\` trains in sequential order. Each train travels a specific distance given in the integer array \`dist\`.
+  // ---- Story Layer ----
+  storyBriefing: `Professor Dumbledore summons you with an urgent task. You must travel a sequence of 'n' magical passages, with known distances, to deliver a message. You have a strict time limit of 'hour'. Each passage, except the last, requires you to wait for the next whole hour before proceeding. Your job is to find the minimum integer speed you must maintain through all passages to arrive on time. If it's impossible, you must report back immediately.`,
 
-Each train can only depart at an **integer hour**, so you may need to wait at the station.
-- For example, if the first train takes 1.5 hours, you must wait an additional 0.5 hours before the second train can depart at the 2-hour mark.
-- The **last train** does not require you to wait for an integer hour; you arrive exactly when the journey ends.
+  // ---- Technical Layer ----
+  description: `You are given a floating-point number 'hour' and an integer array 'dist' of n distances. You must travel through n segments sequentially. For each of the first n-1 segments, you must wait until the next integer hour to depart for the next one. Your task is to find the minimum positive integer speed that allows you to complete the journey within the given 'hour' limit.
 
-Return the **minimum positive integer speed** (km/h) that all trains must travel at for you to reach the office on time, or \`-1\` if it is impossible.
+This problem is solved by performing a binary search on the answer (the speed). The search space for speed is from 1 to a reasonable upper bound (e.g., 10^7, as speeds higher than that won't significantly change the time for integer distances). For a given 'mid' speed, you can calculate the total time required. If this time is within the 'hour' limit, 'mid' is a possible answer, so you try for a lower speed. Otherwise, you need a higher speed.
 
-### Task
-This is a "Binary Search on Answer" problem.
-1. The possible range for speed is \`1\` to \`10^7\`.
-2. For a chosen speed \`v\`, calculate the total time:
-   - For all trains except the last: $time = \lceil dist[i] / v \rceil$
-   - For the last train: $time = dist[i] / v$ (no rounding)
-3. If the total time $\le hour$, try a slower speed (\`right = mid\`).
-4. If the total time $> hour$, you need a faster speed (\`left = mid + 1\`).
-
-### Example
-**Input:**
-\`\`\`
-3
-1 3 2
-6.0
-\`\`\`
-
-**Output:**
-\`\`\`
-1
-\`\`\`
-
-**Explanation:**
-At speed 1:
-- Train 1: 1/1 = 1 hour.
-- Train 2: 3/1 = 3 hours.
-- Train 3: 2/1 = 2 hours.
-Total = 1 + 3 + 2 = 6.0 hours. You arrive exactly on time.`,
-
+Return the minimum integer speed, or -1 if it's impossible to arrive on time.`,
   examples: [
     {
       input: '3\n1 3 2\n6.0',
       output: '1',
-      explanation: 'Speed 1 is sufficient.'
+      explanation: 'At speed 1, times are 1, 3, and 2. Total time is 1+3+2=6.0. This is within the limit.'
     },
     {
       input: '3\n1 3 2\n2.7',
       output: '3',
-      explanation: 'Speed 3: ceil(1/3) + ceil(3/3) + (2/3) = 1 + 1 + 0.67 = 2.67 <= 2.7.'
+      explanation: 'At speed 3, time is ceil(1/3) + ceil(3/3) + 2/3 = 1 + 1 + 0.666... = 2.666..., which is <= 2.7. A speed of 2 would be too slow.'
     },
     {
       input: '3\n1 3 2\n1.9',
       output: '-1',
-      explanation: 'Even with infinite speed, you need at least 2 trains to start (1+1 hours), which is > 1.9.'
+      explanation: 'It is impossible. The first two train rides require at least 1 hour each due to waiting, summing to 2 hours, which is greater than the 1.9-hour limit.'
     }
   ],
-
   constraints: [
-    'n == dist.length',
-    '1 ≤ n ≤ 10⁵',
-    '1 ≤ dist[i] ≤ 10⁵',
-    '1 ≤ hour ≤ 10⁹',
-    'There will be at most two digits after the decimal point in hour.'
+    '1 <= dist.length <= 10^5',
+    '1 <= dist[i] <= 10^5',
+    '1.0 <= hour <= 10^9'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <cmath>
 #include <iomanip>
 
 using namespace std;
 
-/**
- * Calculates if it is possible to arrive on time with a given speed.
- */
 bool canReach(const vector<int>& dist, double hour, int speed) {
-    double total = 0;
     // Your logic here
     return false;
 }
 
 int solve(int n, vector<int>& dist, double hour) {
-    if (hour <= n - 1) return -1;
     int left = 1, right = 1e7;
     int ans = -1;
     
@@ -128,17 +95,16 @@ int main() {
     cout << solve(n, dist, hour) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
     public static boolean canReach(int[] dist, double hour, int speed) {
-        double total = 0;
         // Your logic here
         return false;
     }
 
     public static int solve(int n, int[] dist, double hour) {
-        if (hour <= n - 1) return -1;
         int left = 1, right = 10000000;
         int ans = -1;
         
@@ -167,14 +133,42 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '3\n1 3 2\n6.0', expected: '1' },
     { input: '3\n1 3 2\n2.7', expected: '3' },
     { input: '3\n1 3 2\n1.9', expected: '-1' },
-    { input: '1\n5\n0.1', expected: '50' },
-    { input: '2\n10 10\n2.0', expected: '10' },
-    { input: '2\n10 10\n1.5', expected: '20' },
-    { input: '4\n1 1 1 1\n3.5', expected: '2' },
-    { input: '3\n100 100 100\n2.01', expected: '10000' }
-  ]
+    { input: '1\n100\n10.0', expected: '10' },
+    { input: '1\n100\n9.9', expected: '11' },
+    { input: '2\n1 1\n1.0', expected: '-1' },
+    { input: '2\n1 1\n1.01', expected: '100' },
+    { input: '4\n5 3 2 4\n5.5', expected: '4' },
+    { input: '4\n5 3 2 4\n3.0', expected: '-1' },
+    { input: '5\n10 10 10 10 10\n4.0', expected: '-1' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `This problem requires a binary search on the answer (speed). The search space for speed is from 1 to 10^7 (a sufficiently large number). For each 'mid' speed in the binary search, a helper function 'canReach' calculates the total time taken. This function iterates through the distances. For all but the last segment, time taken is ceil(dist[i] / speed). For the last segment, it's just dist[n-1] / speed. If the total time is within the 'hour' limit, 'mid' is a possible answer, so we try a smaller speed by setting 'right = mid - 1'. Otherwise, 'mid' is too slow, and we set 'left = mid + 1'. An initial check is needed: if 'hour' is less than or equal to 'n - 1', it's impossible, since each of the first n-1 segments takes at least 1 hour.`,
+    cpp: `double time = 0.0;
+for (int i = 0; i < dist.size(); ++i) {
+    double t = (double)dist[i] / speed;
+    if (i == dist.size() - 1) {
+        time += t;
+    } else {
+        time += ceil(t);
+    }
+}
+return time <= hour;`,
+    java: `double time = 0.0;
+for (int i = 0; i < dist.length; i++) {
+    double t = (double)dist[i] / speed;
+    if (i == dist.length - 1) {
+        time += t;
+    } else {
+        time += Math.ceil(t);
+    }
+}
+return time <= hour;`
+  }
 };

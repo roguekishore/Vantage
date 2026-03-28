@@ -17,141 +17,86 @@ module.exports = {
   category: 'Sorting',
   tags: ['Sorting', 'Non-Comparison Sort', 'Radix Sort', 'Counting Sort'],
 
-  description: `Counting Sort is great, but what if the range of numbers is massive (like sorting IDs up to 1 billion)? Creating a count array of size 1 billion would crash your memory.
+  storyBriefing: `Professor Flitwick is helping organize the visitor registry for the tournament, which includes some very large numbers. "Counting sort is wonderful, my dear student, but look at these numbers! We can't possibly make a counting array large enough. But notice... they're just numbers. We can sort them digit by digit! If we sort by the ones place first, then the tens, and so on, using a stable sort each time, the whole list will be sorted. A most charming piece of magic!"`,
 
-**Radix Sort** solves this by sorting numbers **digit by digit**, starting from the Least Significant Digit (LSD) to the Most Significant Digit (MSD).
+  description: `You are given an array of non-negative integers. Your task is to sort this array using Radix Sort. This algorithm is effective for sorting integers, especially when the numbers are large, because it avoids comparisons and sorts digit by digit.
 
-### The Secret Sauce: Stability
-For Radix Sort to work, the underlying sort used for each digit **must be stable**. We typically use **Counting Sort** as the helper because the range for a single digit is always small ($0-9$).
+Radix Sort processes numbers from the least significant digit to the most significant digit. In each pass, it uses a stable sorting algorithm (like Counting Sort) to sort the elements based on the current digit's value. The stability is crucial because it preserves the relative order of elements that have the same digit in the current place value, respecting the sorting done in previous passes.
 
-### How it works:
-1.  Find the maximum number to know how many digits we need to process.
-2.  Perform Counting Sort for the units place ($10^0$).
-3.  Perform Counting Sort for the tens place ($10^1$), then hundreds ($10^2$), and so on.
-4.  Because the sort is stable, the relative order established by the previous digit is preserved.
-
-### Complexity
-- **Time**: $O(d \times (n + k))$, where $d$ is the number of digits and $k$ is the base (usually 10).
-- **Space**: $O(n + k)$ for the counting sort buckets.
-
-### Example
-Input: \`\`
-1. Sort by units: \`\`
-2. Sort by tens: \`\`
-3. Sort by hundreds: \`\` (Done!)`,
+Return the sorted array as a single line of space-separated integers. You will need to implement Radix Sort, likely using Counting Sort as a subroutine for each digit place.`,
 
   examples: [
     {
       input: '8\n170 45 75 90 802 24 2 66',
       output: '2 24 45 66 75 90 170 802',
-      explanation: 'Digits are processed from right to left.'
+      explanation: 'First, the array is sorted by the 1s place (170, 90, 802, 2, ...). Then, it is stably sorted by the 10s place, and finally by the 100s place, resulting in a fully sorted array.'
+    },
+    {
+      input: '3\n1000 100 10',
+      output: '10 100 1000',
+      explanation: 'The algorithm correctly handles numbers with different numbers of digits.'
+    },
+    {
+      input: '4\n9 8 7 6',
+      output: '6 7 8 9',
+      explanation: 'For single-digit numbers, Radix Sort performs one pass of Counting Sort.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 10⁵',
-    '0 ≤ arr[i] ≤ 10⁹'
+    'The number of elements is between 1 and 100000.',
+    'The value of each element is between 0 and 10^9.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `void solve(std::vector<int>& arr) {
+    // Your code here
+}
+
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
 #include <vector>
+#include <string>
 #include <algorithm>
-
-using namespace std;
-
-// A utility function to do counting sort of arr[] according to
-// the digit represented by exp (10^i).
-void countSort(vector<int>& arr, int exp) {
-    int n = arr.size();
-    vector<int> output(n);
-    int count = {0};
-
-    // Store count of occurrences in count[]
-    for (int i = 0; i < n; i++)
-        count[(arr[i] / exp) % 10]++;
-
-    // Change count[i] so that count[i] now contains actual
-    // position of this digit in output[]
-    for (int i = 1; i < 10; i++)
-        count[i] += count[i - 1];
-
-    // Build the output array (Go backwards for stability!)
-    for (int i = n - 1; i >= 0; i--) {
-        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-        count[(arr[i] / exp) % 10]--;
-    }
-
-    for (int i = 0; i < n; i++)
-        arr[i] = output[i];
-}
-
-void radixSort(vector<int>& arr) {
-    if (arr.empty()) return;
-    int m = *max_element(arr.begin(), arr.end());
-
-    for (int exp = 1; m / exp > 0; exp *= 10)
-        countSort(arr, exp);
-}
-
 int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
     int n;
-    cin >> n;
-    vector<int> arr(n);
-    for (int i = 0; i < n; i++) cin >> arr[i];
+    std::cin >> n;
+    std::vector<int> arr(n);
+    for (int i = 0; i < n; i++) std::cin >> arr[i];
 
-    radixSort(arr);
+    solve(arr);
 
     for (int i = 0; i < n; i++) {
-        cout << arr[i] << (i == n - 1 ? "" : " ");
+        std::cout << arr[i] << (i == n - 1 ? "" : " ");
     }
-    cout << endl;
+    std::cout << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
+    java: `class Solution {
+    public static void solve(int[] arr) {
+        // Your code here
+    }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
-    static void countSort(int[] arr, int n, int exp) {
-        int[] output = new int[n];
-        int[] count = new int;
-        Arrays.fill(count, 0);
-
-        for (int i = 0; i < n; i++)
-            count[(arr[i] / exp) % 10]++;
-
-        for (int i = 1; i < 10; i++)
-            count[i] += count[i - 1];
-
-        for (int i = n - 1; i >= 0; i--) {
-            output[count[(arr[i] / exp) % 10] - 1] = arr[i];
-            count[(arr[i] / exp) % 10]--;
-        }
-
-        System.arraycopy(output, 0, arr, 0, n);
-    }
-
-    static void radixSort(int[] arr, int n) {
-        if (n == 0) return;
-        int m = Arrays.stream(arr).max().getAsInt();
-
-        for (int exp = 1; m / exp > 0; exp *= 10)
-            countSort(arr, n, exp);
-    }
-
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         int[] arr = new int[n];
         for (int i = 0; i < n; i++) arr[i] = sc.nextInt();
 
-        radixSort(arr, n);
+        Solution.solve(arr);
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) {
             sb.append(arr[i]).append(i == n - 1 ? "" : " ");
         }
         System.out.println(sb.toString());
+        sc.close();
     }
 }`
   },
@@ -160,6 +105,80 @@ public class Main {
     { input: '8\n170 45 75 90 802 24 2 66', expected: '2 24 45 66 75 90 170 802' },
     { input: '3\n1000 100 10', expected: '10 100 1000' },
     { input: '5\n55 44 33 22 11', expected: '11 22 33 44 55' },
-    { input: '4\n0 0 1 0', expected: '0 0 0 1' }
-  ]
+    { input: '4\n0 0 1 0', expected: '0 0 0 1' },
+    { input: '1\n987654321', expected: '987654321'},
+    { input: '2\n1 0', expected: '0 1'},
+    { input: '10\n10 9 8 7 6 5 4 3 2 1', expected: '1 2 3 4 5 6 7 8 9 10'},
+    { input: '5\n123 1 23 2 3', expected: '1 2 3 23 123' }
+  ],
+  
+  solution: {
+    approach: `Radix Sort works by sorting the input array digit by digit, from least significant to most significant. It begins by finding the maximum element to determine the number of digits in the largest number, which dictates how many passes are needed. In each pass, it uses a stable sorting algorithm, Counting Sort, to sort the numbers based on the current digit (1s place, 10s place, 100s place, etc.). The stability of Counting Sort is vital, as it ensures that the ordering from previous, less significant digit passes is preserved. After the final pass on the most significant digit, the entire array is sorted.`,
+    cpp: `    if (arr.empty()) return;
+
+    auto countingSortForRadix = [](std::vector<int>& arr, int exp) {
+        int n = arr.size();
+        std::vector<int> output(n);
+        std::vector<int> count(10, 0);
+
+        for (int i = 0; i < n; i++) {
+            count[(arr[i] / exp) % 10]++;
+        }
+
+        for (int i = 1; i < 10; i++) {
+            count[i] += count[i - 1];
+        }
+
+        for (int i = n - 1; i >= 0; i--) {
+            output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+            count[(arr[i] / exp) % 10]--;
+        }
+
+        for (int i = 0; i < n; i++) {
+            arr[i] = output[i];
+        }
+    };
+
+    int maxVal = arr[0];
+    for(int x : arr) {
+        if (x > maxVal) maxVal = x;
+    }
+
+    for (int exp = 1; maxVal / exp > 0; exp *= 10) {
+        countingSortForRadix(arr, exp);
+    }`,
+    java: `    if (arr.length == 0) return;
+
+    int maxVal = arr[0];
+    for (int val : arr) {
+        if (val > maxVal) {
+            maxVal = val;
+        }
+    }
+
+    for (int exp = 1; maxVal / exp > 0; exp *= 10) {
+        countSort(arr, exp);
+    }
+}
+
+private static void countSort(int[] arr, int exp) {
+    int n = arr.length;
+    int[] output = new int[n];
+    int[] count = new int[10];
+
+    for (int i = 0; i < n; i++) {
+        count[(arr[i] / exp) % 10]++;
+    }
+
+    for (int i = 1; i < 10; i++) {
+        count[i] += count[i - 1];
+    }
+
+    for (int i = n - 1; i >= 0; i--) {
+        output[count[(arr[i] / exp) % 10] - 1] = arr[i];
+        count[(arr[i] / exp) % 10]--;
+    }
+
+    System.arraycopy(output, 0, arr, 0, n);`
+  }
 };

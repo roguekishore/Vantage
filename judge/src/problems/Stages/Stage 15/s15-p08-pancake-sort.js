@@ -17,139 +17,86 @@ module.exports = {
   category: 'Sorting',
   tags: ['Sorting', 'Array', 'Greedy'],
 
-  description: `Unlike other sorting algorithms that swap individual elements, **Pancake Sort** has one very specific restriction: the only allowed operation is a **"flip"**.
+  storyBriefing: `Finally, you arrive at the Great Hall, where house-elves are trying to sort giant stacks of enchanted pancakes for the welcoming feast. They can't swap individual pancakes; their magic only allows them to stick a giant spatula in and flip the entire sub-stack above it. "It's chaos!" one squeaks. "We need to get the largest on the bottom, then the next largest, and so on, but all we can do is flip!" This unusual constraint requires a new way of thinking about sorting.`,
 
-Imagine a stack of pancakes of different sizes. To sort them, you can insert a spatula anywhere in the stack and flip all the pancakes above it.
+  description: `You are given an array of integers that you must sort using only a specific operation: a 'flip'. A flip consists of choosing an index 'k' and reversing the subarray from the beginning of the array up to 'k'. This problem is known as Pancake Sort.
 
-### The Goal
-Sort the array in non-decreasing order using the minimum number of flips (though in this task, any sequence that results in a sorted array is acceptable).
+The goal is to sort the array in ascending order by performing a series of these flips. A common strategy is to find the largest unsorted element, flip it to the front of the array, and then flip it to its correct sorted position at the end of the unsorted section. This process is repeated for the remaining unsorted elements.
 
-### The Greedy Strategy
-1.  Find the index of the **largest** unsorted element.
-2.  **Flip 1**: Flip the sub-array from the start to that index. This brings the largest element to the **front** (index 0).
-3.  **Flip 2**: Flip the entire unsorted sub-array. This moves the largest element to its **correct final position** at the back.
-4.  Repeat the process for the remaining $n-1$ elements.
-
-### Why use it?
-- It's a classic logic puzzle that teaches you how to work within strict operational constraints.
-- It’s surprisingly similar to how genomic researchers study "reversals" in DNA sequences!
-
----
-
-### Example
-**Input:** \`\`
-1. Max is 4 at index 2. Flip indices 0-2: \`\`.
-2. Flip indices 0-3: \`\`. (4 is now at the back).
-3. Max is 3 at index 1. Flip indices 0-1: \`\`.
-4. Flip indices 0-2: \`\`. (3 is now in place).
-5. Max is 2 at index 0. Flip indices 0-1: \`\`. (Sorted!)`,
+Return the sorted array as a single line of space-separated integers. You must implement the Pancake Sort algorithm.`,
 
   examples: [
     {
       input: '4\n3 2 4 1',
       output: '1 2 3 4',
-      explanation: 'The array is sorted by repeatedly flipping the largest element to the back.'
+      explanation: '1. Max is 4 at index 2. Flip(2) -> [4, 2, 3, 1]. 2. Flip(3) -> [1, 3, 2, 4]. Now 4 is sorted. 3. Max is 3 at index 1. Flip(1) -> [3, 1, 2, 4]. 4. Flip(2) -> [2, 1, 3, 4]. Now 3 is sorted. ...and so on.'
+    },
+    {
+      input: '5\n1 5 2 4 3',
+      output: '1 2 3 4 5',
+      explanation: 'The array is sorted by repeatedly finding the max in the unsorted portion and moving it to its correct final position using two flips.'
+    },
+    {
+      input: '3\n1 2 3',
+      output: '1 2 3',
+      explanation: 'An already sorted array requires no flips.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 500',
-    '1 ≤ arr[i] ≤ 10⁹'
+    'The number of elements is between 1 and 500.',
+    'The value of each element is between 1 and 10^9 and are unique.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `void solve(std::vector<int>& arr) {
+    // Your code here
+}
+
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
 #include <vector>
+#include <string>
 #include <algorithm>
-
-using namespace std;
-
-// Reverses the array from 0 to k
-void flip(vector<int>& arr, int k) {
-    int start = 0;
-    while (start < k) {
-        swap(arr[start], arr[k]);
-        start++;
-        k--;
-    }
-}
-
-void pancakeSort(vector<int>& arr) {
-    int n = arr.size();
-    for (int curr_size = n; curr_size > 1; curr_size--) {
-        // Find the index of the maximum element in arr[0...curr_size-1]
-        int max_idx = 0;
-        for (int i = 1; i < curr_size; i++) {
-            if (arr[i] > arr[max_idx]) max_idx = i;
-        }
-
-        // Move the maximum element to the end if it's not already there
-        if (max_idx != curr_size - 1) {
-            // To move at the end, first move it to the beginning
-            if (max_idx != 0) flip(arr, max_idx);
-            
-            // Now move it to the end by reversing the whole sub-array
-            flip(arr, curr_size - 1);
-        }
-    }
-}
-
 int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
     int n;
-    if (!(cin >> n)) return 0;
-    vector<int> arr(n);
-    for (int i = 0; i < n; i++) cin >> arr[i];
+    if (!(std::cin >> n)) return 0;
+    std::vector<int> arr(n);
+    for (int i = 0; i < n; i++) std::cin >> arr[i];
 
-    pancakeSort(arr);
+    solve(arr);
 
     for (int i = 0; i < n; i++) {
-        cout << arr[i] << (i == n - 1 ? "" : " ");
+        std::cout << arr[i] << (i == n - 1 ? "" : " ");
     }
-    cout << endl;
+    std::cout << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
+    java: `class Solution {
+    public static void solve(int[] arr) {
+        // Your code here
+    }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
-    static void flip(int[] arr, int k) {
-        int start = 0;
-        while (start < k) {
-            int temp = arr[start];
-            arr[start] = arr[k];
-            arr[k] = temp;
-            start++;
-            k--;
-        }
-    }
-
-    public static void pancakeSort(int[] arr) {
-        int n = arr.length;
-        for (int curr_size = n; curr_size > 1; curr_size--) {
-            int max_idx = 0;
-            for (int i = 1; i < curr_size; i++) {
-                if (arr[i] > arr[max_idx]) max_idx = i;
-            }
-
-            if (max_idx != curr_size - 1) {
-                if (max_idx != 0) flip(arr, max_idx);
-                flip(arr, curr_size - 1);
-            }
-        }
-    }
-
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         int[] arr = new int[n];
         for (int i = 0; i < n; i++) arr[i] = sc.nextInt();
 
-        pancakeSort(arr);
+        Solution.solve(arr);
 
+        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) {
-            System.out.print(arr[i] + (i == n - 1 ? "" : " "));
+            sb.append(arr[i]).append(i == n - 1 ? "" : " ");
         }
-        System.out.println();
+        System.out.println(sb.toString());
+        sc.close();
     }
 }`
   },
@@ -157,6 +104,60 @@ public class Main {
   testCases: [
     { input: '4\n3 2 4 1', expected: '1 2 3 4' },
     { input: '5\n1 2 3 4 5', expected: '1 2 3 4 5' },
-    { input: '6\n10 5 8 2 9 1', expected: '1 2 5 8 9 10' }
-  ]
+    { input: '6\n10 5 8 2 9 1', expected: '1 2 5 8 9 10' },
+    { input: '1\n100', expected: '100' },
+    { input: '2\n10 1', expected: '1 10' },
+    { input: '8\n8 7 6 5 4 3 2 1', expected: '1 2 3 4 5 6 7 8' },
+    { input: '5\n1 3 2 5 4', expected: '1 2 3 4 5' },
+    { input: '3\n3 1 2', expected: '1 2 3' }
+  ],
+  
+  solution: {
+    approach: `Pancake sort works by iteratively placing the largest unsorted element into its correct final position. For each pass, starting from the end of the array, we find the index of the maximum element in the current unsorted portion. Then, we perform a 'flip' operation from the start of the array to this index, which brings the maximum element to the front. We then perform a second flip on the entire unsorted portion, which moves the maximum element to its correct sorted position at the end of that portion. We then shrink the unsorted portion by one and repeat the process until the entire array is sorted.`,
+    cpp: `    auto flip = [](std::vector<int>& arr, int k) {
+        std::reverse(arr.begin(), arr.begin() + k + 1);
+    };
+
+    int n = arr.size();
+    for (int curr_size = n; curr_size > 1; --curr_size) {
+        int max_idx = 0;
+        for (int i = 1; i < curr_size; ++i) {
+            if (arr[i] > arr[max_idx]) {
+                max_idx = i;
+            }
+        }
+
+        if (max_idx != curr_size - 1) {
+            if (max_idx != 0) {
+                flip(arr, max_idx);
+            }
+            flip(arr, curr_size - 1);
+        }
+    }`,
+    java: `    int n = arr.length;
+    for (int curr_size = n; curr_size > 1; --curr_size) {
+        int max_idx = 0;
+        for (int i = 1; i < curr_size; ++i) {
+            if (arr[i] > arr[max_idx]) {
+                max_idx = i;
+            }
+        }
+
+        if (max_idx != curr_size - 1) {
+            flip(arr, max_idx);
+            flip(arr, curr_size - 1);
+        }
+    }
+}
+
+private static void flip(int[] arr, int k) {
+    int start = 0;
+    while (start < k) {
+        int temp = arr[start];
+        arr[start] = arr[k];
+        arr[k] = temp;
+        start++;
+        k--;
+    }`
+  }
 };

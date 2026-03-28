@@ -17,120 +17,85 @@ module.exports = {
   category: 'Sorting',
   tags: ['Merge Sort', 'Quick Sort', 'Heap Sort', 'Divide and Conquer'],
 
-  description: `Quadratic sorts ($O(n^2)$) are too slow for large datasets. To handle millions of items, we need algorithms that operate in **$O(n \log n)$** time. 
+  storyBriefing: `Moody seems satisfied. "Not bad. But the first task involves sorting thousands of items, not just a handful. Your slow methods won't cut it." He points to a massive warehouse teeming with supplies. "We need to sort the registration numbers for every item here. You'll need a more efficient, 'divide and conquer' approach for this. Split the problem into smaller pieces, solve them, and combine the results. Show me you can handle a real challenge."`,
 
-In this challenge, you will explore the "Big Three" of efficient sorting.
+  description: `You are given an array of integers that is too large for a quadratic sorting algorithm. Your task is to sort the array in non-decreasing order using an efficient, O(n log n) time complexity algorithm, such as Merge Sort, Quick Sort, or Heap Sort.
 
-### 1. Merge Sort (Divide & Conquer)
-- **Concept**: Recursively split the array into halves until you have single elements, then **merge** them back together in sorted order.
-- **Pros**: Guaranteed $O(n \log n)$ performance and **stable**.
-- **Cons**: Requires $O(n)$ extra space for the temporary merging arrays.
+These advanced algorithms are essential for handling large datasets. Merge Sort guarantees O(n log n) time but requires extra space. Quick Sort is often faster in practice and sorts in-place, but has a rare worst-case of O(n^2). Heap Sort provides the best of both worlds with guaranteed O(n log n) time and in-place sorting.
 
-### 2. Quick Sort (Partitioning)
-- **Concept**: Pick a "pivot" element and partition the array so that everything smaller than the pivot is on the left, and everything larger is on the right. Recursively sort the sub-arrays.
-- **Pros**: Very fast in practice (low constant factors) and sorts **in-place** ($O(\log n)$ space).
-- **Cons**: Worst-case is $O(n^2)$ if the pivot is poorly chosen (e.g., already sorted array).
-
-### 3. Heap Sort (Priority-based)
-- **Concept**: Build a **Max-Heap** from the data. Repeatedly extract the maximum element and move it to the end of the array.
-- **Pros**: Guaranteed $O(n \log n)$ and sorts **in-place** ($O(1)$ space).
-- **Cons**: Generally slower than Quick Sort in practice and **not stable**.
-
-### Task
-Implement one of these $O(n \log n)$ algorithms. For Quick Sort, try using a random pivot to avoid the worst-case scenario!
-
-### Example
-**Input:**
-\`\`\`
-6
-12 11 13 5 6 7
-\`\`\`
-
-**Output:**
-\`\`\`
-5 6 7 11 12 13
-\`\`\``,
+Return the sorted array as a single line of space-separated integers. You are encouraged to implement one of these three canonical sorting algorithms from scratch.`,
 
   examples: [
     {
       input: '6\n12 11 13 5 6 7',
       output: '5 6 7 11 12 13',
-      explanation: 'The array is sorted using an efficient O(n log n) algorithm.'
+      explanation: 'The large, unsorted array is efficiently sorted into ascending order.'
+    },
+    {
+      input: '5\n5 4 3 2 1',
+      output: '1 2 3 4 5',
+      explanation: 'A reverse-sorted array is handled efficiently, avoiding the O(n^2) pitfall that can affect a naive Quick Sort.'
+    },
+    {
+      input: '8\n3 1 4 1 5 9 2 6',
+      output: '1 1 2 3 4 5 6 9',
+      explanation: 'The algorithm correctly handles duplicate elements, maintaining their count in the sorted output.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 10⁵',
-    '-10⁹ ≤ arr[i] ≤ 10⁹'
+    'The number of elements in the array is between 1 and 100000.',
+    'The value of each element is between -10^9 and 10^9.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `void solve(std::vector<int>& arr) {
+    // Your code here. You can implement Merge, Quick, or Heap Sort.
+}
+
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
 #include <vector>
-
-using namespace std;
-
-// Implement Merge Sort
-void mergeSort(vector<int>& arr, int l, int r) {
-    // Your code here
-}
-
-// Implement Quick Sort
-void quickSort(vector<int>& arr, int low, int high) {
-    // Your code here
-}
-
-// Implement Heap Sort
-void heapSort(vector<int>& arr) {
-    // Your code here
-}
-
+#include <string>
 int main() {
-    ios_base::sync_with_stdio(false);
-    cin.tie(NULL);
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
     int n;
-    if (!(cin >> n)) return 0;
-    vector<int> arr(n);
-    for (int i = 0; i < n; i++) cin >> arr[i];
+    if (!(std::cin >> n)) return 0;
+    std::vector<int> arr(n);
+    for (int i = 0; i < n; i++) std::cin >> arr[i];
 
-    // Call your chosen sort
-    mergeSort(arr, 0, n - 1);
+    solve(arr);
 
     for (int i = 0; i < n; i++) {
-        cout << arr[i] << (i == n - 1 ? "" : " ");
+        std::cout << arr[i] << (i == n - 1 ? "" : " ");
     }
-    cout << endl;
+    std::cout << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
+    java: `class Solution {
+    public static void solve(int[] arr) {
+        // Your code here. You can implement Merge, Quick, or Heap Sort.
+    }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
-    public static void mergeSort(int[] arr, int l, int r) {
-        // Your code here
-    }
-
-    public static void quickSort(int[] arr, int low, int high) {
-        // Your code here
-    }
-
-    public static void heapSort(int[] arr) {
-        // Your code here
-    }
-
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         int[] arr = new int[n];
         for (int i = 0; i < n; i++) arr[i] = sc.nextInt();
 
-        mergeSort(arr, 0, n - 1);
+        Solution.solve(arr);
 
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < n; i++) {
             sb.append(arr[i]).append(i == n - 1 ? "" : " ");
         }
         System.out.println(sb.toString());
+        sc.close();
     }
 }`
   },
@@ -139,6 +104,60 @@ public class Main {
     { input: '6\n12 11 13 5 6 7', expected: '5 6 7 11 12 13' },
     { input: '5\n5 4 3 2 1', expected: '1 2 3 4 5' },
     { input: '1\n100', expected: '100' },
-    { input: '8\n3 1 4 1 5 9 2 6', expected: '1 1 2 3 4 5 6 9' }
-  ]
+    { input: '8\n3 1 4 1 5 9 2 6', expected: '1 1 2 3 4 5 6 9' },
+    { input: '2\n-10 10', expected: '-10 10' },
+    { input: '10\n0 9 8 1 7 2 6 3 5 4', expected: '0 1 2 3 4 5 6 7 8 9' },
+    { input: '7\n1 1 1 1 1 1 1', expected: '1 1 1 1 1 1 1'},
+    { input: '9\n100 20 80 30 70 40 60 50 90', expected: '20 30 40 50 60 70 80 90 100'}
+  ],
+  
+  solution: {
+    approach: `Merge Sort is a classic divide-and-conquer algorithm. It works by recursively splitting the input array into two halves until each subarray contains a single element (which is trivially sorted). Then, it repeatedly merges the sorted subarrays back together to produce new sorted subarrays until the entire array is a single, sorted unit. The key operation is the 'merge' step, where two sorted arrays are combined into one larger sorted array in linear time.`,
+    cpp: `    if (arr.size() <= 1) return;
+    int mid = arr.size() / 2;
+    std::vector<int> left(arr.begin(), arr.begin() + mid);
+    std::vector<int> right(arr.begin() + mid, arr.end());
+
+    solve(left);
+    solve(right);
+
+    int i = 0, j = 0, k = 0;
+    while (i < left.size() && j < right.size()) {
+        if (left[i] <= right[j]) {
+            arr[k++] = left[i++];
+        } else {
+            arr[k++] = right[j++];
+        }
+    }
+    while (i < left.size()) {
+        arr[k++] = left[i++];
+    }
+    while (j < right.size()) {
+        arr[k++] = right[j++];
+    }`,
+    java: `    if (arr.length <= 1) {
+        return;
+    }
+    int mid = arr.length / 2;
+    int[] left = java.util.Arrays.copyOfRange(arr, 0, mid);
+    int[] right = java.util.Arrays.copyOfRange(arr, mid, arr.length);
+
+    solve(left);
+    solve(right);
+
+    int i = 0, j = 0, k = 0;
+    while (i < left.length && j < right.length) {
+        if (left[i] <= right[j]) {
+            arr[k++] = left[i++];
+        } else {
+            arr[k++] = right[j++];
+        }
+    }
+    while (i < left.length) {
+        arr[k++] = left[i++];
+    }
+    while (j < right.length) {
+        arr[k++] = right[j++];
+    }`
+  }
 };

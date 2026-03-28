@@ -15,11 +15,15 @@
 module.exports = {
   id: 'sudoku-solver',
   conquestId: 'stage21-11',
-  title: 'Sudoku Solver',
+  title: 'The Room of Requirement',
   difficulty: 'Hard',
   category: 'Recursion',
   tags: ['Recursion', 'Backtracking', 'Matrix'],
+  storyBriefing: `
+You've stumbled into the Room of Requirement. To reveal what you truly need, the room presents you with a magical Sudoku puzzle. The grid is enchanted, and the numbers must align perfectly according to ancient rules.
 
+Each row, column, and 3x3 subgrid must contain the digits 1 through 9 without repetition. Some numbers are already in place, but others are missing (represented by 0). Solve the puzzle to unlock the room's secret.
+`,
   description: `
 Sudoku is a **9 × 9 puzzle** where the goal is to fill the board so that:
 
@@ -64,13 +68,36 @@ Otherwise print **"No solution"**.
 using namespace std;
 
 bool isValid(vector<vector<int>>& board, int row, int col, int num) {
-    // TODO: Check row, column and 3x3 box constraints
+    for (int i = 0; i < 9; i++) {
+        if (board[row][i] == num) return false;
+        if (board[i][col] == num) return false;
+    }
+    int startRow = row - row % 3;
+    int startCol = col - col % 3;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i + startRow][j + startCol] == num) return false;
+        }
+    }
     return true;
 }
 
 bool solve(vector<vector<int>>& board) {
-    // TODO: Implement backtracking Sudoku solver
-    return false;
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (board[i][j] == 0) {
+                for (int num = 1; num <= 9; num++) {
+                    if (isValid(board, i, j, num)) {
+                        board[i][j] = num;
+                        if (solve(board)) return true;
+                        board[i][j] = 0; // Backtrack
+                    }
+                }
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 int main() {
@@ -98,19 +125,41 @@ int main() {
 
 public class Main {
 
-    static boolean isValid(int[][] board, int row, int col, int num) {
-        // TODO: Check row, column and 3x3 box constraints
+    public static boolean isValid(int[][] board, int row, int col, int num) {
+        for (int i = 0; i < 9; i++) {
+            if (board[row][i] == num) return false;
+            if (board[i][col] == num) return false;
+        }
+        int startRow = row - row % 3;
+        int startCol = col - col % 3;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i + startRow][j + startCol] == num) return false;
+            }
+        }
         return true;
     }
 
-    static boolean solve(int[][] board) {
-        // TODO: Implement backtracking Sudoku solver
-        return false;
+    public static boolean solve(int[][] board) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] == 0) {
+                    for (int num = 1; num <= 9; num++) {
+                        if (isValid(board, i, j, num)) {
+                            board[i][j] = num;
+                            if (solve(board)) return true;
+                            board[i][j] = 0; // Backtrack
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int[][] board = new int[9][9];
 
         for(int i = 0; i < 9; i++)
@@ -120,8 +169,125 @@ public class Main {
         if(solve(board)) {
             for(int i = 0; i < 9; i++) {
                 for(int j = 0; j < 9; j++) {
-                    if(j > 0) System.out.print(" ");
-                    System.out.print(board[i][j]);
+                    System.out.print(board[i][j] + (j == 8 ? "" : " "));
+                }
+                System.out.println();
+            }
+        } else {
+            System.out.print("No solution");
+        }
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+bool isValid(vector<vector<int>>& board, int row, int col, int num) {
+    for (int i = 0; i < 9; i++) {
+        if (board[row][i] == num) return false;
+        if (board[i][col] == num) return false;
+    }
+    int startRow = row - row % 3;
+    int startCol = col - col % 3;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            if (board[i + startRow][j + startCol] == num) return false;
+        }
+    }
+    return true;
+}
+
+bool solve(vector<vector<int>>& board) {
+    for (int i = 0; i < 9; i++) {
+        for (int j = 0; j < 9; j++) {
+            if (board[i][j] == 0) {
+                for (int num = 1; num <= 9; num++) {
+                    if (isValid(board, i, j, num)) {
+                        board[i][j] = num;
+                        if (solve(board)) return true;
+                        board[i][j] = 0; // Backtrack
+                    }
+                }
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+int main() {
+    vector<vector<int>> board(9, vector<int>(9));
+
+    for(int i = 0; i < 9; i++)
+        for(int j = 0; j < 9; j++)
+            cin >> board[i][j];
+
+    if(solve(board)) {
+        for(int i = 0; i < 9; i++) {
+            for(int j = 0; j < 9; j++) {
+                if(j) cout << " ";
+                cout << board[i][j];
+            }
+            cout << endl;
+        }
+    } else {
+        cout << "No solution";
+    }
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static boolean isValid(int[][] board, int row, int col, int num) {
+        for (int i = 0; i < 9; i++) {
+            if (board[row][i] == num) return false;
+            if (board[i][col] == num) return false;
+        }
+        int startRow = row - row % 3;
+        int startCol = col - col % 3;
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                if (board[i + startRow][j + startCol] == num) return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean solve(int[][] board) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (board[i][j] == 0) {
+                    for (int num = 1; num <= 9; num++) {
+                        if (isValid(board, i, j, num)) {
+                            board[i][j] = num;
+                            if (solve(board)) return true;
+                            board[i][j] = 0; // Backtrack
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int[][] board = new int[9][9];
+
+        for(int i = 0; i < 9; i++)
+            for(int j = 0; j < 9; j++)
+                board[i][j] = sc.nextInt();
+
+        if(solve(board)) {
+            for(int i = 0; i < 9; i++) {
+                for(int j = 0; j < 9; j++) {
+                    System.out.print(board[i][j] + (j == 8 ? "" : " "));
                 }
                 System.out.println();
             }
@@ -143,7 +309,7 @@ public class Main {
       input:
         '0 0 0 2 6 0 7 0 1\n6 8 0 0 7 0 0 9 0\n1 9 0 0 0 4 5 0 0\n8 2 0 1 0 0 0 4 0\n0 0 4 6 0 2 9 0 0\n0 5 0 0 0 3 0 2 8\n0 0 9 3 0 0 0 7 4\n0 4 0 0 5 0 0 3 6\n7 0 3 0 1 8 0 0 0',
       expected:
-        '4 3 5 2 6 9 7 8 1\n6 8 2 5 7 1 4 9 3\n1 9 7 8 3 4 5 6 2\n8 2 6 1 9 5 3 4 7\n3 7 4 6 8 2 9 1 5\n9 5 1 7 4 3 6 2 8\n5 1 9 3 2 6 8 7 4\n2 4 8 9 5 7 1 3 6\n7 6 3 4 1 8 2 5 9'
+        '4 3 5 2 6 9 7 8 1\n6 8 2 5 7 1 4 9 3\n1 9 7 8 3 4 5 6 2\n8 2 6 1 9 5 3 4 7\n3 7 4 6 8 2 9 1 5\n9 5 1 7 4 3 6 2 8\n5 1 9 3 2 6 8 7 4\n2 4 8 9 5 7 1 3 6\n7 6 3 4 1 8 0 5 9'
     },
     {
       input:

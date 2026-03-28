@@ -16,11 +16,15 @@
 module.exports = {
   id: 'design-hashmap',
   conquestId: 'stage24-1',
-  title: 'Design HashMap',
+  title: "Design a Remembrall",
   difficulty: 'Easy',
-  category: 'Hash Table',
+  category: 'Data Structure Design',
   tags: ['Hash Table', 'Design', 'Array'],
+  storyBriefing: `
+Welcome to the Department of Magical Artifacts! Your first assignment is to design a "Remembrall," a magical sphere that helps wizards remember things.
 
+You need to create a system that can store memories (key-value pairs), retrieve them, and remove them. This artifact will be crucial for Ministry officials who have too much on their minds.
+`,
   description: `
 Design a **HashMap** without using any built-in hash table libraries.
 
@@ -68,26 +72,52 @@ Time Complexity (Average):
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <list>
+
 using namespace std;
 
 class MyHashMap {
+private:
+    vector<list<pair<int, int>>> buckets;
+    int size = 1000;
+
+    int hash(int key) {
+        return key % size;
+    }
+
 public:
     MyHashMap() {
-        // TODO: Initialize data structure
+        buckets.resize(size);
     }
     
     void put(int key, int value) {
-        // TODO: Insert or update key
+        int index = hash(key);
+        for (auto it = buckets[index].begin(); it != buckets[index].end(); ++it) {
+            if (it->first == key) {
+                it->second = value;
+                return;
+            }
+        }
+        buckets[index].push_back({key, value});
     }
     
     int get(int key) {
-        // TODO: Return value for key
+        int index = hash(key);
+        for (auto const& [k, v] : buckets[index]) {
+            if (k == key) {
+                return v;
+            }
+        }
         return -1;
     }
     
     void remove(int key) {
-        // TODO: Remove key
+        int index = hash(key);
+        buckets[index].remove_if([key](const pair<int, int>& p) {
+            return p.first == key;
+        });
     }
 };
 
@@ -98,9 +128,8 @@ int main() {
     MyHashMap map;
     string op;
 
-    while (q--) {
+    for (int i = 0; i < q; ++i) {
         cin >> op;
-
         if (op == "put") {
             int key, value;
             cin >> key >> value;
@@ -108,8 +137,7 @@ int main() {
         } else if (op == "get") {
             int key;
             cin >> key;
-            cout << map.get(key);
-            if (q) cout << "\\n";
+            cout << map.get(key) << "\\n";
         } else if (op == "remove") {
             int key;
             cin >> key;
@@ -119,56 +147,283 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
-public class Main {
+class MyHashMap {
+    private class Node {
+        int key, value;
+        Node next;
 
-    static class MyHashMap {
-
-        public MyHashMap() {
-            // TODO: Initialize data structure
-        }
-
-        public void put(int key, int value) {
-            // TODO: Insert or update key
-        }
-
-        public int get(int key) {
-            // TODO: Return value for key
-            return -1;
-        }
-
-        public void remove(int key) {
-            // TODO: Remove key
+        Node(int key, int value) {
+            this.key = key;
+            this.value = value;
         }
     }
 
-    public static void main(String[] args) {
+    private Node[] buckets;
+    private int size = 1000;
 
+    public MyHashMap() {
+        buckets = new Node[size];
+    }
+
+    private int hash(int key) {
+        return key % size;
+    }
+
+    public void put(int key, int value) {
+        int index = hash(key);
+        if (buckets[index] == null) {
+            buckets[index] = new Node(key, value);
+            return;
+        }
+        Node prev = null;
+        Node current = buckets[index];
+        while (current != null) {
+            if (current.key == key) {
+                current.value = value;
+                return;
+            }
+            prev = current;
+            current = current.next;
+        }
+        prev.next = new Node(key, value);
+    }
+
+    public int get(int key) {
+        int index = hash(key);
+        Node current = buckets[index];
+        while (current != null) {
+            if (current.key == key) {
+                return current.value;
+            }
+            current = current.next;
+        }
+        return -1;
+    }
+
+    public void remove(int key) {
+        int index = hash(key);
+        if (buckets[index] == null) return;
+        
+        if (buckets[index].key == key) {
+            buckets[index] = buckets[index].next;
+            return;
+        }
+
+        Node prev = buckets[index];
+        Node current = buckets[index].next;
+        while (current != null) {
+            if (current.key == key) {
+                prev.next = current.next;
+                return;
+            }
+            prev = current;
+            current = current.next;
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         int q = sc.nextInt();
 
         MyHashMap map = new MyHashMap();
 
-        while (q-- > 0) {
+        for (int i = 0; i < q; ++i) {
             String op = sc.next();
-
             if (op.equals("put")) {
                 int key = sc.nextInt();
                 int value = sc.nextInt();
                 map.put(key, value);
-
             } else if (op.equals("get")) {
                 int key = sc.nextInt();
                 System.out.println(map.get(key));
-
             } else if (op.equals("remove")) {
                 int key = sc.nextInt();
                 map.remove(key);
             }
         }
+        sc.close();
+    }
+}`
+  },
 
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <list>
+
+using namespace std;
+
+class MyHashMap {
+private:
+    vector<list<pair<int, int>>> buckets;
+    int size = 1000;
+
+    int hash(int key) {
+        return key % size;
+    }
+
+public:
+    MyHashMap() {
+        buckets.resize(size);
+    }
+    
+    void put(int key, int value) {
+        int index = hash(key);
+        for (auto it = buckets[index].begin(); it != buckets[index].end(); ++it) {
+            if (it->first == key) {
+                it->second = value;
+                return;
+            }
+        }
+        buckets[index].push_back({key, value});
+    }
+    
+    int get(int key) {
+        int index = hash(key);
+        for (auto const& [k, v] : buckets[index]) {
+            if (k == key) {
+                return v;
+            }
+        }
+        return -1;
+    }
+    
+    void remove(int key) {
+        int index = hash(key);
+        buckets[index].remove_if([key](const pair<int, int>& p) {
+            return p.first == key;
+        });
+    }
+};
+
+int main() {
+    int q;
+    cin >> q;
+
+    MyHashMap map;
+    string op;
+
+    for (int i = 0; i < q; ++i) {
+        cin >> op;
+        if (op == "put") {
+            int key, value;
+            cin >> key >> value;
+            map.put(key, value);
+        } else if (op == "get") {
+            int key;
+            cin >> key;
+            cout << map.get(key) << "\\n";
+        } else if (op == "remove") {
+            int key;
+            cin >> key;
+            map.remove(key);
+        }
+    }
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+class MyHashMap {
+    private class Node {
+        int key, value;
+        Node next;
+
+        Node(int key, int value) {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    private Node[] buckets;
+    private int size = 1000;
+
+    public MyHashMap() {
+        buckets = new Node[size];
+    }
+
+    private int hash(int key) {
+        return key % size;
+    }
+
+    public void put(int key, int value) {
+        int index = hash(key);
+        if (buckets[index] == null) {
+            buckets[index] = new Node(key, value);
+            return;
+        }
+        Node prev = null;
+        Node current = buckets[index];
+        while (current != null) {
+            if (current.key == key) {
+                current.value = value;
+                return;
+            }
+            prev = current;
+            current = current.next;
+        }
+        prev.next = new Node(key, value);
+    }
+
+    public int get(int key) {
+        int index = hash(key);
+        Node current = buckets[index];
+        while (current != null) {
+            if (current.key == key) {
+                return current.value;
+            }
+            current = current.next;
+        }
+        return -1;
+    }
+
+    public void remove(int key) {
+        int index = hash(key);
+        if (buckets[index] == null) return;
+        
+        if (buckets[index].key == key) {
+            buckets[index] = buckets[index].next;
+            return;
+        }
+
+        Node prev = buckets[index];
+        Node current = buckets[index].next;
+        while (current != null) {
+            if (current.key == key) {
+                prev.next = current.next;
+                return;
+            }
+            prev = current;
+            current = current.next;
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int q = sc.nextInt();
+
+        MyHashMap map = new MyHashMap();
+
+        for (int i = 0; i < q; ++i) {
+            String op = sc.next();
+            if (op.equals("put")) {
+                int key = sc.nextInt();
+                int value = sc.nextInt();
+                map.put(key, value);
+            } else if (op.equals("get")) {
+                int key = sc.nextInt();
+                System.out.println(map.get(key));
+            } else if (op.equals("remove")) {
+                int key = sc.nextInt();
+                map.remove(key);
+            }
+        }
         sc.close();
     }
 }`

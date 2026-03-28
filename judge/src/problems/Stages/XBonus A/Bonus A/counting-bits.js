@@ -12,11 +12,15 @@
 module.exports = {
   id: 'counting-bits',
   conquestId: 'bonusA-3',
-  title: 'Counting Bits',
+  title: 'Advanced Charms: Spell Intensity',
   difficulty: 'Easy',
   category: 'Bit Manipulation',
   tags: ['Bit Manipulation', 'Dynamic Programming'],
+  storyBriefing: `
+In Advanced Charms class, Professor Flitwick explains that the intensity of a spell is determined by the number of 'on' bits in the binary representation of a magical number 'n'.
 
+To help your classmates practice, you decide to create a reference chart. For every number from 0 up to a given 'n', you need to calculate its spell intensity (the number of set bits).
+`,
   description: `Given an integer **n**, return an array **ans** of length **n + 1**
 where **ans[i]** is the number of **1 bits** in the binary representation of **i**.
 
@@ -59,12 +63,17 @@ The solution should run in **O(n)** time.`,
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+
 using namespace std;
 
 vector<int> countBits(int n) {
-    // TODO: Implement your solution here
-    return {};
+    vector<int> ans(n + 1, 0);
+    for (int i = 1; i <= n; ++i) {
+        ans[i] = ans[i >> 1] + (i & 1);
+    }
+    return ans;
 }
 
 int main() {
@@ -79,16 +88,17 @@ int main() {
     }
 
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static int[] countBits(int n) {
-        // TODO: Implement your solution here
-        return new int[0];
+        int[] ans = new int[n + 1];
+        for (int i = 1; i <= n; i++) {
+            ans[i] = ans[i >> 1] + (i & 1);
+        }
+        return ans;
     }
 
     public static void main(String[] args) {
@@ -102,8 +112,60 @@ public class Main {
             System.out.print(result[i]);
         }
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+
+using namespace std;
+
+vector<int> countBits(int n) {
+    vector<int> ans(n + 1, 0);
+    for (int i = 1; i <= n; ++i) {
+        ans[i] = ans[i >> 1] + (i & 1);
+    }
+    return ans;
 }
-`,
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> result = countBits(n);
+
+    for (int i = 0; i < result.size(); i++) {
+        if (i) cout << " ";
+        cout << result[i];
+    }
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static int[] countBits(int n) {
+        int[] ans = new int[n + 1];
+        for (int i = 1; i <= n; i++) {
+            ans[i] = ans[i >> 1] + (i & 1);
+        }
+        return ans;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] result = countBits(n);
+
+        for (int i = 0; i < result.length; i++) {
+            if (i > 0) System.out.print(" ");
+            System.out.print(result[i]);
+        }
+    }
+}`,
   },
 
   testCases: [

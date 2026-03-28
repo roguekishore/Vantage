@@ -18,115 +18,78 @@ module.exports = {
   category: 'Heaps & Priority Queues',
   tags: ['Heap', 'Priority Queue', 'Greedy', 'Hash Map'],
 
-  description: `You are given a list of tasks represented by characters and a non-negative integer \`k\`. Each task takes one unit of time to complete. For each unit of time, the CPU can either complete one task or stay idle.
+  storyBriefing: `Now comes the real challenge: scheduling the dragon encounters. "Each dragon breed needs a 'cool-down' period 'k' after an encounter before it can be faced again," Crouch explains. "We have a list of dragon breeds we need to get through. To minimize the total time for the first task, we must be as efficient as possible. This means we should always prioritize the dragon breed we have the most of left to face, as long as it's not on cool-down. What's the minimum time this will take?"`,
 
-However, there is a **cooling period** \`k\`: the same task type cannot be executed again until \`k\` units of time have passed.
+  description: `You are given a list of tasks, where each task is represented by a character. Each task takes one unit of time. There is a non-negative integer 'k' which represents the cool-down period between two identical tasks. You need to find the minimum time required to complete all tasks.
 
-### The Greedy + Heap Strategy
-To minimize the total time, we should always prioritize the task that has the **highest remaining frequency**.
+This is a greedy scheduling problem. To minimize total time, you should always try to execute the task with the highest remaining frequency. A max-heap (or priority queue) is the perfect data structure for this, allowing you to always access the most frequent task in O(1) time. You process tasks in cycles, ensuring the cool-down period is respected by using idle time when necessary.
 
-1.  **Count**: Store the frequency of each task in a Hash Map (or a 26-size array).
-2.  **Max-Heap**: Push all frequencies into a Max-Heap.
-3.  **Process in Cycles**:
-    - Each cycle has a length of \`k + 1\` (the time it takes to run a task and wait for its cooldown).
-    - In each cycle, try to pull the most frequent tasks from the Heap.
-    - Store the tasks you've used in a temporary list.
-    - After the cycle, if those tasks still have remaining instances, push them back into the Heap.
-4.  **Count Time**: Add the number of tasks processed in the cycle to your total time. If the Heap is empty after a cycle, you only count the tasks; if it's not empty, you count the full \`k + 1\` units (because of the idle time).
-
-### Alternative: The Math Approach
-The minimum time is often determined by the most frequent task. 
-If 'A' appears \`f_max\` times:
-- We have \`f_max - 1\` groups of intervals.
-- Each group has size \`k + 1\`.
-- The final tasks are added at the end.
-Formula: $Total = (f_{max} - 1) \times (k + 1) + (\text{number of tasks with frequency } f_{max})$
-The answer is $\max(\text{Total}, \text{tasks.length})$.
-
-### Example
-**Input:** \`tasks = ["A","A","A","B","B","B"], k = 2\`
-**Output:** \`8\`
-**Explanation:** A -> B -> idle -> A -> B -> idle -> A -> B`,
+Return a single integer representing the minimum units of time required.`,
 
   examples: [
     {
       input: '6 2\nA A A B B B',
       output: '8',
-      explanation: 'Optimal: A -> B -> idle -> A -> B -> idle -> A -> B.'
+      explanation: 'The schedule is A -> B -> idle -> A -> B -> idle -> A -> B. Each A is separated by at least 2 other operations. The total time is 8 units.'
     },
     {
       input: '6 0\nA A A B B B',
       output: '6',
-      explanation: 'With k=0, no cooling is needed. Total time is just the number of tasks.'
+      explanation: 'With a cool-down period of 0, tasks can be performed in any order without idle time. The total time is simply the number of tasks.'
+    },
+    {
+      input: '4 2\nA A B B',
+      output: '5',
+      explanation: 'An optimal schedule is A -> B -> idle -> A -> B.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 10⁴',
-    '0 ≤ k ≤ 100',
-    'Tasks are uppercase English letters A-Z.'
+    'The number of tasks is between 1 and 10000.',
+    'The cool-down period k is between 0 and 100.',
+    'Tasks are represented by uppercase English letters.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <queue>
-#include <unordered_map>
-#include <algorithm>
-
-using namespace std;
-
-int leastInterval(vector<char>& tasks, int k) {
-    unordered_map<char, int> counts;
-    for (char c : tasks) counts[c]++;
-    
-    priority_queue<int> pq;
-    for (auto const& [task, freq] : counts) pq.push(freq);
-    
-    int totalTime = 0;
-    // Your Greedy/Heap logic here
-    
-    return totalTime;
+    cpp: `int solve(std::vector<char>& tasks, int k) {
+    // Your code here
+    return 0;
 }
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <string>
 int main() {
+    std::ios_base::sync_with_stdio(false);
+    std::cin.tie(NULL);
     int n, k;
-    if (!(cin >> n >> k)) return 0;
-    vector<char> tasks(n);
-    for (int i = 0; i < n; i++) cin >> tasks[i];
+    if (!(std::cin >> n >> k)) return 0;
+    std::vector<char> tasks(n);
+    for (int i = 0; i < n; i++) std::cin >> tasks[i];
     
-    cout << leastInterval(tasks, k) << endl;
+    std::cout << solve(tasks, k) << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-public class Main {
-    public static int leastInterval(char[] tasks, int k) {
-      int[] freq = new int[26];
-        for (char t : tasks) freq[t - 'A']++;
-        
-        Arrays.sort(freq);
-      int maxFreq = freq[25];
-      int maxCount = 1;
-        
-      for (int i = 24; i >= 0 && freq[i] == maxFreq; i--) {
-        maxCount++;
-      }
-        
-      int intervals = (maxFreq - 1) * (k + 1) + maxCount;
-        
-      return Math.max(intervals, tasks.length);
+    java: `class Solution {
+    public static int solve(char[] tasks, int k) {
+        // Your code here
+        return 0;
     }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         int k = sc.nextInt();
         char[] tasks = new char[n];
         for (int i = 0; i < n; i++) tasks[i] = sc.next().charAt(0);
         
-        System.out.println(leastInterval(tasks, k));
+        System.out.println(Solution.solve(tasks, k));
+        sc.close();
     }
 }`
   },
@@ -134,6 +97,84 @@ public class Main {
   testCases: [
     { input: '6 2\nA A A B B B', expected: '8' },
     { input: '6 0\nA A A B B B', expected: '6' },
-    { input: '12 2\nA A A A A A B C D E F G', expected: '16' }
-  ]
+    { input: '12 2\nA A A A A A B C D E F G', expected: '16' },
+    { input: '5 2\nA A A B C', expected: '7'}, // A B C A _ _ A
+    { input: '4 1\nA A B B', expected: '4'}, // A B A B
+    { input: '1\n100\nA', expected: '1'},
+    { input: '2 100\nA A', expected: '102'}, // A idles... A
+    { input: '7 1\nA A B B C C D', expected: '7'}
+  ],
+  
+  solution: {
+    approach: `There are two main approaches. The greedy heap-based simulation processes tasks in cycles. First, count task frequencies. Use a max-heap to store these frequencies. In a loop, simulate time cycles of size k+1. In each cycle, pull up to k+1 tasks from the heap, decrement their counts, and add them to a temporary list. Add the number of tasks processed in this cycle to the total time. After the cycle, add any tasks with remaining counts from the temporary list back to the heap. A much simpler mathematical approach calculates the time based on the most frequent task. The number of idle slots is determined by the frequency of the most common task and the cool-down period. The total time is then the number of tasks plus the number of idle slots. The final answer is the maximum of this calculated time and the actual number of tasks.`,
+    cpp: `    std::vector<int> counts(26, 0);
+    for (char c : tasks) {
+        counts[c - 'A']++;
+    }
+    
+    std::priority_queue<int> pq;
+    for (int count : counts) {
+        if (count > 0) {
+            pq.push(count);
+        }
+    }
+    
+    int totalTime = 0;
+    while (!pq.empty()) {
+        int time = 0;
+        std::vector<int> temp;
+        for (int i = 0; i < k + 1; ++i) {
+            if (!pq.empty()) {
+                temp.push_back(pq.top() - 1);
+                pq.pop();
+                time++;
+            }
+        }
+        
+        for (int t : temp) {
+            if (t > 0) {
+                pq.push(t);
+            }
+        }
+        
+        totalTime += pq.empty() ? time : k + 1;
+    }
+    
+    return totalTime;`,
+    java: `    int[] freq = new int[26];
+    for (char t : tasks) {
+        freq[t - 'A']++;
+    }
+    
+    java.util.PriorityQueue<Integer> pq = new java.util.PriorityQueue<>(java.util.Collections.reverseOrder());
+    for (int f : freq) {
+        if (f > 0) {
+            pq.add(f);
+        }
+    }
+    
+    int time = 0;
+    while (!pq.isEmpty()) {
+        java.util.ArrayList<Integer> temp = new java.util.ArrayList<>();
+        int i = 0;
+        while (i <= k) {
+            if (!pq.isEmpty()) {
+                if (pq.peek() > 1) {
+                    temp.add(pq.poll() - 1);
+                } else {
+                    pq.poll();
+                }
+            }
+            time++;
+            if (pq.isEmpty() && temp.isEmpty()) {
+                break;
+            }
+            i++;
+        }
+        for (int l : temp) {
+            pq.add(l);
+        }
+    }
+    return time;`
+  }
 };

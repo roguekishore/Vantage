@@ -12,11 +12,15 @@
 module.exports = {
   id: 'n-queens',
   conquestId: 'stage21-8',
-  title: 'N-Queens',
+  title: 'The Ever-Changing Room',
   difficulty: 'Hard',
   category: 'Recursion',
   tags: ['Recursion', 'Backtracking', 'Chessboard'],
+  storyBriefing: `
+This chamber shifts its form based on the placement of magical artifacts. You must place 'n' powerful Queen artifacts on an 'n x n' grid. However, the Queens are jealous and powerful; if any two are placed in the same row, column, or diagonal, they will unleash destructive energy, and you will fail.
 
+This is the N-Queens problem. You must use backtracking—placing a Queen, then recursively trying to place the next. If you reach a dead end, you must backtrack and move a previously placed Queen. Your task is to find the total number of safe configurations.
+`,
   description: `
 The **N-Queens problem** asks you to place **n queens** on an **n × n chessboard** so that **no two queens attack each other**.
 
@@ -55,6 +59,7 @@ This problem is typically solved using **recursion and backtracking**, exploring
   boilerplate: {
     cpp: `#include <iostream>
 #include <vector>
+#include <cmath>
 using namespace std;
 
 bool isSafe(vector<int>& board, int row, int col) {
@@ -67,8 +72,17 @@ bool isSafe(vector<int>& board, int row, int col) {
 }
 
 long long solve(int n, int row, vector<int>& board) {
-    // TODO: Implement backtracking to count valid N-Queens solutions
-    return 0;
+    if (row == n) {
+        return 1;
+    }
+    long long count = 0;
+    for (int col = 0; col < n; col++) {
+        if (isSafe(board, row, col)) {
+            board[row] = col;
+            count += solve(n, row + 1, board);
+        }
+    }
+    return count;
 }
 
 int main() {
@@ -95,8 +109,95 @@ public class Main {
     }
 
     static long solve(int n, int row, int[] board) {
-        // TODO: Implement backtracking to count valid N-Queens solutions
-        return 0;
+        if (row == n) {
+            return 1;
+        }
+        long count = 0;
+        for (int col = 0; col < n; col++) {
+            if (isSafe(board, row, col)) {
+                board[row] = col;
+                count += solve(n, row + 1, board);
+            }
+        }
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[] board = new int[n];
+
+        System.out.print(solve(n, 0, board));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <cmath>
+using namespace std;
+
+bool isSafe(vector<int>& board, int row, int col) {
+    for(int i = 0; i < row; i++) {
+        int prevCol = board[i];
+        if(prevCol == col || abs(prevCol - col) == abs(i - row))
+            return false;
+    }
+    return true;
+}
+
+long long solve(int n, int row, vector<int>& board) {
+    if (row == n) {
+        return 1;
+    }
+    long long count = 0;
+    for (int col = 0; col < n; col++) {
+        if (isSafe(board, row, col)) {
+            board[row] = col;
+            count += solve(n, row + 1, board);
+        }
+    }
+    return count;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> board(n);
+
+    cout << solve(n, 0, board);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static boolean isSafe(int[] board, int row, int col) {
+        for(int i = 0; i < row; i++) {
+            int prevCol = board[i];
+            if(prevCol == col || Math.abs(prevCol - col) == Math.abs(i - row))
+                return false;
+        }
+        return true;
+    }
+
+    static long solve(int n, int row, int[] board) {
+        if (row == n) {
+            return 1;
+        }
+        long count = 0;
+        for (int col = 0; col < n; col++) {
+            if (isSafe(board, row, col)) {
+                board[row] = col;
+                count += solve(n, row + 1, board);
+            }
+        }
+        return count;
     }
 
     public static void main(String[] args) {

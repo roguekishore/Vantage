@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'insert-at-position',
   conquestId: 'stage10-4',
   title: 'Insert at Position',
@@ -18,57 +19,43 @@ module.exports = {
   category: 'Linked List – Construction',
   tags: ['Linked List', 'Pointers', 'Traversal'],
 
-  description: `Inserting an element at a specific index in a linked list requires traversing to the $(pos-1)^{th}$ node. Unlike an array where we can access index \`i\` in $O(1)$, a linked list requires $O(pos)$ time to find the spot.
+  // ---- Story Layer ----
+  storyBriefing: `Professor Sprout is impressed. 'One last test of your cultivation skills,' she says. She gives you a new seedling ('val') and a specific position ('pos') in the plant chain. You must carefully insert the new seedling at that exact spot without disturbing the rest of the chain.`,
 
-### Task
-Given the head of a singly linked list, an integer \`val\`, and a 0-based position \`pos\`, insert a new node with value \`val\` at that position.
-1. If \`pos == 0\`, the new node becomes the new head (same as Insert at Head).
-2. Otherwise, use a pointer to skip \`pos - 1\` nodes.
-3. Once you are at the node **before** the desired position:
-   - Point the \`next\` of the new node to the current node's \`next\`.
-   - Update the current node's \`next\` to point to the new node.
-4. If \`pos\` is equal to the length of the list, the node is appended to the tail.
+  // ---- Technical Layer ----
+  description: `You are given the head of a singly linked list, an integer 'val', and a 0-based index 'pos'. Your task is to insert a new node with the value 'val' at the specified position in the list.
 
-### Example
-**Input:**
-\`\`\`
-3
-10 20 30
-15 1
-\`\`\`
+To solve this, handle the case where 'pos' is 0 as an insertion at the head. Otherwise, you need to traverse the list to find the node at position 'pos - 1'. Once you have this 'previous' node, create your new node, link its 'next' pointer to 'previous.next', and then update 'previous.next' to point to your new node. Be sure to handle edge cases, such as inserting at the end of the list.
 
-**Output:**
-\`\`\`
-10 -> 15 -> 20 -> 30 -> NULL
-\`\`\`
-
-**Explanation:**
-The value 15 is inserted at index 1, pushing 20 and 30 to the right.`,
-
+Return the head of the modified linked list.`,
   examples: [
     {
       input: '3\n10 20 30\n15 1',
       output: '10 -> 15 -> 20 -> 30 -> NULL',
-      explanation: '15 is placed between 10 and 20.'
+      explanation: 'Traverse to index 0 (node 10). Insert the new node (15) after it. The new node now points to the original node at index 1 (node 20).'
     },
     {
       input: '2\n1 2\n0 0',
       output: '0 -> 1 -> 2 -> NULL',
-      explanation: 'Inserting at position 0 is an "Insert at Head".'
+      explanation: 'Inserting at position 0 is the same as inserting at the head.'
+    },
+    {
+      input: '2\n1 2\n3 2',
+      output: '1 -> 2 -> 3 -> NULL',
+      explanation: 'Inserting at a position equal to the list length is the same as inserting at the tail.'
     }
   ],
-
   constraints: [
-    '0 ≤ n ≤ 1000',
-    '0 ≤ pos ≤ n',
-    '-10⁵ ≤ val ≤ 10⁵'
+    '0 <= n <= 1000',
+    '0 <= pos <= n',
+    '-10^5 <= val <= 10^5'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
-
-using namespace std;
 
 struct Node {
     int data;
@@ -76,9 +63,6 @@ struct Node {
     Node(int val) : data(val), next(nullptr) {}
 };
 
-/**
- * Inserts val at the specified 0-based position.
- */
 Node* solve(Node* head, int val, int pos) {
     Node* newNode = new Node(val);
     if (pos == 0) {
@@ -86,7 +70,15 @@ Node* solve(Node* head, int val, int pos) {
         return newNode;
     }
     
-    // Your code here: Traverse to (pos - 1) and link newNode
+    Node* prev = head;
+    for (int i = 0; i < pos - 1; ++i) {
+        if (prev == nullptr) return head; // Position is out of bounds
+        prev = prev->next;
+    }
+    if (prev == nullptr) return head; // Position is out of bounds
+
+    newNode->next = prev->next;
+    prev->next = newNode;
     
     return head; 
 }
@@ -117,7 +109,8 @@ int main() {
     printList(head);
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 class Node {
     int data;
@@ -129,9 +122,6 @@ class Node {
 }
 
 public class Main {
-    /**
-     * Inserts val at the specified 0-based position.
-     */
     public static Node solve(Node head, int val, int pos) {
         Node newNode = new Node(val);
         if (pos == 0) {
@@ -139,7 +129,15 @@ public class Main {
             return newNode;
         }
         
-        // Your code here: Traverse to (pos - 1) and link newNode
+        Node prev = head;
+        for (int i = 0; i < pos - 1; i++) {
+            if (prev == null) return head; // Position is out of bounds
+            prev = prev.next;
+        }
+        if (prev == null) return head; // Position is out of bounds
+
+        newNode.next = prev.next;
+        prev.next = newNode;
         
         return head;
     }
@@ -174,11 +172,40 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '3\n10 20 30\n15 1', expected: '10 -> 15 -> 20 -> 30 -> NULL' },
     { input: '2\n1 2\n0 0', expected: '0 -> 1 -> 2 -> NULL' },
     { input: '2\n1 2\n3 2', expected: '1 -> 2 -> 3 -> NULL' },
     { input: '0\n\n100 0', expected: '100 -> NULL' },
-    { input: '5\n1 2 3 4 5\n99 3', expected: '1 -> 2 -> 3 -> 99 -> 4 -> 5 -> NULL' }
-  ]
+    { input: '1\n10\n5 0', expected: '5 -> 10 -> NULL' },
+    { input: '1\n10\n20 1', expected: '10 -> 20 -> NULL' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `To insert a node at a specific position, first handle the edge case of inserting at the head (position 0). For other positions, traverse the list to find the node at 'pos - 1'. A 'current' pointer and a counter can be used for this traversal. Once you reach the node at 'pos - 1', insert the new node by setting its 'next' pointer to the 'current' node's next, and then updating the 'current' node's 'next' to point to the new node. Ensure you handle the case where 'pos' is out of bounds gracefully.`,
+    cpp: `Node* prev = head;
+for (int i = 0; i < pos - 1; ++i) {
+    if (prev == nullptr) return head; // Position is out of bounds
+    prev = prev->next;
+}
+if (prev == nullptr) return head; // Position is out of bounds
+
+newNode->next = prev->next;
+prev->next = newNode;
+
+return head;`,
+    java: `Node prev = head;
+for (int i = 0; i < pos - 1; i++) {
+    if (prev == null) return head; // Position is out of bounds
+    prev = prev.next;
+}
+if (prev == null) return head; // Position is out of bounds
+
+newNode.next = prev.next;
+prev.next = newNode;
+
+return head;`
+  }
 };

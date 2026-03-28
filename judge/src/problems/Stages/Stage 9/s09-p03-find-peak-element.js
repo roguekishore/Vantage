@@ -10,6 +10,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'find-peak-element',
   conquestId: 'stage9-3',
   title: 'Find Peak Element',
@@ -17,63 +18,46 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search'],
 
-  description: `A peak element is an element that is strictly greater than its neighbors.
+  // ---- Story Layer ----
+  storyBriefing: `Your map now shows a series of magical hills and valleys. The next clue is hidden atop one of these peaks. A 'peak' is defined as a point that is higher than its immediate neighbors. The array of altitudes isn't necessarily sorted, but it contains at least one peak. You must find the index of any peak to proceed.`,
 
-Given an integer array \`nums\`, find a peak element, and return its index. If the array contains multiple peaks, return the index to **any of the peaks**.
+  // ---- Technical Layer ----
+  description: `You are given an integer array 'nums'. A peak element is an element that is strictly greater than its neighbors. Your task is to find a peak element and return its index. If the array contains multiple peaks, returning the index to any of the peaks is acceptable. You can imagine that 'nums[-1]' and 'nums[n]' are negative infinity.
 
-You may imagine that \`nums[-1] = nums[n] = -∞\`. In other words, an element is always considered to be strictly greater than a neighbor that is outside the array.
+Your algorithm must run in O(log n) time. This can be achieved with a binary search. Compare the middle element 'nums[mid]' with its right neighbor 'nums[mid + 1]'. If 'nums[mid]' is smaller, you are on an upward slope, so a peak must exist to the right. If 'nums[mid]' is larger, you are on a downward slope, meaning 'mid' itself could be a peak, or one exists to the left.
 
-### Task
-You must write an algorithm that runs in $O(\log n)$ time.
-1. Use **Binary Search**.
-2. Compare \`nums[mid]\` with its right neighbor \`nums[mid + 1]\`.
-3. If \`nums[mid] < nums[mid + 1]\`, you are currently on an upward slope. A peak must exist to the right, so move \`left = mid + 1\`.
-4. If \`nums[mid] > nums[mid + 1]\`, you are on a downward slope. A peak exists at \`mid\` or to its left, so move \`right = mid\`.
-5. The loop converges when \`left == right\`.
-
-### Example
-**Input:**
-\`\`\`
-4
-1 2 3 1
-\`\`\`
-
-**Output:**
-\`\`\`
-2
-\`\`\`
-
-**Explanation:**
-3 is a peak element and your function should return the index number 2.`,
-
+Return the index of any peak element.`,
   examples: [
     {
       input: '4\n1 2 3 1',
       output: '2',
-      explanation: 'Index 2 is a peak because 3 > 2 and 3 > 1.'
+      explanation: '3 is a peak element, located at index 2.'
     },
     {
       input: '7\n1 2 1 3 5 6 4',
-      output: '5',
-      explanation: 'Your function can return index 1 (where element is 2) or index 5 (where element is 6).'
+      output: '1',
+      explanation: 'The function can return either index 1 (peak value 2) or index 5 (peak value 6). Returning 1 is a valid answer.'
+    },
+    {
+      input: '1\n100',
+      output: '0',
+      explanation: 'In a single-element array, that element is considered a peak.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 1000',
-    '-2³¹ ≤ nums[i] ≤ 2³¹ - 1',
-    'nums[i] ≠ nums[i + 1] for all valid i.'
+    '1 <= nums.length <= 1000',
+    '-2^31 <= nums[i] <= 2^31 - 1',
+    'nums[i] != nums[i + 1] for all valid i.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
 
-/**
- * Returns the index of any peak element.
- */
 int solve(int n, vector<int>& nums) {
     int left = 0, right = n - 1;
     // Your code here
@@ -92,12 +76,10 @@ int main() {
     cout << solve(n, nums) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the index of any peak element.
-     */
     public static int solve(int n, int[] nums) {
         int left = 0, right = n - 1;
         // Your code here
@@ -117,16 +99,40 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '4\n1 2 3 1', expected: '2' },
     { input: '7\n1 2 1 3 5 6 4', expected: '5' },
     { input: '1\n10', expected: '0' },
     { input: '2\n1 2', expected: '1' },
     { input: '2\n2 1', expected: '0' },
-    { input: '3\n1 2 3', expected: '2' },
-    { input: '3\n3 2 1', expected: '0' },
+    { input: '3\n1 2 1', expected: '1' },
     { input: '5\n1 2 3 4 5', expected: '4' },
     { input: '5\n5 4 3 2 1', expected: '0' },
-    { input: '6\n1 5 2 4 3 6', expected: '1' }
-  ]
+    { input: '6\n1 2 1 2 1 2', expected: '1' },
+    { input: '4\n1 3 2 4', expected: '1' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The problem can be solved with binary search because every array is guaranteed to have a peak. Initialize 'left' and 'right' pointers. While 'left' is less than 'right', calculate 'mid'. Compare 'nums[mid]' with its right neighbor, 'nums[mid + 1]'. If 'nums[mid]' is smaller, it means we are on an ascending slope, so a peak must lie to the right. We can safely discard the left half by setting 'left = mid + 1'. If 'nums[mid]' is larger, then 'mid' is either a peak or on a descending slope. In this case, a peak must be at 'mid' or to its left. We can discard the right half by setting 'right = mid'. The loop will converge when 'left' and 'right' are equal, pointing to a peak index.`,
+    cpp: `while (left < right) {
+    int mid = left + (right - left) / 2;
+    if (nums[mid] < nums[mid + 1]) {
+        left = mid + 1;
+    } else {
+        right = mid;
+    }
+}
+return left;`,
+    java: `while (left < right) {
+    int mid = left + (right - left) / 2;
+    if (nums[mid] < nums[mid + 1]) {
+        left = mid + 1;
+    } else {
+        right = mid;
+    }
+}
+return left;`
+  }
 };

@@ -17,117 +17,74 @@ module.exports = {
   category: 'Stack – Applications',
   tags: ['Stack', 'Monotonic Stack', 'Array'],
 
-  description: `This is the "Final Boss" of Monotonic Stack problems. Given an array of integers representing the heights of bars in a histogram where the width of each bar is 1, find the area of the largest rectangle that can be formed.
+  storyBriefing: `Lupin leads you to the Room of Requirement, which has transformed into a vast, shifting chamber filled with defensive barriers of varying heights. "This is the ultimate challenge of adaptive shielding," he says gravely. "A truly powerful defensive charm doesn't just block one point- it creates the largest possible continuous protective field. Given this sequence of barrier heights, find the maximum rectangular area of magical energy you can project. The height of any field is limited by its shortest barrier. This will require everything you've learned about tracking boundaries."`,
 
-### The Challenge
-A rectangle's area is determined by its **height** and **width**. 
-- The height is limited by the **shortest bar** within the chosen range.
-- To find the maximum area for a bar at index $i$ with height $h$, we need to find the first bar to the **left** and **right** that is **shorter** than $h$. These bars define the boundaries of the rectangle.
+  description: `You are given an array of non-negative integers representing the heights of bars in a histogram, where the width of each bar is 1. Your task is to find the area of the largest rectangle that can be formed within the histogram.
 
-### The Monotonic Stack Solution
-We can solve this in a single pass $O(n)$ using a stack that maintains indices of bars in **increasing order** of height.
+This is a classic and challenging problem that can be solved optimally in a single pass using a monotonic stack. For any given bar, the largest rectangle that can include it has that bar's height. The width of this rectangle is determined by how far you can extend to the left and right before encountering a bar shorter than the current one. The monotonic stack helps efficiently find these left and right boundaries for all bars.
 
-1.  Traverse each bar.
-2.  If the current bar is **shorter** than the bar at the stack's top, it means we have found the **right boundary** for the bar at the top.
-3.  **Pop** the top index. The height of the rectangle is the height of the popped bar.
-4.  The **left boundary** is the new top of the stack (or -1 if empty).
-5.  Calculate area: $Area = Height \times (RightIndex - LeftIndex - 1)$.
-6.  Keep track of the maximum area found.
-
-### Example
-**Input:** \`\`
-**Output:** \`10\`
-
-**Explanation:**
-The largest rectangle is formed by bars with heights 5 and 6. The height is 5, and the width is 2 (from index 2 to 3). $Area = 5 \times 2 = 10$.`,
+Return a single integer representing the area of the largest possible rectangle.`,
 
   examples: [
     {
       input: '6\n2 1 5 6 2 3',
       output: '10',
-      explanation: 'The rectangle formed by heights 5 and 6 has the largest area.'
+      explanation: 'The largest rectangle has a height of 5 and a width of 2. It is formed by the bars of height 5 and 6, extending from index 2 to 3. The area is 5 * 2 = 10.'
     },
     {
       input: '2\n2 4',
       output: '4',
-      explanation: 'The bar of height 4 alone is the largest (area 4).'
+      explanation: 'Two rectangles can be formed: one with height 2 and width 2 (area 4), and one with height 4 and width 1 (area 4). The max area is 4.'
+    },
+    {
+      input: '1\n5',
+      output: '5',
+      explanation: 'With a single bar of height 5 and width 1, the maximum area is 5.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 10⁵',
-    '0 ≤ heights[i] ≤ 10⁴'
+    'The number of bars (heights.length) is between 1 and 100000.',
+    'The height of each bar is between 0 and 10000.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <stack>
-#include <algorithm>
-
-using namespace std;
-
-/**
- * Calculates the area of the largest rectangle in the histogram.
- */
-long long largestRectangleArea(vector<int>& heights) {
-    stack<int> st;
-    long long maxArea = 0;
-    int n = heights.size();
-    
-    for (int i = 0; i <= n; i++) {
-        // Use 0 height at the end to flush the stack
-        int h = (i == n) ? 0 : heights[i];
-        
-        while (!st.empty() && h < heights[st.top()]) {
-            // Your logic here: Pop and calculate area
-        }
-        st.push(i);
-    }
-    
-    return maxArea;
+    cpp: `long long solve(int n, std::vector<int>& heights) {
+    // Your code here
+    return 0;
 }
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <string>
 int main() {
     int n;
-    if (!(cin >> n)) return 0;
-    vector<int> heights(n);
-    for (int i = 0; i < n; i++) cin >> heights[i];
+    if (!(std::cin >> n)) return 0;
+    std::vector<int> heights(n);
+    for (int i = 0; i < n; i++) std::cin >> heights[i];
     
-    cout << largestRectangleArea(heights) << endl;
+    std::cout << solve(n, heights) << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-public class Main {
-    /**
-     * Calculates the area of the largest rectangle in the histogram.
-     */
-    public static long largestRectangleArea(int[] heights) {
-        Stack<Integer> stack = new Stack<>();
-        long maxArea = 0;
-        int n = heights.length;
-        
-        for (int i = 0; i <= n; i++) {
-            int h = (i == n) ? 0 : heights[i];
-            
-            while (!stack.isEmpty() && h < heights[stack.peek()]) {
-                // Your logic here: Pop and calculate area
-            }
-            stack.push(i);
-        }
-        
-        return maxArea;
+    java: `class Solution {
+    public static long solve(int n, int[] heights) {
+        // Your code here
+        return 0;
     }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         int[] heights = new int[n];
         for (int i = 0; i < n; i++) heights[i] = sc.nextInt();
         
-        System.out.println(largestRectangleArea(heights));
+        System.out.println(Solution.solve(n, heights));
+        sc.close();
     }
 }`
   },
@@ -135,8 +92,47 @@ public class Main {
   testCases: [
     { input: '6\n2 1 5 6 2 3', expected: '10' },
     { input: '2\n2 4', expected: '4' },
-    { input: '5\n1 1 1 1 1', expected: '5' },
-    { input: '4\n10 20 30 40', expected: '60' },
-    { input: '4\n40 30 20 10', expected: '60' }
-  ]
+    { input: '1\n5', expected: '5' },
+    { input: '5\n1 2 3 4 5', expected: '9' },
+    { input: '5\n5 4 3 2 1', expected: '9' },
+    { input: '3\n2 1 2', expected: '3' },
+    { input: '4\n0 0 0 0', expected: '0' },
+    { input: '3\n5 5 5', expected: '15' },
+    { input: '7\n6 2 5 4 5 1 6', expected: '12' },
+    { input: '2\n1 100', expected: '100' }
+  ],
+  
+  solution: {
+    approach: `The O(n) solution uses a monotonic stack that stores the indices of histogram bars in increasing order of height. We iterate through the bars, including a virtual bar of height 0 at the end to flush the stack. For each bar, while the stack is not empty and the current bar's height is less than the height of the bar at the stack's top, we have found the right boundary for the bar at the top. We pop the stack, take its height, and calculate the width. The right boundary is the current index 'i', and the left boundary is the index now at the top of the stack. The area is height * (right_boundary - left_boundary - 1). We continuously update a max_area variable with the largest area found. After the check, we push the current index 'i' onto the stack.`,
+    cpp: `    std::stack<int> st; // Stores indices
+    long long maxArea = 0;
+    
+    for (int i = 0; i <= n; ++i) {
+        int h = (i == n) ? 0 : heights[i];
+        while (!st.empty() && h < heights[st.top()]) {
+            int height = heights[st.top()];
+            st.pop();
+            int width = st.empty() ? i : i - st.top() - 1;
+            maxArea = std::max(maxArea, (long long)height * width);
+        }
+        st.push(i);
+    }
+    
+    return maxArea;`,
+    java: `    java.util.Stack<Integer> stack = new java.util.Stack<>(); // Stores indices
+    long maxArea = 0;
+    
+    for (int i = 0; i <= n; i++) {
+        int h = (i == n) ? 0 : heights[i];
+        
+        while (!stack.isEmpty() && h < heights[stack.peek()]) {
+            int height = heights[stack.pop()];
+            int width = stack.isEmpty() ? i : i - stack.peek() - 1;
+            maxArea = Math.max(maxArea, (long)height * width);
+        }
+        stack.push(i);
+    }
+    
+    return maxArea;`
+  }
 };

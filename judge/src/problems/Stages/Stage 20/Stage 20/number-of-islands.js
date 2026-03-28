@@ -12,11 +12,17 @@
 
 module.exports = {
   id: 'number-of-islands',
-  conquestId: 'stage20-3',
-  title: 'Number of Islands',
+  conquestId: 's20-p03',
+  title: 'Islands of the Underground Lake',
   difficulty: 'Medium',
   category: 'Graphs',
-  tags: ['Graph', 'DFS', 'BFS', 'Grid'],
+  tags: ['Graph', 'DFS', 'BFS', 'Grid', 'Hogwarts'],
+
+  storyBriefing: `
+The tunnels have led you to a massive underground lake. Small rocky outcroppings—islands—dot the dark expanse. "We need to count how many separate islands there are," Harry says, looking at the water where the Basilisk might be hiding. "Each one could be a clue to the entrance."
+
+Given a grid representing the lake, identify and count the number of distinct islands.
+`,
 
   description: `
 You are given a **2D grid** of size **m × n** consisting of **'1's (land)** and **'0's (water)**.
@@ -25,23 +31,18 @@ An **island** is formed by connecting adjacent lands **horizontally or verticall
 
 Your task is to **count the number of islands** in the grid.
 
-You may explore the grid using either **Depth First Search (DFS)** or **Breadth First Search (BFS)**.
-
 **Key idea:**
 - Traverse the grid.
 - When you find an unvisited land cell ('1'), start a DFS/BFS.
 - Mark all connected land cells as visited.
 - Increase the island count.
-- Continue until the grid is fully explored.
-
-This is a classic **graph traversal on a grid** problem.
 `,
 
   examples: [
     {
       input: '4 5\n1 1 0 0 0\n1 1 0 0 0\n0 0 1 0 0\n0 0 0 1 1',
       output: '3',
-      explanation: 'There are three separate islands in the grid.'
+      explanation: 'There are three separate islands: one at the top-left, one in the middle, and one at the bottom-right.'
     }
   ],
 
@@ -53,26 +54,134 @@ This is a classic **graph traversal on a grid** problem.
   boilerplate: {
     cpp: `#include <iostream>
 #include <vector>
+
 using namespace std;
 
 void dfs(int r, int c, vector<vector<int>>& grid, int m, int n) {
-    // TODO: Implement DFS to mark connected land
+    if (r < 0 || c < 0 || r >= m || c >= n || grid[r][c] == 0) return;
+    
+    grid[r][c] = 0; // Mark as visited
+    dfs(r+1, c, grid, m, n);
+    dfs(r-1, c, grid, m, n);
+    dfs(r, c+1, grid, m, n);
+    dfs(r, c-1, grid, m, n);
 }
 
 int numIslands(vector<vector<int>>& grid) {
+    if (grid.empty()) return 0;
     int m = grid.size();
     int n = grid[0].size();
-    
-    // TODO: Count islands using DFS/BFS
-    return 0;
+    int count = 0;
+
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (grid[i][j] == 1) {
+                count++;
+                dfs(i, j, grid, m, n);
+            }
+        }
+    }
+    return count;
 }
 
 int main() {
     int m, n;
-    cin >> m >> n;
+    if (!(cin >> m >> n)) return 0;
 
     vector<vector<int>> grid(m, vector<int>(n));
+    for(int i = 0; i < m; i++)
+        for(int j = 0; j < n; j++)
+            cin >> grid[i][j];
 
+    cout << numIslands(grid) << endl;
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    static void dfs(int r, int c, int[][] grid, int m, int n) {
+        if (r < 0 || c < 0 || r >= m || c >= n || grid[r][c] == 0) return;
+        
+        grid[r][c] = 0;
+        dfs(r+1, c, grid, m, n);
+        dfs(r-1, c, grid, m, n);
+        dfs(r, c+1, grid, m, n);
+        dfs(r, c-1, grid, m, n);
+    }
+
+    static int numIslands(int[][] grid) {
+        if (grid == null || grid.length == 0) return 0;
+        int m = grid.length;
+        int n = grid[0].length;
+        int count = 0;
+
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == 1) {
+                    count++;
+                    dfs(i, j, grid, m, n);
+                }
+            }
+        }
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
+
+        int m = sc.nextInt();
+        int n = sc.nextInt();
+
+        int[][] grid = new int[m][n];
+        for(int i = 0; i < m; i++)
+            for(int j = 0; j < n; j++)
+                grid[i][j] = sc.nextInt();
+
+        System.out.println(numIslands(grid));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+
+using namespace std;
+
+void dfs(int r, int c, vector<vector<int>>& grid, int m, int n) {
+    if (r < 0 || c < 0 || r >= m || c >= n || grid[r][c] == 0) return;
+    
+    grid[r][c] = 0;
+    dfs(r+1, c, grid, m, n);
+    dfs(r-1, c, grid, m, n);
+    dfs(r, c+1, grid, m, n);
+    dfs(r, c-1, grid, m, n);
+}
+
+int numIslands(vector<vector<int>>& grid) {
+    if (grid.empty()) return 0;
+    int m = grid.size();
+    int n = grid[0].size();
+    int count = 0;
+
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (grid[i][j] == 1) {
+                count++;
+                dfs(i, j, grid, m, n);
+            }
+        }
+    }
+    return count;
+}
+
+int main() {
+    int m, n;
+    if (!(cin >> m >> n)) return 0;
+
+    vector<vector<int>> grid(m, vector<int>(n));
     for(int i = 0; i < m; i++)
         for(int j = 0; j < n; j++)
             cin >> grid[i][j];
@@ -84,34 +193,48 @@ int main() {
     java: `import java.util.*;
 
 public class Main {
-
     static void dfs(int r, int c, int[][] grid, int m, int n) {
-        // TODO: Implement DFS to mark connected land
+        if (r < 0 || c < 0 || r >= m || c >= n || grid[r][c] == 0) return;
+        
+        grid[r][c] = 0;
+        dfs(r+1, c, grid, m, n);
+        dfs(r-1, c, grid, m, n);
+        dfs(r, c+1, grid, m, n);
+        dfs(r, c-1, grid, m, n);
     }
 
     static int numIslands(int[][] grid) {
+        if (grid == null || grid.length == 0) return 0;
         int m = grid.length;
         int n = grid[0].length;
+        int count = 0;
 
-        // TODO: Count islands using DFS/BFS
-        return 0;
+        for (int i = 0; i < m; i++) {
+            for (int j = 0; j < n; j++) {
+                if (grid[i][j] == 1) {
+                    count++;
+                    dfs(i, j, grid, m, n);
+                }
+            }
+        }
+        return count;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
 
         int m = sc.nextInt();
         int n = sc.nextInt();
 
         int[][] grid = new int[m][n];
-
         for(int i = 0; i < m; i++)
             for(int j = 0; j < n; j++)
                 grid[i][j] = sc.nextInt();
 
         System.out.print(numIslands(grid));
     }
-}`,
+}`
   },
 
   testCases: [

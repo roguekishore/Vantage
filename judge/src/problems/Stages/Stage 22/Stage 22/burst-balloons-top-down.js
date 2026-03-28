@@ -12,11 +12,15 @@
 module.exports = {
   id: 'burst-balloons-top-down',
   conquestId: 'stage22-8',
-  title: 'Burst Balloons (Top Down)',
+  title: 'The Recursive Gem Explosion',
   difficulty: 'Hard',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Memoization', 'Interval DP', 'Recursion'],
+  storyBriefing: `
+You're back in the Exploding Gem Vault, but this time, you've found a scroll detailing a recursive magical incantation. Instead of building up a solution, this spell works by breaking the problem down.
 
+The spell asks you to consider the *last* gem to burst in any given sequence. By recursively solving for the sub-sequences to the left and right of that final gem, and remembering the results of sub-problems you've already solved (memoization), you can find the maximum coins.
+`,
   description: `
 You are given **n balloons**, each with a number written on it represented by the array **nums**.
 
@@ -76,19 +80,35 @@ Use **memoization** to store previously computed results.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int dfs(int left, int right, vector<int>& nums, vector<vector<int>>& memo) {
-        // TODO: Implement memoized recursion
-        return 0;
+        if (left + 1 == right) {
+            return 0;
+        }
+        if (memo[left][right] > 0) {
+            return memo[left][right];
+        }
+        int ans = 0;
+        for (int i = left + 1; i < right; ++i) {
+            ans = max(ans, nums[left] * nums[i] * nums[right] + dfs(left, i, nums, memo) + dfs(i, right, nums, memo));
+        }
+        memo[left][right] = ans;
+        return ans;
     }
 
     int maxCoins(vector<int>& nums) {
-        // TODO: Prepare padded array and memo table
-        return 0;
+        int n = nums.size();
+        nums.insert(nums.begin(), 1);
+        nums.push_back(1);
+        vector<vector<int>> memo(n + 2, vector<int>(n + 2, 0));
+        return dfs(0, n + 1, nums, memo);
     }
 };
 
@@ -110,32 +130,139 @@ int main() {
 public class Main {
 
     static class Solution {
-
-        int dfs(int left, int right, int[] nums, int[][] memo) {
-            // TODO: Implement memoized recursion
-            return 0;
+        public int dfs(int left, int right, int[] nums, int[][] memo) {
+            if (left + 1 == right) {
+                return 0;
+            }
+            if (memo[left][right] > 0) {
+                return memo[left][right];
+            }
+            int ans = 0;
+            for (int i = left + 1; i < right; i++) {
+                ans = Math.max(ans, nums[left] * nums[i] * nums[right] + dfs(left, i, nums, memo) + dfs(i, right, nums, memo));
+            }
+            memo[left][right] = ans;
+            return ans;
         }
 
         public int maxCoins(int[] nums) {
-            // TODO: Prepare padded array and memo table
-            return 0;
+            int n = nums.length;
+            int[] newNums = new int[n + 2];
+            newNums[0] = 1;
+            newNums[n + 1] = 1;
+            for (int i = 0; i < n; i++) {
+                newNums[i + 1] = nums[i];
+            }
+            int[][] memo = new int[n + 2][n + 2];
+            return dfs(0, n + 1, newNums, memo);
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
-        int[] nums = new int[n];
 
-        for (int i = 0; i < n; i++)
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
             nums[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.maxCoins(nums));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int dfs(int left, int right, vector<int>& nums, vector<vector<int>>& memo) {
+        if (left + 1 == right) {
+            return 0;
+        }
+        if (memo[left][right] > 0) {
+            return memo[left][right];
+        }
+        int ans = 0;
+        for (int i = left + 1; i < right; ++i) {
+            ans = max(ans, nums[left] * nums[i] * nums[right] + dfs(left, i, nums, memo) + dfs(i, right, nums, memo));
+        }
+        memo[left][right] = ans;
+        return ans;
+    }
+
+    int maxCoins(vector<int>& nums) {
+        int n = nums.size();
+        nums.insert(nums.begin(), 1);
+        nums.push_back(1);
+        vector<vector<int>> memo(n + 2, vector<int>(n + 2, 0));
+        return dfs(0, n + 1, nums, memo);
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> nums(n);
+    for (int i = 0; i < n; i++)
+        cin >> nums[i];
+
+    Solution sol;
+    cout << sol.maxCoins(nums);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int dfs(int left, int right, int[] nums, int[][] memo) {
+            if (left + 1 == right) {
+                return 0;
+            }
+            if (memo[left][right] > 0) {
+                return memo[left][right];
+            }
+            int ans = 0;
+            for (int i = left + 1; i < right; i++) {
+                ans = Math.max(ans, nums[left] * nums[i] * nums[right] + dfs(left, i, nums, memo) + dfs(i, right, nums, memo));
+            }
+            memo[left][right] = ans;
+            return ans;
+        }
+
+        public int maxCoins(int[] nums) {
+            int n = nums.length;
+            int[] newNums = new int[n + 2];
+            newNums[0] = 1;
+            newNums[n + 1] = 1;
+            for (int i = 0; i < n; i++) {
+                newNums[i + 1] = nums[i];
+            }
+            int[][] memo = new int[n + 2][n + 2];
+            return dfs(0, n + 1, newNums, memo);
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
+            nums[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.maxCoins(nums));
     }
 }`
   },

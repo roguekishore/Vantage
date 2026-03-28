@@ -10,6 +10,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'find-minimum-in-rotated-sorted-array',
   conquestId: 'stage9-2',
   title: 'Find Minimum in Rotated Sorted Array',
@@ -17,42 +18,20 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search'],
 
-  description: `Suppose an array of length \`n\` sorted in ascending order is **rotated** between 1 and \`n\` times.
+  // ---- Story Layer ----
+  storyBriefing: `As you navigate the rotated corridors, you realize the key to understanding the layout is to find the 'pivot point' - the place where the rotation happened. This pivot point will always be the room with the smallest number. You need to find this minimum value in the rotated sorted list of room numbers to re-orient your map.`,
 
-For example, the array \`nums =\` might become:
-* \`\` if it was rotated 4 times.
-* \`\` if it was rotated 7 times.
+  // ---- Technical Layer ----
+  description: `You are given a sorted array of unique elements that has been rotated between 1 and n times. Your task is to find the minimum element in this array. You must write an algorithm that runs in O(log n) time.
 
-Given the sorted rotated array \`nums\` of **unique** elements, return the **minimum element** of this array.
+This problem is a variation of binary search. The minimum element is the pivot point where the rotation occurs. By comparing the middle element with the element at the right boundary, you can determine which half of the array contains the pivot. If 'nums[mid]' is greater than 'nums[right]', the pivot must be in the right half. Otherwise, the pivot is in the left half (including 'mid' itself).
 
-### Task
-You must write an algorithm that runs in $O(\log n)$ time.
-1. Use **Binary Search**.
-2. Compare \`nums[mid]\` with the rightmost element \`nums[right]\`.
-3. If \`nums[mid] > nums[right]\`, the minimum must be in the right half (the inflection point is there).
-4. If \`nums[mid] < nums[right]\`, the minimum is either \`mid\` or to the left.
-5. Unlike standard binary search, you don't return immediately on a match; you narrow the range until \`left == right\`.
-
-### Example
-**Input:**
-\`\`\`
-5
-3 4 5 1 2
-\`\`\`
-
-**Output:**
-\`\`\`
-1
-\`\`\`
-
-**Explanation:**
-The original array was rotated 3 times.`,
-
+Return the minimum element in the array.`,
   examples: [
     {
       input: '5\n3 4 5 1 2',
       output: '1',
-      explanation: 'The minimum element is 1.'
+      explanation: 'The original array was likely [1, 2, 3, 4, 5] and rotated. The minimum element is 1.'
     },
     {
       input: '7\n4 5 6 7 0 1 2',
@@ -62,26 +41,24 @@ The original array was rotated 3 times.`,
     {
       input: '4\n11 13 15 17',
       output: '11',
-      explanation: 'The array is not rotated (or rotated n times).'
+      explanation: 'The array was not rotated (or rotated n times). The minimum element is the first one.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 5000',
-    '-5000 ≤ nums[i] ≤ 5000',
+    '1 <= n <= 5000',
+    '-5000 <= nums[i] <= 5000',
     'All the integers of nums are unique.',
     'nums is sorted and rotated between 1 and n times.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
 
-/**
- * Finds the minimum element in a rotated sorted array.
- */
 int solve(int n, vector<int>& nums) {
     int left = 0, right = n - 1;
     // Your code here
@@ -100,12 +77,10 @@ int main() {
     cout << solve(n, nums) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Finds the minimum element in a rotated sorted array.
-     */
     public static int solve(int n, int[] nums) {
         int left = 0, right = n - 1;
         // Your code here
@@ -125,16 +100,40 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '5\n3 4 5 1 2', expected: '1' },
     { input: '7\n4 5 6 7 0 1 2', expected: '0' },
     { input: '4\n11 13 15 17', expected: '11' },
-    { input: '2\n2 1', expected: '1' },
     { input: '1\n10', expected: '10' },
-    { input: '3\n2 3 1', expected: '1' },
+    { input: '2\n2 1', expected: '1' },
     { input: '3\n3 1 2', expected: '1' },
     { input: '5\n2 3 4 5 1', expected: '1' },
-    { input: '6\n10 20 30 1 2 3', expected: '1' },
-    { input: '8\n5 6 7 8 9 10 3 4', expected: '3' }
-  ]
+    { input: '5\n5 1 2 3 4', expected: '1' },
+    { input: '2\n-1 -2', expected: '-2' },
+    { input: '10\n10 20 30 40 50 -50 -40 -30 -20 -10', expected: '-50' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The problem of finding the minimum in a rotated sorted array is equivalent to finding the pivot point. This can be done with a modified binary search. Initialize 'left' and 'right' pointers. While 'left' is less than 'right', calculate 'mid'. Compare 'nums[mid]' with 'nums[right]'. If 'nums[mid]' is greater, it means the pivot (and thus the minimum element) lies in the right half of the current range, so we set 'left = mid + 1'. Otherwise, the minimum is either at 'mid' or in the left half, so we set 'right = mid'. The loop terminates when 'left' and 'right' converge on the index of the minimum element.`,
+    cpp: `while (left < right) {
+    int mid = left + (right - left) / 2;
+    if (nums[mid] > nums[right]) {
+        left = mid + 1;
+    } else {
+        right = mid;
+    }
+}
+return nums[left];`,
+    java: `while (left < right) {
+    int mid = left + (right - left) / 2;
+    if (nums[mid] > nums[right]) {
+        left = mid + 1;
+    } else {
+        right = mid;
+    }
+}
+return nums[left];`
+  }
 };

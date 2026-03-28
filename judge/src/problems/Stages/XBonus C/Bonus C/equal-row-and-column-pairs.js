@@ -11,12 +11,16 @@
 
 module.exports = {
   id: 'equal-row-and-column-pairs',
-  conquestId: 'bonusC-2',
-  title: 'Equal Row and Column Pairs',
+  conquestId: 'bonusC-1',
+  title: 'Prophecy Grid Alignment',
   difficulty: 'Medium',
   category: 'Matrix',
   tags: ['Matrix', 'Hash Map', 'Array'],
+  storyBriefing: `
+In the Divination classroom, you are tasked with interpreting a "Prophecy Grid." This magical grid reveals glimpses of the future, but only when its internal symmetries are understood.
 
+An alignment occurs when a row's sequence of symbols is identical to a column's sequence. Each such alignment strengthens the clarity of the prophecy. Your task is to count how many such alignments exist in a given grid to determine the prophecy's overall power.
+`,
   description: `Given a **0-indexed n × n integer matrix grid**, return the number of pairs **(ri, cj)** such that **row ri** and **column cj** are equal.
 
 Two sequences are considered equal if they contain the same elements in the same order.
@@ -57,12 +61,32 @@ This reduces the time complexity to **O(n²)** instead of comparing every row-co
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <map>
+
 using namespace std;
 
 int equalPairs(vector<vector<int>>& grid) {
-    // TODO: Implement your solution here
-    return 0;
+    int n = grid.size();
+    int count = 0;
+    map<vector<int>, int> row_counts;
+
+    for (int i = 0; i < n; ++i) {
+        row_counts[grid[i]]++;
+    }
+
+    for (int j = 0; j < n; ++j) {
+        vector<int> col;
+        for (int i = 0; i < n; ++i) {
+            col.push_back(grid[i][j]);
+        }
+        if (row_counts.count(col)) {
+            count += row_counts[col];
+        }
+    }
+
+    return count;
 }
 
 int main() {
@@ -78,34 +102,138 @@ int main() {
 
     cout << equalPairs(grid);
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
-
     public static int equalPairs(int[][] grid) {
-        // TODO: Implement your solution here
-        return 0;
+        int n = grid.length;
+        int count = 0;
+        Map<String, Integer> rowCounts = new HashMap<>();
+
+        for (int[] row : grid) {
+            StringBuilder sb = new StringBuilder();
+            for (int num : row) {
+                sb.append(num).append(",");
+            }
+            String rowStr = sb.toString();
+            rowCounts.put(rowStr, rowCounts.getOrDefault(rowStr, 0) + 1);
+        }
+
+        for (int j = 0; j < n; j++) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < n; i++) {
+                sb.append(grid[i][j]).append(",");
+            }
+            String colStr = sb.toString();
+            if (rowCounts.containsKey(colStr)) {
+                count += rowCounts.get(colStr);
+            }
+        }
+
+        return count;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
         int[][] grid = new int[n][n];
-
-        for(int i = 0; i < n; i++) {
-            for(int j = 0; j < n; j++) {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
                 grid[i][j] = sc.nextInt();
             }
         }
-
-        System.out.print(equalPairs(grid));
+        System.out.println(equalPairs(grid));
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <map>
+
+using namespace std;
+
+int equalPairs(vector<vector<int>>& grid) {
+    int n = grid.size();
+    int count = 0;
+    map<vector<int>, int> row_counts;
+
+    for (int i = 0; i < n; ++i) {
+        row_counts[grid[i]]++;
+    }
+
+    for (int j = 0; j < n; ++j) {
+        vector<int> col;
+        for (int i = 0; i < n; ++i) {
+            col.push_back(grid[i][j]);
+        }
+        if (row_counts.count(col)) {
+            count += row_counts[col];
+        }
+    }
+
+    return count;
 }
-`,
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> grid(n, vector<int>(n));
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < n; j++) {
+            cin >> grid[i][j];
+        }
+    }
+
+    cout << equalPairs(grid);
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    public static int equalPairs(int[][] grid) {
+        int n = grid.length;
+        int count = 0;
+        Map<String, Integer> rowCounts = new HashMap<>();
+
+        for (int[] row : grid) {
+            StringBuilder sb = new StringBuilder();
+            for (int num : row) {
+                sb.append(num).append(",");
+            }
+            String rowStr = sb.toString();
+            rowCounts.put(rowStr, rowCounts.getOrDefault(rowStr, 0) + 1);
+        }
+
+        for (int j = 0; j < n; j++) {
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < n; i++) {
+                sb.append(grid[i][j]).append(",");
+            }
+            String colStr = sb.toString();
+            if (rowCounts.containsKey(colStr)) {
+                count += rowCounts.get(colStr);
+            }
+        }
+
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int[][] grid = new int[n][n];
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                grid[i][j] = sc.nextInt();
+            }
+        }
+        System.out.println(equalPairs(grid));
+    }
+}`,
   },
 
   testCases: [

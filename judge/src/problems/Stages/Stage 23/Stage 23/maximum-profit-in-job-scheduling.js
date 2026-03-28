@@ -14,11 +14,15 @@
 module.exports = {
   id: 'maximum-profit-in-job-scheduling',
   conquestId: 'stage23-5',
-  title: 'Maximum Profit in Job Scheduling',
+  title: "Yule Ball: Dance Scheduling",
   difficulty: 'Hard',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Binary Search', 'Sorting', 'Greedy'],
+  storyBriefing: `
+It's time for the Yule Ball! As a member of the organizing committee, you need to schedule a series of magical performances. Each performance has a start time, an end time, and an associated "enchantment value" (profit).
 
+Your task is to select a set of non-overlapping performances that maximizes the total enchantment value for the evening.
+`,
   description: `
 You are given **n jobs**, where every job has:
 
@@ -71,14 +75,54 @@ Space Complexity: **O(n)**
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
+
+struct Job {
+    int start, end, profit;
+};
+
+bool compareJobs(const Job& a, const Job& b) {
+    return a.end < b.end;
+}
 
 class Solution {
 public:
     int jobScheduling(vector<int>& startTime, vector<int>& endTime, vector<int>& profit) {
-        // TODO: Implement DP + Binary Search solution
-        return 0;
+        int n = startTime.size();
+        vector<Job> jobs(n);
+        for (int i = 0; i < n; ++i) {
+            jobs[i] = {startTime[i], endTime[i], profit[i]};
+        }
+        sort(jobs.begin(), jobs.end(), compareJobs);
+
+        vector<int> dp(n);
+        dp[0] = jobs[0].profit;
+
+        for (int i = 1; i < n; ++i) {
+            int current_profit = jobs[i].profit;
+            int prev_job_index = -1;
+            
+            int low = 0, high = i - 1;
+            while(low <= high){
+                int mid = low + (high - low) / 2;
+                if(jobs[mid].end <= jobs[i].start){
+                    prev_job_index = mid;
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            if (prev_job_index != -1) {
+                current_profit += dp[prev_job_index];
+            }
+            dp[i] = max(current_profit, dp[i - 1]);
+        }
+        return dp[n - 1];
     }
 };
 
@@ -97,22 +141,56 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
-public class Main {
+class Job {
+    int start, end, profit;
+    Job(int start, int end, int profit) {
+        this.start = start;
+        this.end = end;
+        this.profit = profit;
+    }
+}
 
+public class Main {
     static class Solution {
         public int jobScheduling(int[] startTime, int[] endTime, int[] profit) {
-            // TODO: Implement DP + Binary Search solution
-            return 0;
+            int n = startTime.length;
+            Job[] jobs = new Job[n];
+            for (int i = 0; i < n; i++) {
+                jobs[i] = new Job(startTime[i], endTime[i], profit[i]);
+            }
+            Arrays.sort(jobs, (a, b) -> a.end - b.end);
+
+            int[] dp = new int[n];
+            dp[0] = jobs[0].profit;
+
+            for (int i = 1; i < n; i++) {
+                int currentProfit = jobs[i].profit;
+                int prevJobIndex = -1;
+                
+                int low = 0, high = i - 1;
+                while(low <= high){
+                    int mid = low + (high - low) / 2;
+                    if(jobs[mid].end <= jobs[i].start){
+                        prevJobIndex = mid;
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                }
+
+                if (prevJobIndex != -1) {
+                    currentProfit += dp[prevJobIndex];
+                }
+                dp[i] = Math.max(currentProfit, dp[i - 1]);
+            }
+            return dp[n - 1];
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
 
         int[] startTime = new int[n];
@@ -125,8 +203,139 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.jobScheduling(startTime, endTime, profit));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Job {
+    int start, end, profit;
+};
+
+bool compareJobs(const Job& a, const Job& b) {
+    return a.end < b.end;
+}
+
+class Solution {
+public:
+    int jobScheduling(vector<int>& startTime, vector<int>& endTime, vector<int>& profit) {
+        int n = startTime.size();
+        vector<Job> jobs(n);
+        for (int i = 0; i < n; ++i) {
+            jobs[i] = {startTime[i], endTime[i], profit[i]};
+        }
+        sort(jobs.begin(), jobs.end(), compareJobs);
+
+        vector<int> dp(n);
+        dp[0] = jobs[0].profit;
+
+        for (int i = 1; i < n; ++i) {
+            int current_profit = jobs[i].profit;
+            int prev_job_index = -1;
+            
+            int low = 0, high = i - 1;
+            while(low <= high){
+                int mid = low + (high - low) / 2;
+                if(jobs[mid].end <= jobs[i].start){
+                    prev_job_index = mid;
+                    low = mid + 1;
+                } else {
+                    high = mid - 1;
+                }
+            }
+
+            if (prev_job_index != -1) {
+                current_profit += dp[prev_job_index];
+            }
+            dp[i] = max(current_profit, dp[i - 1]);
+        }
+        return dp[n - 1];
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> startTime(n), endTime(n), profit(n);
+
+    for (int i = 0; i < n; i++) cin >> startTime[i];
+    for (int i = 0; i < n; i++) cin >> endTime[i];
+    for (int i = 0; i < n; i++) cin >> profit[i];
+
+    Solution sol;
+    cout << sol.jobScheduling(startTime, endTime, profit);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+class Job {
+    int start, end, profit;
+    Job(int start, int end, int profit) {
+        this.start = start;
+        this.end = end;
+        this.profit = profit;
+    }
+}
+
+public class Main {
+    static class Solution {
+        public int jobScheduling(int[] startTime, int[] endTime, int[] profit) {
+            int n = startTime.length;
+            Job[] jobs = new Job[n];
+            for (int i = 0; i < n; i++) {
+                jobs[i] = new Job(startTime[i], endTime[i], profit[i]);
+            }
+            Arrays.sort(jobs, (a, b) -> a.end - b.end);
+
+            int[] dp = new int[n];
+            dp[0] = jobs[0].profit;
+
+            for (int i = 1; i < n; i++) {
+                int currentProfit = jobs[i].profit;
+                int prevJobIndex = -1;
+
+                int low = 0, high = i - 1;
+                while(low <= high){
+                    int mid = low + (high - low) / 2;
+                    if(jobs[mid].end <= jobs[i].start){
+                        prevJobIndex = mid;
+                        low = mid + 1;
+                    } else {
+                        high = mid - 1;
+                    }
+                }
+
+                if (prevJobIndex != -1) {
+                    currentProfit += dp[prevJobIndex];
+                }
+                dp[i] = Math.max(currentProfit, dp[i - 1]);
+            }
+            return dp[n - 1];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] startTime = new int[n];
+        int[] endTime = new int[n];
+        int[] profit = new int[n];
+
+        for (int i = 0; i < n; i++) startTime[i] = sc.nextInt();
+        for (int i = 0; i < n; i++) endTime[i] = sc.nextInt();
+        for (int i = 0; i < n; i++) profit[i] = sc.nextInt();
+
+        Solution sol = new Solution();
+        System.out.print(sol.jobScheduling(startTime, endTime, profit));
     }
 }`
   },

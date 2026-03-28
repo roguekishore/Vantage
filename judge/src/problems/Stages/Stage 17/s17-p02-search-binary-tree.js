@@ -17,116 +17,113 @@ module.exports = {
   category: 'Trees – Construction',
   tags: ['Tree', 'Recursion', 'DFS', 'BFS'],
 
-  description: `Searching is one of the most fundamental operations in a tree. Unlike a **Binary Search Tree (BST)**, where we know which branch to take based on the value, a standard **Binary Tree** is unsorted.
+  storyBriefing: `Lupin nods, pleased with the constructed tree. "Good. The basic structure is sound. Now, a map is useless if you can't find anything on it. I need to know if a particular room-let's say the Divination classroom, room number 4-exists in this section of the castle. You'll have to traverse the tree to find out. There's no special order to this map yet, so you'll have to check every path."`,
 
-To find a value in an unsorted Binary Tree, we must visit the nodes until we find a match or exhaust the tree.
+  description: `You are given the root of a binary tree and a target integer value. Your task is to determine if a node with the target value exists anywhere in the tree.
 
-### The Recursive Approach (DFS)
-The logic is elegantly simple:
-1.  **Base Case 1**: If the current node is \`null\`, the value isn't here. Return \`false\`.
-2.  **Base Case 2**: If the current node's value equals the target, return \`true\`.
-3.  **Recursive Step**: Search the **left** subtree OR search the **right** subtree. If either returns \`true\`, the value exists in the tree.
+Because a standard binary tree has no inherent order, you must traverse its nodes until you either find the target value or have visited every node. This can be done using either Depth-First Search (DFS) or Breadth-First Search (BFS). A recursive DFS approach is often the most elegant solution.
 
-### Time & Space Complexity
-- **Time**: $O(n)$ in the worst case, as we might need to visit every node.
-- **Space**: $O(h)$, where $h$ is the height of the tree, due to the recursion stack.
-
-### Task
-Implement a function to determine if a target value exists within the provided binary tree.`,
+Return true if a node with the target value is found, otherwise return false.`,
 
   examples: [
     {
-      input: '1 2 3 null null 4 5\n4',
+      input: '4 2 7 1 3\n2',
       output: 'true',
-      explanation: '4 is the left child of 3.'
+      explanation: 'The traversal finds the node with value 2 in the tree.'
     },
     {
-      input: '1 2 3\n10',
+      input: '4 2 7 1 3\n5',
       output: 'false',
-      explanation: '10 is not present in the tree.'
+      explanation: 'The traversal completes without finding a node with value 5.'
+    },
+    {
+      input: '1 null 2 null 3\n3',
+      output: 'true',
+      explanation: 'The target value 3 exists in the tree.'
     }
   ],
 
   constraints: [
-    'Number of nodes ≤ 5000',
-    '-10⁹ ≤ node.val, target ≤ 10⁹'
+    'The number of nodes in the tree is between 0 and 10000.',
+    'The value of each node and the target is between -10^9 and 10^9.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <queue>
-#include <string>
-#include <sstream>
-
-using namespace std;
-
-struct TreeNode {
+    cpp: `struct TreeNode {
     int val;
     TreeNode *left, *right;
     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
 };
 
-// --- Implement this function ---
-bool search(TreeNode* root, int target) {
-    if (!root) return false;
+bool solve(TreeNode* root, int target) {
     // Your code here
     return false;
 }
 
-TreeNode* buildTree(string input) {
-    if (input.empty() || input == "null") return NULL;
-    stringstream ss(input);
-    string item;
-    ss >> item;
-    TreeNode* root = new TreeNode(stoi(item));
-    queue<TreeNode*> q;
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <string>
+#include <sstream>
+
+TreeNode* buildTree(const std::vector<std::string>& nodes) {
+    if (nodes.empty() || nodes[0] == "null") return nullptr;
+    TreeNode* root = new TreeNode(std::stoi(nodes[0]));
+    std::queue<TreeNode*> q;
     q.push(root);
-    while (!q.empty()) {
-        TreeNode* curr = q.front(); q.pop();
-        if (!(ss >> item)) break;
-        if (item != "null") {
-            curr->left = new TreeNode(stoi(item));
+    int i = 1;
+    while (!q.empty() && i < nodes.size()) {
+        TreeNode* curr = q.front();
+        q.pop();
+        if (i < nodes.size() && nodes[i] != "null") {
+            curr->left = new TreeNode(std::stoi(nodes[i]));
             q.push(curr->left);
         }
-        if (!(ss >> item)) break;
-        if (item != "null") {
-            curr->right = new TreeNode(stoi(item));
+        i++;
+        if (i < nodes.size() && nodes[i] != "null") {
+            curr->right = new TreeNode(std::stoi(nodes[i]));
             q.push(curr->right);
         }
+        i++;
     }
     return root;
 }
 
 int main() {
-    string line;
-    getline(cin, line);
-    TreeNode* root = buildTree(line);
+    std::string line;
+    std::getline(std::cin, line);
+    std::stringstream ss(line);
+    std::string val_str;
+    std::vector<std::string> nodes;
+    while (ss >> val_str) {
+        nodes.push_back(val_str);
+    }
     int target;
-    cin >> target;
-    cout << (search(root, target) ? "true" : "false") << endl;
+    std::cin >> target;
+    TreeNode* root = buildTree(nodes);
+    std::cout << (solve(root, target) ? "true" : "false") << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-class TreeNode {
+    java: `class TreeNode {
     int val;
     TreeNode left, right;
     TreeNode(int x) { val = x; }
 }
 
-public class Main {
-    // --- Implement this method ---
-    public static boolean search(TreeNode root, int target) {
-        if (root == null) return false;
+class Solution {
+    public static boolean solve(TreeNode root, int target) {
         // Your code here
         return false;
     }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
     public static TreeNode buildTree(String[] nodes) {
-        if (nodes.length == 0 || nodes.equals("null")) return null;
-        TreeNode root = new TreeNode(Integer.parseInt(nodes));
-        Queue<TreeNode> q = new LinkedList<>();
+        if (nodes.length == 0 || nodes[0].equals("null")) return null;
+        TreeNode root = new TreeNode(Integer.parseInt(nodes[0]));
+        java.util.Queue<TreeNode> q = new java.util.LinkedList<>();
         q.add(root);
         int i = 1;
         while (!q.isEmpty() && i < nodes.length) {
@@ -146,20 +143,44 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextLine()) return;
         String line = sc.nextLine();
         int target = sc.nextInt();
-        TreeNode root = buildTree(line.split("\\\\s+"));
-        System.out.println(search(root, target));
+        TreeNode root = buildTree(line.split(" "));
+        System.out.println(Solution.solve(root, target));
+        sc.close();
     }
 }`
   },
 
   testCases: [
-    { input: '1 2 3 null null 4 5\n4', expected: 'true' },
-    { input: '1 2 3\n5', expected: 'false' },
-    { input: '10 20 30 40 50\n50', expected: 'true' },
-    { input: '5\n5', expected: 'true' }
-  ]
+    { input: '4 2 7 1 3\n5', expected: 'false' },
+    { input: '4 2 7 1 3\n2', expected: 'true' },
+    { input: '1\n1', expected: 'true' },
+    { input: '1\n0', expected: 'false' },
+    { input: 'null\n10', expected: 'false' },
+    { input: '1 2 3 4 5 6 7\n7', expected: 'true' },
+    { input: '1 2 3 4 5 6 7\n8', expected: 'false' },
+    { input: '0\n0', expected: 'true' },
+    { input: '-10 5 -3 null 2 null 11 3 -2\n-2', expected: 'true' }
+  ],
+  
+  solution: {
+    approach: `The recursive Depth-First Search (DFS) approach is natural for tree traversal. The base case for the recursion is a null node, which means the target isn't in that branch, so we return false. Otherwise, we check if the current node's value matches the target. If it does, we return true. If not, we make two recursive calls: one on the left child and one on the right child. If either of these calls returns true (using the OR || operator), it means the target was found in one of the subtrees, and we propagate this true value up the call stack.`,
+    cpp: `    if (root == NULL) {
+        return false;
+    }
+    if (root->val == target) {
+        return true;
+    }
+    return solve(root->left, target) || solve(root->right, target);`,
+    java: `    if (root == null) {
+        return false;
+    }
+    if (root.val == target) {
+        return true;
+    }
+    return solve(root.left, target) || solve(root.right, target);`
+  }
 };

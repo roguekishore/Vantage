@@ -12,11 +12,15 @@
 module.exports = {
   id: 'longest-increasing-subsequence',
   conquestId: 'stage22-4',
-  title: 'Longest Increasing Subsequence',
+  title: 'The Gemstone Collection Vault',
   difficulty: 'Medium',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Binary Search', 'Array'],
+  storyBriefing: `
+This Gringotts vault holds a collection of rare gemstones, each with a specific value. They are arranged in a line. To pass, you must identify the longest possible sequence of gemstones you can pick, such that their values are strictly increasing.
 
+You must maintain the original relative order of the gemstones. For example, you can't pick a gemstone that appears earlier in the line after one that appears later.
+`,
   description: `
 Given an integer array **nums**, return the **length of the longest strictly increasing subsequence**.
 
@@ -55,14 +59,28 @@ This problem can be solved using:
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int lengthOfLIS(vector<int>& nums) {
-        // TODO: Implement LIS logic
-        return 0;
+        if (nums.empty()) {
+            return 0;
+        }
+        vector<int> dp;
+        for (int num : nums) {
+            auto it = lower_bound(dp.begin(), dp.end(), num);
+            if (it == dp.end()) {
+                dp.push_back(num);
+            } else {
+                *it = num;
+            }
+        }
+        return dp.size();
     }
 };
 
@@ -79,15 +97,28 @@ int main() {
 
     return 0;
 }`,
-    
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int lengthOfLIS(int[] nums) {
-            // TODO: Implement LIS logic
-            return 0;
+            if (nums == null || nums.length == 0) {
+                return 0;
+            }
+            ArrayList<Integer> dp = new ArrayList<>();
+            for (int num : nums) {
+                int i = Collections.binarySearch(dp, num);
+                if (i < 0) {
+                    i = -(i + 1);
+                }
+                if (i == dp.size()) {
+                    dp.add(num);
+                } else {
+                    dp.set(i, num);
+                }
+            }
+            return dp.size();
         }
     }
 
@@ -102,8 +133,85 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.lengthOfLIS(nums));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int lengthOfLIS(vector<int>& nums) {
+        if (nums.empty()) {
+            return 0;
+        }
+        vector<int> dp;
+        for (int num : nums) {
+            auto it = lower_bound(dp.begin(), dp.end(), num);
+            if (it == dp.end()) {
+                dp.push_back(num);
+            } else {
+                *it = num;
+            }
+        }
+        return dp.size();
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> nums(n);
+    for (int i = 0; i < n; i++)
+        cin >> nums[i];
+
+    Solution sol;
+    cout << sol.lengthOfLIS(nums);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int lengthOfLIS(int[] nums) {
+            if (nums == null || nums.length == 0) {
+                return 0;
+            }
+            ArrayList<Integer> dp = new ArrayList<>();
+            for (int num : nums) {
+                int i = Collections.binarySearch(dp, num);
+                if (i < 0) {
+                    i = -(i + 1);
+                }
+                if (i == dp.size()) {
+                    dp.add(num);
+                } else {
+                    dp.set(i, num);
+                }
+            }
+            return dp.size();
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+        int[] nums = new int[n];
+
+        for (int i = 0; i < n; i++)
+            nums[i] = sc.nextInt();
+
+        Solution sol = new Solution();
+        System.out.print(sol.lengthOfLIS(nums));
     }
 }`
   },

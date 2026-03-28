@@ -12,11 +12,15 @@
 module.exports = {
   id: 'number-of-1-bits',
   conquestId: 'bonusA-2',
-  title: 'Number of 1 Bits',
+  title: 'Lumos Charm Brightness',
   difficulty: 'Easy',
   category: 'Bit Manipulation',
   tags: ['Bit Manipulation'],
+  storyBriefing: `
+Professor Flitwick is teaching the "Lumos" charm, which creates light at the tip of a wand. The brightness of the light is directly proportional to the number of '1's in the binary representation of the caster's magical signature (an integer).
 
+You need to write a function that takes a wizard's magical signature and calculates the brightness of their Lumos charm.
+`,
   description: `Given a non-negative integer **n**, return the number of **1 bits**
 in its binary representation (also known as the **Hamming weight**).
 
@@ -56,30 +60,37 @@ the number of set bits efficiently.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+
 using namespace std;
 
 int countBits(int n) {
-    // TODO: Implement your solution here
-    return 0;
+    int count = 0;
+    while (n > 0) {
+        n = n & (n - 1);
+        count++;
+    }
+    return count;
 }
 
 int main() {
-    long long n;
+    int n;
     cin >> n;
 
-    cout << countBits((int)n);
+    cout << countBits(n);
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static int countBits(int n) {
-        // TODO: Implement your solution here
-        return 0;
+        int count = 0;
+        while (n != 0) {
+            n = n & (n - 1);
+            count++;
+        }
+        return count;
     }
 
     public static void main(String[] args) {
@@ -88,8 +99,50 @@ public class Main {
 
         System.out.print(countBits(n));
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+
+using namespace std;
+
+int countBits(int n) {
+    int count = 0;
+    while (n > 0) {
+        n = n & (n - 1);
+        count++;
+    }
+    return count;
 }
-`,
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << countBits(n);
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static int countBits(int n) {
+        int count = 0;
+        while (n != 0) {
+            n = n & (n - 1);
+            count++;
+        }
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        System.out.print(countBits(n));
+    }
+}`,
   },
 
   testCases: [

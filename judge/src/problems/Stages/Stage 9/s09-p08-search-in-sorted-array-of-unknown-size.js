@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'search-in-sorted-array-of-unknown-size',
   conquestId: 'stage9-8',
   title: 'Search in Sorted Array of Unknown Size',
@@ -18,56 +19,42 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search'],
 
-  description: `This is an interactive-style problem. You have a sorted array of unique integers, but you **do not know its size**. 
+  // ---- Story Layer ----
+  storyBriefing: `The chamber leads to a vast, ethereal library where the bookshelves stretch into an infinite-seeming darkness. You need to find a specific book ('target'), but the library has no catalogue and its size is unknown. You are accompanied by a magical wisp ('ArrayReader') that can retrieve a book from any shelf number you request. If you ask for a shelf that doesn't exist, the wisp simply returns a symbol for infinity. You must find the book's index efficiently.`,
 
-You are provided with an interface \`ArrayReader\` that has a method \`get(index)\`. 
-- \`get(index)\` returns the value at the specified index.
-- If the index is out of bounds, it returns \`2147483647\` (the maximum value for a 32-bit signed integer).
+  // ---- Technical Layer ----
+  description: `You are given access to a sorted array of unique integers through an 'ArrayReader' interface, but you do not know the size of the array. The 'ArrayReader.get(k)' method returns the element at index k, or a very large integer if k is out of bounds. Your task is to find the index of a given 'target'.
 
-Given a \`target\` value, return the index where \`target\` is located. If it does not exist, return \`-1\`.
+This problem requires a two-phase approach. First, you must find a search range for your target. Start with a small range and exponentially expand it (e.g., doubling the right boundary) until the element at the right boundary is greater than or equal to the target. Second, once you have established a valid range [left, right] that is guaranteed to contain the target (if it exists), perform a standard binary search within this range.
 
-### Task
-Implement a solution in $O(\log T)$ where $T$ is the index of the target.
-1. **Find the Range:** Since you don't know the upper bound, start with a range of size 2 (\`left = 0, right = 1\`).
-2. While \`reader.get(right) < target\`, double the range: \`left = right\` and \`right = right * 2\`.
-3. **Binary Search:** Once the target is within the range \`[left, right]\`, perform a standard binary search.
-
-### Example
-**Input:**
-\`\`\`
-9
--1 0 3 5 9 12
-\`\`\`
-
-**Output:**
-\`\`\`
-4
-\`\`\`
-
-**Explanation:**
-The target 9 is at index 4. If we called \`reader.get(10)\`, it would return \`2147483647\`.`,
-
+Return the 0-based index of the target. If the target does not exist, return -1.`,
   examples: [
     {
       input: '9\n-1 0 3 5 9 12',
       output: '4',
-      explanation: '9 is found at index 4.'
+      explanation: 'The target 9 is found at index 4.'
     },
     {
       input: '2\n-1 0 3 5 9 12',
       output: '-1',
-      explanation: '2 is not in the array.'
+      explanation: 'The target 2 is not found in the array.'
+    },
+    {
+      input: '0\n0',
+      output: '0',
+      explanation: 'Target 0 is at index 0.'
     }
   ],
-
   constraints: [
-    'The number of elements in the array is in the range [1, 10^4].',
-    '-10^4 ≤ value, target ≤ 10^4',
-    'All integers in the array are unique and sorted.'
+    'All integers in the array are unique.',
+    'The array is sorted in ascending order.',
+    'Values are between -9999 and 9999.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
@@ -83,16 +70,7 @@ public:
     }
 };
 
-/**
- * Finds target index in an array of unknown size.
- */
 int solve(ArrayReader& reader, int target) {
-    int left = 0, right = 1;
-    
-    // 1. Find the bounds
-    // Your code here
-    
-    // 2. Binary Search
     // Your code here
     
     return -1;
@@ -108,7 +86,8 @@ int main() {
     cout << solve(reader, target) << endl;
     return 0;
 }`,
-    java: `import java.util.*;
+    java: `// Do not change this function's name and signature.
+import java.util.*;
 
 class ArrayReader {
     private int[] data;
@@ -120,16 +99,7 @@ class ArrayReader {
 }
 
 public class Main {
-    /**
-     * Finds target index in an array of unknown size.
-     */
     public static int solve(ArrayReader reader, int target) {
-        int left = 0, right = 1;
-        
-        // 1. Find the bounds
-        // Your code here
-        
-        // 2. Binary Search
         // Your code here
         
         return -1;
@@ -148,16 +118,58 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '9\n-1 0 3 5 9 12', expected: '4' },
     { input: '2\n-1 0 3 5 9 12', expected: '-1' },
-    { input: '5\n5', expected: '0' },
-    { input: '10\n1 2 3 4 5', expected: '-1' },
-    { input: '1\n1 2 3 4 5 6 7 8 9 10', expected: '0' },
-    { input: '10\n1 2 3 4 5 6 7 8 9 10', expected: '9' },
-    { input: '0\n-5 -4 -3 -2 -1 0 1 2 3', expected: '5' },
-    { input: '100\n10 20 30 100 200', expected: '3' },
-    { input: '7\n1 3 5 7 9', expected: '3' },
-    { input: '25\n10 20 30 40 50', expected: '-1' }
-  ]
+    { input: '0\n0', expected: '0' },
+    { input: '1\n1', expected: '0' },
+    { input: '100\n1 2 3 100', expected: '3' },
+    { input: '0\n-5 0 5', expected: '1' },
+    { input: '-1\n-1 0 1', expected: '0' },
+    { input: '1\n-1 0 1', expected: '2' },
+    { input: '1000\n1 10 100 1000', expected: '3' },
+    { input: '-1000\n-1000 -500 0 500', expected: '0' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The solution is a two-step process. First, we must find a search boundary. We can do this by starting with a right boundary of 1 and doubling it until 'reader.get(right)' is greater than or equal to the target. This establishes a range [left, right] where the target might be. The 'left' pointer for this range will be the previous 'right' pointer. Once this range is found, perform a standard binary search within these bounds. During the binary search, use 'reader.get(mid)' to access elements. If 'reader.get(mid)' returns the out-of-bounds value, treat it as positive infinity and adjust the search range accordingly.`,
+    cpp: `int right = 1;
+while (reader.get(right) < target) {
+    right *= 2;
+}
+int left = right / 2;
+
+while (left <= right) {
+    int mid = left + (right - left) / 2;
+    int val = reader.get(mid);
+    if (val == target) {
+        return mid;
+    } else if (val < target) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+return -1;`,
+    java: `int right = 1;
+while (reader.get(right) < target) {
+    right *= 2;
+}
+int left = right / 2;
+
+while (left <= right) {
+    int mid = left + (right - left) / 2;
+    int val = reader.get(mid);
+    if (val == target) {
+        return mid;
+    } else if (val < target) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+return -1;`
+  }
 };

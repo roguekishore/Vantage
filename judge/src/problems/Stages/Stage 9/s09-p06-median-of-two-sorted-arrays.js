@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'median-of-two-sorted-arrays',
   conquestId: 'stage9-6',
   title: 'Median of Two Sorted Arrays',
@@ -18,69 +19,51 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search', 'Divide and Conquer'],
 
-  description: `Given two sorted arrays \`nums1\` and \`nums2\` of size \`m\` and \`n\` respectively, return the **median** of the two sorted arrays.
+  // ---- Story Layer ----
+  storyBriefing: `The path forward splits into two different, sorted lists of ancient magical artifacts. To proceed, you must find the true median value of the combined collection without actually merging them, as doing so would trigger a magical trap. This requires an advanced partitioning technique to find the middle element of the conceptual combined list.`,
 
-The overall run time complexity should be $O(\log(m+n))$.
+  // ---- Technical Layer ----
+  description: `You are given two sorted arrays, 'nums1' and 'nums2', of size m and n respectively. Your task is to find and return the median of the two sorted arrays. The overall time complexity of your solution must be O(log(m+n)).
 
-### Task
-To achieve the logarithmic time complexity, we cannot simply merge the arrays. Instead, we use **Binary Search** to partition the smaller array:
-1. Ensure \`nums1\` is the smaller array to minimize the search range.
-2. Partition \`nums1\` at index \`i\` and \`nums2\` at index \`j\` such that the total number of elements on the left equals the total on the right.
-3. The condition for a correct partition is:
-   - $nums1[i-1] \le nums2[j]$
-   - $nums2[j-1] \le nums1[i]$
-4. Once partitioned, the median is calculated based on the maximum of the left side and the minimum of the right side.
+To achieve this, you must use a binary search approach on the smaller of the two arrays. The goal is to partition both arrays into left and right halves such that every element in the combined left half is less than or equal to every element in the combined right half. Once this correct partition is found, the median can be calculated from the boundary elements in O(1) time.
 
-### Example
-**Input:**
-\`\`\`
-2 1
-1 3
-2
-\`\`\`
-
-**Output:**
-\`\`\`
-2.0
-\`\`\`
-
-**Explanation:**
-Merged array =, median is 2.0.`,
-
+Return a double representing the median. The output should be formatted to one decimal place.`,
   examples: [
     {
       input: '2 1\n1 3\n2',
       output: '2.0',
-      explanation: 'Merged array:'
+      explanation: 'The conceptually merged array is [1, 2, 3]. The median is the middle element, which is 2.'
     },
     {
       input: '2 2\n1 2\n3 4',
       output: '2.5',
-      explanation: 'Merged array:. Median is (2+3)/2 = 2.5.'
+      explanation: 'The conceptually merged array is [1, 2, 3, 4]. The median is the average of the two middle elements, (2 + 3) / 2 = 2.5.'
+    },
+    {
+      input: '0 1\n\n1',
+      output: '1.0',
+      explanation: 'The merged array is [1], so the median is 1.'
     }
   ],
-
   constraints: [
     'nums1.length == m',
     'nums2.length == n',
-    '0 ≤ m, n ≤ 1000',
-    '1 ≤ m + n ≤ 2000',
-    '-10⁶ ≤ nums1[i], nums2[i] ≤ 10⁶'
+    '0 <= m, n <= 1000',
+    '1 <= m + n <= 2000',
+    '-10^6 <= nums1[i], nums2[i] <= 10^6'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <algorithm>
 #include <iomanip>
 
 using namespace std;
 
-/**
- * Returns the median of two sorted arrays in O(log(m+n)).
- */
 double solve(vector<int>& nums1, vector<int>& nums2) {
-    // Ensure nums1 is the smaller array
     if (nums1.size() > nums2.size()) return solve(nums2, nums1);
     
     int m = nums1.size();
@@ -102,12 +85,10 @@ int main() {
     cout << fixed << setprecision(1) << solve(nums1, nums2) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the median of two sorted arrays in O(log(m+n)).
-     */
     public static double solve(int[] nums1, int[] nums2) {
         if (nums1.length > nums2.length) return solve(nums2, nums1);
         
@@ -135,16 +116,68 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '2 1\n1 3\n2', expected: '2.0' },
     { input: '2 2\n1 2\n3 4', expected: '2.5' },
     { input: '0 1\n\n1', expected: '1.0' },
-    { input: '2 0\n2 4\n', expected: '3.0' },
+    { input: '1 0\n1\n', expected: '1.0' },
+    { input: '2 0\n1 2\n', expected: '1.5' },
     { input: '1 1\n1\n2', expected: '1.5' },
-    { input: '4 6\n1 2 3 4\n5 6 7 8 9 10', expected: '5.5' },
-    { input: '5 5\n1 2 3 4 5\n6 7 8 9 10', expected: '5.5' },
-    { input: '3 2\n1 5 9\n2 3', expected: '3.0' },
-    { input: '1 2\n10\n1 2', expected: '2.0' },
-    { input: '2 4\n1 10\n2 3 4 5', expected: '3.5' }
-  ]
+    { input: '4 3\n1 3 5 7\n2 4 6', expected: '4.0' },
+    { input: '3 4\n10 20 30\n5 15 25 35', expected: '20.0' },
+    { input: '2 2\n1 5\n2 3', expected: '2.5' },
+    { input: '2 2\n-1 0\n1 2', expected: '0.5' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The solution involves a binary search on the smaller of the two arrays to find the correct partition point. Let nums1 be the smaller array. We search for a partition index 'partitionX' in nums1. This determines a corresponding 'partitionY' in nums2 such that the total number of elements in the left partitions of both arrays is (m+n+1)/2. The key is to check if the max element on the left side of the partition is less than or equal to the min element on the right side. If this condition (maxLeftX <= minRightY and maxLeftY <= minRightX) is met, we have found the median. If not, we adjust the binary search range in nums1 until the condition is met.`,
+    cpp: `while (left <= right) {
+    int partitionX = (left + right) / 2;
+    int partitionY = (m + n + 1) / 2 - partitionX;
+
+    int maxLeftX = (partitionX == 0) ? INT_MIN : nums1[partitionX - 1];
+    int minRightX = (partitionX == m) ? INT_MAX : nums1[partitionX];
+    
+    int maxLeftY = (partitionY == 0) ? INT_MIN : nums2[partitionY - 1];
+    int minRightY = (partitionY == n) ? INT_MAX : nums2[partitionY];
+
+    if (maxLeftX <= minRightY && maxLeftY <= minRightX) {
+        if ((m + n) % 2 == 0) {
+            return (double)(max(maxLeftX, maxLeftY) + min(minRightX, minRightY)) / 2;
+        } else {
+            return (double)max(maxLeftX, maxLeftY);
+        }
+    } else if (maxLeftX > minRightY) {
+        right = partitionX - 1;
+    } else {
+        left = partitionX + 1;
+    }
+}
+return 0.0;`,
+    java: `while (left <= right) {
+    int partitionX = (left + right) / 2;
+    int partitionY = (m + n + 1) / 2 - partitionX;
+
+    int maxLeftX = (partitionX == 0) ? Integer.MIN_VALUE : nums1[partitionX - 1];
+    int minRightX = (partitionX == m) ? Integer.MAX_VALUE : nums1[partitionX];
+    
+    int maxLeftY = (partitionY == 0) ? Integer.MIN_VALUE : nums2[partitionY - 1];
+    int minRightY = (partitionY == n) ? Integer.MAX_VALUE : nums2[partitionY];
+
+    if (maxLeftX <= minRightY && maxLeftY <= minRightX) {
+        if ((m + n) % 2 == 0) {
+            return ((double)Math.max(maxLeftX, maxLeftY) + Math.min(minRightX, minRightY)) / 2;
+        } else {
+            return (double)Math.max(maxLeftX, maxLeftY);
+        }
+    } else if (maxLeftX > minRightY) {
+        right = partitionX - 1;
+    } else {
+        left = partitionX + 1;
+    }
+}
+return 0.0;`
+  }
 };

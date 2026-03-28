@@ -1,5 +1,5 @@
 /**
- * Design Linked List - Problem Definition
+ * Design a Magical Scroll
  *
  * Input format (stdin):
  *   The first line contains an integer q - the number of operations.
@@ -19,11 +19,22 @@
 module.exports = {
   id: 'design-linked-list',
   conquestId: 'stage10-7',
-  title: 'Design Linked List',
+  title: 'Design a Magical Scroll',
   difficulty: 'Medium',
-  category: 'Linked List',
+  category: 'Data Structure Design',
   tags: ['Linked List', 'Design'],
+  storyBriefing: `
+You've been tasked with creating a "Scroll of Records" for the Ministry of Magic. This scroll magically keeps a list of important events or names in a specific order.
 
+You need to design the underlying magic (the data structure) for this scroll. It must allow wizards to:
+- Add an entry to the beginning (\`addHead\`).
+- Add an entry to the end (\`addTail\`).
+- Insert an entry at a specific position (\`addIndex\`).
+- Delete an entry from a specific position (\`deleteIndex\`).
+- Read an entry at a specific position (\`get\`).
+
+This will be a fundamental piece of magical record-keeping!
+`,
   description: `Design and implement your own **Linked List** data structure.
 
 Your linked list should support the following operations:
@@ -67,7 +78,8 @@ get 3`,
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+
 using namespace std;
 
 class MyLinkedList {
@@ -75,155 +87,273 @@ public:
     struct Node {
         int val;
         Node* next;
-        Node(int v) : val(v), next(nullptr) {}
+        Node* prev;
+        Node(int v) : val(v), next(nullptr), prev(nullptr) {}
     };
 
     Node* head;
+    Node* tail;
+    int size;
 
     MyLinkedList() {
         head = nullptr;
+        tail = nullptr;
+        size = 0;
     }
 
     int get(int index) {
-        // TODO: implement
-        return -1;
+        if (index < 0 || index >= size) return -1;
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        return current->val;
     }
 
     void addHead(int val) {
-        // TODO: implement
+        Node* newNode = new Node(val);
+        if (!head) {
+            head = tail = newNode;
+        } else {
+            newNode->next = head;
+            head->prev = newNode;
+            head = newNode;
+        }
+        size++;
     }
 
     void addTail(int val) {
-        // TODO: implement
+        Node* newNode = new Node(val);
+        if (!tail) {
+            head = tail = newNode;
+        } else {
+            tail->next = newNode;
+            newNode->prev = tail;
+            tail = newNode;
+        }
+        size++;
     }
 
     void addIndex(int index, int val) {
-        // TODO: implement
+        if (index < 0 || index > size) return;
+        if (index == 0) {
+            addHead(val);
+            return;
+        }
+        if (index == size) {
+            addTail(val);
+            return;
+        }
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        Node* newNode = new Node(val);
+        newNode->next = current;
+        newNode->prev = current->prev;
+        current->prev->next = newNode;
+        current->prev = newNode;
+        size++;
     }
 
     void deleteIndex(int index) {
-        // TODO: implement
+        if (index < 0 || index >= size) return;
+        if (index == 0) {
+            Node* temp = head;
+            head = head->next;
+            if (head) head->prev = nullptr;
+            else tail = nullptr;
+            delete temp;
+            size--;
+            return;
+        }
+        if (index == size - 1) {
+            Node* temp = tail;
+            tail = tail->prev;
+            if (tail) tail->next = nullptr;
+            else head = nullptr;
+            delete temp;
+            size--;
+            return;
+        }
+        Node* current = head;
+        for (int i = 0; i < index; ++i) {
+            current = current->next;
+        }
+        current->prev->next = current->next;
+        current->next->prev = current->prev;
+        delete current;
+        size--;
     }
 };
 
 int main() {
-    ios::sync_with_stdio(false);
-    cin.tie(nullptr);
-
     int q;
     cin >> q;
-    cin.ignore();
-
     MyLinkedList list;
     string op;
-
-    for(int i = 0; i < q; i++) {
+    for (int i = 0; i < q; ++i) {
         cin >> op;
-
-        if(op == "addHead") {
-            int x; cin >> x;
-            list.addHead(x);
-        }
-        else if(op == "addTail") {
-            int x; cin >> x;
-            list.addTail(x);
-        }
-        else if(op == "addIndex") {
-            int idx, x;
-            cin >> idx >> x;
-            list.addIndex(idx, x);
-        }
-        else if(op == "deleteIndex") {
-            int idx;
-            cin >> idx;
-            list.deleteIndex(idx);
-        }
-        else if(op == "get") {
-            int idx;
-            cin >> idx;
-            cout << list.get(idx) << "\\n";
+        if (op == "addHead") {
+            int val;
+            cin >> val;
+            list.addHead(val);
+        } else if (op == "addTail") {
+            int val;
+            cin >> val;
+            list.addTail(val);
+        } else if (op == "addIndex") {
+            int index, val;
+            cin >> index >> val;
+            list.addIndex(index, val);
+        } else if (op == "deleteIndex") {
+            int index;
+            cin >> index;
+            list.deleteIndex(index);
+        } else if (op == "get") {
+            int index;
+            cin >> index;
+            cout << list.get(index) << "\\n";
         }
     }
-
     return 0;
-}
-`,
-
-    java: `import java.util.*;
+}`,
+    java: `import java.util.Scanner;
 
 class MyLinkedList {
-
     class Node {
         int val;
         Node next;
-        Node(int v) { val = v; }
+        Node prev;
+
+        Node(int val) {
+            this.val = val;
+        }
     }
 
-    Node head;
+    private Node head;
+    private Node tail;
+    private int size;
 
     public MyLinkedList() {
-        head = null;
+        size = 0;
     }
 
     public int get(int index) {
-        // TODO: implement
-        return -1;
+        if (index < 0 || index >= size) {
+            return -1;
+        }
+        Node current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        return current.val;
     }
 
     public void addHead(int val) {
-        // TODO: implement
+        Node newNode = new Node(val);
+        if (head == null) {
+            head = tail = newNode;
+        } else {
+            newNode.next = head;
+            head.prev = newNode;
+            head = newNode;
+        }
+        size++;
     }
 
     public void addTail(int val) {
-        // TODO: implement
+        Node newNode = new Node(val);
+        if (tail == null) {
+            head = tail = newNode;
+        } else {
+            tail.next = newNode;
+            newNode.prev = tail;
+            tail = newNode;
+        }
+        size++;
     }
 
     public void addIndex(int index, int val) {
-        // TODO: implement
+        if (index < 0 || index > size) {
+            return;
+        }
+        if (index == 0) {
+            addHead(val);
+            return;
+        }
+        if (index == size) {
+            addTail(val);
+            return;
+        }
+        Node current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        Node newNode = new Node(val);
+        newNode.next = current;
+        newNode.prev = current.prev;
+        current.prev.next = newNode;
+        current.prev = newNode;
+        size++;
     }
 
     public void deleteIndex(int index) {
-        // TODO: implement
+        if (index < 0 || index >= size) {
+            return;
+        }
+        if (index == 0) {
+            head = head.next;
+            if (head != null) {
+                head.prev = null;
+            } else {
+                tail = null;
+            }
+            size--;
+            return;
+        }
+        if (index == size - 1) {
+            tail = tail.prev;
+            if (tail != null) {
+                tail.next = null;
+            } else {
+                head = null;
+            }
+            size--;
+            return;
+        }
+        Node current = head;
+        for (int i = 0; i < index; i++) {
+            current = current.next;
+        }
+        current.prev.next = current.next;
+        current.next.prev = current.prev;
+        size--;
     }
 }
 
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int q = sc.nextInt();
         MyLinkedList list = new MyLinkedList();
-
-        for(int i = 0; i < q; i++) {
+        for (int i = 0; i < q; i++) {
             String op = sc.next();
-
-            if(op.equals("addHead")) {
-                int x = sc.nextInt();
-                list.addHead(x);
-            }
-            else if(op.equals("addTail")) {
-                int x = sc.nextInt();
-                list.addTail(x);
-            }
-            else if(op.equals("addIndex")) {
-                int idx = sc.nextInt();
-                int x = sc.nextInt();
-                list.addIndex(idx, x);
-            }
-            else if(op.equals("deleteIndex")) {
-                int idx = sc.nextInt();
-                list.deleteIndex(idx);
-            }
-            else if(op.equals("get")) {
-                int idx = sc.nextInt();
-                System.out.println(list.get(idx));
+            if (op.equals("addHead")) {
+                list.addHead(sc.nextInt());
+            } else if (op.equals("addTail")) {
+                list.addTail(sc.nextInt());
+            } else if (op.equals("addIndex")) {
+                list.addIndex(sc.nextInt(), sc.nextInt());
+            } else if (op.equals("deleteIndex")) {
+                list.deleteIndex(sc.nextInt());
+            } else if (op.equals("get")) {
+                System.out.println(list.get(sc.nextInt()));
             }
         }
-
         sc.close();
     }
-}
-`,
+}`,
   },
 
   testCases: [

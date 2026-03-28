@@ -13,38 +13,34 @@
 
 module.exports = {
   id: 'bfs-graph',
-  conquestId: 'stage20-2',
-  title: 'BFS (Graph)',
+  conquestId: 's20-p02',
+  title: 'BFS (Tunnel Surveyor)',
   difficulty: 'Medium',
   category: 'Graphs',
-  tags: ['Graph', 'BFS', 'Traversal'],
+  tags: ['Graph', 'BFS', 'Traversal', 'Hogwarts'],
+
+  storyBriefing: `
+"We should spread out," Ron suggests, though his voice shakes slightly. "If we check all the nearby branches first, we'll find the way faster without getting lost deep in the pipes."
+
+You are using **Breadth First Search (BFS)** to map out the tunnels. By visiting all neighbors at the current level before moving deeper, you ensure a systematic survey of the area near the entrance.
+`,
 
   description: `
-Given a graph with **n vertices** and **m edges**, perform a **Breadth First Search (BFS)** starting from a given starting node.
+Given a graph with **n vertices** and **m edges**, perform a **Breadth First Search (BFS)** starting from node **s**.
 
-BFS explores nodes **level by level**, visiting all neighbors of the current node before moving to the next level.  
-It is typically implemented using a **queue**.
-
-The graph is **undirected**.
-
-You must print the **BFS traversal order** starting from the given node.
+BFS (Breadth First Search) is an algorithm for traversing or searching tree or graph data structures. It starts at the root node (selecting some arbitrary node as the root node for graphs) and explores all of the neighbor nodes at the present depth prior to moving on to the nodes at the next depth level.
 
 **Rules:**
 - Visit nodes using BFS.
 - If multiple neighbors exist, visit them in **increasing numerical order**.
 - Each node should be visited **only once**.
-
-BFS is widely used for:
-- Shortest path in unweighted graphs
-- Level order traversal
-- Connectivity checking
 `,
 
   examples: [
     {
       input: '5 4\n0 1\n0 2\n1 3\n1 4\n0',
       output: '0 1 2 3 4',
-      explanation: 'Starting from 0, BFS visits its neighbors 1 and 2 first, then their neighbors.'
+      explanation: 'Starting at 0, neighbors 1 and 2 are visited. Then, from 1, neighbors 3 and 4 are added to the queue.'
     }
   ],
 
@@ -60,39 +56,60 @@ BFS is widely used for:
 #include <vector>
 #include <queue>
 #include <algorithm>
+
 using namespace std;
 
-vector<int> bfs(int start, vector<vector<int>>& adj) {
-    // TODO: Implement BFS traversal
-    return {};
+vector<int> bfs(int s, vector<vector<int>>& adj, int n) {
+    vector<int> result;
+    vector<bool> visited(n, false);
+    queue<int> q;
+
+    q.push(s);
+    visited[s] = true;
+
+    while (!q.empty()) {
+        int curr = q.front();
+        q.pop();
+        result.push_back(curr);
+
+        for (int next : adj[curr]) {
+            if (!visited[next]) {
+                visited[next] = true;
+                q.push(next);
+            }
+        }
+    }
+    return result;
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n, m;
-    cin >> n >> m;
+    if (!(cin >> n >> m)) return 0;
 
     vector<vector<int>> adj(n);
-
-    for(int i = 0; i < m; i++) {
+    for (int i = 0; i < m; i++) {
         int u, v;
         cin >> u >> v;
         adj[u].push_back(v);
         adj[v].push_back(u);
     }
 
-    for(int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++) {
         sort(adj[i].begin(), adj[i].end());
     }
 
     int s;
     cin >> s;
 
-    vector<int> result = bfs(s, adj);
+    vector<int> result = bfs(s, adj, n);
 
-    for(int i = 0; i < result.size(); i++) {
-        if(i) cout << " ";
-        cout << result[i];
+    for (int i = 0; i < result.size(); i++) {
+        cout << result[i] << (i == result.size() - 1 ? "" : " ");
     }
+    cout << endl;
 
     return 0;
 }`,
@@ -100,43 +117,172 @@ int main() {
 
 public class Main {
 
-    static List<Integer> bfs(int start, List<List<Integer>> adj) {
-        // TODO: Implement BFS traversal
-        return new ArrayList<>();
+    static List<Integer> bfs(int s, List<List<Integer>> adj, int n) {
+        List<Integer> result = new ArrayList<>();
+        boolean[] visited = new boolean[n];
+        Queue<Integer> q = new LinkedList<>();
+
+        q.add(s);
+        visited[s] = true;
+
+        while (!q.isEmpty()) {
+            int curr = q.poll();
+            result.add(curr);
+
+            for (int next : adj.get(curr)) {
+                if (!visited[next]) {
+                    visited[next] = true;
+                    q.add(next);
+                }
+            }
+        }
+        return result;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
 
         int n = sc.nextInt();
         int m = sc.nextInt();
 
         List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
 
-        for(int i = 0; i < n; i++)
-            adj.add(new ArrayList<>());
-
-        for(int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             int u = sc.nextInt();
             int v = sc.nextInt();
-
             adj.get(u).add(v);
             adj.get(v).add(u);
         }
 
-        for(int i = 0; i < n; i++)
-            Collections.sort(adj.get(i));
+        for (int i = 0; i < n; i++) Collections.sort(adj.get(i));
 
         int s = sc.nextInt();
+        List<Integer> result = bfs(s, adj, n);
 
-        List<Integer> result = bfs(s, adj);
-
-        for(int i = 0; i < result.size(); i++) {
-            if(i > 0) System.out.print(" ");
-            System.out.print(result.get(i));
+        for (int i = 0; i < result.size(); i++) {
+            System.out.print(result.get(i) + (i == result.size() - 1 ? "" : " "));
         }
+        System.out.println();
     }
 }`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <queue>
+#include <algorithm>
+
+using namespace std;
+
+vector<int> bfs(int s, vector<vector<int>>& adj, int n) {
+    vector<int> result;
+    vector<bool> visited(n, false);
+    queue<int> q;
+
+    if (n == 0) return result;
+    q.push(s);
+    visited[s] = true;
+
+    while (!q.empty()) {
+        int curr = q.front();
+        q.pop();
+        result.push_back(curr);
+
+        for (int next : adj[curr]) {
+            if (!visited[next]) {
+                visited[next] = true;
+                q.push(next);
+            }
+        }
+    }
+    return result;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+
+    vector<vector<int>> adj(n);
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+
+    for (int i = 0; i < n; i++) {
+        sort(adj[i].begin(), adj[i].end());
+    }
+
+    int s;
+    cin >> s;
+
+    vector<int> result = bfs(s, adj, n);
+
+    for (int i = 0; i < result.size(); i++) {
+        cout << result[i] << (i == result.size() - 1 ? "" : " ");
+    }
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    static List<Integer> bfs(int s, List<List<Integer>> adj, int n) {
+        List<Integer> result = new ArrayList<>();
+        if (n == 0) return result;
+        boolean[] visited = new boolean[n];
+        Queue<Integer> q = new LinkedList<>();
+
+        q.add(s);
+        visited[s] = true;
+
+        while (!q.isEmpty()) {
+            int curr = q.poll();
+            result.add(curr);
+
+            for (int next : adj.get(curr)) {
+                if (!visited[next]) {
+                    visited[next] = true;
+                    q.add(next);
+                }
+            }
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
+
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+
+        List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+
+        for (int i = 0; i < m; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            adj.get(u).add(v);
+            adj.get(v).add(u);
+        }
+
+        for (int i = 0; i < n; i++) Collections.sort(adj.get(i));
+
+        int s = sc.nextInt();
+        List<Integer> result = bfs(s, adj, n);
+
+        for (int i = 0; i < result.size(); i++) {
+            System.out.print(result.get(i) + (i == result.size() - 1 ? "" : " "));
+        }
+    }
+}`
   },
 
   testCases: [

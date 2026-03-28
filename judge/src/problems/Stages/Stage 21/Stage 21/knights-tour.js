@@ -15,11 +15,15 @@
 module.exports = {
   id: 'knights-tour',
   conquestId: 'stage21-13',
-  title: "Knight's Tour",
+  title: "The Enchanted Chessboard",
   difficulty: 'Hard',
   category: 'Backtracking',
   tags: ['Backtracking', 'Recursion', 'Matrix', 'DFS'],
+  storyBriefing: `
+You enter a chamber with a giant, enchanted chessboard. To proceed, you must complete the Knight's Tour. A spectral knight appears at the starting square (0,0).
 
+Your task is to guide the knight across the n x n board, ensuring it visits every single square exactly once. The knight moves in its classic 'L' shape. If you succeed, the door to the next chamber will unlock.
+`,
   description: `
 The **Knight's Tour** problem asks you to move a knight on a chessboard such that it visits **every square exactly once**.
 
@@ -65,26 +69,47 @@ The problem is typically solved using **backtracking**, exploring all possible k
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <iomanip>
+
 using namespace std;
 
 class Solution {
 public:
-    bool solveKTUtil(int x, int y, int movei, vector<vector<int>>& board, int n,
-                     vector<int>& dx, vector<int>& dy) {
-        // TODO: Implement backtracking logic
+    bool isSafe(int x, int y, int n, const vector<vector<int>>& board) {
+        return (x >= 0 && x < n && y >= 0 && y < n && board[x][y] == -1);
+    }
+
+    bool solveKTUtil(int x, int y, int movei, vector<vector<int>>& board, int n, const vector<int>& dx, const vector<int>& dy) {
+        if (movei == n * n) {
+            return true;
+        }
+
+        for (int k = 0; k < 8; k++) {
+            int next_x = x + dx[k];
+            int next_y = y + dy[k];
+            if (isSafe(next_x, next_y, n, board)) {
+                board[next_x][next_y] = movei;
+                if (solveKTUtil(next_x, next_y, movei + 1, board, n, dx, dy)) {
+                    return true;
+                } else {
+                    board[next_x][next_y] = -1; // Backtrack
+                }
+            }
+        }
         return false;
     }
 
     bool solveKT(int n, vector<vector<int>>& board) {
-        vector<int> dx = {2,1,-1,-2,-2,-1,1,2};
-        vector<int> dy = {1,2,2,1,-1,-2,-2,-1};
+        vector<int> dx = {2, 1, -1, -2, -2, -1, 1, 2};
+        vector<int> dy = {1, 2, 2, 1, -1, -2, -2, -1};
 
         board[0][0] = 0;
 
-        if (!solveKTUtil(0, 0, 1, board, n, dx, dy))
+        if (!solveKTUtil(0, 0, 1, board, n, dx, dy)) {
             return false;
-
+        }
         return true;
     }
 };
@@ -98,69 +123,211 @@ int main() {
     Solution sol;
     if (!sol.solveKT(n, board)) {
         cout << "No solution";
-        return 0;
-    }
-
-    for (int i = 0; i < n; i++) {
-        for (int j = 0; j < n; j++) {
-            cout << board[i][j];
-            if (j < n - 1) cout << " ";
+    } else {
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cout << board[i][j] << (j == n - 1 ? "" : " ");
+            }
+            cout << endl;
         }
-        if (i < n - 1) cout << endl;
     }
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
+        int[] dx = {2, 1, -1, -2, -2, -1, 1, 2};
+        int[] dy = {1, 2, 2, 1, -1, -2, -2, -1};
 
-        boolean solveKTUtil(int x, int y, int movei, int[][] board, int n, int[] dx, int[] dy) {
-            // TODO: Implement backtracking logic
+        boolean isSafe(int x, int y, int n, int[][] board) {
+            return (x >= 0 && x < n && y >= 0 && y < n && board[x][y] == -1);
+        }
+
+        boolean solveKTUtil(int x, int y, int movei, int[][] board, int n) {
+            if (movei == n * n) {
+                return true;
+            }
+
+            for (int k = 0; k < 8; k++) {
+                int next_x = x + dx[k];
+                int next_y = y + dy[k];
+                if (isSafe(next_x, next_y, n, board)) {
+                    board[next_x][next_y] = movei;
+                    if (solveKTUtil(next_x, next_y, movei + 1, board, n)) {
+                        return true;
+                    } else {
+                        board[next_x][next_y] = -1; // Backtrack
+                    }
+                }
+            }
             return false;
         }
 
         boolean solveKT(int n, int[][] board) {
-            int[] dx = {2,1,-1,-2,-2,-1,1,2};
-            int[] dy = {1,2,2,1,-1,-2,-2,-1};
-
             board[0][0] = 0;
 
-            if (!solveKTUtil(0,0,1,board,n,dx,dy))
+            if (!solveKTUtil(0, 0, 1, board, n)) {
                 return false;
-
+            }
             return true;
         }
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
-        int[][] board = new int[n][n];
 
-        for (int i = 0; i < n; i++)
+        int[][] board = new int[n][n];
+        for (int i = 0; i < n; i++) {
             Arrays.fill(board[i], -1);
+        }
 
         Solution sol = new Solution();
-
         if (!sol.solveKT(n, board)) {
             System.out.print("No solution");
-            return;
+        } else {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    System.out.print(board[i][j] + (j == n - 1 ? "" : " "));
+                }
+                System.out.println();
+            }
+        }
+    }
+}`
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <iomanip>
+
+using namespace std;
+
+class Solution {
+public:
+    bool isSafe(int x, int y, int n, const vector<vector<int>>& board) {
+        return (x >= 0 && x < n && y >= 0 && y < n && board[x][y] == -1);
+    }
+
+    bool solveKTUtil(int x, int y, int movei, vector<vector<int>>& board, int n, const vector<int>& dx, const vector<int>& dy) {
+        if (movei == n * n) {
+            return true;
         }
 
+        for (int k = 0; k < 8; k++) {
+            int next_x = x + dx[k];
+            int next_y = y + dy[k];
+            if (isSafe(next_x, next_y, n, board)) {
+                board[next_x][next_y] = movei;
+                if (solveKTUtil(next_x, next_y, movei + 1, board, n, dx, dy)) {
+                    return true;
+                } else {
+                    board[next_x][next_y] = -1; // Backtrack
+                }
+            }
+        }
+        return false;
+    }
+
+    bool solveKT(int n, vector<vector<int>>& board) {
+        vector<int> dx = {2, 1, -1, -2, -2, -1, 1, 2};
+        vector<int> dy = {1, 2, 2, 1, -1, -2, -2, -1};
+
+        board[0][0] = 0;
+
+        if (!solveKTUtil(0, 0, 1, board, n, dx, dy)) {
+            return false;
+        }
+        return true;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> board(n, vector<int>(n, -1));
+
+    Solution sol;
+    if (!sol.solveKT(n, board)) {
+        cout << "No solution";
+    } else {
         for (int i = 0; i < n; i++) {
             for (int j = 0; j < n; j++) {
-                System.out.print(board[i][j]);
-                if (j < n - 1) System.out.print(" ");
+                cout << board[i][j] << (j == n - 1 ? "" : " ");
             }
-            if (i < n - 1) System.out.println();
+            cout << endl;
+        }
+    }
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        int[] dx = {2, 1, -1, -2, -2, -1, 1, 2};
+        int[] dy = {1, 2, 2, 1, -1, -2, -2, -1};
+
+        boolean isSafe(int x, int y, int n, int[][] board) {
+            return (x >= 0 && x < n && y >= 0 && y < n && board[x][y] == -1);
         }
 
-        sc.close();
+        boolean solveKTUtil(int x, int y, int movei, int[][] board, int n) {
+            if (movei == n * n) {
+                return true;
+            }
+
+            for (int k = 0; k < 8; k++) {
+                int next_x = x + dx[k];
+                int next_y = y + dy[k];
+                if (isSafe(next_x, next_y, n, board)) {
+                    board[next_x][next_y] = movei;
+                    if (solveKTUtil(next_x, next_y, movei + 1, board, n)) {
+                        return true;
+                    } else {
+                        board[next_x][next_y] = -1; // Backtrack
+                    }
+                }
+            }
+            return false;
+        }
+
+        boolean solveKT(int n, int[][] board) {
+            board[0][0] = 0;
+
+            if (!solveKTUtil(0, 0, 1, board, n)) {
+                return false;
+            }
+            return true;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[][] board = new int[n][n];
+        for (int i = 0; i < n; i++) {
+            Arrays.fill(board[i], -1);
+        }
+
+        Solution sol = new Solution();
+        if (!sol.solveKT(n, board)) {
+            System.out.print("No solution");
+        } else {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    System.out.print(board[i][j] + (j == n - 1 ? "" : " "));
+                }
+                System.out.println();
+            }
+        }
     }
 }`
   },

@@ -11,11 +11,15 @@
 module.exports = {
   id: 'fibonacci',
   conquestId: 'stage21-2',
-  title: 'Fibonacci',
+  title: 'The Time-Turner Room',
   difficulty: 'Easy',
   category: 'Recursion',
   tags: ['Recursion', 'Dynamic Programming', 'Fibonacci'],
+  storyBriefing: `
+You've entered the Time-Turner room, where past and future selves coexist. The flow of time here follows a strange magical sequence. The state of the room at any given moment 'n' is the sum of its states at the two preceding moments ('n-1' and 'n-2').
 
+This is the Fibonacci sequence, a fundamental pattern in magic and nature. Your task is to calculate the state of the room at moment 'n'. Be wary; a simple recursive approach might trap you in an endless loop of past selves. An efficient solution is key.
+`,
   description: `
 The **Fibonacci sequence** is defined as:
 
@@ -52,11 +56,20 @@ Return the **n-th Fibonacci number**.
 
   boilerplate: {
     cpp: `#include <iostream>
+#include <vector>
 using namespace std;
 
 long long fibonacci(int n) {
-    // TODO: Implement Fibonacci calculation
-    return 0;
+    if (n <= 1) {
+        return n;
+    }
+    vector<long long> dp(n + 1);
+    dp[0] = 0;
+    dp[1] = 1;
+    for (int i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+    return dp[n];
 }
 
 int main() {
@@ -72,8 +85,69 @@ int main() {
 public class Main {
 
     static long fibonacci(int n) {
-        // TODO: Implement Fibonacci calculation
-        return 0;
+        if (n <= 1) {
+            return n;
+        }
+        long[] dp = new long[n + 1];
+        dp[0] = 0;
+        dp[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        System.out.print(fibonacci(n));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+long long fibonacci(int n) {
+    if (n <= 1) {
+        return n;
+    }
+    vector<long long> dp(n + 1);
+    dp[0] = 0;
+    dp[1] = 1;
+    for (int i = 2; i <= n; i++) {
+        dp[i] = dp[i - 1] + dp[i - 2];
+    }
+    return dp[n];
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << fibonacci(n);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static long fibonacci(int n) {
+        if (n <= 1) {
+            return n;
+        }
+        long[] dp = new long[n + 1];
+        dp[0] = 0;
+        dp[1] = 1;
+        for (int i = 2; i <= n; i++) {
+            dp[i] = dp[i - 1] + dp[i - 2];
+        }
+        return dp[n];
     }
 
     public static void main(String[] args) {

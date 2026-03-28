@@ -10,71 +10,57 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'maximum-subarray',
   conquestId: 'stage3-2',
   title: 'Maximum Subarray',
-  difficulty: 'Easy',
+  difficulty: 'Medium',
   category: 'Prefix & Subarray Thinking',
   tags: ['Array', 'Dynamic Programming', 'Kadane\'s Algorithm'],
 
-  description: `Given an integer array \`nums\`, find the contiguous subarray (containing at least one number) which has the largest sum and return *its sum*.
+  // ---- Story Layer ----
+  storyBriefing: `Neville Longbottom is feeling overwhelmed by his Potions homework. He's been tracking his performance on a list, with positive numbers for successful steps and negative numbers for mistakes. To boost his confidence, he asks you to find the single, continuous stretch of potion-making steps where his performance was highest. This will show him his best period of work.`,
 
-A **subarray** is a contiguous part of an array.
+  // ---- Technical Layer ----
+  description: `You are given an array of n integers. Your task is to find the contiguous subarray (containing at least one number) which has the largest sum and return its sum. A subarray is a continuous part of an array.
 
-### Task
-Implement **Kadane's Algorithm** to solve this in $O(n)$ time. The idea is to iterate through the array, keeping track of the current maximum sum ending at each position and the overall maximum sum found so far.
+This classic problem can be solved efficiently using Kadane's Algorithm. The idea is to iterate through the array, maintaining two variables: one for the maximum sum of a subarray ending at the current position, and another for the overall maximum sum found so far. If the current subarray sum becomes negative, it's better to start a new subarray from the next element.
 
-### Example
-**Input:**
-\`\`\`
-9
--2 1 -3 4 -1 2 1 -5 4
-\`\`\`
-
-**Output:**
-\`\`\`
-6
-\`\`\`
-
-**Explanation:**
-The contiguous subarray \`[4, -1, 2, 1]\` has the largest sum = 6.`,
-
+Return a single integer representing the largest possible sum of a contiguous subarray.`,
   examples: [
     {
       input: '9\n-2 1 -3 4 -1 2 1 -5 4',
       output: '6',
-      explanation: 'The subarray [4, -1, 2, 1] has the largest sum 6.'
-    },
-    {
-      input: '1\n1',
-      output: '1',
-      explanation: 'The only subarray is.'
+      explanation: 'The subarray [4, -1, 2, 1] has the largest sum of 6.'
     },
     {
       input: '5\n5 4 -1 7 8',
       output: '23',
-      explanation: 'The entire array [5, 4, -1, 7, 8] has the largest sum 23.'
+      explanation: 'The subarray with the maximum sum is the entire array itself, which sums to 23.'
+    },
+    {
+      input: '5\n-5 -1 -3 -2 -4',
+      output: '-1',
+      explanation: 'When all numbers are negative, the maximum subarray is the single element that is closest to zero. In this case, -1.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 10⁵',
-    '-10⁴ ≤ nums[i] ≤ 10⁴'
+    '1 <= n <= 10^5',
+    '-10^4 <= nums[i] <= 10^4'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <algorithm>
 
 using namespace std;
 
-/**
- * Returns the maximum subarray sum using Kadane's algorithm.
- */
 int solve(int n, const vector<int>& nums) {
-    int maxSoFar = nums;
-    int currentMax = nums;
+    int maxSoFar = nums[0];
+    int currentMax = nums[0];
     
     // Your code here
     
@@ -92,15 +78,13 @@ int main() {
     cout << solve(n, nums) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the maximum subarray sum using Kadane's algorithm.
-     */
     public static int solve(int n, int[] nums) {
-        int maxSoFar = nums;
-        int currentMax = nums;
+        int maxSoFar = nums[0];
+        int currentMax = nums[0];
         
         // Your code here
         
@@ -119,16 +103,32 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '9\n-2 1 -3 4 -1 2 1 -5 4', expected: '6' },
     { input: '1\n1', expected: '1' },
     { input: '5\n5 4 -1 7 8', expected: '23' },
     { input: '5\n-1 -2 -3 -4 -5', expected: '-1' },
-    { input: '4\n-10 2 3 -1', expected: '5' },
-    { input: '6\n-2 -1 -3 -4 -1 -2', expected: '-1' },
-    { input: '3\n10 -20 15', expected: '15' },
-    { input: '2\n-2 1', expected: '1' },
-    { input: '10\n1 2 3 4 5 6 7 8 9 10', expected: '55' },
-    { input: '8\n-2 1 -3 4 -1 2 1 -5', expected: '6' }
-  ]
+    { input: '1\n-10', expected: '-10' },
+    { input: '5\n5 5 5 5 5', expected: '25' },
+    { input: '2\n-1 1', expected: '1' },
+    { input: '10\n-1 -2 -3 -4 -5 -6 -7 -8 -9 -10', expected: '-1' },
+    { input: '2\n1 -1', expected: '1' },
+    { input: '3\n-2 -3 -1', expected: '-1' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `Kadane's algorithm provides an O(n) solution. Initialize 'maxSoFar' and 'currentMax' with the first element of the array. Iterate from the second element onwards. In each iteration, update 'currentMax' to be the maximum of the current element itself or the sum of the current element and the previous 'currentMax'. This decides whether to extend the existing subarray or start a new one. Then, update 'maxSoFar' with the maximum of its current value and the new 'currentMax'.`,
+    cpp: `for (int i = 1; i < n; i++) {
+    currentMax = max(nums[i], currentMax + nums[i]);
+    maxSoFar = max(maxSoFar, currentMax);
+}
+return maxSoFar;`,
+    java: `for (int i = 1; i < n; i++) {
+    currentMax = Math.max(nums[i], currentMax + nums[i]);
+    maxSoFar = Math.max(maxSoFar, currentMax);
+}
+return maxSoFar;`
+  }
 };

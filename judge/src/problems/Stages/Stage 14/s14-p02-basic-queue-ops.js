@@ -22,147 +22,108 @@ module.exports = {
   category: 'Queue',
   tags: ['Queue', 'Data Structure', 'FIFO'],
 
-  description: `A **Queue** is a linear data structure that follows the **FIFO (First In, First Out)** principle. It is essentially the "fair" version of a Stack. The first element added to the queue will be the first one to be removed.
+  storyBriefing: `Next, you visit the Three Broomsticks, which is just as busy. Madam Rosmerta is managing the queue for Butterbeer. Her system is similar, but her terminology is a bit different. She shouts 'Underflow!' if she tries to serve from an empty queue and 'Empty!' if someone asks who's next when no one is there. "Right then," she says, "Help me manage this lot, will you? Keep track of the queue, and use my exact phrases when things go wrong!"`,
 
-### Core Concepts
-1.  **Enqueue**: Inserting an element at the back (rear).
-2.  **Dequeue**: Removing an element from the front.
-3.  **Peek/Front**: Looking at the front element without removing it.
+  description: `You are asked to implement a basic queue that handles a series of operations. A queue follows the First-In, First-Out (FIFO) principle. This problem is similar to a standard queue implementation, but with specific string outputs required for error conditions.
 
-### Task
-Implement a basic Queue using an array or a list. 
+Your implementation must support 'enqueue', 'dequeue', 'peek', and 'isEmpty'. For 'dequeue' on an empty queue, you must print "Underflow". For 'peek' on an empty queue, you must print "Empty". These specific output requirements test your ability to handle edge cases according to a given specification.
 
-> **Pro Tip:** In a real-world scenario, shifting all elements in an array after a dequeue takes $O(n)$ time. To make it $O(1)$, try using a pointer (index) for the "front" of the queue and only move the pointer forward!
-
----
-
-### Example
-**Input:**
-\`\`\`
-5
-enqueue 1
-enqueue 2
-peek
-dequeue
-peek
-\`\`\`
-
-**Output:**
-\`\`\`
-1
-2
-\`\`\`
-
-**Explanation:**
-- Enqueue 1:
-- Enqueue 2:
-- Peek: Front is 1.
-- Dequeue: Removes 1. List is now.
-- Peek: Front is 2.`,
+Process all the given operations. The 'peek' and 'isEmpty' operations, as well as error messages from 'dequeue', should produce output.`,
 
   examples: [
     {
+      input: '5\nenqueue 1\nenqueue 2\npeek\ndequeue\npeek',
+      output: '1\n2',
+      explanation: 'Enqueue 1, queue is [1]. Enqueue 2, queue is [1, 2]. Peek returns 1. Dequeue removes 1. Peek now returns 2.'
+    },
+    {
+      input: '3\ndequeue\npeek\nisEmpty',
+      output: 'Underflow\nEmpty\ntrue',
+      explanation: 'Operations on an empty queue produce the specified error messages "Underflow" and "Empty".'
+    },
+    {
       input: '4\nenqueue 100\npeek\ndequeue\nisEmpty',
       output: '100\ntrue',
-      explanation: 'After 100 is enqueued and dequeued, the queue is empty.'
+      explanation: 'Enqueue 100, peek returns 100. Dequeue removes it. The queue is now empty, so isEmpty returns true.'
     }
   ],
 
   constraints: [
-    '1 ≤ q ≤ 1000',
-    '-10⁵ ≤ val ≤ 10⁵',
-    'Operations are: enqueue, dequeue, peek, isEmpty.'
+    'The number of operations is between 1 and 1000.',
+    'The value for enqueue operations is between -100000 and 100000.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <string>
-
-using namespace std;
-
-class MyQueue {
-    vector<int> data;
-    int head = 0; // Pointer to the front
+    cpp: `class MyQueue {
 public:
     void enqueue(int val) {
         // Your code here
     }
     
     void dequeue() {
-        if (isEmpty()) {
-            cout << "Underflow" << endl;
-            return;
-        }
         // Your code here
     }
     
     void peek() {
-        if (isEmpty()) {
-            cout << "Empty" << endl;
-            return;
-        }
         // Your code here
     }
     
     bool isEmpty() {
-        return head >= data.size();
+        // Your code here
+        return true;
     }
+private:
+    // Choose your underlying data structure
 };
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <string>
 int main() {
     MyQueue q;
     int n;
-    cin >> n;
+    std::cin >> n;
     while (n--) {
-        string op;
-        cin >> op;
+        std::string op;
+        std::cin >> op;
         if (op == "enqueue") {
-            int val; cin >> val; q.enqueue(val);
+            int val; std::cin >> val; q.enqueue(val);
         } else if (op == "dequeue") {
             q.dequeue();
         } else if (op == "peek") {
             q.peek();
         } else if (op == "isEmpty") {
-            cout << (q.isEmpty() ? "true" : "false") << endl;
+            std::cout << (q.isEmpty() ? "true" : "false") << std::endl;
         }
     }
     return 0;
 }`,
-    java: `import java.util.*;
-
-class MyQueue {
-    private List<Integer> data = new ArrayList<>();
-    private int head = 0;
+    java: `class MyQueue {
+    // Choose your underlying data structure
 
     public void enqueue(int val) {
         // Your code here
     }
 
     public void dequeue() {
-        if (isEmpty()) {
-            System.out.println("Underflow");
-            return;
-        }
         // Your code here
     }
 
     public void peek() {
-        if (isEmpty()) {
-            System.out.println("Empty");
-            return;
-        }
         // Your code here
     }
 
     public boolean isEmpty() {
-        return head >= data.size();
+        // Your code here
+        return true;
     }
 }
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         MyQueue q = new MyQueue();
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
@@ -178,6 +139,7 @@ public class Main {
                 System.out.println(q.isEmpty());
             }
         }
+        sc.close();
     }
 }`
   },
@@ -185,6 +147,68 @@ public class Main {
   testCases: [
     { input: '5\nenqueue 1\nenqueue 2\npeek\ndequeue\npeek', expected: '1\n2' },
     { input: '3\ndequeue\npeek\nisEmpty', expected: 'Underflow\nEmpty\ntrue' },
-    { input: '4\nenqueue 10\npeek\nisEmpty\ndequeue', expected: '10\nfalse' }
-  ]
+    { input: '1\nisEmpty', expected: 'true' },
+    { input: '2\npeek\ndequeue', expected: 'Empty\nUnderflow' },
+    { input: '8\nenqueue 1\nenqueue 2\ndequeue\npeek\ndequeue\nisEmpty\npeek\ndequeue', expected: '2\ntrue\nEmpty\nUnderflow' },
+    { input: '4\nenqueue 0\npeek\ndequeue\nisEmpty', expected: '0\ntrue' },
+    { input: '5\nenqueue -100\npeek\ndequeue\npeek\ndequeue', expected: '-100\nEmpty\nUnderflow' },
+    { input: '10\nenqueue 1\nenqueue 2\nenqueue 3\nenqueue 4\nenqueue 5\nisEmpty\ndequeue\nisEmpty\ndequeue\nisEmpty', expected: 'false\nfalse\nfalse' }
+  ],
+  
+  solution: {
+    approach: `This implementation uses a dynamic array and a 'head' pointer for efficiency. 'enqueue' adds an element to the end of the array. 'dequeue' checks if the queue is empty (head >= array size); if so, it prints "Underflow". Otherwise, it simply increments the 'head' pointer. 'peek' also checks for empty, printing "Empty" or the element at the 'head' index. 'isEmpty' returns true if the 'head' pointer has moved past the end of the written data in the array. This avoids O(n) element shifting.`,
+    cpp: `private:
+    std::vector<int> data;
+    int head = 0;
+public:
+    void enqueue(int val) {
+        data.push_back(val);
+    }
+    
+    void dequeue() {
+        if (isEmpty()) {
+            std::cout << "Underflow" << std::endl;
+            return;
+        }
+        head++;
+    }
+    
+    void peek() {
+        if (isEmpty()) {
+            std::cout << "Empty" << std::endl;
+            return;
+        }
+        std::cout << data[head] << std::endl;
+    }
+    
+    bool isEmpty() {
+        return head >= data.size();
+    }`,
+    java: `    private java.util.ArrayList<Integer> data = new java.util.ArrayList<>();
+    private int head = 0;
+
+    public void enqueue(int val) {
+        data.add(val);
+    }
+
+    public void dequeue() {
+        if (isEmpty()) {
+            System.out.println("Underflow");
+            return;
+        }
+        head++;
+    }
+
+    public void peek() {
+        if (isEmpty()) {
+            System.out.println("Empty");
+            return;
+        }
+        System.out.println(data.get(head));
+    }
+
+    public boolean isEmpty() {
+        return head >= data.size();
+    }`
+  }
 };

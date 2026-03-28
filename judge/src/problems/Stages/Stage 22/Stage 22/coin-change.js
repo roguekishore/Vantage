@@ -13,11 +13,15 @@
 module.exports = {
   id: 'coin-change',
   conquestId: 'stage22-3',
-  title: 'Coin Change',
+  title: 'The Goblin Coin Vault',
   difficulty: 'Medium',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Array', 'Unbounded Knapsack'],
+  storyBriefing: `
+You've reached a vault guarded by a goblin who demands a specific amount of Galleons. You have a collection of special coins, each with a different denomination. You have an infinite supply of each coin type.
 
+Your task is to give the goblin the exact amount using the minimum number of coins possible. If you can't make the exact amount, you fail the test.
+`,
   description: `
 You are given an array **coins** representing different coin denominations and an integer **amount** representing a total amount of money.
 
@@ -71,14 +75,25 @@ The answer is \`dp[amount]\`.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int coinChange(vector<int>& coins, int amount) {
-        // TODO: Implement DP solution
-        return 0;
+        vector<int> dp(amount + 1, amount + 1);
+        dp[0] = 0;
+        for (int i = 1; i <= amount; i++) {
+            for (int coin : coins) {
+                if (i >= coin) {
+                    dp[i] = min(dp[i], dp[i - coin] + 1);
+                }
+            }
+        }
+        return dp[amount] > amount ? -1 : dp[amount];
     }
 };
 
@@ -96,21 +111,28 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int coinChange(int[] coins, int amount) {
-            // TODO: Implement DP solution
-            return 0;
+            int[] dp = new int[amount + 1];
+            Arrays.fill(dp, amount + 1);
+            dp[0] = 0;
+            for (int i = 1; i <= amount; i++) {
+                for (int coin : coins) {
+                    if (i >= coin) {
+                        dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+                    }
+                }
+            }
+            return dp[amount] > amount ? -1 : dp[amount];
         }
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
         int amount = sc.nextInt();
 
@@ -121,8 +143,79 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.coinChange(coins, amount));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int coinChange(vector<int>& coins, int amount) {
+        vector<int> dp(amount + 1, amount + 1);
+        dp[0] = 0;
+        for (int i = 1; i <= amount; i++) {
+            for (int coin : coins) {
+                if (i >= coin) {
+                    dp[i] = min(dp[i], dp[i - coin] + 1);
+                }
+            }
+        }
+        return dp[amount] > amount ? -1 : dp[amount];
+    }
+};
+
+int main() {
+    int n, amount;
+    cin >> n >> amount;
+
+    vector<int> coins(n);
+    for (int i = 0; i < n; i++) {
+        cin >> coins[i];
+    }
+
+    Solution sol;
+    cout << sol.coinChange(coins, amount);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int coinChange(int[] coins, int amount) {
+            int[] dp = new int[amount + 1];
+            Arrays.fill(dp, amount + 1);
+            dp[0] = 0;
+            for (int i = 1; i <= amount; i++) {
+                for (int coin : coins) {
+                    if (i >= coin) {
+                        dp[i] = Math.min(dp[i], dp[i - coin] + 1);
+                    }
+                }
+            }
+            return dp[amount] > amount ? -1 : dp[amount];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int amount = sc.nextInt();
+
+        int[] coins = new int[n];
+        for (int i = 0; i < n; i++) {
+            coins[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.coinChange(coins, amount));
     }
 }`
   },

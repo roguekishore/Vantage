@@ -17,106 +17,77 @@ module.exports = {
   title: 'Linked List Cycle',
   difficulty: 'Easy',
   category: 'Linked List – LC Problems',
-  tags: ['Linked List', 'Two Pointers', 'Floyd\'s Cycle-Finding'],
+  tags: ['Linked List', 'Two Pointers', "Floyd's Cycle-Finding"],
 
-  description: `Detecting a cycle in a linked list is a classic problem that introduces **Floyd's Cycle-Finding Algorithm**, also known as the "Tortoise and the Hare."
+  storyBriefing: `Peeves cackles, delighted by the chaos he's causing. "Flipping them is fun, but making them go round and round is even better!" he shrieks, touching another flight of stairs. The staircase shudders and its end connects back to one of its middle steps, creating an endless loop. A nearby portrait sighs, "He's trapped the stairs in a time loop. You'll walk forever if you step on that! Before you proceed, can you simply tell us if this path is a trap? Does it contain a cycle?"`,
 
-If a list has no cycle, the "Hare" (fast pointer) will eventually reach the end (\`NULL\`). If there is a cycle, the "Hare" will eventually lap the "Tortoise" (slow pointer) inside the loop.
+  description: `You are given the head of a linked list. Your task is to determine if the linked list has a cycle in it. A cycle exists if some node in the list can be reached again by continuously following the 'next' pointer.
 
-### Task
-Given \`head\`, the head of a linked list, determine if the linked list has a cycle in it.
-1. Initialize two pointers, \`slow\` and \`fast\`, both at the \`head\`.
-2. Move \`slow\` one step at a time: \`slow = slow->next\`.
-3. Move \`fast\` two steps at a time: \`fast = fast->next->next\`.
-4. If at any point \`slow == fast\`, a cycle exists.
-5. If \`fast\` or \`fast->next\` becomes \`NULL\`, there is no cycle.
+A highly efficient way to solve this is using Floyd's Cycle-Finding Algorithm, also known as the "tortoise and the hare" method. This involves two pointers moving at different speeds. If the list has a cycle, the faster pointer will eventually lap the slower pointer, and they will meet. If there is no cycle, the fast pointer will reach the end of the list.
 
-### Time & Space Complexity
-- **Time**: $O(n)$ - We traverse the list once.
-- **Space**: $O(1)$ - We only use two pointers, regardless of list size.
-
-### Example
-**Input:**
-\`\`\`
-4
-3 2 0 -4
-1
-\`\`\`
-
-**Output:**
-\`\`\`
-true
-\`\`\`
-
-**Explanation:**
-The tail (-4) points back to the node at index 1 (value 2). The pointers will eventually meet.`,
+Return true if there is a cycle in the linked list. Otherwise, return false.`,
 
   examples: [
     {
       input: '4\n3 2 0 -4\n1',
       output: 'true',
-      explanation: 'There is a cycle where the tail connects to the second node.'
+      explanation: 'The list is 3 -> 2 -> 0 -> -4. The tail node (-4) connects back to the node at index 1 (value 2), creating a cycle. A fast and slow pointer would eventually meet inside this loop.'
     },
     {
       input: '2\n1 2\n-1',
       output: 'false',
-      explanation: 'The list ends at 2 -> NULL.'
+      explanation: 'The list is 1 -> 2 -> NULL. There is no cycle, as the list terminates.'
+    },
+    {
+      input: '1\n1\n-1',
+      output: 'false',
+      explanation: 'A single-node list cannot have a cycle.'
     }
   ],
 
   constraints: [
-    '0 ≤ n ≤ 10⁴',
-    '-10⁵ ≤ Node.val ≤ 10⁵',
+    'The number of nodes in the list is between 0 and 10000.',
+    'The value of each node is between -100000 and 100000.',
     'pos is -1 or a valid index in the linked-list.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-
-using namespace std;
-
-struct Node {
+    cpp: `struct Node {
     int data;
     Node* next;
     Node(int val) : data(val), next(nullptr) {}
 };
 
-/**
- * Detects if a cycle exists in the linked list.
- */
 bool solve(Node* head) {
-    if (!head || !head->next) return false;
-    
-    // Your code here: Initialize slow and fast pointers
-    
-    return false; 
+    // Your code here
 }
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <string>
 int main() {
     int n, pos, val;
-    if (!(cin >> n)) return 0;
-    vector<Node*> nodes;
+    if (!(std::cin >> n)) return 0;
+    std::vector<Node*> nodes;
     Node *head = nullptr, *tail = nullptr;
     for (int i = 0; i < n; i++) {
-        cin >> val;
+        std::cin >> val;
         Node* newNode = new Node(val);
         nodes.push_back(newNode);
         if (!head) head = newNode;
         else tail->next = newNode;
         tail = newNode;
     }
-    cin >> pos;
-    if (pos != -1 && tail) {
+    std::cin >> pos;
+    if (pos != -1 && tail && n > 0) {
         tail->next = nodes[pos];
     }
     
-    cout << (solve(head) ? "true" : "false") << endl;
+    std::cout << (solve(head) ? "true" : "false") << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-class Node {
+    java: `class Node {
     int data;
     Node next;
     Node(int data) {
@@ -125,23 +96,19 @@ class Node {
     }
 }
 
-public class Main {
-    /**
-     * Detects if a cycle exists in the linked list.
-     */
+class Solution {
     public static boolean solve(Node head) {
-        if (head == null || head.next == null) return false;
-        
-        // Your code here: Initialize slow and fast pointers
-        
-        return false;
+        // Your code here
     }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
-        List<Node> nodes = new ArrayList<>();
+        java.util.List<Node> nodes = new java.util.ArrayList<>();
         Node head = null, tail = null;
         for (int i = 0; i < n; i++) {
             int data = sc.nextInt();
@@ -152,11 +119,12 @@ public class Main {
             tail = newNode;
         }
         int pos = sc.nextInt();
-        if (pos != -1 && tail != null) {
+        if (pos != -1 && tail != null && n > 0) {
             tail.next = nodes.get(pos);
         }
         
-        System.out.println(solve(head) ? "true" : "false");
+        System.out.println(Solution.solve(head) ? "true" : "false");
+        sc.close();
     }
 }`
   },
@@ -168,6 +136,42 @@ public class Main {
     { input: '0\n\n-1', expected: 'false' },
     { input: '3\n1 2 3\n-1', expected: 'false' },
     { input: '5\n1 2 3 4 5\n2', expected: 'true' },
-    { input: '2\n1 1\n1', expected: 'true' }
-  ]
+    { input: '2\n1 1\n1', expected: 'true' },
+    { input: '6\n1 2 3 4 5 6\n0', expected: 'true' },
+    { input: '6\n1 2 3 4 5 6\n5', expected: 'true' },
+    { input: '10\n1 2 3 4 5 6 7 8 9 10\n-1', expected: 'false' }
+  ],
+
+  solution: {
+    approach: `The "tortoise and the hare" algorithm uses two pointers, a 'slow' pointer and a 'fast' pointer. The slow pointer moves one step at a time, while the fast pointer moves two steps. If the list contains a cycle, the fast pointer will eventually enter the cycle and lap the slow pointer, at which point they will be at the same node. If the fast pointer reaches null, it means there is no cycle.`,
+    cpp: `    if (!head || !head->next) {
+        return false;
+    }
+    Node* slow = head;
+    Node* fast = head;
+    while (fast != nullptr && fast->next != nullptr) {
+        slow = slow->next;
+        fast = fast->next->next;
+        if (slow == fast) {
+            return true;
+        }
+    }
+    return false;`,
+    java: `    if (head == null || head.next == null) {
+        return false;
+    }
+    Node slow = head;
+    Node fast = head;
+    while (fast != null && fast.next != null) {
+        slow = slow.next;
+        fast = fast.next;
+        if (fast != null) {
+            fast = fast.next;
+        }
+        if (slow == fast) {
+            return true;
+        }
+    }
+    return false;`
+  }
 };

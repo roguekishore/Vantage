@@ -13,11 +13,15 @@
 module.exports = {
   id: 'best-time-to-buy-and-sell-stock-iv',
   conquestId: 'stage22-9',
-  title: 'Best Time to Buy and Sell Stock IV',
+  title: 'The Dragon Egg Trading Floor',
   difficulty: 'Hard',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Array', 'Stock Trading'],
+  storyBriefing: `
+You've gained access to the Gringotts Dragon Egg trading floor. You're given the daily prices of a rare dragon egg over a period of time. You are allowed to complete at most 'k' transactions (a transaction is one buy and one sell).
 
+Your goal is to maximize your profit. Remember, you must sell an egg before you can buy another one. What is the maximum number of Galleons you can make?
+`,
   description: `
 You are given an integer **k** and an array **prices** where **prices[i]** is the price of a stock on day **i**.
 
@@ -72,14 +76,40 @@ This reduces the time complexity to **O(k × n)**.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int maxProfit(int k, vector<int>& prices) {
-        // TODO: Implement DP solution
-        return 0;
+        int n = prices.size();
+        if (n <= 1 || k == 0) {
+            return 0;
+        }
+
+        if (k >= n / 2) {
+            int profit = 0;
+            for (int i = 1; i < n; i++) {
+                if (prices[i] > prices[i - 1]) {
+                    profit += prices[i] - prices[i - 1];
+                }
+            }
+            return profit;
+        }
+
+        vector<int> buy(k + 1, INT_MIN);
+        vector<int> sell(k + 1, 0);
+
+        for (int price : prices) {
+            for (int i = 1; i <= k; i++) {
+                buy[i] = max(buy[i], sell[i - 1] - price);
+                sell[i] = max(sell[i], buy[i] + price);
+            }
+        }
+        return sell[k];
     }
 };
 
@@ -103,26 +133,150 @@ public class Main {
 
     static class Solution {
         public int maxProfit(int k, int[] prices) {
-            // TODO: Implement DP solution
-            return 0;
+            int n = prices.length;
+            if (n <= 1 || k == 0) {
+                return 0;
+            }
+
+            if (k >= n / 2) {
+                int profit = 0;
+                for (int i = 1; i < n; i++) {
+                    if (prices[i] > prices[i - 1]) {
+                        profit += prices[i] - prices[i - 1];
+                    }
+                }
+                return profit;
+            }
+
+            int[] buy = new int[k + 1];
+            int[] sell = new int[k + 1];
+            Arrays.fill(buy, Integer.MIN_VALUE);
+
+            for (int price : prices) {
+                for (int i = 1; i <= k; i++) {
+                    buy[i] = Math.max(buy[i], sell[i - 1] - price);
+                    sell[i] = Math.max(sell[i], buy[i] + price);
+                }
+            }
+            return sell[k];
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int k = sc.nextInt();
         int n = sc.nextInt();
 
         int[] prices = new int[n];
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             prices[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.maxProfit(k, prices));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int maxProfit(int k, vector<int>& prices) {
+        int n = prices.size();
+        if (n <= 1 || k == 0) {
+            return 0;
+        }
+
+        if (k >= n / 2) {
+            int profit = 0;
+            for (int i = 1; i < n; i++) {
+                if (prices[i] > prices[i - 1]) {
+                    profit += prices[i] - prices[i - 1];
+                }
+            }
+            return profit;
+        }
+
+        vector<int> buy(k + 1, INT_MIN);
+        vector<int> sell(k + 1, 0);
+
+        for (int price : prices) {
+            for (int i = 1; i <= k; i++) {
+                buy[i] = max(buy[i], sell[i - 1] - price);
+                sell[i] = max(sell[i], buy[i] + price);
+            }
+        }
+        return sell[k];
+    }
+};
+
+int main() {
+    int k, n;
+    cin >> k;
+    cin >> n;
+
+    vector<int> prices(n);
+    for (int i = 0; i < n; i++)
+        cin >> prices[i];
+
+    Solution sol;
+    cout << sol.maxProfit(k, prices);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int maxProfit(int k, int[] prices) {
+            int n = prices.length;
+            if (n <= 1 || k == 0) {
+                return 0;
+            }
+
+            if (k >= n / 2) {
+                int profit = 0;
+                for (int i = 1; i < n; i++) {
+                    if (prices[i] > prices[i - 1]) {
+                        profit += prices[i] - prices[i - 1];
+                    }
+                }
+                return profit;
+            }
+
+            int[] buy = new int[k + 1];
+            int[] sell = new int[k + 1];
+            Arrays.fill(buy, Integer.MIN_VALUE);
+
+            for (int price : prices) {
+                for (int i = 1; i <= k; i++) {
+                    buy[i] = Math.max(buy[i], sell[i - 1] - price);
+                    sell[i] = Math.max(sell[i], buy[i] + price);
+                }
+            }
+            return sell[k];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int k = sc.nextInt();
+        int n = sc.nextInt();
+
+        int[] prices = new int[n];
+        for (int i = 0; i < n; i++) {
+            prices[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.maxProfit(k, prices));
     }
 }`
   },

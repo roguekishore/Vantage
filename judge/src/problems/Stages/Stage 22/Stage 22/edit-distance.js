@@ -13,11 +13,20 @@
 module.exports = {
   id: 'edit-distance',
   conquestId: 'stage22-6',
-  title: 'Edit Distance',
+  title: 'The Transfiguration Vault',
   difficulty: 'Hard',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'String'],
+  storyBriefing: `
+In this vault, two magical scrolls display ancient words. To open the treasure chest, you must determine the minimum number of magical operations (transfigurations) needed to change the first word into the second.
 
+You have three spells at your disposal:
+1.  **Insert**: Add a character.
+2.  **Delete**: Remove a character.
+3.  **Replace**: Change one character into another.
+
+Each spell costs one operation. Find the most efficient sequence of spells.
+`,
   description: `
 Given two strings **word1** and **word2**, return the **minimum number of operations** required to convert **word1** into **word2**.
 
@@ -77,14 +86,34 @@ Base cases:
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int minDistance(string word1, string word2) {
-        // TODO: Implement DP solution
-        return 0;
+        int m = word1.length();
+        int n = word2.length();
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1));
+
+        for (int i = 0; i <= m; i++) {
+            for (int j = 0; j <= n; j++) {
+                if (i == 0) {
+                    dp[i][j] = j;
+                } else if (j == 0) {
+                    dp[i][j] = i;
+                } else if (word1[i - 1] == word2[j - 1]) {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = 1 + min({dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]});
+                }
+            }
+        }
+        return dp[m][n];
     }
 };
 
@@ -98,29 +127,40 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int minDistance(String word1, String word2) {
-            // TODO: Implement DP solution
-            return 0;
+            int m = word1.length();
+            int n = word2.length();
+            int[][] dp = new int[m + 1][n + 1];
+
+            for (int i = 0; i <= m; i++) {
+                for (int j = 0; j <= n; j++) {
+                    if (i == 0) {
+                        dp[i][j] = j;
+                    } else if (j == 0) {
+                        dp[i][j] = i;
+                    } else if (word1.charAt(i - 1) == word2.charAt(j - 1)) {
+                        dp[i][j] = dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
+                    }
+                }
+            }
+            return dp[m][n];
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         String word1 = sc.next();
         String word2 = sc.next();
 
         Solution sol = new Solution();
         System.out.print(sol.minDistance(word1, word2));
-
-        sc.close();
     }
 }`
   },

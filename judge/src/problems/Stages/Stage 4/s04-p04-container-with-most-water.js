@@ -10,6 +10,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'container-with-most-water',
   conquestId: 'stage4-4',
   title: 'Container With Most Water',
@@ -17,63 +18,46 @@ module.exports = {
   category: 'Two Pointers',
   tags: ['Array', 'Two Pointers', 'Greedy'],
 
-  description: `You are given an integer array \`height\` of length $n$. There are $n$ vertical lines drawn such that the two endpoints of the $i^{th}$ line are \`(i, 0)\` and \`(i, height[i])\`.
+  // ---- Story Layer ----
+  storyBriefing: `Away from the duelling grounds, Professor Snape presents a challenge in the Potions storeroom. You are shown a series of vertical potion barriers of different heights. You must choose two barriers to form the sides of a container that will hold a magical liquid. Your goal is to find the pair of barriers that can contain the maximum possible amount of this liquid, a task requiring careful consideration of both height and distance.`,
 
-Find two lines that together with the x-axis form a container, such that the container contains the most water.
+  // ---- Technical Layer ----
+  description: `You are given an integer array 'height' of length n, where 'height[i]' is the height of the i-th vertical line. Your goal is to find two lines that, together with the x-axis, form a container that can hold the most water. The width of the container is the distance between the two lines, and its height is determined by the shorter of the two lines.
 
-Return *the maximum amount of water a container can store*.
+This problem can be solved in O(n) time using a two-pointer approach. Start with one pointer at the beginning of the array (left) and one at the end (right). Calculate the area and keep track of the maximum area found. In each step, to maximize the potential for a larger area, you should move the pointer corresponding to the shorter of the two lines inward.
 
-**Notice** that you may not slant the container.
-
-### Task
-Implement an $O(n)$ solution using the **Two Pointer** approach. 
-1. Place one pointer at the beginning (\`left\`) and one at the end (\`right\`).
-2. Calculate the area: \`(right - left) * min(height[left], height[right])\`.
-3. Move the pointer pointing to the shorter line inward, as moving the pointer of the taller line would never increase the area (the height is limited by the shorter side).
-
-### Example
-**Input:**
-\`\`\`
-9
-1 8 6 2 5 4 8 3 7
-\`\`\`
-
-**Output:**
-\`\`\`
-49
-\`\`\`
-
-**Explanation:**
-The vertical lines are represented by the array. In this case, the max area of water the container can contain is 49 (between index 1 and 8).`,
-
+Return a single integer representing the maximum amount of water that can be contained.`,
   examples: [
     {
       input: '9\n1 8 6 2 5 4 8 3 7',
       output: '49',
-      explanation: 'The distance between indices 1 and 8 is 7, and the height is min(8, 7) = 7. Area = 7 * 7 = 49.'
+      explanation: 'The two lines are at index 1 (height 8) and index 8 (height 7). The width is 8-1=7. The height is limited by the shorter line, min(8, 7) = 7. The area is 7 * 7 = 49.'
     },
     {
       input: '2\n1 1',
       output: '1',
-      explanation: 'Distance is 1, height is 1. Area = 1 * 1 = 1.'
+      explanation: 'With two lines of height 1, the width is 1 and the height is 1, so the area is 1.'
+    },
+    {
+      input: '5\n4 3 2 1 4',
+      output: '16',
+      explanation: 'The widest container is between the first and last lines. Width = 4, Height = min(4, 4) = 4. Area = 4 * 4 = 16.'
     }
   ],
-
   constraints: [
-    '2 ≤ n ≤ 10⁵',
-    '0 ≤ height[i] ≤ 10⁴'
+    '2 <= n <= 10^5',
+    '0 <= height[i] <= 10^4'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <algorithm>
 
 using namespace std;
 
-/**
- * Returns the maximum amount of water a container can store.
- */
 int solve(int n, vector<int>& height) {
     int maxWater = 0;
     // Your code here
@@ -92,12 +76,10 @@ int main() {
     cout << solve(n, height) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the maximum amount of water a container can store.
-     */
     public static int solve(int n, int[] height) {
         int maxWater = 0;
         // Your code here
@@ -117,6 +99,7 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '9\n1 8 6 2 5 4 8 3 7', expected: '49' },
     { input: '2\n1 1', expected: '1' },
@@ -124,9 +107,38 @@ public class Main {
     { input: '4\n1 2 4 3', expected: '4' },
     { input: '6\n10 1 1 1 1 10', expected: '50' },
     { input: '3\n1 2 1', expected: '2' },
-    { input: '10\n1 2 3 4 5 6 7 8 9 10', expected: '25' },
-    { input: '2\n100 1', expected: '1' },
-    { input: '5\n0 2 0 2 0', expected: '4' },
-    { input: '8\n5 10 2 3 4 10 5 1', expected: '40' }
-  ]
+    { input: '2\n1 100', expected: '1' },
+    { input: '5\n10 9 8 7 6', expected: '18' },
+    { input: '5\n6 7 8 9 10', expected: '18' },
+    { input: '4\n1 10 10 1', expected: '10' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `This problem is solved efficiently with a two-pointer approach. Initialize a 'left' pointer at the start of the array and a 'right' pointer at the end. Maintain a 'maxWater' variable. In a loop, calculate the area formed by the current 'left' and 'right' pointers: 'width * min(height[left], height[right])'. Update 'maxWater' if this area is larger. To find a potentially larger area, you must increase either the width or the height. Since the width only decreases, we must seek a greater height. Therefore, move the pointer associated with the shorter height inward, as this is the only move that could potentially increase the container's height.`,
+    cpp: `int left = 0, right = n - 1;
+while (left < right) {
+    int width = right - left;
+    int h = min(height[left], height[right]);
+    maxWater = max(maxWater, width * h);
+    if (height[left] < height[right]) {
+        left++;
+    } else {
+        right--;
+    }
+}
+return maxWater;`,
+    java: `int left = 0, right = n - 1;
+while (left < right) {
+    int width = right - left;
+    int h = Math.min(height[left], height[right]);
+    maxWater = Math.max(maxWater, width * h);
+    if (height[left] < height[right]) {
+        left++;
+    } else {
+        right--;
+    }
+}
+return maxWater;`
+  }
 };

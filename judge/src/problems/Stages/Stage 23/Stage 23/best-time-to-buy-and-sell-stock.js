@@ -12,11 +12,15 @@
 module.exports = {
   id: 'best-time-to-buy-and-sell-stock',
   conquestId: 'stage23-1',
-  title: 'Best Time to Buy and Sell Stock',
+  title: "Potions Class: Ingredient Trading",
   difficulty: 'Easy',
-  category: 'Arrays',
+  category: 'Greedy',
   tags: ['Array', 'Greedy', 'Dynamic Programming'],
+  storyBriefing: `
+In Potions class, you're learning to trade rare ingredients. You are given the future prices of a specific ingredient, like powdered Bicorn horn, for several days.
 
+You are allowed to complete at most one transaction (i.e., buy one and sell one). Find the best time to buy and sell to maximize your profit. If no profit is possible, you don't make a trade.
+`,
   description: `
 You are given an array **prices** where **prices[i]** is the price of a given stock on day **i**.
 
@@ -57,14 +61,25 @@ Space Complexity: **O(1)**
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int maxProfit(vector<int>& prices) {
-        // TODO: Implement solution
-        return 0;
+        int min_price = INT_MAX;
+        int max_profit = 0;
+        for (int price : prices) {
+            if (price < min_price) {
+                min_price = price;
+            } else if (price - min_price > max_profit) {
+                max_profit = price - min_price;
+            }
+        }
+        return max_profit;
     }
 };
 
@@ -81,32 +96,106 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int maxProfit(int[] prices) {
-            // TODO: Implement solution
-            return 0;
+            int minPrice = Integer.MAX_VALUE;
+            int maxProfit = 0;
+            for (int price : prices) {
+                if (price < minPrice) {
+                    minPrice = price;
+                } else if (price - minPrice > maxProfit) {
+                    maxProfit = price - minPrice;
+                }
+            }
+            return maxProfit;
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
 
         int[] prices = new int[n];
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             prices[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.maxProfit(prices));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int min_price = INT_MAX;
+        int max_profit = 0;
+        for (int price : prices) {
+            if (price < min_price) {
+                min_price = price;
+            } else if (price - min_price > max_profit) {
+                max_profit = price - min_price;
+            }
+        }
+        return max_profit;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> prices(n);
+    for (int i = 0; i < n; i++)
+        cin >> prices[i];
+
+    Solution sol;
+    cout << sol.maxProfit(prices);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int maxProfit(int[] prices) {
+            int minPrice = Integer.MAX_VALUE;
+            int maxProfit = 0;
+            for (int price : prices) {
+                if (price < minPrice) {
+                    minPrice = price;
+                } else if (price - minPrice > maxProfit) {
+                    maxProfit = price - minPrice;
+                }
+            }
+            return maxProfit;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] prices = new int[n];
+        for (int i = 0; i < n; i++) {
+            prices[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.maxProfit(prices));
     }
 }`
   },

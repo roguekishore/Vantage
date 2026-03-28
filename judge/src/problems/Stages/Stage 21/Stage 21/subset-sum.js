@@ -14,11 +14,15 @@
 module.exports = {
   id: 'subset-sum',
   conquestId: 'stage21-6',
-  title: 'Subset Sum',
+  title: 'The Space Room',
   difficulty: 'Medium',
   category: 'Recursion',
   tags: ['Recursion', 'Backtracking', 'Dynamic Programming'],
+  storyBriefing: `
+The Space Room contains a collection of floating planets, each with a specific gravitational mass. You've been tasked with creating a stable planetary system with a precise total mass.
 
+Given the masses of all available planets, you must determine if a *subset* of them can be combined to achieve a target gravitational mass. For each planet, you have a choice: include it in your system or not. This binary choice at each step is the heart of this recursive problem.
+`,
   description: `
 Given a set of **n integers** and a **target sum**, determine whether there exists a **subset** of the numbers whose sum equals the target.
 
@@ -58,7 +62,20 @@ Return **true** if such a subset exists, otherwise return **false**.
 using namespace std;
 
 bool subsetSum(vector<int>& arr, int index, int target) {
-    // TODO: Implement subset sum using recursion/backtracking
+    if (target == 0) {
+        return true;
+    }
+    if (index >= arr.size()) { // Simplified base case
+        return false;
+    }
+    // Exclude the current element
+    if (subsetSum(arr, index + 1, target)) {
+        return true;
+    }
+    // Include the current element
+    if (subsetSum(arr, index + 1, target - arr[index])) {
+        return true;
+    }
     return false;
 }
 
@@ -82,7 +99,96 @@ int main() {
 public class Main {
 
     static boolean subsetSum(int[] arr, int index, int target) {
-        // TODO: Implement subset sum using recursion/backtracking
+        if (target == 0) {
+            return true;
+        }
+        if (index >= arr.length) { // Simplified base case
+            return false;
+        }
+        // Exclude the current element
+        if (subsetSum(arr, index + 1, target)) {
+            return true;
+        }
+        // Include the current element
+        if (subsetSum(arr, index + 1, target - arr[index])) {
+            return true;
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[] arr = new int[n];
+        for(int i = 0; i < n; i++)
+            arr[i] = sc.nextInt();
+
+        int target = sc.nextInt();
+
+        System.out.print(subsetSum(arr, 0, target) ? "true" : "false");
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+bool subsetSum(vector<int>& arr, int index, int target) {
+    if (target == 0) {
+        return true;
+    }
+    if (index >= arr.size()) { // Simplified base case
+        return false;
+    }
+    // Exclude the current element
+    if (subsetSum(arr, index + 1, target)) {
+        return true;
+    }
+    // Include the current element
+    if (subsetSum(arr, index + 1, target - arr[index])) {
+        return true;
+    }
+    return false;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> arr(n);
+    for(int i = 0; i < n; i++)
+        cin >> arr[i];
+
+    int target;
+    cin >> target;
+
+    cout << (subsetSum(arr, 0, target) ? "true" : "false");
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static boolean subsetSum(int[] arr, int index, int target) {
+        if (target == 0) {
+            return true;
+        }
+        if (index >= arr.length) { // Simplified base case
+            return false;
+        }
+        // Exclude the current element
+        if (subsetSum(arr, index + 1, target)) {
+            return true;
+        }
+        // Include the current element
+        if (subsetSum(arr, index + 1, target - arr[index])) {
+            return true;
+        }
         return false;
     }
 

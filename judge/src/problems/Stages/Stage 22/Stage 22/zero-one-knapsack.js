@@ -14,11 +14,15 @@
 module.exports = {
   id: 'zero-one-knapsack',
   conquestId: 'stage22-2',
-  title: '0/1 Knapsack',
+  title: 'The Treasure Vault',
   difficulty: 'Medium',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Knapsack', 'Optimization'],
+  storyBriefing: `
+You've broken into a high-security Gringotts vault filled with priceless artifacts. Each artifact has a specific value and weight. You have a magical knapsack with a limited weight capacity.
 
+Your task is to choose which artifacts to take to maximize their total value, without exceeding your knapsack's weight limit. You can either take an item or leave it—no half measures.
+`,
   description: `
 You are given **n items**, each with a **weight** and a **value**, and a knapsack with capacity **W**.
 
@@ -69,14 +73,27 @@ Take the **maximum** of both choices.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int knapsack(int n, int W, vector<int>& wt, vector<int>& val) {
-        // TODO: Implement DP solution
-        return 0;
+        vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
+
+        for (int i = 1; i <= n; i++) {
+            for (int w = 1; w <= W; w++) {
+                if (wt[i - 1] <= w) {
+                    dp[i][w] = max(val[i - 1] + dp[i - 1][w - wt[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+        return dp[n][W];
     }
 };
 
@@ -97,24 +114,29 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
-
         public int knapsack(int n, int W, int[] wt, int[] val) {
-            // TODO: Implement DP solution
-            return 0;
-        }
+            int[][] dp = new int[n + 1][W + 1];
 
+            for (int i = 1; i <= n; i++) {
+                for (int w = 1; w <= W; w++) {
+                    if (wt[i - 1] <= w) {
+                        dp[i][w] = Math.max(val[i - 1] + dp[i - 1][w - wt[i - 1]], dp[i - 1][w]);
+                    } else {
+                        dp[i][w] = dp[i - 1][w];
+                    }
+                }
+            }
+            return dp[n][W];
+        }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
         int W = sc.nextInt();
 
@@ -129,8 +151,89 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.knapsack(n, W, wt, val));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int knapsack(int n, int W, vector<int>& wt, vector<int>& val) {
+        vector<vector<int>> dp(n + 1, vector<int>(W + 1, 0));
+
+        for (int i = 1; i <= n; i++) {
+            for (int w = 1; w <= W; w++) {
+                if (wt[i - 1] <= w) {
+                    dp[i][w] = max(val[i - 1] + dp[i - 1][w - wt[i - 1]], dp[i - 1][w]);
+                } else {
+                    dp[i][w] = dp[i - 1][w];
+                }
+            }
+        }
+        return dp[n][W];
+    }
+};
+
+int main() {
+    int n, W;
+    cin >> n >> W;
+
+    vector<int> wt(n), val(n);
+
+    for (int i = 0; i < n; i++)
+        cin >> wt[i];
+
+    for (int i = 0; i < n; i++)
+        cin >> val[i];
+
+    Solution sol;
+    cout << sol.knapsack(n, W, wt, val);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int knapsack(int n, int W, int[] wt, int[] val) {
+            int[][] dp = new int[n + 1][W + 1];
+
+            for (int i = 1; i <= n; i++) {
+                for (int w = 1; w <= W; w++) {
+                    if (wt[i - 1] <= w) {
+                        dp[i][w] = Math.max(val[i - 1] + dp[i - 1][w - wt[i - 1]], dp[i - 1][w]);
+                    } else {
+                        dp[i][w] = dp[i - 1][w];
+                    }
+                }
+            }
+            return dp[n][W];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int W = sc.nextInt();
+
+        int[] wt = new int[n];
+        int[] val = new int[n];
+
+        for (int i = 0; i < n; i++)
+            wt[i] = sc.nextInt();
+
+        for (int i = 0; i < n; i++)
+            val[i] = sc.nextInt();
+
+        Solution sol = new Solution();
+        System.out.print(sol.knapsack(n, W, wt, val));
     }
 }`
   },

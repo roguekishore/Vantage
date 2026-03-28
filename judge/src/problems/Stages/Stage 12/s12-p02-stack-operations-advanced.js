@@ -22,147 +22,112 @@ module.exports = {
   difficulty: 'Easy',
   category: 'Stack – Fundamentals',
   tags: ['Stack', 'Data Structure', 'LIFO', 'Array'],
+  
+  storyBriefing: `George is impressed. "You've got the basics. But our inventory system is a bit more demanding. We also need to know the 'size' of any stack of boxes at a moment's notice, and sometimes we need to 'clear' a whole stack at once if an invention goes haywire. Let's try again, but this time, the operations will return a value. If you try to pop or peek an empty stack, just return -1 for now."`,
 
-  description: `A **Stack** is a linear data structure that follows the **LIFO (Last In, First Out)** principle. Imagine a stack of cafeteria trays: the last tray placed on the pile is the first one someone picks up.
+  description: `You are given a series of operations for a stack data structure that must return values. A stack operates on a Last-In-First-Out (LIFO) principle. Your task is to implement a stack that can handle these commands and return the appropriate values.
 
-In this challenge, you will implement a robust stack from scratch. This is the foundation for understanding recursion, expression parsing, and backtracking.
+You will implement a stack supporting 'push', 'pop', 'top', 'size', and 'clear'. The key difference from a basic stack is that 'pop' and 'top' must return the value of the element. If these operations are called on an empty stack, you should return -1 as an error indicator.
 
-### Core Principles
-1.  **LIFO**: The element added most recently is the first to be removed.
-2.  **Access**: You can only see or remove the "Top" element. Accessing the bottom requires popping everything above it.
-
-### Task
-Implement a stack that supports the following operations efficiently:
-- **push(x)**: $O(1)$
-- **pop()**: $O(1)$
-- **top()**: $O(1)$
-- **size()**: $O(1)$
-- **clear()**: $O(n)$ or $O(1)$ depending on implementation.
-
-### Example
-**Input:**
-\`\`\`
-7
-push 5
-push 10
-size
-top
-pop
-top
-clear
-\`\`\`
-
-**Output:**
-\`\`\`
-2
-10
-10
-5
-\`\`\`
-
-**Explanation:**
-- push 5:
-- push 10:
-- size: 2 elements.
-- top: 10 is at the top.
-- pop: 10 is removed, output 10.
-- top: 5 is now at the top.
-- clear: stack becomes [].`,
+Process all the given operations and print the return value for each 'pop', 'top', and 'size' command on a new line.`,
 
   examples: [
     {
-      input: '5\npush 42\ntop\npop\ntop\nsize',
-      output: '42\n42\n-1\n0',
-      explanation: 'Returning -1 when the stack is empty.'
+      input: '7\npush 5\npush 10\nsize\ntop\npop\ntop\nclear',
+      output: '2\n10\n10\n5',
+      explanation: 'Push 5, stack [5]. Push 10, stack [5, 10]. Size returns 2. Top returns 10. Pop removes and returns 10. Top now returns 5. Clear empties the stack.'
+    },
+    {
+      input: '4\npop\ntop\nsize\nclear',
+      output: '-1\n-1\n0',
+      explanation: 'Operations on an empty stack correctly return -1 or 0 for size.'
+    },
+    {
+      input: '5\npush 1\npush 2\nclear\nsize\ntop',
+      output: '0\n-1',
+      explanation: 'After clearing the stack, its size is 0 and topping it returns -1.'
     }
   ],
 
   constraints: [
-    '1 ≤ q ≤ 5000',
-    '-10⁹ ≤ val ≤ 10⁹',
-    'Operations: push, pop, top, size, clear.'
+    'The number of operations is between 1 and 5000.',
+    'The value for push operations is between -10^9 and 10^9.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <string>
-
-using namespace std;
-
-class MyStack {
-private:
-    vector<int> data;
+    cpp: `class MyStack {
 public:
     void push(int x) {
         // Your code here
     }
 
     int pop() {
-        if (size() == 0) return -1;
         // Your code here
         return -1;
     }
 
     int top() {
-        if (size() == 0) return -1;
         // Your code here
         return -1;
     }
 
     int size() {
-        return data.size();
+        // Your code here
+        return 0;
     }
 
     void clear() {
         // Your code here
     }
+private:
+    // Choose your underlying data structure
 };
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <string>
 int main() {
     MyStack st;
     int q;
-    cin >> q;
+    std::cin >> q;
     while (q--) {
-        string op;
-        cin >> op;
+        std::string op;
+        std::cin >> op;
         if (op == "push") {
-            int x; cin >> x; st.push(x);
+            int x; std::cin >> x; st.push(x);
         } else if (op == "pop") {
-            cout << st.pop() << endl;
+            std::cout << st.pop() << std::endl;
         } else if (op == "top") {
-            cout << st.top() << endl;
+            std::cout << st.top() << std::endl;
         } else if (op == "size") {
-            cout << st.size() << endl;
+            std::cout << st.size() << std::endl;
         } else if (op == "clear") {
             st.clear();
         }
     }
     return 0;
 }`,
-    java: `import java.util.*;
-
-class MyStack {
-    private List<Integer> stack = new ArrayList<>();
+    java: `class MyStack {
+    // Choose your underlying data structure
 
     public void push(int x) {
         // Your code here
     }
 
     public int pop() {
-        if (size() == 0) return -1;
         // Your code here
         return -1;
     }
 
     public int top() {
-        if (size() == 0) return -1;
         // Your code here
         return -1;
     }
 
     public int size() {
-        return stack.size();
+        // Your code here
+        return 0;
     }
 
     public void clear() {
@@ -170,9 +135,10 @@ class MyStack {
     }
 }
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         MyStack st = new MyStack();
         if (!sc.hasNextInt()) return;
         int q = sc.nextInt();
@@ -186,6 +152,7 @@ public class Main {
                 case "clear": st.clear(); break;
             }
         }
+        sc.close();
     }
 }`
   },
@@ -193,7 +160,66 @@ public class Main {
   testCases: [
     { input: '7\npush 5\npush 10\nsize\ntop\npop\ntop\nclear', expected: '2\n10\n10\n5' },
     { input: '4\npop\ntop\nsize\nclear', expected: '-1\n-1\n0' },
-    { input: '5\npush 1\npush 2\npush 3\npop\npop', expected: '3\n2' },
-    { input: '6\npush 100\nsize\nclear\nsize\ntop\npop', expected: '1\n0\n-1\n-1' }
-  ]
+    { input: '1\nsize', expected: '0' },
+    { input: '2\npush 10\nsize', expected: '1' },
+    { input: '8\npush 1\npush 2\npop\ntop\npop\nsize\ntop\npop', expected: '2\n1\n1\n0\n-1\n-1' },
+    { input: '4\npush 0\ntop\npop\nsize', expected: '0\n0\n0' },
+    { input: '5\npush -100\ntop\npop\ntop\npop', expected: '-100\n-100\n-1\n-1' },
+    { input: '6\npush 1\npush 2\nclear\nsize\ntop\npop', expected: '0\n-1\n-1' },
+    { input: '2\npush 1000000000\ntop', expected: '1000000000' },
+    { input: '2\npush -1000000000\ntop', expected: '-1000000000' }
+  ],
+  
+  solution: {
+    approach: `Using a dynamic array (like std::vector or ArrayList) is a straightforward way to implement this stack. 'push' adds to the end of the array. 'pop' checks if the array is empty (returning -1 if so), otherwise it retrieves and then removes the last element. 'top' also checks for empty, returning -1 or the last element without removal. 'size' simply returns the current size of the array, and 'clear' reinitializes the array to an empty state.`,
+    cpp: `private:
+    std::vector<int> data;
+public:
+    void push(int x) {
+        data.push_back(x);
+    }
+
+    int pop() {
+        if (data.empty()) return -1;
+        int topVal = data.back();
+        data.pop_back();
+        return topVal;
+    }
+
+    int top() {
+        if (data.empty()) return -1;
+        return data.back();
+    }
+
+    int size() {
+        return data.size();
+    }
+
+    void clear() {
+        data.clear();
+    }`,
+    java: `    private java.util.ArrayList<Integer> stack = new java.util.ArrayList<>();
+
+    public void push(int x) {
+        stack.add(x);
+    }
+
+    public int pop() {
+        if (stack.isEmpty()) return -1;
+        return stack.remove(stack.size() - 1);
+    }
+
+    public int top() {
+        if (stack.isEmpty()) return -1;
+        return stack.get(stack.size() - 1);
+    }
+
+    public int size() {
+        return stack.size();
+    }
+
+    public void clear() {
+        stack.clear();
+    }`
+  }
 };

@@ -11,11 +11,15 @@
 module.exports = {
   id: 'factorial',
   conquestId: 'stage21-3',
-  title: 'Factorial',
+  title: 'The Brain Room',
   difficulty: 'Easy',
   category: 'Recursion',
   tags: ['Recursion', 'Math'],
+  storyBriefing: `
+The Brain Room contains thoughts, swirling in tanks. Some thoughts are simple, others are built upon preceding thoughts. A particularly powerful thought form, a 'factorial thought', is created by multiplying a thought's intensity 'n' with the intensity of the thought that came just before it ('n-1').
 
+Your task is to trace a factorial thought back to its origin (the base case of 0! = 1) and calculate its final, staggering intensity. This will test your ability to handle recursively defined magical constructs.
+`,
   description: `
 The **factorial** of a non-negative integer **n** is defined as:
 
@@ -52,8 +56,10 @@ This problem is commonly solved using **recursion**, where each function call re
 using namespace std;
 
 long long factorial(int n) {
-    // TODO: Implement factorial using recursion or iteration
-    return 0;
+    if (n == 0) {
+        return 1;
+    }
+    return n * factorial(n - 1);
 }
 
 int main() {
@@ -69,8 +75,50 @@ int main() {
 public class Main {
 
     static long factorial(int n) {
-        // TODO: Implement factorial using recursion or iteration
-        return 0;
+        if (n == 0) {
+            return 1;
+        }
+        return n * factorial(n - 1);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        System.out.print(factorial(n));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+using namespace std;
+
+long long factorial(int n) {
+    if (n == 0) {
+        return 1;
+    }
+    return n * factorial(n - 1);
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << factorial(n);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static long factorial(int n) {
+        if (n == 0) {
+            return 1;
+        }
+        return n * factorial(n - 1);
     }
 
     public static void main(String[] args) {

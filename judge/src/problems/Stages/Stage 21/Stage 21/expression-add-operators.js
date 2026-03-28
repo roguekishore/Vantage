@@ -14,11 +14,15 @@
 module.exports = {
   id: 'expression-add-operators',
   conquestId: 'stage21-12',
-  title: 'Expression Add Operators',
+  title: "The Unspeakable's Code",
   difficulty: 'Hard',
   category: 'Backtracking',
   tags: ['Backtracking', 'Recursion', 'String', 'Math'],
+  storyBriefing: `
+You've intercepted a coded message from an Unspeakable, one of the secretive wizards who study the mysteries of the Department. The message is a string of digits and a target number.
 
+To decipher it, you must insert addition (+), subtraction (-), or multiplication (*) operators between the digits to form an expression that equals the target. The order of the digits cannot be changed. Find all possible ways to decode the message.
+`,
   description: `
 Given a string **num** that contains only digits and an integer **target**, return **all possible expressions** by inserting the binary operators \`+\`, \`-\`, or \`*\` between the digits so that the resulting expression evaluates to **target**.
 
@@ -57,18 +61,41 @@ This problem is typically solved using **backtracking**, where we recursively tr
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
-    void backtrack(string num, long target, int pos, long value, long prev,
-                   string expr, vector<string>& result) {
-        // TODO: Implement backtracking logic
+    void backtrack(string& num, int target, int pos, long current_val, long prev_val, string current_expr, vector<string>& result) {
+        if (pos == num.length()) {
+            if (current_val == target) {
+                result.push_back(current_expr);
+            }
+            return;
+        }
+
+        for (int i = pos; i < num.length(); ++i) {
+            if (i != pos && num[pos] == '0') break;
+            string part_str = num.substr(pos, i - pos + 1);
+            long part_val = stol(part_str);
+
+            if (pos == 0) {
+                backtrack(num, target, i + 1, part_val, part_val, part_str, result);
+            } else {
+                backtrack(num, target, i + 1, current_val + part_val, part_val, current_expr + "+" + part_str, result);
+                backtrack(num, target, i + 1, current_val - part_val, -part_val, current_expr + "-" + part_str, result);
+                backtrack(num, target, i + 1, current_val - prev_val + prev_val * part_val, prev_val * part_val, current_expr + "*" + part_str, result);
+            }
+        }
     }
 
-    vector<string> addOperators(string num, long target) {
+    vector<string> addOperators(string num, int target) {
         vector<string> result;
+        if (num.empty()) return result;
         backtrack(num, target, 0, 0, 0, "", result);
         return result;
     }
@@ -90,30 +117,43 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
-
-        void backtrack(String num, long target, int pos, long value, long prev,
-                       String expr, List<String> result) {
-            // TODO: Implement backtracking logic
+        public List<String> addOperators(String num, int target) {
+            List<String> result = new ArrayList<>();
+            if (num == null || num.length() == 0) return result;
+            backtrack(result, "", num, target, 0, 0, 0);
+            return result;
         }
 
-        public List<String> addOperators(String num, long target) {
-            List<String> result = new ArrayList<>();
-            backtrack(num, target, 0, 0, 0, "", result);
-            return result;
+        private void backtrack(List<String> result, String path, String num, int target, int pos, long eval, long multed) {
+            if (pos == num.length()) {
+                if (target == eval) {
+                    result.add(path);
+                }
+                return;
+            }
+            for (int i = pos; i < num.length(); i++) {
+                if (i != pos && num.charAt(pos) == '0') break;
+                long cur = Long.parseLong(num.substring(pos, i + 1));
+                if (pos == 0) {
+                    backtrack(result, path + cur, num, target, i + 1, cur, cur);
+                } else {
+                    backtrack(result, path + "+" + cur, num, target, i + 1, eval + cur, cur);
+                    backtrack(result, path + "-" + cur, num, target, i + 1, eval - cur, -cur);
+                    backtrack(result, path + "*" + cur, num, target, i + 1, eval - multed + multed * cur, multed * cur);
+                }
+            }
         }
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         String num = sc.next();
-        long target = sc.nextLong();
+        int target = sc.nextInt();
 
         Solution sol = new Solution();
         List<String> result = sol.addOperators(num, target);
@@ -122,8 +162,112 @@ public class Main {
         for (String s : result) {
             System.out.println(s);
         }
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    void backtrack(string& num, int target, int pos, long current_val, long prev_val, string current_expr, vector<string>& result) {
+        if (pos == num.length()) {
+            if (current_val == target) {
+                result.push_back(current_expr);
+            }
+            return;
+        }
+
+        for (int i = pos; i < num.length(); ++i) {
+            if (i != pos && num[pos] == '0') break;
+            string part_str = num.substr(pos, i - pos + 1);
+            long part_val = stol(part_str);
+
+            if (pos == 0) {
+                backtrack(num, target, i + 1, part_val, part_val, part_str, result);
+            } else {
+                backtrack(num, target, i + 1, current_val + part_val, part_val, current_expr + "+" + part_str, result);
+                backtrack(num, target, i + 1, current_val - part_val, -part_val, current_expr + "-" + part_str, result);
+                backtrack(num, target, i + 1, current_val - prev_val + prev_val * part_val, prev_val * part_val, current_expr + "*" + part_str, result);
+            }
+        }
+    }
+
+    vector<string> addOperators(string num, int target) {
+        vector<string> result;
+        if (num.empty()) return result;
+        backtrack(num, target, 0, 0, 0, "", result);
+        return result;
+    }
+};
+
+int main() {
+    string num;
+    long target;
+    cin >> num;
+    cin >> target;
+
+    Solution sol;
+    vector<string> result = sol.addOperators(num, target);
+
+    sort(result.begin(), result.end());
+    for (string &s : result) {
+        cout << s << endl;
+    }
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public List<String> addOperators(String num, int target) {
+            List<String> result = new ArrayList<>();
+            if (num == null || num.length() == 0) return result;
+            backtrack(result, "", num, target, 0, 0, 0);
+            return result;
+        }
+
+        private void backtrack(List<String> result, String path, String num, int target, int pos, long eval, long multed) {
+            if (pos == num.length()) {
+                if (target == eval) {
+                    result.add(path);
+                }
+                return;
+            }
+            for (int i = pos; i < num.length(); i++) {
+                if (i != pos && num.charAt(pos) == '0') break;
+                long cur = Long.parseLong(num.substring(pos, i + 1));
+                if (pos == 0) {
+                    backtrack(result, path + cur, num, target, i + 1, cur, cur);
+                } else {
+                    backtrack(result, path + "+" + cur, num, target, i + 1, eval + cur, cur);
+                    backtrack(result, path + "-" + cur, num, target, i + 1, eval - cur, -cur);
+                    backtrack(result, path + "*" + cur, num, target, i + 1, eval - multed + multed * cur, multed * cur);
+                }
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String num = sc.next();
+        int target = sc.nextInt();
+
+        Solution sol = new Solution();
+        List<String> result = sol.addOperators(num, target);
+
+        Collections.sort(result);
+        for (String s : result) {
+            System.out.println(s);
+        }
     }
 }`
   },

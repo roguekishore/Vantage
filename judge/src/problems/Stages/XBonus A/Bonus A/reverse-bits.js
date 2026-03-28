@@ -11,11 +11,15 @@
 module.exports = {
   id: 'reverse-bits',
   conquestId: 'bonusA-4',
-  title: 'Reverse Bits',
+  title: 'Counter-Charm Dynamics',
   difficulty: 'Easy',
   category: 'Bit Manipulation',
   tags: ['Bit Manipulation'],
+  storyBriefing: `
+Professor Flitwick is teaching defensive magic. A particularly clever counter-charm works by perfectly reversing the bit pattern of an incoming spell's magical signature.
 
+To master this defensive maneuver, you must practice taking a 32-bit magical signature (an unsigned integer) and reversing its bits.
+`,
   description: `Reverse the bits of a given **32-bit unsigned integer**.
 
 The task is to reverse the order of the bits in the binary representation
@@ -60,30 +64,44 @@ Reversed ->
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <cstdint>
+
 using namespace std;
 
-unsigned int reverseBits(unsigned int n) {
-    // TODO: Implement your solution here
-    return 0;
+uint32_t reverseBits(uint32_t n) {
+    uint32_t result = 0;
+    for (int i = 0; i < 32; ++i) {
+        result <<= 1;
+        if (n & 1) {
+            result |= 1;
+        }
+        n >>= 1;
+    }
+    return result;
 }
 
 int main() {
-    unsigned int n;
+    uint32_t n;
     cin >> n;
 
     cout << reverseBits(n);
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static int reverseBits(int n) {
-        // TODO: Implement your solution here
-        return 0;
+        int result = 0;
+        for (int i = 0; i < 32; i++) {
+            result <<= 1;
+            if ((n & 1) == 1) {
+                result |= 1;
+            }
+            n >>= 1;
+        }
+        return result;
     }
 
     public static void main(String[] args) {
@@ -92,8 +110,57 @@ public class Main {
 
         System.out.print(reverseBits((int)n));
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <cstdint>
+
+using namespace std;
+
+uint32_t reverseBits(uint32_t n) {
+    uint32_t result = 0;
+    for (int i = 0; i < 32; ++i) {
+        result <<= 1;
+        if (n & 1) {
+            result |= 1;
+        }
+        n >>= 1;
+    }
+    return result;
 }
-`,
+
+int main() {
+    uint32_t n;
+    cin >> n;
+
+    cout << reverseBits(n);
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static int reverseBits(int n) {
+        int result = 0;
+        for (int i = 0; i < 32; i++) {
+            result <<= 1;
+            if ((n & 1) == 1) {
+                result |= 1;
+            }
+            n >>= 1;
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        long n = sc.nextLong();
+
+        System.out.print(reverseBits((int)n));
+    }
+}`,
   },
 
   testCases: [
