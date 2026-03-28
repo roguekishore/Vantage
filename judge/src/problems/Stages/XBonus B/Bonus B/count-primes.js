@@ -11,11 +11,15 @@
 module.exports = {
   id: 'count-primes',
   conquestId: 'bonusB-1',
-  title: 'Count Primes',
+  title: 'Arithmancy: Counting Prime Numbers',
   difficulty: 'Medium',
-  category: 'Math',
-  tags: ['Math', 'Sieve of Eratosthenes'],
+  category: 'Math & Number Theory',
+  tags: ['Math', 'Sieve of Eratosthenes', 'Number Theory'],
+  storyBriefing: `
+Welcome to Arithmancy class! Professor Vector explains that prime numbers possess unique and powerful magical properties. To understand their distribution, you are tasked with a fundamental calculation.
 
+Given a number 'n', you must count how many magically significant prime numbers exist that are strictly less than 'n'. This is a key skill for any aspiring numerologist.
+`,
   description: `Given an integer **n**, return the number of **prime numbers**
 that are strictly **less than n**.
 
@@ -56,12 +60,31 @@ This approach runs in approximately **O(n log log n)** time.`,
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+
 using namespace std;
 
 int countPrimes(int n) {
-    // TODO: Implement your solution here
-    return 0;
+    if (n <= 2) {
+        return 0;
+    }
+    vector<bool> is_prime(n, true);
+    is_prime[0] = is_prime[1] = false;
+    for (int p = 2; p * p < n; ++p) {
+        if (is_prime[p]) {
+            for (int i = p * p; i < n; i += p) {
+                is_prime[i] = false;
+            }
+        }
+    }
+    int count = 0;
+    for (int i = 2; i < n; ++i) {
+        if (is_prime[i]) {
+            count++;
+        }
+    }
+    return count;
 }
 
 int main() {
@@ -70,16 +93,32 @@ int main() {
 
     cout << countPrimes(n);
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static int countPrimes(int n) {
-        // TODO: Implement your solution here
-        return 0;
+        if (n <= 2) {
+            return 0;
+        }
+        boolean[] isPrime = new boolean[n];
+        Arrays.fill(isPrime, true);
+        isPrime[0] = isPrime[1] = false;
+        for (int p = 2; p * p < n; p++) {
+            if (isPrime[p]) {
+                for (int i = p * p; i < n; i += p) {
+                    isPrime[i] = false;
+                }
+            }
+        }
+        int count = 0;
+        for (int i = 2; i < n; i++) {
+            if (isPrime[i]) {
+                count++;
+            }
+        }
+        return count;
     }
 
     public static void main(String[] args) {
@@ -88,8 +127,78 @@ public class Main {
 
         System.out.print(countPrimes(n));
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+
+using namespace std;
+
+int countPrimes(int n) {
+    if (n <= 2) {
+        return 0;
+    }
+    vector<bool> is_prime(n, true);
+    is_prime[0] = is_prime[1] = false;
+    for (int p = 2; p * p < n; ++p) {
+        if (is_prime[p]) {
+            for (int i = p * p; i < n; i += p) {
+                is_prime[i] = false;
+            }
+        }
+    }
+    int count = 0;
+    for (int i = 2; i < n; ++i) {
+        if (is_prime[i]) {
+            count++;
+        }
+    }
+    return count;
 }
-`,
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << countPrimes(n);
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static int countPrimes(int n) {
+        if (n <= 2) {
+            return 0;
+        }
+        boolean[] isPrime = new boolean[n];
+        Arrays.fill(isPrime, true);
+        isPrime[0] = isPrime[1] = false;
+        for (int p = 2; p * p < n; p++) {
+            if (isPrime[p]) {
+                for (int i = p * p; i < n; i += p) {
+                    isPrime[i] = false;
+                }
+            }
+        }
+        int count = 0;
+        for (int i = 2; i < n; i++) {
+            if (isPrime[i]) {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        System.out.print(countPrimes(n));
+    }
+}`,
   },
 
   testCases: [

@@ -8,21 +8,19 @@
 module.exports = {
   id: 'avl-tree-visualizer',
   conquestId: 'stage18-3',
-  title: 'AVL Tree Visualizer',
+  title: 'AVL Tree',
   difficulty: 'Hard',
   category: 'Trees – Traversals & Properties',
   tags: ['Tree', 'AVL', 'Self-Balancing', 'Recursion'],
 
-  description: `Standard BSTs can become "skewed" (like a linked list) if we insert numbers in order (1, 2, 3, 4). This ruins our $O(\log n)$ performance. 
+  storyBriefing: `Firenze is impressed. "You see the importance of order. But a simple BST map can become unbalanced if new passages are discovered in a sequence. It can become as inefficient as a simple corridor. A superior map would balance itself automatically as new rooms are added. Observe the magic of an AVL tree-it performs 'rotations' to maintain its balance and ensure the path to any room remains short."`,
 
-**AVL Trees** fix this by ensuring the height difference between left and right subtrees is never more than 1.
+  description: `An AVL Tree is a self-balancing Binary Search Tree. It maintains a 'balance factor' for every node, which is the difference between the heights of its left and right subtrees. If at any point this factor becomes greater than 1 or less than -1, the tree performs a series of 'rotations' to restore its balance.
 
-### The Four Rotations
-1. **Left-Left (LL)**: Right Rotation
-2. **Right-Right (RR)**: Left Rotation
-3. **Left-Right (LR)**: Left Rotate child, then Right Rotate parent.
-4. **Right-Left (RL)**: Right Rotate child, then Left Rotate parent.`,
+This problem is a visualizer. There is no specific task to solve, but rather code to demonstrate how AVL tree insertions and rotations work to maintain balance, ensuring that operations like search, insert, and delete remain O(log n).`,
 
+  examples: [],
+  constraints: [],
   boilerplate: {
     cpp: `#include <iostream>
 #include <algorithm>
@@ -86,7 +84,6 @@ Node* insert(Node* node, int key) {
     return node;
 }
 
-// The Visualizer Logic
 void visualize(Node* root, string indent, bool last) {
     if (root != nullptr) {
         cout << indent;
@@ -114,5 +111,11 @@ int main() {
     }
     return 0;
 }`
+  },
+  testCases: [],
+  solution: {
+    approach: `This file demonstrates the logic of an AVL tree. The solution involves implementing the four rotation types (Left-Left, Right-Right, Left-Right, and Right-Left) that are triggered when a node's balance factor exceeds 1 or -1 after an insertion. The core 'insert' function is recursive, similar to a standard BST, but after each insertion, it backtracks up the tree, updating heights and checking balance factors at each node, performing rotations as needed to maintain the AVL property.`,
+    cpp: `// The provided boilerplate contains the full implementation for demonstration purposes.`,
+    java: `// The provided boilerplate contains the full implementation for demonstration purposes.`
   }
 };

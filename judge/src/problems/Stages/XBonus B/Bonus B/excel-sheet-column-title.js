@@ -11,11 +11,15 @@
 module.exports = {
   id: 'excel-sheet-column-title',
   conquestId: 'bonusB-2',
-  title: 'Excel Sheet Column Title',
+  title: 'Ancient Archive Indexing',
   difficulty: 'Easy',
-  category: 'Math',
+  category: 'Math & Number Theory',
   tags: ['Math', 'String'],
+  storyBriefing: `
+The Ministry of Magic's archives use an ancient and peculiar indexing system for their scrolls. Instead of numbers, columns are labeled A, B, C, ..., Z, AA, AB, and so on.
 
+Professor Vector, your Arithmancy teacher, tasks you with creating a conversion charm. Given a standard column number, your charm must translate it into the ancient alphabetical title used in the archives. This is essential for navigating the labyrinthine Ministry records.
+`,
   description: `Given an integer **n**, return its corresponding **Excel column title**.
 
 Excel columns follow this pattern:
@@ -64,12 +68,21 @@ Finally reverse the result string.`,
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <string>
+#include <algorithm>
+
 using namespace std;
 
 string convertToTitle(int n) {
-    // TODO: Implement your solution here
-    return "";
+    string result = "";
+    while (n > 0) {
+        n--; // Adjust for 1-based indexing
+        result += (char)('A' + n % 26);
+        n /= 26;
+    }
+    reverse(result.begin(), result.end());
+    return result;
 }
 
 int main() {
@@ -78,16 +91,19 @@ int main() {
 
     cout << convertToTitle(n);
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static String convertToTitle(int n) {
-        // TODO: Implement your solution here
-        return "";
+        StringBuilder result = new StringBuilder();
+        while (n > 0) {
+            n--; // Adjust for 1-based indexing
+            result.append((char)('A' + n % 26));
+            n /= 26;
+        }
+        return result.reverse().toString();
     }
 
     public static void main(String[] args) {
@@ -96,8 +112,55 @@ public class Main {
 
         System.out.print(convertToTitle(n));
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <string>
+#include <algorithm>
+
+using namespace std;
+
+string convertToTitle(int n) {
+    string result = "";
+    while (n > 0) {
+        n--; // Adjust for 1-based indexing
+        result += (char)('A' + n % 26);
+        n /= 26;
+    }
+    reverse(result.begin(), result.end());
+    return result;
 }
-`,
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << convertToTitle(n);
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static String convertToTitle(int n) {
+        StringBuilder result = new StringBuilder();
+        while (n > 0) {
+            n--; // Adjust for 1-based indexing
+            result.append((char)('A' + n % 26));
+            n /= 26;
+        }
+        return result.reverse().toString();
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        System.out.print(convertToTitle(n));
+    }
+}`,
   },
 
   testCases: [

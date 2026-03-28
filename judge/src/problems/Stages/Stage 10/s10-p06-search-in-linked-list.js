@@ -82,8 +82,15 @@ struct Node {
  * Returns the 0-based index of target, or -1 if not found.
  */
 int solve(Node* head, int target) {
-    // Your code here
-    
+    int index = 0;
+    Node* current = head;
+    while (current != nullptr) {
+        if (current->data == target) {
+            return index;
+        }
+        current = current->next;
+        index++;
+    }
     return -1; 
 }
 
@@ -119,8 +126,15 @@ public class Main {
      * Returns the 0-based index of target, or -1 if not found.
      */
     public static int solve(Node head, int target) {
-        // Your code here
-        
+        int index = 0;
+        Node current = head;
+        while (current != null) {
+            if (current.data == target) {
+                return index;
+            }
+            current = current.next;
+            index++;
+        }
         return -1;
     }
 

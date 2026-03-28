@@ -12,11 +12,15 @@
 module.exports = {
   id: 'longest-common-subsequence',
   conquestId: 'stage22-5',
-  title: 'Longest Common Subsequence',
+  title: 'The Ancestral Tapestry Vault',
   difficulty: 'Medium',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Strings'],
+  storyBriefing: `
+You're in a Gringotts vault containing two ancient tapestries, each depicting a lineage as a sequence of magical symbols (strings). To unlock the main chest, you must find the length of the longest ancestral line (subsequence of symbols) that is common to both tapestries.
 
+This requires careful comparison, as the symbols must appear in the same relative order, but not necessarily consecutively.
+`,
   description: `
 Given two strings **text1** and **text2**, return the **length of their longest common subsequence (LCS)**.
 
@@ -65,14 +69,30 @@ Transition:
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int longestCommonSubsequence(string text1, string text2) {
-        // TODO: Implement DP solution
-        return 0;
+        int m = text1.length();
+        int n = text2.length();
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (text1[i - 1] == text2[j - 1]) {
+                    dp[i][j] = 1 + dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+        return dp[m][n];
     }
 };
 
@@ -86,28 +106,108 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int longestCommonSubsequence(String text1, String text2) {
-            // TODO: Implement DP solution
-            return 0;
+            int m = text1.length();
+            int n = text2.length();
+            int[][] dp = new int[m + 1][n + 1];
+
+            for (int i = 1; i <= m; i++) {
+                for (int j = 1; j <= n; j++) {
+                    if (text1.charAt(i - 1) == text2.charAt(j - 1)) {
+                        dp[i][j] = 1 + dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            return dp[m][n];
         }
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         String text1 = sc.next();
         String text2 = sc.next();
 
         Solution sol = new Solution();
         System.out.print(sol.longestCommonSubsequence(text1, text2));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int longestCommonSubsequence(string text1, string text2) {
+        int m = text1.length();
+        int n = text2.length();
+        vector<vector<int>> dp(m + 1, vector<int>(n + 1, 0));
+
+        for (int i = 1; i <= m; i++) {
+            for (int j = 1; j <= n; j++) {
+                if (text1[i - 1] == text2[j - 1]) {
+                    dp[i][j] = 1 + dp[i - 1][j - 1];
+                } else {
+                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1]);
+                }
+            }
+        }
+        return dp[m][n];
+    }
+};
+
+int main() {
+    string text1, text2;
+    cin >> text1;
+    cin >> text2;
+
+    Solution sol;
+    cout << sol.longestCommonSubsequence(text1, text2);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int longestCommonSubsequence(String text1, String text2) {
+            int m = text1.length();
+            int n = text2.length();
+            int[][] dp = new int[m + 1][n + 1];
+
+            for (int i = 1; i <= m; i++) {
+                for (int j = 1; j <= n; j++) {
+                    if (text1.charAt(i - 1) == text2.charAt(j - 1)) {
+                        dp[i][j] = 1 + dp[i - 1][j - 1];
+                    } else {
+                        dp[i][j] = Math.max(dp[i - 1][j], dp[i][j - 1]);
+                    }
+                }
+            }
+            return dp[m][n];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        String text1 = sc.next();
+        String text2 = sc.next();
+
+        Solution sol = new Solution();
+        System.out.print(sol.longestCommonSubsequence(text1, text2));
     }
 }`
   },

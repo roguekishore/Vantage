@@ -13,11 +13,17 @@
 
 module.exports = {
   id: 'network-flow-max-flow',
-  conquestId: 'stage20-9',
-  title: 'Network Flow (Edmonds-Karp/Dinic)',
+  conquestId: 's20-p09',
+  title: 'Max Flow of the Pipe System',
   difficulty: 'Hard',
   category: 'Graphs',
-  tags: ['Graph', 'Max Flow', 'Edmonds-Karp', 'Dinic', 'BFS'],
+  tags: ['Graph', 'Max Flow', 'Edmonds-Karp', 'Dinic', 'BFS', 'Hogwarts'],
+
+  storyBriefing: `
+"The pipes only allow so much through at once," Tom Riddle's voice echoes through the tunnels. You realize that to understand the Basilisk's movements, you must calculate the maximum capacity of the plumbing system connecting the various sectors of Hogwarts.
+
+Using the **Edmonds-Karp** or **Dinic's Algorithm**, find the **maximum flow** from the source (the entrance) to the sink (the Chamber). This represents the absolute limit of what the magical tunnels can carry.
+`,
 
   description: `
 Given a **directed graph** where each edge has a **capacity**, compute the **maximum possible flow** from a **source node s** to a **sink node t**.
@@ -26,23 +32,9 @@ The flow must satisfy:
 - **Capacity constraint:** Flow on an edge cannot exceed its capacity.
 - **Flow conservation:** Incoming flow equals outgoing flow for intermediate nodes.
 
-You may implement either:
-- **Edmonds-Karp Algorithm** (BFS-based Ford-Fulkerson)
-- **Dinic's Algorithm** (more efficient for large graphs)
-
-**Idea (Edmonds-Karp):**
-1. Use **BFS** to find the shortest augmenting path from source to sink.
-2. Determine the **minimum residual capacity** along that path.
-3. Add that flow to the total and update residual capacities.
-4. Repeat until no augmenting path exists.
+You should implement the **Edmonds-Karp Algorithm** (BFS-based Ford-Fulkerson).
 
 Return the **maximum flow** from **s → t**.
-
-Applications include:
-- Network routing
-- Bipartite matching
-- Image segmentation
-- Supply chain optimization
 `,
 
   examples: [
@@ -67,16 +59,57 @@ Applications include:
 #include <vector>
 #include <queue>
 #include <climits>
+#include <algorithm>
+
 using namespace std;
 
-long long maxFlow(int n, vector<vector<long long>>& capacity, vector<vector<int>>& adj, int s, int t) {
-    // TODO: Implement Edmonds-Karp or Dinic Algorithm
+long long bfs(int s, int t, vector<int>& parent, vector<vector<long long>>& capacity, vector<vector<int>>& adj) {
+    fill(parent.begin(), parent.end(), -1);
+    parent[s] = -2;
+    queue<pair<int, long long>> q;
+    q.push({s, LLONG_MAX});
+
+    while (!q.empty()) {
+        int u = q.front().first;
+        long long flow = q.front().second;
+        q.pop();
+
+        for (int v : adj[u]) {
+            if (parent[v] == -1 && capacity[u][v] > 0) {
+                parent[v] = u;
+                long long new_flow = min(flow, capacity[u][v]);
+                if (v == t) return new_flow;
+                q.push({v, new_flow});
+            }
+        }
+    }
     return 0;
 }
 
+long long maxFlow(int n, vector<vector<long long>>& capacity, vector<vector<int>>& adj, int s, int t) {
+    long long flow = 0;
+    vector<int> parent(n);
+    long long new_flow;
+
+    while (new_flow = bfs(s, t, parent, capacity, adj)) {
+        flow += new_flow;
+        int curr = t;
+        while (curr != s) {
+            int prev = parent[curr];
+            capacity[prev][curr] -= new_flow;
+            capacity[curr][prev] += new_flow;
+            curr = prev;
+        }
+    }
+    return flow;
+}
+
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n, m;
-    cin >> n >> m;
+    if (!(cin >> n >> m)) return 0;
 
     vector<vector<long long>> capacity(n, vector<long long>(n, 0));
     vector<vector<int>> adj(n);
@@ -85,7 +118,6 @@ int main() {
         int u, v;
         long long c;
         cin >> u >> v >> c;
-
         capacity[u][v] += c;
         adj[u].push_back(v);
         adj[v].push_back(u);
@@ -94,36 +126,68 @@ int main() {
     int s, t;
     cin >> s >> t;
 
-    cout << maxFlow(n, capacity, adj, s, t);
-
+    cout << maxFlow(n, capacity, adj, s, t) << endl;
     return 0;
 }`,
     java: `import java.util.*;
 
 public class Main {
+    static long bfs(int s, int t, int[] parent, long[][] capacity, List<List<Integer>> adj) {
+        Arrays.fill(parent, -1);
+        parent[s] = -2;
+        Queue<long[]> q = new LinkedList<>();
+        q.add(new long[]{s, Long.MAX_VALUE});
+
+        while (!q.isEmpty()) {
+            long[] curr = q.poll();
+            int u = (int)curr[0];
+            long flow = curr[1];
+
+            for (int v : adj.get(u)) {
+                if (parent[v] == -1 && capacity[u][v] > 0) {
+                    parent[v] = u;
+                    long newFlow = Math.min(flow, capacity[u][v]);
+                    if (v == t) return newFlow;
+                    q.add(new long[]{v, newFlow});
+                }
+            }
+        }
+        return 0;
+    }
 
     static long maxFlow(int n, long[][] capacity, List<List<Integer>> adj, int s, int t) {
-        // TODO: Implement Edmonds-Karp or Dinic Algorithm
-        return 0;
+        long flow = 0;
+        int[] parent = new int[n];
+        long newFlow;
+
+        while ((newFlow = bfs(s, t, parent, capacity, adj)) != 0) {
+            flow += newFlow;
+            int curr = t;
+            while (curr != s) {
+                int prev = parent[curr];
+                capacity[prev][curr] -= newFlow;
+                capacity[curr][prev] += newFlow;
+                curr = prev;
+            }
+        }
+        return flow;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
 
         int n = sc.nextInt();
         int m = sc.nextInt();
 
         long[][] capacity = new long[n][n];
         List<List<Integer>> adj = new ArrayList<>();
-
-        for(int i = 0; i < n; i++)
-            adj.add(new ArrayList<>());
+        for(int i = 0; i < n; i++) adj.add(new ArrayList<>());
 
         for(int i = 0; i < m; i++) {
             int u = sc.nextInt();
             int v = sc.nextInt();
             long c = sc.nextLong();
-
             capacity[u][v] += c;
             adj.get(u).add(v);
             adj.get(v).add(u);
@@ -132,9 +196,121 @@ public class Main {
         int s = sc.nextInt();
         int t = sc.nextInt();
 
-        System.out.print(maxFlow(n, capacity, adj, s, t));
+        System.out.println(maxFlow(n, capacity, adj, s, t));
     }
 }`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <queue>
+#include <climits>
+#include <algorithm>
+
+using namespace std;
+
+long long bfs(int s, int t, vector<int>& parent, vector<vector<long long>>& capacity, vector<vector<int>>& adj) {
+    fill(parent.begin(), parent.end(), -1);
+    parent[s] = -2;
+    queue<pair<int, long long>> q;
+    q.push({s, LLONG_MAX});
+
+    while (!q.empty()) {
+        int u = q.front().first;
+        long long flow = q.front().second;
+        q.pop();
+
+        for (int v : adj[u]) {
+            if (parent[v] == -1 && capacity[u][v] > 0) {
+                parent[v] = u;
+                long long new_flow = min(flow, capacity[u][v]);
+                if (v == t) return new_flow;
+                q.push({v, new_flow});
+            }
+        }
+    }
+    return 0;
+}
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+    vector<vector<long long>> capacity(n, vector<long long>(n, 0));
+    vector<vector<int>> adj(n);
+    for(int i = 0; i < m; i++) {
+        int u, v; long long c; cin >> u >> v >> c;
+        capacity[u][v] += c;
+        adj[u].push_back(v);
+        adj[v].push_back(u);
+    }
+    int s, t; cin >> s >> t;
+    long long total_flow = 0;
+    vector<int> parent(n);
+    long long new_flow;
+    while (new_flow = bfs(s, t, parent, capacity, adj)) {
+        total_flow += new_flow;
+        int curr = t;
+        while (curr != s) {
+            int prev = parent[curr];
+            capacity[prev][curr] -= new_flow;
+            capacity[curr][prev] += new_flow;
+            curr = prev;
+        }
+    }
+    cout << total_flow;
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    static long bfs(int s, int t, int[] parent, long[][] capacity, List<List<Integer>> adj) {
+        Arrays.fill(parent, -1);
+        parent[s] = -2;
+        Queue<long[]> q = new LinkedList<>();
+        q.add(new long[]{s, Long.MAX_VALUE});
+        while (!q.isEmpty()) {
+            long[] curr = q.poll();
+            int u = (int)curr[0]; long flow = curr[1];
+            for (int v : adj.get(u)) {
+                if (parent[v] == -1 && capacity[u][v] > 0) {
+                    parent[v] = u;
+                    long newFlow = Math.min(flow, capacity[u][v]);
+                    if (v == t) return newFlow;
+                    q.add(new long[]{v, newFlow});
+                }
+            }
+        }
+        return 0;
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
+        int n = sc.nextInt(); int m = sc.nextInt();
+        long[][] capacity = new long[n][n];
+        List<List<Integer>> adj = new ArrayList<>();
+        for(int i = 0; i < n; i++) adj.add(new ArrayList<>());
+        for(int i = 0; i < m; i++) {
+            int u = sc.nextInt(); int v = sc.nextInt(); long c = sc.nextLong();
+            capacity[u][v] += c;
+            adj.get(u).add(v); adj.get(v).add(u);
+        }
+        int s = sc.nextInt(); int t = sc.nextInt();
+        long flow = 0; int[] parent = new int[n]; long newFlow;
+        while ((newFlow = bfs(s, t, parent, capacity, adj)) != 0) {
+            flow += newFlow; int curr = t;
+            while (curr != s) {
+                int prev = parent[curr];
+                capacity[prev][curr] -= newFlow;
+                capacity[curr][prev] += newFlow;
+                curr = prev;
+            }
+        }
+        System.out.print(flow);
+    }
+}`
   },
 
   testCases: [

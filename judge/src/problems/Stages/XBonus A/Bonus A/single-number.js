@@ -15,11 +15,15 @@
 module.exports = {
   id: 'single-number',
   conquestId: 'bonusA-1',
-  title: 'Single Number',
+  title: 'Find the Unique Signature',
   difficulty: 'Easy',
   category: 'Bit Manipulation',
   tags: ['Bit Manipulation', 'Array', 'XOR'],
+  storyBriefing: `
+In a crowded room, every wizard has cast a spell, creating a magical signature. However, everyone has a partner who cast the exact same spell, creating identical signature pairs... except for one lone wizard.
 
+Professor Flitwick challenges you to find the single, unique magical signature in the room. You are given a list of all signatures.
+`,
   description: `
 Given a **non-empty array of integers**, every element appears **twice except for one**.
 
@@ -57,11 +61,18 @@ Hint: XOR has useful properties:
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <numeric>
+
 using namespace std;
 
 int singleNumber(vector<int>& nums) {
-    
+    int result = 0;
+    for (int num : nums) {
+        result ^= num;
+    }
+    return result;
 }
 
 int main() {
@@ -79,15 +90,17 @@ int main() {
     cout << singleNumber(nums) << "\\n";
 
     return 0;
-}
-`,
-
+}`,
     java: `import java.util.*;
 
 public class Main {
 
     public static int singleNumber(int[] nums) {
-
+        int result = 0;
+        for (int num : nums) {
+            result ^= num;
+        }
+        return result;
     }
 
     public static void main(String[] args) {
@@ -101,11 +114,68 @@ public class Main {
         }
 
         System.out.println(singleNumber(nums));
-
         sc.close();
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <numeric>
+
+using namespace std;
+
+int singleNumber(vector<int>& nums) {
+    int result = 0;
+    for (int num : nums) {
+        result ^= num;
+    }
+    return result;
 }
-`,
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n;
+    cin >> n;
+
+    vector<int> nums(n);
+    for (int i = 0; i < n; i++) {
+        cin >> nums[i];
+    }
+
+    cout << singleNumber(nums) << "\\n";
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    public static int singleNumber(int[] nums) {
+        int result = 0;
+        for (int num : nums) {
+            result ^= num;
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+        int[] nums = new int[n];
+
+        for (int i = 0; i < n; i++) {
+            nums[i] = sc.nextInt();
+        }
+
+        System.out.println(singleNumber(nums));
+        sc.close();
+    }
+}`,
   },
 
   testCases: [

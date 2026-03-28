@@ -12,11 +12,15 @@
 module.exports = {
   id: 'burst-balloons',
   conquestId: 'stage22-7',
-  title: 'Burst Balloons',
+  title: 'The Exploding Gem Vault',
   difficulty: 'Hard',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Interval DP', 'Array'],
+  storyBriefing: `
+This vault is filled with volatile, magical gems. When a gem is burst, it releases a shower of coins. The number of coins depends on the values of the adjacent gems at that moment.
 
+If you burst gem 'i', you get \`value[left] * value[i] * value[right]\` coins. The key is that after a gem bursts, its neighbors become adjacent. You must find the optimal order to burst all the gems to maximize your total coins.
+`,
   description: `
 You are given **n balloons**, indexed from **0 to n - 1**. Each balloon has a number written on it represented by the array **nums**.
 
@@ -73,14 +77,30 @@ for every **k between l and r**.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int maxCoins(vector<int>& nums) {
-        // TODO: Implement interval DP solution
-        return 0;
+        int n = nums.size();
+        nums.insert(nums.begin(), 1);
+        nums.push_back(1);
+        vector<vector<int>> dp(nums.size(), vector<int>(nums.size(), 0));
+
+        for (int len = 1; len <= n; ++len) {
+            for (int left = 1; left <= n - len + 1; ++left) {
+                int right = left + len - 1;
+                for (int k = left; k <= right; ++k) {
+                    dp[left][right] = max(dp[left][right],
+                                          nums[left - 1] * nums[k] * nums[right + 1] + dp[left][k - 1] + dp[k + 1][right]);
+                }
+            }
+        }
+        return dp[1][n];
     }
 };
 
@@ -103,24 +123,125 @@ public class Main {
 
     static class Solution {
         public int maxCoins(int[] nums) {
-            // TODO: Implement interval DP solution
-            return 0;
+            int n = nums.length;
+            int[] newNums = new int[n + 2];
+            newNums[0] = 1;
+            newNums[n + 1] = 1;
+            for (int i = 0; i < n; i++) {
+                newNums[i + 1] = nums[i];
+            }
+
+            int[][] dp = new int[n + 2][n + 2];
+
+            for (int len = 1; len <= n; len++) {
+                for (int left = 1; left <= n - len + 1; left++) {
+                    int right = left + len - 1;
+                    for (int k = left; k <= right; k++) {
+                        dp[left][right] = Math.max(dp[left][right],
+                                newNums[left - 1] * newNums[k] * newNums[right + 1] + dp[left][k - 1] + dp[k + 1][right]);
+                    }
+                }
+            }
+            return dp[1][n];
         }
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
-        int[] nums = new int[n];
 
-        for (int i = 0; i < n; i++)
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
             nums[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.maxCoins(nums));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int maxCoins(vector<int>& nums) {
+        int n = nums.size();
+        nums.insert(nums.begin(), 1);
+        nums.push_back(1);
+        vector<vector<int>> dp(nums.size(), vector<int>(nums.size(), 0));
+
+        for (int len = 1; len <= n; ++len) {
+            for (int left = 1; left <= n - len + 1; ++left) {
+                int right = left + len - 1;
+                for (int k = left; k <= right; ++k) {
+                    dp[left][right] = max(dp[left][right],
+                                          nums[left - 1] * nums[k] * nums[right + 1] + dp[left][k - 1] + dp[k + 1][right]);
+                }
+            }
+        }
+        return dp[1][n];
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> nums(n);
+    for (int i = 0; i < n; i++)
+        cin >> nums[i];
+
+    Solution sol;
+    cout << sol.maxCoins(nums);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int maxCoins(int[] nums) {
+            int n = nums.length;
+            int[] newNums = new int[n + 2];
+            newNums[0] = 1;
+            newNums[n + 1] = 1;
+            for (int i = 0; i < n; i++) {
+                newNums[i + 1] = nums[i];
+            }
+
+            int[][] dp = new int[n + 2][n + 2];
+
+            for (int len = 1; len <= n; len++) {
+                for (int left = 1; left <= n - len + 1; left++) {
+                    int right = left + len - 1;
+                    for (int k = left; k <= right; k++) {
+                        dp[left][right] = Math.max(dp[left][right],
+                                newNums[left - 1] * newNums[k] * newNums[right + 1] + dp[left][k - 1] + dp[k + 1][right]);
+                    }
+                }
+            }
+            return dp[1][n];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
+            nums[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.maxCoins(nums));
     }
 }`
   },

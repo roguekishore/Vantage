@@ -15,11 +15,15 @@
 module.exports = {
   id: 'gas-station',
   conquestId: 'stage23-8',
-  title: 'Gas Station',
+  title: "The Second Task: The Black Lake",
   difficulty: 'Medium',
   category: 'Greedy',
   tags: ['Array', 'Greedy'],
+  storyBriefing: `
+For the second task, you must navigate the treacherous Black Lake. There are several underwater air stations in a circular route. Each station provides a certain amount of Gillyweed (gas), but traveling to the next station costs a specific amount.
 
+You start with an empty Gillyweed pouch. Your goal is to find a starting station from which you can complete a full circuit of the lake. If it's possible, there's only one unique starting point.
+`,
   description: `
 There are **n gas stations** along a circular route.
 
@@ -64,14 +68,34 @@ Space Complexity: **O(1)**
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <numeric>
+
 using namespace std;
 
 class Solution {
 public:
     int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
-        // TODO: Implement greedy solution
-        return 0;
+        int total_gas = 0;
+        int total_cost = 0;
+        for(int g : gas) total_gas += g;
+        for(int c : cost) total_cost += c;
+
+        if (total_gas < total_cost) {
+            return -1;
+        }
+
+        int start_node = 0;
+        int current_gas = 0;
+        for (int i = 0; i < gas.size(); i++) {
+            current_gas += gas[i] - cost[i];
+            if (current_gas < 0) {
+                start_node = i + 1;
+                current_gas = 0;
+            }
+        }
+        return start_node;
     }
 };
 
@@ -98,15 +122,30 @@ public class Main {
 
     static class Solution {
         public int canCompleteCircuit(int[] gas, int[] cost) {
-            // TODO: Implement greedy solution
-            return 0;
+            int total_gas = 0;
+            int total_cost = 0;
+            for(int g : gas) total_gas += g;
+            for(int c : cost) total_cost += c;
+
+            if (total_gas < total_cost) {
+                return -1;
+            }
+
+            int start_node = 0;
+            int current_gas = 0;
+            for (int i = 0; i < gas.length; i++) {
+                current_gas += gas[i] - cost[i];
+                if (current_gas < 0) {
+                    start_node = i + 1;
+                    current_gas = 0;
+                }
+            }
+            return start_node;
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
 
         int[] gas = new int[n];
@@ -120,8 +159,102 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.canCompleteCircuit(gas, cost));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <numeric>
+
+using namespace std;
+
+class Solution {
+public:
+    int canCompleteCircuit(vector<int>& gas, vector<int>& cost) {
+        int total_gas = 0;
+        int total_cost = 0;
+        for(int g : gas) total_gas += g;
+        for(int c : cost) total_cost += c;
+
+        if (total_gas < total_cost) {
+            return -1;
+        }
+
+        int start_node = 0;
+        int current_gas = 0;
+        for (int i = 0; i < gas.size(); i++) {
+            current_gas += gas[i] - cost[i];
+            if (current_gas < 0) {
+                start_node = i + 1;
+                current_gas = 0;
+            }
+        }
+        return start_node;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> gas(n), cost(n);
+
+    for (int i = 0; i < n; i++)
+        cin >> gas[i];
+
+    for (int i = 0; i < n; i++)
+        cin >> cost[i];
+
+    Solution sol;
+    cout << sol.canCompleteCircuit(gas, cost);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int canCompleteCircuit(int[] gas, int[] cost) {
+            int total_gas = 0;
+            int total_cost = 0;
+            for(int g : gas) total_gas += g;
+            for(int c : cost) total_cost += c;
+
+            if (total_gas < total_cost) {
+                return -1;
+            }
+
+            int start_node = 0;
+            int current_gas = 0;
+            for (int i = 0; i < gas.length; i++) {
+                current_gas += gas[i] - cost[i];
+                if (current_gas < 0) {
+                    start_node = i + 1;
+                    current_gas = 0;
+                }
+            }
+            return start_node;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] gas = new int[n];
+        int[] cost = new int[n];
+
+        for (int i = 0; i < n; i++)
+            gas[i] = sc.nextInt();
+
+        for (int i = 0; i < n; i++)
+            cost[i] = sc.nextInt();
+
+        Solution sol = new Solution();
+        System.out.print(sol.canCompleteCircuit(gas, cost));
     }
 }`
   },

@@ -16,89 +16,68 @@ module.exports = {
   category: 'Stack – Fundamentals',
   tags: ['Stack', 'String', 'Validation'],
 
-  description: `The "Valid Parentheses" problem is the perfect real-world example of why we need Stacks. Compilers use this logic to ensure your code's brackets are balanced.
+  storyBriefing: `Fred pulls out a long scroll of parchment covered in complex spell incantations. "Here's a real head-scratcher. Some of these new spells use nested magical brackets. If the brackets - round, curly, or square - aren't perfectly matched and closed in the right order, the spell backfires spectacularly. We need you to write a quick charm to validate these incantations before we try them."`,
 
-An input string is valid if:
-1. Open brackets must be closed by the same type of brackets.
-2. Open brackets must be closed in the correct order.
-3. Every close bracket has a corresponding open bracket of the same type.
+  description: `You are given a string containing just the characters '(', ')', '{', '}', '[' and ']'. Your task is to determine if the input string is valid. An input string is valid if open brackets are closed by the same type of bracket and in the correct order.
 
-### The Stack Strategy
-1.  Initialize an empty stack.
-2.  Traverse the string character by character:
-    - If it's an **opening bracket** (\`(\`, \`{\`, \`[\`), **push** it onto the stack.
-    - If it's a **closing bracket** (\`)\`, \`}\`, \`]\`):
-        - If the stack is empty, it's invalid (no opening bracket to match).
-        - **Pop** the top element from the stack.
-        - If the popped element doesn't match the closing bracket (e.g., \`(\` vs \`]\`), it's invalid.
-3.  After the loop, if the stack is **empty**, the string is valid. If elements remain, some brackets weren't closed.
+This is a classic use case for a stack. By iterating through the string, you can push opening brackets onto the stack. When you encounter a closing bracket, you check if the stack is empty or if the top of the stack is the corresponding opening bracket. If it matches, you pop from the stack; otherwise, the string is invalid.
 
-### Example
-**Input:** \`()[]{}\`
-**Output:** \`true\`
-
-**Input:** \`(]\`
-**Output:** \`false\`
-
-**Input:** \`([)]\`
-**Output:** \`false\``,
+Return true if the string is a valid set of parentheses, and false otherwise. After iterating through the entire string, the stack must also be empty for the string to be valid.`,
 
   examples: [
     {
       input: '()[]{}',
       output: 'true',
-      explanation: 'All brackets are closed correctly in order.'
+      explanation: 'Each opening bracket is immediately closed by the same type, and there are no unmatched brackets. The stack is empty at the end.'
     },
     {
       input: '(]',
       output: 'false',
-      explanation: 'The closing bracket ] does not match the opening bracket (.'
+      explanation: 'The opening bracket is \'(\' but it is met with a closing \']\'. This is a mismatch, so the string is invalid.'
     },
     {
-      input: '([{}])',
-      output: 'true',
-      explanation: 'Nested brackets are closed in the correct Last-In-First-Out order.'
+      input: '([)]',
+      output: 'false',
+      explanation: 'The sequence is opened with \'([\'. The \')\' closes the \'[\' which is incorrect order. The LIFO rule is violated.'
     }
   ],
 
   constraints: [
-    '1 ≤ s.length ≤ 10⁴',
-    "s consists of parentheses only: '()[]{}'"
+    'The length of the input string is between 1 and 10000.',
+    "The string consists of parentheses only: '()[]{}'."
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <stack>
-#include <string>
-
-using namespace std;
-
-bool isValid(string s) {
-    stack<char> st;
+    cpp: `bool solve(std::string s) {
     // Your code here
-    return false;
+    return true;
 }
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <string>
+#include <vector>
 int main() {
-    string s;
-    cin >> s;
-    cout << (isValid(s) ? "true" : "false") << endl;
+    std::string s;
+    std::cin >> s;
+    std::cout << (solve(s) ? "true" : "false") << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-public class Main {
-    public static boolean isValid(String s) {
-        Stack<Character> stack = new Stack<>();
+    java: `class Solution {
+    public static boolean solve(String s) {
         // Your code here
-        return false;
+        return true;
     }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNext()) return;
         String s = sc.next();
-        System.out.println(isValid(s));
+        System.out.println(Solution.solve(s));
+        sc.close();
     }
 }`
   },
@@ -110,7 +89,55 @@ public class Main {
     { input: '([)]', expected: 'false' },
     { input: '{[]}', expected: 'true' },
     { input: '(', expected: 'false' },
-    { input: ']', expected: 'false' },
-    { input: '((((()))))', expected: 'true' }
-  ]
+    { input: ')', expected: 'false' },
+    { input: '((()))', expected: 'true' },
+    { input: '(()', expected: 'false' },
+        { input: '[{()}]', expected: 'true' }
+  ],
+  
+  solution: {
+    approach: `The algorithm iterates through the input string. A stack is used to keep track of opening brackets. If the current character is an opening bracket ('(', '{', '['), it's pushed onto the stack. If it's a closing bracket, we check if the stack is empty (which would be invalid) or if the top of the stack does not match the corresponding opening bracket. If either is true, the string is invalid. If they do match, we pop the stack. After the loop, the string is valid only if the stack is empty, ensuring all opening brackets were closed.`,
+    cpp: `    std::stack<char> st;
+    for (char c : s) {
+        if (c == '(' || c == '{' || c == '[') {
+            st.push(c);
+        } else {
+            if (st.empty()) {
+                return false;
+            }
+            if (c == ')' && st.top() != '(') {
+                return false;
+            }
+            if (c == '}' && st.top() != '{') {
+                return false;
+            }
+            if (c == ']' && st.top() != '[') {
+                return false;
+            }
+            st.pop();
+        }
+    }
+    return st.empty();`,
+    java: `    java.util.Stack<Character> stack = new java.util.Stack<>();
+    for (char c : s.toCharArray()) {
+        if (c == '(' || c == '{' || c == '[') {
+            stack.push(c);
+        } else {
+            if (stack.isEmpty()) {
+                return false;
+            }
+            char top = stack.pop();
+            if (c == ')' && top != '(') {
+                return false;
+            }
+            if (c == '}' && top != '{') {
+                return false;
+            }
+            if (c == ']' && top != '[') {
+                return false;
+            }
+        }
+    }
+    return stack.isEmpty();`
+  }
 };

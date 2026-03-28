@@ -13,29 +13,27 @@
 
 module.exports = {
   id: 'topological-sort',
-  conquestId: 'stage20-6',
-  title: 'Topological Sort',
+  conquestId: 's20-p06',
+  title: 'Order of O.W.L. Exams',
   difficulty: 'Medium',
   category: 'Graphs',
-  tags: ['Graph', 'Topological Sort', 'DAG', 'BFS', 'Kahn Algorithm'],
+  tags: ['Graph', 'Topological Sort', 'DAG', 'BFS', 'Kahn Algorithm', 'Hogwarts'],
+
+  storyBriefing: `
+"You can't take N.E.W.T. level Potions without completing O.W.L. level first," Percy Weasley points out, adjusting his glasses. "The curriculum is a complex set of prerequisites. One must follow the correct order to succeed."
+
+Given a set of courses and their prerequisites (a **Directed Acyclic Graph**), determine a valid **Topological Sort** sequence to complete all exams.
+`,
 
   description: `
 Given a **Directed Acyclic Graph (DAG)** with **n vertices** and **m directed edges**, perform a **Topological Sort**.
 
 A **topological ordering** of a directed graph is a linear ordering of its vertices such that for every directed edge **u → v**, vertex **u appears before v** in the ordering.
 
-You should implement **Kahn’s Algorithm (BFS-based topological sort)** or a **DFS-based approach**.
-
 **Rules:**
 - The graph is guaranteed to be a **DAG**.
 - If multiple nodes have **indegree 0**, always process the **smaller numbered node first**.
 - Print the resulting ordering.
-
-Topological sorting is useful in:
-- Task scheduling
-- Build systems
-- Dependency resolution
-- Course prerequisite planning
 `,
 
   examples: [
@@ -57,68 +55,192 @@ Topological sorting is useful in:
     cpp: `#include <iostream>
 #include <vector>
 #include <queue>
+
 using namespace std;
 
 vector<int> topologicalSort(int n, vector<vector<int>>& adj) {
-    // TODO: Implement Kahn's Algorithm
-    return {};
+    vector<int> indegree(n, 0);
+    for (int i = 0; i < n; i++) {
+        for (int v : adj[i]) indegree[v]++;
+    }
+
+    priority_queue<int, vector<int>, greater<int>> pq;
+    for (int i = 0; i < n; i++) {
+        if (indegree[i] == 0) pq.push(i);
+    }
+
+    vector<int> result;
+    while (!pq.empty()) {
+        int u = pq.top();
+        pq.pop();
+        result.push_back(u);
+
+        for (int v : adj[u]) {
+            indegree[v]--;
+            if (indegree[v] == 0) pq.push(v);
+        }
+    }
+    return result;
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n, m;
-    cin >> n >> m;
+    if (!(cin >> n >> m)) return 0;
 
     vector<vector<int>> adj(n);
-
-    for(int i = 0; i < m; i++) {
+    for (int i = 0; i < m; i++) {
         int u, v;
         cin >> u >> v;
         adj[u].push_back(v);
     }
 
     vector<int> result = topologicalSort(n, adj);
-
-    for(int i = 0; i < result.size(); i++) {
-        if(i) cout << " ";
-        cout << result[i];
+    for (int i = 0; i < result.size(); i++) {
+        cout << result[i] << (i == result.size() - 1 ? "" : " ");
     }
-
     return 0;
 }`,
     java: `import java.util.*;
 
 public class Main {
-
     static List<Integer> topologicalSort(int n, List<List<Integer>> adj) {
-        // TODO: Implement Kahn's Algorithm
-        return new ArrayList<>();
+        int[] indegree = new int[n];
+        for (int i = 0; i < n; i++) {
+            for (int v : adj.get(i)) indegree[v]++;
+        }
+
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        for (int i = 0; i < n; i++) {
+            if (indegree[i] == 0) pq.add(i);
+        }
+
+        List<Integer> result = new ArrayList<>();
+        while (!pq.isEmpty()) {
+            int u = pq.poll();
+            result.add(u);
+
+            for (int v : adj.get(u)) {
+                indegree[v]--;
+                if (indegree[v] == 0) pq.add(v);
+            }
+        }
+        return result;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
 
         int n = sc.nextInt();
         int m = sc.nextInt();
 
         List<List<Integer>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
 
-        for(int i = 0; i < n; i++)
-            adj.add(new ArrayList<>());
-
-        for(int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             int u = sc.nextInt();
             int v = sc.nextInt();
             adj.get(u).add(v);
         }
 
         List<Integer> result = topologicalSort(n, adj);
-
-        for(int i = 0; i < result.size(); i++) {
-            if(i > 0) System.out.print(" ");
-            System.out.print(result.get(i));
+        for (int i = 0; i < result.size(); i++) {
+            System.out.print(result.get(i) + (i == result.size() - 1 ? "" : " "));
         }
     }
 }`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+
+    vector<vector<int>> adj(n);
+    vector<int> indegree(n, 0);
+    for (int i = 0; i < m; i++) {
+        int u, v;
+        cin >> u >> v;
+        adj[u].push_back(v);
+        indegree[v]++;
+    }
+
+    priority_queue<int, vector<int>, greater<int>> pq;
+    for (int i = 0; i < n; i++) {
+        if (indegree[i] == 0) pq.push(i);
+    }
+
+    vector<int> result;
+    while (!pq.empty()) {
+        int u = pq.top();
+        pq.pop();
+        result.push_back(u);
+
+        for (int v : adj[u]) {
+            indegree[v]--;
+            if (indegree[v] == 0) pq.push(v);
+        }
+    }
+
+    for (int i = 0; i < result.size(); i++) {
+        cout << result[i] << (i == result.size() - 1 ? "" : " ");
+    }
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
+
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+
+        List<List<Integer>> adj = new ArrayList<>();
+        int[] indegree = new int[n];
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+
+        for (int i = 0; i < m; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            adj.get(u).add(v);
+            indegree[v]++;
+        }
+
+        PriorityQueue<Integer> pq = new PriorityQueue<>();
+        for (int i = 0; i < n; i++) {
+            if (indegree[i] == 0) pq.add(i);
+        }
+
+        List<Integer> result = new ArrayList<>();
+        while (!pq.isEmpty()) {
+            int u = pq.poll();
+            result.add(u);
+
+            for (int v : adj.get(u)) {
+                indegree[v]--;
+                if (indegree[v] == 0) pq.add(v);
+            }
+        }
+
+        for (int i = 0; i < result.size(); i++) {
+            System.out.print(result.get(i) + (i == result.size() - 1 ? "" : " "));
+        }
+    }
+}`
   },
 
   testCases: [

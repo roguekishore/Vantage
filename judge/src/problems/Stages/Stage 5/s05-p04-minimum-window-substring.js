@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'minimum-window-substring',
   conquestId: 'stage5-4',
   title: 'Minimum Window Substring',
@@ -19,57 +20,41 @@ module.exports = {
   category: 'Sliding Window',
   tags: ['String', 'Sliding Window', 'Hash Table'],
 
-  description: `Given two strings \`s\` and \`t\` of lengths \`m\` and \`n\` respectively, return the **minimum window substring** of \`s\` such that every character in \`t\` (**including duplicates**) is included in the window. If there is no such substring, return the empty string \`""\`.
+  // ---- Story Layer ----
+  storyBriefing: `Katie Bell, a Chaser on your team, presents you with a complex strategic problem. She gives you a long sequence of every play-by-play maneuver from an opponent's last game ('s'). She also gives you a shorter sequence of their key offensive plays ('t'). Your job is to find the smallest continuous window of plays in their game that contains all of their key offensive maneuvers, helping your team identify their most concentrated attack phase.`,
 
-The test cases will be generated such that the answer is **unique**.
+  // ---- Technical Layer ----
+  description: `You are given two strings, 's' (the search string) and 't' (the pattern). Your task is to find the minimum-length contiguous substring of 's' that contains all the characters of 't', including duplicates. If no such substring exists, you should return an empty string.
 
-### Task
-Implement an $O(m + n)$ solution using the **Sliding Window** technique with two pointers and frequency maps.
-1. Create a frequency map for string \`t\`.
-2. Expand the \`right\` pointer until the current window contains all characters from \`t\` with the required frequencies.
-3. Once a valid window is found, contract the \`left\` pointer to minimize the window size while keeping it valid.
-4. Keep track of the smallest valid window found during the process.
+This problem requires a sliding window approach with frequency maps. First, build a frequency map of the characters in 't'. Then, use two pointers, 'left' and 'right', to define a window in 's'. Expand the window by moving 'right' and update a window frequency map. Once the window contains all required characters from 't', try to shrink it from the 'left' to find the smallest possible valid window.
 
-### Example
-**Input:**
-\`\`\`
-ADOBECODEBANC
-ABC
-\`\`\`
-
-**Output:**
-\`\`\`
-BANC
-\`\`\`
-
-**Explanation:**
-The minimum window substring "BANC" includes 'A', 'B', and 'C' from string t.`,
-
+Return the minimum window substring. If no such window exists, return an empty string.`,
   examples: [
     {
       input: 'ADOBECODEBANC\nABC',
       output: 'BANC',
-      explanation: 'The substring "BANC" contains all characters from "ABC" and is the shortest.'
+      explanation: 'The substring "BANC" is the shortest segment of the first string that contains one A, one B, and one C.'
     },
     {
       input: 'a\na',
       output: 'a',
-      explanation: 'The entire string is the minimum window.'
+      explanation: 'The string "a" contains "a", and is the shortest possible.'
     },
     {
       input: 'a\naa',
       output: '',
-      explanation: 'Both characters from "aa" must be in the window, but "a" only has one.'
+      explanation: 'The string "a" does not contain two "a"s, so no valid window exists.'
     }
   ],
-
   constraints: [
-    '1 ≤ s.length, t.length ≤ 10⁵',
+    '1 <= s.length, t.length <= 10^5',
     's and t consist of uppercase and lowercase English letters.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -77,9 +62,6 @@ The minimum window substring "BANC" includes 'A', 'B', and 'C' from string t.`,
 
 using namespace std;
 
-/**
- * Returns the minimum window substring of s that contains all characters of t.
- */
 string solve(string s, string t) {
     if (s.empty() || t.empty()) return "";
     // Your code here
@@ -96,14 +78,12 @@ int main() {
     cout << solve(s, t) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
-    /**
-     * Returns the minimum window substring of s that contains all characters of t.
-     */
     public static String solve(String s, String t) {
         if (s == null || t == null || s.length() < t.length()) return "";
         // Your code here
@@ -122,16 +102,86 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: 'ADOBECODEBANC\nABC', expected: 'BANC' },
     { input: 'a\na', expected: 'a' },
     { input: 'a\naa', expected: '' },
     { input: 'ab\nb', expected: 'b' },
-    { input: 'aa\naa', expected: 'aa' },
-    { input: 'DONOTPANIC\nANT', expected: 'TPAN' },
-    { input: 'BANC\nABC', expected: 'BANC' },
-    { input: 'xyz\ny', expected: 'y' },
-    { input: 'aaaaabbbbbc\nabc', expected: 'abbbbbc' },
-    { input: 'ADOBECODEBANC\nXYZ', expected: '' }
-  ]
+    { input: 'aaflslflsldkalskaaa\naa', expected: 'aa' },
+    { input: 'cabwefgewcwaefgcf\ncae', expected: 'cwae' },
+    { input: 'a\nb', expected: '' },
+    { input: 'adobecodebanc\nABCA', expected: 'ADOBECODEBA' },
+    { input: 'aaaaaaaaaaa\na', expected: 'a' },
+    { input: 'abac\ncab', expected: 'bac' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `This problem is solved using a sliding window and frequency maps. First, create a frequency map ('tFreq') for the characters in string 't'. Initialize a window frequency map ('windowFreq'), 'left' and 'right' pointers at 0, and variables to track the number of characters 'formed' and 'required'. Expand the window by moving 'right', updating 'windowFreq'. If a character's count in 'windowFreq' matches its count in 'tFreq', increment 'formed'. Once 'formed' equals 'required' (the number of unique characters in 't'), you have a valid window. Now, shrink the window from the left. While shrinking, update 'windowFreq'. If a character's count falls below its required count in 'tFreq', decrement 'formed' and stop shrinking. In each valid window, update the minimum length and result string.`,
+    cpp: `unordered_map<char, int> t_freq, window_freq;
+for (char c : t) {
+    t_freq[c]++;
+}
+
+int left = 0, formed = 0, required = t_freq.size();
+int min_len = INT_MAX, start_index = 0;
+
+for (int right = 0; right < s.length(); ++right) {
+    char c = s[right];
+    window_freq[c]++;
+    if (t_freq.count(c) && window_freq[c] == t_freq[c]) {
+        formed++;
+    }
+
+    while (left <= right && formed == required) {
+        if (right - left + 1 < min_len) {
+            min_len = right - left + 1;
+            start_index = left;
+        }
+
+        char left_char = s[left];
+        window_freq[left_char]--;
+        if (t_freq.count(left_char) && window_freq[left_char] < t_freq[left_char]) {
+            formed--;
+        }
+        left++;
+    }
+}
+
+return min_len == INT_MAX ? "" : s.substr(start_index, min_len);`,
+    java: `Map<Character, Integer> tFreq = new HashMap<>();
+for (char c : t.toCharArray()) {
+    tFreq.put(c, tFreq.getOrDefault(c, 0) + 1);
+}
+
+int left = 0, formed = 0, required = tFreq.size();
+int minLen = Integer.MAX_VALUE, startIndex = 0;
+Map<Character, Integer> windowFreq = new HashMap<>();
+
+for (int right = 0; right < s.length(); right++) {
+    char c = s.charAt(right);
+    windowFreq.put(c, windowFreq.getOrDefault(c, 0) + 1);
+
+    if (tFreq.containsKey(c) && windowFreq.get(c).intValue() == tFreq.get(c).intValue()) {
+        formed++;
+    }
+
+    while (left <= right && formed == required) {
+        if (right - left + 1 < minLen) {
+            minLen = right - left + 1;
+            startIndex = left;
+        }
+
+        char leftChar = s.charAt(left);
+        windowFreq.put(leftChar, windowFreq.get(leftChar) - 1);
+        if (tFreq.containsKey(leftChar) && windowFreq.get(leftChar) < tFreq.get(leftChar)) {
+            formed--;
+        }
+        left++;
+    }
+}
+
+return minLen == Integer.MAX_VALUE ? "" : s.substring(startIndex, startIndex + minLen);`
+  }
 };

@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'kth-missing-positive-number',
   conquestId: 'stage8-4',
   title: 'Kth Missing Positive Number',
@@ -18,62 +19,47 @@ module.exports = {
   category: 'Binary Search – Core',
   tags: ['Array', 'Binary Search'],
 
-  description: `Given an array \`arr\` of positive integers sorted in a **strictly increasing order**, and an integer \`k\`.
+  // ---- Story Layer ----
+  storyBriefing: `Moaning Myrtle, haunting the second-floor girls' bathroom, presents you with a new puzzle. She shows you a sequence of pipes ('arr'), sorted by size, but she knows that some pipes are missing from the sequence. She wails, 'I'm looking for the k-th missing pipe! Find it for me!' Your task is to figure out which pipe size is the k-th positive integer missing from her sorted list.`,
 
-Return the \`k^{th}\` **positive** integer that is missing from this array.
+  // ---- Technical Layer ----
+  description: `You are given an array 'arr' of positive integers sorted in a strictly increasing order, and an integer 'k'. Your task is to find the k-th positive integer that is missing from this array.
 
-### Task
-While a linear scan $O(n)$ is possible, the goal is to implement a **Binary Search** $O(\log n)$ solution.
-1. At any index \`mid\`, the number of missing integers before \`arr[mid]\` is calculated as: \`missing = arr[mid] - (mid + 1)\`.
-2. If \`missing < k\`, the $k^{th}$ missing number is further to the right (\`left = mid + 1\`).
-3. If \`missing >= k\`, it is to the left (\`right = mid - 1\`).
-4. After the search, the answer can be derived as \`left + k\`.
+This problem can be solved in O(log n) time using binary search. The key insight is that for any index 'mid', the number of positive integers missing before 'arr[mid]' is given by 'arr[mid] - (mid + 1)'. You can use this formula to binary search for the correct position. If the number of missing elements at 'mid' is less than 'k', the k-th missing number must be in the right half. Otherwise, it is in the left half.
 
-### Example
-**Input:**
-\`\`\`
-5
-2 3 4 7 11
-5
-\`\`\`
-
-**Output:**
-\`\`\`
-9
-\`\`\`
-
-**Explanation:**
-The missing positive integers are [1, 5, 6, 8, 9, 10, 12, ...]. The $5^{th}$ missing integer is 9.`,
-
+Return a single integer, which is the k-th missing positive number.`,
   examples: [
     {
       input: '5\n2 3 4 7 11\n5',
       output: '9',
-      explanation: 'Missing: 1, 5, 6, 8, 9... The 5th is 9.'
+      explanation: 'The missing positive integers are [1, 5, 6, 8, 9, 10, ...]. The 5th missing positive integer is 9.'
     },
     {
       input: '4\n1 2 3 4\n2',
       output: '6',
-      explanation: 'Missing: 5, 6... The 2nd is 6.'
+      explanation: 'The array contains all numbers from 1 to 4. The missing positive integers start from 5. The 2nd missing one is 6.'
+    },
+    {
+      input: '1\n2\n1',
+      output: '1',
+      explanation: 'The first missing positive integer is 1.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 1000',
-    '1 ≤ arr[i] ≤ 1000',
-    '1 ≤ k ≤ 1000',
-    'arr is sorted in strictly increasing order.'
+    '1 <= arr.length <= 1000',
+    '1 <= arr[i] <= 1000',
+    '1 <= k <= 1000',
+    'arr is sorted in a strictly increasing order.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
 
-/**
- * Returns the k-th missing positive integer.
- */
 int solve(int n, vector<int>& arr, int k) {
     int left = 0, right = n - 1;
     // Your code here
@@ -94,12 +80,10 @@ int main() {
     cout << solve(n, arr, k) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the k-th missing positive integer.
-     */
     public static int solve(int n, int[] arr, int k) {
         int left = 0, right = n - 1;
         // Your code here
@@ -120,16 +104,40 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '5\n2 3 4 7 11\n5', expected: '9' },
     { input: '4\n1 2 3 4\n2', expected: '6' },
-    { input: '3\n5 6 7\n2', expected: '2' },
-    { input: '1\n1\n1', expected: '2' },
     { input: '1\n2\n1', expected: '1' },
-    { input: '6\n2 4 6 8 10 12\n3', expected: '5' },
-    { input: '5\n1 10 20 30 40\n2', expected: '3' },
-    { input: '2\n10 20\n5', expected: '5' },
-    { input: '4\n4 5 6 7\n2', expected: '2' },
-    { input: '10\n1 2 3 4 5 6 7 8 9 10\n10', expected: '20' }
-  ]
+    { input: '1\n1\n1', expected: '2' },
+    { input: '5\n1 2 3 4 5\n5', expected: '10' },
+    { input: '3\n10 11 12\n5', expected: '5' },
+    { input: '5\n2 3 4 5 6\n1', expected: '1' },
+    { input: '5\n2 3 4 5 6\n2', expected: '7' },
+    { input: '10\n10 20 30 40 50 60 70 80 90 100\n9', expected: '9' },
+    { input: '10\n10 20 30 40 50 60 70 80 90 100\n10', expected: '11' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The number of missing positive integers before index 'mid' is 'arr[mid] - (mid + 1)'. We can use binary search to find the turning point where the number of missing integers is less than 'k'. Initialize 'left' to 0 and 'right' to 'n - 1'. While 'left' <= 'right', calculate 'mid'. If 'arr[mid] - (mid + 1)' is less than 'k', it means the k-th missing number is on the right side of 'mid', so we set 'left = mid + 1'. Otherwise, it is on the left, so we set 'right = mid - 1'. The loop ends when 'left' points to the first index where the number of missing elements is 'k' or more. The k-th missing number is then 'left + k'.`,
+    cpp: `while (left <= right) {
+    int mid = left + (right - left) / 2;
+    if (arr[mid] - (mid + 1) < k) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+return left + k;`,
+    java: `while (left <= right) {
+    int mid = left + (right - left) / 2;
+    if (arr[mid] - (mid + 1) < k) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+return left + k;`
+  }
 };

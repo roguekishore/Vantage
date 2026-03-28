@@ -17,120 +17,84 @@ module.exports = {
   category: 'Sorting',
   tags: ['Sorting', 'Bubble Sort', 'Selection Sort', 'Insertion Sort'],
 
-  description: `Welcome to **Stage 6: Sorting Algorithms**! Sorting is the bedrock of computer science. It turns messy data into a structure that allows for $O(\log n)$ searching and efficient processing.
+  stageIntro: `The new school year begins with a monumental announcement from Dumbledore in the Great Hall: Hogwarts will host the Triwizard Tournament! The air buzzes with excitement and apprehension. Champions from three schools will compete, and the first task involves organizing a vast, chaotic collection of magical artifacts, creatures, and supplies. This is a logistical nightmare, and the ministry officials are looking for students who can bring order to chaos-a perfect application for sorting algorithms.`,
 
-In this challenge, you will implement the three "Elementary" sorting algorithms. All three have a **Time Complexity of $O(n^2)$**, making them suitable for small datasets but inefficient for large ones.
+  storyBriefing: `Mad-Eye Moody, the new Defence Against the Dark Arts teacher, gruffly presents you with a small, jumbled pile of enchanted stones, each with a different weight. "Before you can handle a dragon, you need to handle these," he growls. "Sort them by weight. Use a simple method. Compare them pair by pair, or find the lightest and put it first. It'll be slow, but it's reliable. Don't move on until this is done." This is your first test: sorting a small batch, where simple, methodical approaches are sufficient.`,
 
-### 1. Bubble Sort
-- **Concept**: Repeatedly swap adjacent elements if they are in the wrong order.
-- **Visual**: The largest element "bubbles up" to the end of the array in each pass.
-- **Best Case**: $O(n)$ if the array is already sorted (with an early exit flag).
+  description: `You are given an array of integers. Your task is to sort the array in non-decreasing order using a quadratic time complexity algorithm, such as Bubble Sort, Selection Sort, or Insertion Sort. These algorithms are fundamental but are generally too slow for large datasets.
 
-### 2. Selection Sort
-- **Concept**: Find the minimum element in the unsorted part and swap it with the first element of the unsorted part.
-- **Visual**: It builds the sorted array one "minimum" at a time from left to right.
-- **Fact**: It always performs $O(n^2)$ comparisons, even if the array is sorted.
+These sorting methods are characterized by their O(n^2) time complexity. Bubble Sort repeatedly swaps adjacent elements. Selection Sort repeatedly finds the minimum element and places it at the beginning. Insertion Sort builds the final sorted array one item at a time, inserting each element into its proper place.
 
-### 3. Insertion Sort
-- **Concept**: Take one element at a time and "insert" it into its correct position relative to the already sorted part.
-- **Visual**: Similar to how you sort a hand of playing cards.
-- **Fact**: Very efficient for arrays that are "nearly sorted."
-
-### Task
-Implement one (or all!) of these algorithms to sort the input array in non-decreasing order.
-
-### Example
-**Input:**
-\`\`\`
-5
-5 1 4 2 8
-\`\`\`
-
-**Output:**
-\`\`\`
-1 2 4 5 8
-\`\`\``,
+Return the sorted array as a single line of space-separated integers. You are encouraged to implement one of these three methods from scratch.`,
 
   examples: [
     {
       input: '5\n5 1 4 2 8',
       output: '1 2 4 5 8',
-      explanation: 'The unsorted array is returned in ascending order.'
+      explanation: 'The unsorted array is processed by a quadratic sorting algorithm and returned in ascending order.'
     },
     {
-      input: '3\n10 -1 0',
-      output: '-1 0 10',
-      explanation: 'Handles negative numbers correctly.'
+      input: '6\n10 9 8 7 6 5',
+      output: '5 6 7 8 9 10',
+      explanation: 'A reverse-sorted array represents a worst-case scenario for some quadratic sorts, but the output must still be correct.'
+    },
+    {
+      input: '3\n-5 10 0',
+      output: '-5 0 10',
+      explanation: 'The algorithm must correctly handle negative numbers and zero.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 1000',
-    '-10⁵ ≤ arr[i] ≤ 10⁵'
+    'The number of elements in the array is between 1 and 1000.',
+    'The value of each element is between -100000 and 100000.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `void solve(std::vector<int>& arr) {
+    // Your code here. You can implement Bubble, Selection, or Insertion Sort.
+}
+
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
 #include <vector>
-#include <algorithm>
-
-using namespace std;
-
-void bubbleSort(vector<int>& arr) {
-    // Your code here
-}
-
-void selectionSort(vector<int>& arr) {
-    // Your code here
-}
-
-void insertionSort(vector<int>& arr) {
-    // Your code here
-}
-
+#include <string>
 int main() {
     int n;
-    cin >> n;
-    vector<int> arr(n);
-    for (int i = 0; i < n; i++) cin >> arr[i];
+    std::cin >> n;
+    std::vector<int> arr(n);
+    for (int i = 0; i < n; i++) std::cin >> arr[i];
 
-    // Pick one to implement!
-    bubbleSort(arr);
+    solve(arr);
 
     for (int i = 0; i < n; i++) {
-        cout << arr[i] << (i == n - 1 ? "" : " ");
+        std::cout << arr[i] << (i == n - 1 ? "" : " ");
     }
-    cout << endl;
+    std::cout << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
+    java: `class Solution {
+    public static void solve(int[] arr) {
+        // Your code here. You can implement Bubble, Selection, or Insertion Sort.
+    }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
-    public static void bubbleSort(int[] arr) {
-        // Your code here
-    }
-
-    public static void selectionSort(int[] arr) {
-        // Your code here
-    }
-
-    public static void insertionSort(int[] arr) {
-        // Your code here
-    }
-
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         int[] arr = new int[n];
         for (int i = 0; i < n; i++) arr[i] = sc.nextInt();
 
-        bubbleSort(arr);
+        Solution.solve(arr);
 
         for (int i = 0; i < n; i++) {
             System.out.print(arr[i] + (i == n - 1 ? "" : " "));
         }
         System.out.println();
+        sc.close();
     }
 }`
   },
@@ -140,6 +104,33 @@ public class Main {
     { input: '1\n42', expected: '42' },
     { input: '6\n10 9 8 7 6 5', expected: '5 6 7 8 9 10' },
     { input: '4\n1 2 3 4', expected: '1 2 3 4' },
-    { input: '5\n2 2 1 1 0', expected: '0 1 1 2 2' }
-  ]
+    { input: '5\n2 2 1 1 0', expected: '0 1 1 2 2' },
+    { input: '2\n100 -100', expected: '-100 100' },
+    { input: '7\n-1 -5 3 0 2 -10 8', expected: '-10 -5 -1 0 2 3 8'},
+    { input: '10\n0 0 0 0 0 0 0 0 0 0', expected: '0 0 0 0 0 0 0 0 0 0'}
+  ],
+
+  solution: {
+    approach: `Insertion sort is one of the classic quadratic sorting algorithms. It iterates from arr[1] to arr[n-1]. At each position 'i', it takes the value and 'inserts' it into the sorted portion of the array (from index 0 to i-1). This is done by shifting all larger elements to the right until the correct spot for the current value is found. While less efficient on average than O(n log n) algorithms, it is simple to implement and performs well on small or nearly-sorted datasets.`,
+    cpp: `    int n = arr.size();
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }`,
+    java: `    int n = arr.length;
+    for (int i = 1; i < n; ++i) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j = j - 1;
+        }
+        arr[j + 1] = key;
+    }`
+  }
 };

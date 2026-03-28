@@ -17,92 +17,67 @@ module.exports = {
   category: 'Trees – Construction',
   tags: ['Tree', 'Recursion', 'DFS', 'Hash Map'],
 
-  description: `Can you recreate a tree if you only have the lists of how it was visited? 
+  storyBriefing: `As you perfect the map, the fire in Lupin's office roars to life, and the face of Sirius Black appears in the flames. "That's a good map, but it's not how we Marauders built the original," he says with a grin. "We didn't have a level-by-level guide. We knew only two things: the exact order we first visited each secret room (pre-order), and the layout of rooms relative to the main corridors (in-order). From just those two sequences, you can uniquely reconstruct the original map. Try it."`,
 
-To uniquely reconstruct a binary tree, a single traversal isn't enough. However, the combination of **Pre-order** and **In-order** gives us everything we need.
+  description: `You are given two integer arrays, 'preorder' and 'inorder', where 'preorder' is the preorder traversal of a binary tree and 'inorder' is the inorder traversal of the same tree. Your task is to construct and return the binary tree.
 
-### The Logic
-1.  **Pre-order** ($Root \rightarrow Left \rightarrow Right$): The first element is **always the root** of the current (sub)tree.
-2.  **In-order** ($Left \rightarrow Root \rightarrow Right$): Once we know the root from the Pre-order list, we find it in the In-order list.
-    - Everything to the **left** of the root in the In-order list belongs to the **Left Subtree**.
-    - Everything to the **right** belongs to the **Right Subtree**.
+This is a classic tree problem that can be solved with a recursive approach. The key insight is that the first element of a preorder traversal is always the root of the tree. Once you have the root, you can find its position in the inorder traversal. All elements to the left of the root in the inorder array belong to the left subtree, and all elements to the right belong to the right subtree.
 
-### The Recursive Recipe
-- **Step 1**: Pick the first element from Pre-order as the root.
-- **Step 2**: Find its index in the In-order array (using a Hash Map for $O(1)$ lookup).
-- **Step 3**: Split the In-order array into left and right parts.
-- **Step 4**: Recursively repeat for the left and right subtrees.
-
-### Complexity
-- **Time**: $O(n)$ with a Hash Map lookup.
-- **Space**: $O(n)$ to store the tree and the map.
-
----
-
-### Example
-**Pre-order:** \`\`
-**In-order:** \`\`
-
-1. **3** is the root.
-2. In In-order, **9** is left of 3; **15, 20, 7** are right of 3.
-3. Left child of 3 is a tree made from Pre: \`\` and In: \`\`.
-4. Right child of 3 is a tree made from Pre: \`\` and In: \`\`.`,
+Return the root of the constructed binary tree. To make the lookup of root indices in the inorder array efficient, a hash map can be used.`,
 
   examples: [
     {
       input: '3 9 20 15 7\n9 3 15 20 7',
       output: '3 9 20 null null 15 7',
-      explanation: 'Reconstructs the tree where 3 is root, 9 is left, and 20 is right (with children 15, 7).'
+      explanation: 'From preorder, 3 is the root. In inorder, 9 is to the left of 3, and [15, 20, 7] is to the right. The algorithm recursively builds the left subtree from preorder [9] and inorder [9], and the right subtree from preorder [20, 15, 7] and inorder [15, 20, 7].'
+    },
+    {
+      input: '-1\n-1',
+      output: '-1',
+      explanation: 'A tree with a single node has identical preorder and inorder traversals.'
+    },
+    {
+      input: '1 2\n2 1',
+      output: '1 2',
+      explanation: 'From preorder, 1 is the root. In inorder, 2 is to the left of 1. So, 2 is the left child of 1.'
     }
   ],
 
   constraints: [
-    '1 ≤ n ≤ 3000',
-    '-3000 ≤ val ≤ 3000',
-    'All values are unique.'
+    'The number of elements in both arrays is between 1 and 3000.',
+    'Node values are between -3000 and 3000.',
+    'All values in the arrays are unique.',
+    'preorder and inorder are guaranteed to be valid traversals of the same tree.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <unordered_map>
-#include <queue>
-#include <string>
-#include <sstream>
-
-using namespace std;
-
-struct TreeNode {
+    cpp: `struct TreeNode {
     int val;
     TreeNode *left, *right;
     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
 };
 
-unordered_map<int, int> inMap;
-int preIdx = 0;
-
-TreeNode* build(vector<int>& preorder, int left, int right) {
-    if (left > right) return NULL;
-
-    int rootVal = preorder[preIdx++];
-    TreeNode* root = new TreeNode(rootVal);
-
-    int mid = inMap[rootVal];
-    root->left = build(preorder, left, mid - 1);
-    root->right = build(preorder, mid + 1, right);
-
-    return root;
+TreeNode* solve(std::vector<int>& preorder, std::vector<int>& inorder) {
+    // Your code here
+    return nullptr;
 }
+
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <string>
+#include <sstream>
 
 void printLevelOrder(TreeNode* root) {
     if (!root) return;
-    queue<TreeNode*> q;
+    std::queue<TreeNode*> q;
     q.push(root);
-    vector<string> out;
+    std::vector<std::string> out;
     while(!q.empty()){
         TreeNode* curr = q.front(); q.pop();
         if(curr){
-            out.push_back(to_string(curr->val));
+            out.push_back(std::to_string(curr->val));
             q.push(curr->left);
             q.push(curr->right);
         } else {
@@ -110,71 +85,133 @@ void printLevelOrder(TreeNode* root) {
         }
     }
     while(!out.empty() && out.back() == "null") out.pop_back();
-    for(int i=0; i<out.size(); ++i) cout << out[i] << (i == out.size()-1 ? "" : " ");
+    for(size_t i=0; i<out.size(); ++i) std::cout << out[i] << (i == out.size()-1 ? "" : " ");
 }
 
 int main() {
-    string line1, line2;
-    getline(cin, line1);
-    getline(cin, line2);
+    std::string line1, line2;
+    std::getline(std::cin, line1);
+    std::getline(std::cin, line2);
     
-    stringstream ss1(line1), ss2(line2);
-    vector<int> preorder, inorder;
+    std::stringstream ss1(line1), ss2(line2);
+    std::vector<int> preorder, inorder;
     int val;
     while(ss1 >> val) preorder.push_back(val);
     while(ss2 >> val) inorder.push_back(val);
-
-    for(int i=0; i<inorder.size(); ++i) inMap[inorder[i]] = i;
     
-    TreeNode* root = build(preorder, 0, inorder.size() - 1);
+    TreeNode* root = solve(preorder, inorder);
     printLevelOrder(root);
-    cout << endl;
+    std::cout << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-class TreeNode {
+    java: `class TreeNode {
     int val;
     TreeNode left, right;
     TreeNode(int x) { val = x; }
 }
 
+class Solution {
+    public TreeNode solve(int[] preorder, int[] inorder) {
+        // Your code here
+        return null;
+    }
+}
+
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
-    int preIdx = 0;
-    Map<Integer, Integer> inMap = new HashMap<>();
-
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
-        for (int i = 0; i < inorder.length; i++) inMap.put(inorder[i], i);
-        return helper(preorder, 0, inorder.length - 1);
+    public static void printLevelOrder(TreeNode root) {
+        if (root == null) return;
+        java.util.Queue<TreeNode> q = new java.util.LinkedList<>();
+        q.add(root);
+        java.util.List<String> result = new java.util.ArrayList<>();
+        while (!q.isEmpty()) {
+            TreeNode node = q.poll();
+            if (node != null) {
+                result.add(String.valueOf(node.val));
+                q.add(node.left);
+                q.add(node.right);
+            } else {
+                result.add("null");
+            }
+        }
+        int lastNonNull = -1;
+        for (int i = 0; i < result.size(); i++) {
+            if (!result.get(i).equals("null")) {
+                lastNonNull = i;
+            }
+        }
+        for (int i = 0; i <= lastNonNull; i++) {
+            System.out.print(result.get(i) + (i == lastNonNull ? "" : " "));
+        }
     }
-
-    private TreeNode helper(int[] preorder, int left, int right) {
-        if (left > right) return null;
-        int rootVal = preorder[preIdx++];
-        TreeNode root = new TreeNode(rootVal);
-        int mid = inMap.get(rootVal);
-        root.left = helper(preorder, left, mid - 1);
-        root.right = helper(preorder, mid + 1, right);
-        return root;
-    }
-
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        String[] preStr = sc.nextLine().split("\\\\s+");
-        String[] inStr = sc.nextLine().split("\\\\s+");
+        java.util.Scanner sc = new java.util.Scanner(System.in);
+        String[] preStr = sc.nextLine().split(" ");
+        String[] inStr = sc.nextLine().split(" ");
         
-        int[] preorder = Arrays.stream(preStr).mapToInt(Integer::parseInt).toArray();
-        int[] inorder = Arrays.stream(inStr).mapToInt(Integer::parseInt).toArray();
+        int[] preorder = java.util.Arrays.stream(preStr).mapToInt(Integer::parseInt).toArray();
+        int[] inorder = java.util.Arrays.stream(inStr).mapToInt(Integer::parseInt).toArray();
 
-        Main solver = new Main();
-        TreeNode root = solver.buildTree(preorder, inorder);
-        // Level order print logic...
+        Solution solver = new Solution();
+        TreeNode root = solver.solve(preorder, inorder);
+        printLevelOrder(root);
+        System.out.println();
+        sc.close();
     }
 }`
   },
 
   testCases: [
     { input: '3 9 20 15 7\n9 3 15 20 7', expected: '3 9 20 null null 15 7' },
-    { input: '-1\n-1', expected: '-1' }
-  ]
+    { input: '-1\n-1', expected: '-1' },
+    { input: '1 2\n2 1', expected: '1 2' },
+    { input: '1 2\n1 2', expected: '1 null 2' },
+    { input: '1 2 3\n1 2 3', expected: '1 null 2 null 3' },
+    { input: '1 2 3\n3 2 1', expected: '1 2 3' },
+    { input: '4 2 1 3 6 5 7\n1 2 3 4 5 6 7', expected: '4 2 6 1 3 5 7'}
+  ],
+  
+  solution: {
+    approach: `The recursive solution uses a helper function that takes the boundaries of the current inorder subarray. A global index for the preorder array keeps track of the current root. For each call, we take the current preorder element as the root, find its index in the inorder array to determine the size of the left and right subtrees, and then make two recursive calls: one for the left subtree with the corresponding inorder and preorder segments, and one for the right. A hash map is used to store inorder element indices for O(1) lookup, making the overall algorithm O(n).`,
+    cpp: `    std::unordered_map<int, int> inMap;
+    for(int i = 0; i < inorder.size(); ++i) {
+        inMap[inorder[i]] = i;
+    }
+    int preIndex = 0;
+    
+    std::function<TreeNode*(int, int)> build = 
+        [&](int left, int right) -> TreeNode* {
+        if (left > right) return nullptr;
+
+        int rootVal = preorder[preIndex++];
+        TreeNode* root = new TreeNode(rootVal);
+
+        root->left = build(left, inMap[rootVal] - 1);
+        root->right = build(inMap[rootVal] + 1, right);
+        return root;
+    };
+    
+    return build(0, inorder.size() - 1);`,
+    java: `    private int preIndex = 0;
+    private java.util.Map<Integer, Integer> inMap = new java.util.HashMap<>();
+
+    public TreeNode solve(int[] preorder, int[] inorder) {
+        for (int i = 0; i < inorder.length; i++) {
+            inMap.put(inorder[i], i);
+        }
+        return build(preorder, 0, inorder.length - 1);
+    }
+
+    private TreeNode build(int[] preorder, int left, int right) {
+        if (left > right) {
+            return null;
+        }
+        int rootVal = preorder[preIndex++];
+        TreeNode root = new TreeNode(rootVal);
+        int mid = inMap.get(rootVal);
+        root.left = build(preorder, left, mid - 1);
+        root.right = build(preorder, mid + 1, right);
+        return root;
+    }`
+  }
 };

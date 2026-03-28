@@ -12,11 +12,15 @@
 module.exports = {
   id: 'recursion-call-stack-visualization',
   conquestId: 'stage21-1',
-  title: 'Recursion Call Stack Visualization',
+  title: 'The Hall of Prophecy',
   difficulty: 'Easy',
   category: 'Recursion',
   tags: ['Recursion', 'Call Stack', 'Factorial'],
+  storyBriefing: `
+Welcome, Unspeakable. Your first trial is in the Hall of Prophecy. The prophecies here are not straightforward; they are nested within each other, much like recursive calls. To understand a prophecy's full meaning, you must understand how deep the connections go.
 
+Your task is to calculate the 'power' of a prophecy (its factorial value) and, more importantly, determine the maximum number of nested prophecies (recursion depth) you had to explore to unravel it. This will teach you to visualize the very structure of magic.
+`,
   description: `
 Recursion works by placing **function calls on a call stack**.  
 Each recursive call adds a new **stack frame**, and when the function returns, the frame is removed.
@@ -62,13 +66,17 @@ This problem helps visualize how **recursive calls grow and shrink the call stac
 
   boilerplate: {
     cpp: `#include <iostream>
+#include <algorithm>
 using namespace std;
 
 int maxDepth = 0;
 
 long long factorial(int n, int depth) {
-    // TODO: Track maximum recursion depth and compute factorial
-    return 0;
+    maxDepth = max(maxDepth, depth);
+    if (n == 0) {
+        return 1;
+    }
+    return n * factorial(n - 1, depth + 1);
 }
 
 int main() {
@@ -89,8 +97,64 @@ public class Main {
     static int maxDepth = 0;
 
     static long factorial(int n, int depth) {
-        // TODO: Track maximum recursion depth and compute factorial
-        return 0;
+        maxDepth = Math.max(maxDepth, depth);
+        if (n == 0) {
+            return 1;
+        }
+        return n * factorial(n - 1, depth + 1);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        long result = factorial(n, 1);
+
+        System.out.println(result);
+        System.out.print(maxDepth);
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <algorithm>
+using namespace std;
+
+int maxDepth = 0;
+
+long long factorial(int n, int depth) {
+    maxDepth = max(maxDepth, depth);
+    if (n == 0) {
+        return 1;
+    }
+    return n * factorial(n - 1, depth + 1);
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    long long result = factorial(n, 1);
+
+    cout << result << endl;
+    cout << maxDepth;
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static int maxDepth = 0;
+
+    static long factorial(int n, int depth) {
+        maxDepth = Math.max(maxDepth, depth);
+        if (n == 0) {
+            return 1;
+        }
+        return n * factorial(n - 1, depth + 1);
     }
 
     public static void main(String[] args) {

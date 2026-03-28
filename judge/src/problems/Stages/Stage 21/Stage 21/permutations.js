@@ -13,11 +13,15 @@
 module.exports = {
   id: 'permutations',
   conquestId: 'stage21-7',
-  title: 'Permutations',
+  title: 'The Hall of Records',
   difficulty: 'Medium',
   category: 'Recursion',
   tags: ['Recursion', 'Backtracking', 'Permutations'],
+  storyBriefing: `
+The Hall of Records is a vast, ever-changing library where historical events are stored on magical scrolls. To prevent tampering, the scrolls constantly rearrange themselves. Given a set of 'n' distinct historical event scrolls, you must determine the total number of ways they can be arranged on a shelf.
 
+This is a classic permutations problem. Each unique ordering is a 'permutation'. Calculating the total number of arrangements, n!, is fundamental to understanding the chaotic magic that protects the Hall of Records.
+`,
   description: `
 A **permutation** is an arrangement of elements in a specific order.
 
@@ -65,8 +69,15 @@ Return the **total number of permutations**.
 using namespace std;
 
 long long countPermutations(int n) {
-    // TODO: Compute number of permutations using recursion or factorial
-    return 0;
+    if (n < 0) return 0; // Or handle as an error
+    if (n == 0) {
+        return 1;
+    }
+    long long result = 1;
+    for (int i = 1; i <= n; i++) {
+        result *= i;
+    }
+    return result;
 }
 
 int main() {
@@ -86,8 +97,74 @@ int main() {
 public class Main {
 
     static long countPermutations(int n) {
-        // TODO: Compute number of permutations using recursion or factorial
-        return 0;
+        if (n < 0) return 0; // Or handle as an error
+        if (n == 0) {
+            return 1;
+        }
+        long result = 1;
+        for (int i = 1; i <= n; i++) {
+            result *= i;
+        }
+        return result;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[] arr = new int[n];
+        for(int i = 0; i < n; i++)
+            arr[i] = sc.nextInt();
+
+        System.out.print(countPermutations(n));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+long long countPermutations(int n) {
+    if (n < 0) return 0; // Or handle as an error
+    if (n == 0) {
+        return 1;
+    }
+    long long result = 1;
+    for (int i = 1; i <= n; i++) {
+        result *= i;
+    }
+    return result;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> arr(n);
+    for(int i = 0; i < n; i++)
+        cin >> arr[i];
+
+    cout << countPermutations(n);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static long countPermutations(int n) {
+        if (n < 0) return 0; // Or handle as an error
+        if (n == 0) {
+            return 1;
+        }
+        long result = 1;
+        for (int i = 1; i <= n; i++) {
+            result *= i;
+        }
+        return result;
     }
 
     public static void main(String[] args) {

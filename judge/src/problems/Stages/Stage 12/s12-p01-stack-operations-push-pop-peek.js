@@ -17,157 +17,115 @@
 module.exports = {
   id: 'stack-operations-push-pop-peek',
   conquestId: 'stage12-1',
-  title: 'Stack Operations: Push, Pop, Peek',
+  title: 'Stack: Basic Operations',
   difficulty: 'Easy',
   category: 'Stack – Fundamentals',
   tags: ['Stack', 'Data Structure', 'LIFO'],
 
-  description: `A **Stack** is a linear data structure that follows the **LIFO (Last In, First Out)** principle. Think of a stack of plates: the last one you put on top is the first one you take off.
+  stageIntro: `Your success with the moving staircases has earned you a bit of a reputation, which reaches the ears of Fred and George Weasley. Intrigued, they invite you to their secret workshop where they prototype their joke products for Weasleys' Wizard Wheezes. The room is a chaotic marvel of enchanted items, half-finished inventions, and boxes piled high to the ceiling.`,
+  
+  storyBriefing: `Fred gestures to a tall, narrow stack of boxes. "Simple, this one. It's our latest shipment of Extendable Ears. We just pile new boxes on top. When we need one, we take it off the top. Last one in, first one out! Show us you understand. We'll call out 'push' to add a box, 'pop' to take one off, and 'peek' to check the serial number of the top one. Keep track for us."`,
 
-In this challenge, you will implement a stack from scratch using an array (or list).
+  description: `You are given a series of operations to perform on a stack data structure. A stack operates on a Last-In-First-Out (LIFO) principle, meaning the last element added is the first one to be removed. Your task is to simulate a stack and report the results of certain operations.
 
-### Core Operations
-1.  **Push**: Add an element to the top. $O(1)$
-2.  **Pop**: Remove the element from the top. $O(1)$
-3.  **Peek (or Top)**: View the element at the top without removing it. $O(1)$
-4.  **isEmpty**: Check if the stack has any elements. $O(1)$
+You will need to handle four basic commands: 'push' to add an element to the top of the stack, 'pop' to remove the top element, 'peek' to view the top element without removing it, and 'isEmpty' to check if the stack is empty. You must also handle underflow errors gracefully.
 
-### Task
-Implement a stack class that handles these operations correctly, including edge cases like popping from an empty stack.
-
-### Example
-**Input:**
-\`\`\`
-6
-push 10
-push 20
-peek
-pop
-peek
-isEmpty
-\`\`\`
-
-**Output:**
-\`\`\`
-20
-10
-false
-\`\`\`
-
-**Explanation:**
-- Push 10: Stack =
-- Push 20: Stack =
-- Peek: Top is 20.
-- Pop: Removes 20. Stack =
-- Peek: Top is 10.
-- isEmpty: Stack has 10, so false.`,
+Process all the given operations. The 'peek' and 'isEmpty' operations, as well as errors from 'pop', should produce output.`,
 
   examples: [
     {
-      input: '5\npush 5\npeek\npop\npeek\nisEmpty',
-      output: '5\nEmpty\ntrue',
-      explanation: 'After popping the only element, the stack is empty.'
+      input: '6\npush 10\npush 20\npeek\npop\npeek\nisEmpty',
+      output: '20\n10\nfalse',
+      explanation: 'Push 10, stack is [10]. Push 20, stack is [10, 20]. Peek returns 20. Pop removes 20, stack is [10]. Peek returns 10. IsEmpty returns false.'
     },
     {
-      input: '2\npop\npeek',
-      output: 'Underflow\nEmpty',
-      explanation: 'Handling operations on an empty stack.'
+      input: '3\npop\npeek\nisEmpty',
+      output: 'Underflow\nEmpty\ntrue',
+      explanation: 'The initial stack is empty. Popping causes an Underflow. Peeking reports Empty. IsEmpty returns true.'
+    },
+    {
+      input: '5\npush 5\npeek\npop\npeek\nisEmpty',
+      output: '5\nEmpty\ntrue',
+      explanation: 'Push 5, stack is [5]. Peek returns 5. Pop removes 5, stack is []. Peeking an empty stack reports Empty. IsEmpty returns true.'
     }
   ],
 
   constraints: [
-    '1 ≤ q ≤ 1000',
-    '-10⁵ ≤ val ≤ 10⁵',
-    'All operations are valid strings: push, pop, peek, isEmpty.'
+    'The number of operations is between 1 and 1000.',
+    'The value for push operations is between -100000 and 100000.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <string>
-
-using namespace std;
-
-class MyStack {
-    vector<int> data;
+    cpp: `class MyStack {
 public:
     void push(int val) {
         // Your code here
     }
     
     void pop() {
-        if (isEmpty()) {
-            cout << "Underflow" << endl;
-            return;
-        }
         // Your code here
     }
     
     void peek() {
-        if (isEmpty()) {
-            cout << "Empty" << endl;
-            return;
-        }
         // Your code here
     }
     
     bool isEmpty() {
-        return data.empty();
+        // Your code here
+        return true;
     }
+private:
+    // Choose your underlying data structure
 };
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <string>
 int main() {
     MyStack st;
     int q;
-    cin >> q;
+    std::cin >> q;
     while (q--) {
-        string op;
-        cin >> op;
+        std::string op;
+        std::cin >> op;
         if (op == "push") {
-            int val; cin >> val; st.push(val);
+            int val; std::cin >> val; st.push(val);
         } else if (op == "pop") {
             st.pop();
         } else if (op == "peek") {
             st.peek();
         } else if (op == "isEmpty") {
-            cout << (st.isEmpty() ? "true" : "false") << endl;
+            std::cout << (st.isEmpty() ? "true" : "false") << std::endl;
         }
     }
     return 0;
 }`,
-    java: `import java.util.*;
-
-class MyStack {
-    private List<Integer> data = new ArrayList<>();
+    java: `class MyStack {
+    // Choose your underlying data structure
 
     public void push(int val) {
         // Your code here
     }
 
     public void pop() {
-        if (isEmpty()) {
-            System.out.println("Underflow");
-            return;
-        }
         // Your code here
     }
 
     public void peek() {
-        if (isEmpty()) {
-            System.out.println("Empty");
-            return;
-        }
         // Your code here
     }
 
     public boolean isEmpty() {
-        return data.isEmpty();
+        // Your code here
+        return true;
     }
 }
 
+// DO NOT MODIFY THE MAIN CLASS
 public class Main {
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         MyStack st = new MyStack();
         if (!sc.hasNextInt()) return;
         int q = sc.nextInt();
@@ -183,6 +141,7 @@ public class Main {
                 System.out.println(st.isEmpty());
             }
         }
+        sc.close();
     }
 }`
   },
@@ -190,7 +149,66 @@ public class Main {
   testCases: [
     { input: '6\npush 10\npush 20\npeek\npop\npeek\nisEmpty', expected: '20\n10\nfalse' },
     { input: '3\npop\npeek\nisEmpty', expected: 'Underflow\nEmpty\ntrue' },
-    { input: '4\npush 1\npush 2\npush 3\npeek', expected: '3' },
-    { input: '5\npush 100\npop\npop\npeek\nisEmpty', expected: 'Underflow\nEmpty\ntrue' }
-  ]
+    { input: '1\nisEmpty', expected: 'true' },
+    { input: '2\npush 1\nisEmpty', expected: 'false' },
+    { input: '8\npush 1\npush 2\npop\npeek\npop\nisEmpty\npeek\npop', expected: '1\ntrue\nEmpty\nUnderflow' },
+    { input: '4\npush 0\npeek\npop\nisEmpty', expected: '0\ntrue' },
+    { input: '5\npush -100\npeek\npop\npeek\npop', expected: '-100\nEmpty\nUnderflow' },
+    { input: '10\npush 1\npush 2\npush 3\npush 4\npush 5\npeek\npop\npeek\npop\npeek', expected: '5\n4\n3' }
+  ],
+  
+  solution: {
+    approach: `To implement a stack, we can use a dynamic array (like std::vector in C++ or ArrayList in Java). For 'push', we add the element to the end of the array. For 'pop', we check if the array is empty to handle underflow, otherwise we remove the element from the end. For 'peek', we check for an empty array, otherwise we return the last element without removing it. 'isEmpty' simply checks if the array's size is zero.`,
+    cpp: `private:
+    std::vector<int> data;
+public:
+    void push(int val) {
+        data.push_back(val);
+    }
+    
+    void pop() {
+        if (isEmpty()) {
+            std::cout << "Underflow" << std::endl;
+            return;
+        }
+        data.pop_back();
+    }
+    
+    void peek() {
+        if (isEmpty()) {
+            std::cout << "Empty" << std::endl;
+            return;
+        }
+        std::cout << data.back() << std::endl;
+    }
+    
+    bool isEmpty() {
+        return data.empty();
+    }`,
+    java: `    private java.util.ArrayList<Integer> data = new java.util.ArrayList<>();
+
+    public void push(int val) {
+        data.add(val);
+    }
+
+    public void pop() {
+        if (isEmpty()) {
+            System.out.println("Underflow");
+            return;
+        }
+        data.remove(data.size() - 1);
+    }
+
+    public void peek() {
+        if (isEmpty()) {
+            System.out.println("Empty");
+            return;
+        }
+        System.out.println(data.get(data.size() - 1));
+    }
+
+    public boolean isEmpty() {
+        return data.isEmpty();
+    }`
+  }
 };

@@ -16,11 +16,15 @@
 module.exports = {
   id: 'rat-in-a-maze',
   conquestId: 'stage21-9',
-  title: 'Rat in a Maze',
+  title: 'The Locked Room',
   difficulty: 'Medium',
   category: 'Recursion',
   tags: ['Recursion', 'Backtracking', 'Matrix', 'Pathfinding'],
+  storyBriefing: `
+This room is a massive, shifting labyrinth with only one exit. You, like a rat in a maze, must find a path from your entry point (0,0) to the exit (n-1, n-1). The floor is a grid of magical tiles: some are solid (0), and some are passable (1).
 
+You must use backtracking to navigate. Explore a path, and if it leads to a dead end, you must retrace your steps and try another. Your task is to determine if any path to the exit exists at all.
+`,
   description: `
 A rat is placed at the **top-left corner (0,0)** of an **n × n maze**.  
 The rat must reach the **bottom-right corner (n-1,n-1)**.
@@ -61,8 +65,28 @@ This problem is commonly solved using **recursion and backtracking**, where the 
 #include <vector>
 using namespace std;
 
+bool isSafe(vector<vector<int>>& maze, int x, int y, int n, vector<vector<bool>>& visited) {
+    return (x >= 0 && x < n && y >= 0 && y < n && maze[x][y] == 1 && !visited[x][y]);
+}
+
 bool solveMaze(vector<vector<int>>& maze, vector<vector<bool>>& visited, int x, int y) {
-    // TODO: Implement backtracking to check if path exists
+    int n = maze.size();
+    if (x == n - 1 && y == n - 1 && maze[x][y] == 1) {
+        return true;
+    }
+
+    if (isSafe(maze, x, y, n, visited)) {
+        visited[x][y] = true;
+
+        // Explore in a specific order (e.g., Down, Right, Up, Left)
+        if (solveMaze(maze, visited, x + 1, y)) return true;
+        if (solveMaze(maze, visited, x, y + 1)) return true;
+        if (solveMaze(maze, visited, x - 1, y)) return true;
+        if (solveMaze(maze, visited, x, y - 1)) return true;
+
+        visited[x][y] = false; // backtrack
+        return false;
+    }
     return false;
 }
 
@@ -85,8 +109,119 @@ int main() {
 
 public class Main {
 
+    static boolean isSafe(int[][] maze, int x, int y, int n, boolean[][] visited) {
+        return (x >= 0 && x < n && y >= 0 && y < n && maze[x][y] == 1 && !visited[x][y]);
+    }
+
     static boolean solveMaze(int[][] maze, boolean[][] visited, int x, int y) {
-        // TODO: Implement backtracking to check if path exists
+        int n = maze.length;
+        if (x == n - 1 && y == n - 1 && maze[x][y] == 1) {
+            return true;
+        }
+
+        if (isSafe(maze, x, y, n, visited)) {
+            visited[x][y] = true;
+
+            // Explore in a specific order (e.g., Down, Right, Up, Left)
+            if (solveMaze(maze, visited, x + 1, y)) return true;
+            if (solveMaze(maze, visited, x, y + 1)) return true;
+            if (solveMaze(maze, visited, x - 1, y)) return true;
+            if (solveMaze(maze, visited, x, y - 1)) return true;
+
+            visited[x][y] = false; // backtrack
+            return false;
+        }
+        return false;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[][] maze = new int[n][n];
+        for(int i = 0; i < n; i++)
+            for(int j = 0; j < n; j++)
+                maze[i][j] = sc.nextInt();
+
+        boolean[][] visited = new boolean[n][n];
+
+        System.out.print(solveMaze(maze, visited, 0, 0) ? "true" : "false");
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+bool isSafe(vector<vector<int>>& maze, int x, int y, int n, vector<vector<bool>>& visited) {
+    return (x >= 0 && x < n && y >= 0 && y < n && maze[x][y] == 1 && !visited[x][y]);
+}
+
+bool solveMaze(vector<vector<int>>& maze, vector<vector<bool>>& visited, int x, int y) {
+    int n = maze.size();
+    if (x == n - 1 && y == n - 1 && maze[x][y] == 1) {
+        return true;
+    }
+
+    if (isSafe(maze, x, y, n, visited)) {
+        visited[x][y] = true;
+
+        // Explore in a specific order (e.g., Down, Right, Up, Left)
+        if (solveMaze(maze, visited, x + 1, y)) return true;
+        if (solveMaze(maze, visited, x, y + 1)) return true;
+        if (solveMaze(maze, visited, x - 1, y)) return true;
+        if (solveMaze(maze, visited, x, y - 1)) return true;
+
+        visited[x][y] = false; // backtrack
+        return false;
+    }
+    return false;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> maze(n, vector<int>(n));
+    for(int i = 0; i < n; i++)
+        for(int j = 0; j < n; j++)
+            cin >> maze[i][j];
+
+    vector<vector<bool>> visited(n, vector<bool>(n, false));
+
+    cout << (solveMaze(maze, visited, 0, 0) ? "true" : "false");
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static boolean isSafe(int[][] maze, int x, int y, int n, boolean[][] visited) {
+        return (x >= 0 && x < n && y >= 0 && y < n && maze[x][y] == 1 && !visited[x][y]);
+    }
+
+    static boolean solveMaze(int[][] maze, boolean[][] visited, int x, int y) {
+        int n = maze.length;
+        if (x == n - 1 && y == n - 1 && maze[x][y] == 1) {
+            return true;
+        }
+
+        if (isSafe(maze, x, y, n, visited)) {
+            visited[x][y] = true;
+
+            // Explore in a specific order (e.g., Down, Right, Up, Left)
+            if (solveMaze(maze, visited, x + 1, y)) return true;
+            if (solveMaze(maze, visited, x, y + 1)) return true;
+            if (solveMaze(maze, visited, x - 1, y)) return true;
+            if (solveMaze(maze, visited, x, y - 1)) return true;
+
+            visited[x][y] = false; // backtrack
+            return false;
+        }
         return false;
     }
 

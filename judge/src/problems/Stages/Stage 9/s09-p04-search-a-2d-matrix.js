@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'search-a-2d-matrix',
   conquestId: 'stage9-4',
   title: 'Search a 2D Matrix',
@@ -18,66 +19,45 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search', 'Matrix'],
 
-  description: `You are given an \`m x n\` integer matrix \`matrix\` with the following two properties:
-1. Each row is sorted in non-decreasing order.
-2. The first integer of each row is greater than the last integer of the previous row.
+  // ---- Story Layer ----
+  storyBriefing: `The peak of the mountain reveals an entrance to a hidden chamber. Inside, you find a large, rectangular grid of magical tiles, each inscribed with a number. The numbers are sorted from left to right in each row, and the first number of each row is greater than the last of the previous row. A disembodied voice echoes, 'Find the target tile, and the path forward shall be revealed.' You must search this 2D matrix for a specific target number.`,
 
-Given an integer \`target\`, return \`true\` if \`target\` is in \`matrix\` or \`false\` otherwise.
+  // ---- Technical Layer ----
+  description: `You are given an m x n integer matrix that is sorted in a special way: each row is sorted from left to right, and the first integer of each row is greater than the last integer of the previous row. Your task is to write an efficient algorithm that searches for a 'target' value in this matrix.
 
-### Task
-You must write a solution in $O(\log(m \times n))$ time complexity.
-1. Treat the entire 2D matrix as a single sorted 1D array of length $m \times n$.
-2. Use standard **Binary Search**.
-3. To map a 1D index \`mid\` back to 2D coordinates:
-   - \`row = mid / n\`
-   - \`col = mid % n\`
-4. Compare \`matrix[row][col]\` with the target and adjust your pointers accordingly.
+The properties of the matrix allow you to treat it as a single, large sorted array of length m * n. This means you can apply a standard binary search. To do this, you'll need a way to convert a 1D index from your binary search ('mid') into 2D matrix coordinates ('row', 'col'). This can be done with the formulas: row = mid / n and col = mid % n.
 
-### Example
-**Input:**
-\`\`\`
-3 4
-1 3 5 7
-10 11 16 20
-23 30 34 60
-3
-\`\`\`
-
-**Output:**
-\`\`\`
-true
-\`\`\`
-
-**Explanation:**
-The target 3 exists in the first row.`,
-
+Return "true" if the target is found in the matrix, and "false" otherwise. The solution must have a time complexity of O(log(m*n)).`,
   examples: [
     {
       input: '3 4\n1 3 5 7\n10 11 16 20\n23 30 34 60\n3',
       output: 'true',
-      explanation: '3 is present at index.'
+      explanation: 'The target value 3 is present in the matrix at row 0, column 1.'
     },
     {
       input: '3 4\n1 3 5 7\n10 11 16 20\n23 30 34 60\n13',
       output: 'false',
-      explanation: '13 is not in the matrix.'
+      explanation: 'The target value 13 is not present in the matrix.'
+    },
+    {
+      input: '1 1\n5\n5',
+      output: 'true',
+      explanation: 'The target value 5 is present in the single-cell matrix.'
     }
   ],
-
   constraints: [
-    '1 ≤ m, n ≤ 100',
-    '-10⁴ ≤ matrix[i][j], target ≤ 10⁴'
+    '1 <= m, n <= 100',
+    '-10^4 <= matrix[i][j], target <= 10^4'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
 
-/**
- * Searches for target in a 2D matrix using Binary Search.
- */
 bool solve(int m, int n, vector<vector<int>>& matrix, int target) {
     int left = 0, right = m * n - 1;
     // Your code here
@@ -100,12 +80,10 @@ int main() {
     cout << (solve(m, n, matrix, target) ? "true" : "false") << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Searches for target in a 2D matrix using Binary Search.
-     */
     public static boolean solve(int m, int n, int[][] matrix, int target) {
         int left = 0, right = m * n - 1;
         // Your code here
@@ -129,16 +107,52 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '3 4\n1 3 5 7\n10 11 16 20\n23 30 34 60\n3', expected: 'true' },
     { input: '3 4\n1 3 5 7\n10 11 16 20\n23 30 34 60\n13', expected: 'false' },
     { input: '1 1\n5\n5', expected: 'true' },
-    { input: '1 2\n1 3\n2', expected: 'false' },
+    { input: '1 1\n5\n4', expected: 'false' },
+    { input: '2 2\n1 2\n3 4\n1', expected: 'true' },
     { input: '2 2\n1 2\n3 4\n4', expected: 'true' },
-    { input: '3 3\n1 2 3\n4 5 6\n7 8 9\n1', expected: 'true' },
-    { input: '2 3\n1 5 9\n10 15 20\n15', expected: 'true' },
-    { input: '1 1\n10\n1', expected: 'false' },
-    { input: '2 3\n1 2 3\n4 5 6\n0', expected: 'false' },
-    { input: '3 1\n1\n3\n5\n3', expected: 'true' }
-  ]
+    { input: '2 2\n1 2\n3 4\n5', expected: 'false' },
+    { input: '1 5\n1 2 3 4 5\n5', expected: 'true' },
+    { input: '5 1\n1\n2\n3\n4\n5\n5', expected: 'true' },
+    { input: '2 1\n-10\n-8\n-10', expected: 'true' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The problem is solved by applying binary search to the 2D matrix as if it were a 1D sorted array of size m * n. The search space is from index 0 to (m * n) - 1. In each step of the binary search, calculate the 'mid' index. Convert this 1D 'mid' index to 2D coordinates: 'row = mid / n' and 'col = mid % n'. Compare the matrix element at these coordinates with the target. If it matches, return true. If it's smaller, search the right half (left = mid + 1). If it's larger, search the left half (right = mid - 1). If the loop completes, the target was not found, so return false.`,
+    cpp: `while (left <= right) {
+    int mid = left + (right - left) / 2;
+    int row = mid / n;
+    int col = mid % n;
+    int val = matrix[row][col];
+
+    if (val == target) {
+        return true;
+    } else if (val < target) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+return false;`,
+    java: `while (left <= right) {
+    int mid = left + (right - left) / 2;
+    int row = mid / n;
+    int col = mid % n;
+    int val = matrix[row][col];
+
+    if (val == target) {
+        return true;
+    } else if (val < target) {
+        left = mid + 1;
+    } else {
+        right = mid - 1;
+    }
+}
+return false;`
+  }
 };

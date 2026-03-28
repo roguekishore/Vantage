@@ -10,69 +10,54 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'first-unique-character',
   conquestId: 'stage6-5',
-  title: 'First Unique Character',
+  title: 'First Unique Character in a String',
   difficulty: 'Easy',
   category: 'String Fundamentals',
   tags: ['String', 'Hash Table', 'Frequency Array'],
 
-  description: `Given a string \`s\`, find the **first non-repeating character** in it and return its index. If it does not exist, return \`-1\`.
+  // ---- Story Layer ----
+  storyBriefing: `Your final Charms challenge from Professor Flitwick is to find the 'keystone' of an incantation. He explains that the first unique, non-repeating character in a spell often holds the key to its power. He gives you a long spell string and asks you to find the index of the very first character that appears only once.`,
 
-### Task
-Implement an $O(n)$ solution using a **Frequency Map** or a fixed-size array (since the input consists of lowercase English letters).
-1. Traverse the string once to count the occurrences of each character.
-2. Traverse the string a second time and check the count of each character in the map.
-3. The first character with a count of \`1\` is your answer. Return its index.
-4. If the loop finishes without finding such a character, return \`-1\`.
+  // ---- Technical Layer ----
+  description: `You are given a string 's' consisting of only lowercase English letters. Your task is to find the first non-repeating character in the string and return its 0-based index. If no such character exists, you should return -1.
 
-### Example
-**Input:**
-\`\`\`
-leetcode
-\`\`\`
+This problem can be solved efficiently in O(n) time with two passes over the string. In the first pass, populate a frequency map (or an array of size 26) to count the occurrences of each character. In the second pass, iterate through the string again from the beginning. The first character you encounter that has a count of 1 in your frequency map is the answer.
 
-**Output:**
-\`\`\`
-0
-\`\`\`
-
-**Explanation:**
-The character 'l' at index 0 is the first character that does not repeat.`,
-
+Return a single integer: the index of the first unique character, or -1 if none exists.`,
   examples: [
     {
       input: 'leetcode',
       output: '0',
-      explanation: "'l' is unique and appears first."
+      explanation: 'The character "l" appears only once and is the first such character. Its index is 0.'
     },
     {
       input: 'loveleetcode',
       output: '2',
-      explanation: "'v' is the first unique character at index 2."
+      explanation: 'The characters "l", "o", and "v" are candidates. "v" appears first at index 2.'
     },
     {
       input: 'aabb',
       output: '-1',
-      explanation: 'All characters repeat.'
+      explanation: 'Every character in the string repeats. There are no unique characters.'
     }
   ],
-
   constraints: [
-    '1 ≤ s.length ≤ 10⁵',
+    '1 <= s.length <= 10^5',
     's consists of only lowercase English letters.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-/**
- * Returns the index of the first unique character in s.
- */
 int solve(string s) {
     // Your code here
     
@@ -88,12 +73,10 @@ int main() {
     cout << solve(s) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the index of the first unique character in s.
-     */
     public static int solve(String s) {
         // Your code here
         
@@ -110,16 +93,42 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: 'leetcode', expected: '0' },
     { input: 'loveleetcode', expected: '2' },
     { input: 'aabb', expected: '-1' },
-    { input: 'dddccdbba', expected: '8' },
-    { input: 'abcabc', expected: '-1' },
+    { input: 'a', expected: '0' },
+    { input: 'abacabad', expected: '6' },
     { input: 'z', expected: '0' },
-    { input: 'aadadaad', expected: '-1' },
-    { input: 'racecar', expected: '3' },
-    { input: 'abacaba', expected: '3' },
-    { input: 'pwwkew', expected: '0' }
-  ]
+    { input: 'zz', expected: '-1' },
+    { input: 'statistics', expected: '2' },
+    { input: 'abacddbec', expected: '-1' },
+    { input: 'xxyyzzw', expected: '6' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The solution uses a frequency array of size 26 for all lowercase letters. The first pass iterates through the input string to populate this array, counting the occurrences of each character. The second pass iterates through the string again, from left to right. For each character, it checks its count in the frequency array. The index of the first character with a count of 1 is returned. If the second loop completes without finding any such character, it means all characters are repeated, and -1 is returned.`,
+    cpp: `vector<int> counts(26, 0);
+for (char c : s) {
+    counts[c - 'a']++;
+}
+for (int i = 0; i < s.length(); ++i) {
+    if (counts[s[i] - 'a'] == 1) {
+        return i;
+    }
+}
+return -1;`,
+    java: `int[] counts = new int[26];
+for (int i = 0; i < s.length(); i++) {
+    counts[s.charAt(i) - 'a']++;
+}
+for (int i = 0; i < s.length(); i++) {
+    if (counts[s.charAt(i) - 'a'] == 1) {
+        return i;
+    }
+}
+return -1;`
+  }
 };

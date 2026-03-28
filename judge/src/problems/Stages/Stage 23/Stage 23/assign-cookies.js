@@ -14,11 +14,17 @@
 module.exports = {
   id: 'assign-cookies',
   conquestId: 'stage23-3',
-  title: 'Assign Cookies',
+  title: "The First Task: Dragon's Nest",
   difficulty: 'Easy',
   category: 'Greedy',
   tags: ['Greedy', 'Array', 'Sorting'],
+  storyBriefing: `
+Welcome, champions, to the first task of the Triwizard Tournament! Before you is a nest of dragons, each guarding a golden egg. To create a diversion, you've been given a bag of enchanted snacks.
 
+Each dragon has a 'hunger' level (greed factor), and each snack has a 'satisfaction' value (size). A snack can satisfy a dragon only if its value is greater than or equal to the dragon's hunger.
+
+Your task is to be clever and greedy. Use your limited supply of snacks to satisfy the maximum number of dragons, allowing you to retrieve an egg.
+`,
   description: `
 You are given two integer arrays:
 
@@ -62,14 +68,25 @@ Space Complexity: **O(1)** (excluding sorting)
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int findContentChildren(vector<int>& g, vector<int>& s) {
-        // TODO: Implement greedy solution
-        return 0;
+        sort(g.begin(), g.end());
+        sort(s.begin(), s.end());
+        int i = 0, j = 0;
+        while (i < g.size() && j < s.size()) {
+            if (s[j] >= g[i]) {
+                i++;
+            }
+            j++;
+        }
+        return i;
     }
 };
 
@@ -99,31 +116,117 @@ public class Main {
 
     static class Solution {
         public int findContentChildren(int[] g, int[] s) {
-            // TODO: Implement greedy solution
-            return 0;
+            Arrays.sort(g);
+            Arrays.sort(s);
+            int i = 0, j = 0;
+            while (i < g.length && j < s.length) {
+                if (s[j] >= g[i]) {
+                    i++;
+                }
+                j++;
+            }
+            return i;
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
         int[] g = new int[n];
-
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             g[i] = sc.nextInt();
+        }
 
         int m = sc.nextInt();
         int[] s = new int[m];
-
-        for (int i = 0; i < m; i++)
+        for (int i = 0; i < m; i++) {
             s[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.findContentChildren(g, s));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int findContentChildren(vector<int>& g, vector<int>& s) {
+        sort(g.begin(), g.end());
+        sort(s.begin(), s.end());
+        int i = 0, j = 0;
+        while (i < g.size() && j < s.size()) {
+            if (s[j] >= g[i]) {
+                i++;
+            }
+            j++;
+        }
+        return i;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> g(n);
+    for (int i = 0; i < n; i++)
+        cin >> g[i];
+
+    int m;
+    cin >> m;
+
+    vector<int> s(m);
+    for (int i = 0; i < m; i++)
+        cin >> s[i];
+
+    Solution sol;
+    cout << sol.findContentChildren(g, s);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int findContentChildren(int[] g, int[] s) {
+            Arrays.sort(g);
+            Arrays.sort(s);
+            int i = 0, j = 0;
+            while (i < g.length && j < s.length) {
+                if (s[j] >= g[i]) {
+                    i++;
+                }
+                j++;
+            }
+            return i;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+        int[] g = new int[n];
+        for (int i = 0; i < n; i++) {
+            g[i] = sc.nextInt();
+        }
+
+        int m = sc.nextInt();
+        int[] s = new int[m];
+        for (int i = 0; i < m; i++) {
+            s[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.findContentChildren(g, s));
     }
 }`
   },

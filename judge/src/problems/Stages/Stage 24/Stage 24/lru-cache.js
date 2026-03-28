@@ -17,11 +17,21 @@
 module.exports = {
   id: 'lru-cache',
   conquestId: 'stage24-3',
-  title: 'LRU Cache',
+  title: 'Design a Bag of Holding (LRU Cache)',
   difficulty: 'Medium',
-  category: 'Design',
+  category: 'Data Structure Design',
   tags: ['Design', 'HashMap', 'Linked List'],
+  storyBriefing: `
+You're crafting a Bag of Holding, a magical bag with an interior space considerably larger than its outside dimensions. However, even magic has its limits, and the bag has a fixed capacity.
 
+The bag is enchanted to be convenient. When you \`get\` an item, it magically comes to the top for easy access. When you \`put\` a new item in and the bag is full, it automatically discards the **least recently used** item to make space.
+
+You need to implement the magic behind this:
+- \`put(key, value)\`: Place an item in the bag.
+- \`get(key)\`: Retrieve an item from the bag, making it the most recently used.
+
+This artifact is essential for any adventurer who needs to carry more than they should be able to.
+`,
   description: `
 Design a data structure that follows the **Least Recently Used (LRU)** cache policy.
 
@@ -64,21 +74,53 @@ get 3`,
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <unordered_map>
+#include <list>
+
 using namespace std;
 
 class LRUCache {
+private:
+    int capacity;
+    list<pair<int, int>> items; // {key, value}
+    unordered_map<int, list<pair<int, int>>::iterator> cache;
+
+    void moveToFront(int key, int value) {
+        items.erase(cache[key]);
+        items.push_front({key, value});
+        cache[key] = items.begin();
+    }
+
 public:
     LRUCache(int capacity) {
-        
+        this->capacity = capacity;
     }
 
     int get(int key) {
-        return -1;
+        if (cache.find(key) == cache.end()) {
+            return -1;
+        }
+        int value = cache[key]->second;
+        moveToFront(key, value);
+        return value;
     }
 
     void put(int key, int value) {
-        
+        if (cache.find(key) != cache.end()) {
+            moveToFront(key, value);
+            items.begin()->second = value; // Update value
+            return;
+        }
+
+        if (items.size() == capacity) {
+            int key_to_del = items.back().first;
+            cache.erase(key_to_del);
+            items.pop_back();
+        }
+
+        items.push_front({key, value});
+        cache[key] = items.begin();
     }
 };
 
@@ -102,7 +144,7 @@ int main() {
             int key, value;
             cin >> key >> value;
             cache.put(key, value);
-        } else if (op == "get") {
+        } else { // get
             int key;
             cin >> key;
             cout << cache.get(key) << "\\n";
@@ -110,52 +152,257 @@ int main() {
     }
 
     return 0;
-}
-`,
-
-    java: `import java.util.*;
+}`,
+    java: `import java.util.HashMap;
+import java.util.Scanner;
 
 class LRUCache {
+    private class Node {
+        int key, val;
+        Node prev, next;
+        Node(int key, int val) {
+            this.key = key;
+            this.val = val;
+        }
+    }
+
+    private final int capacity;
+    private final HashMap<Integer, Node> map;
+    private final Node head, tail;
 
     public LRUCache(int capacity) {
-        
+        this.capacity = capacity;
+        map = new HashMap<>();
+        head = new Node(0, 0);
+        tail = new Node(0, 0);
+        head.next = tail;
+        tail.prev = head;
     }
 
     public int get(int key) {
+        if (map.containsKey(key)) {
+            Node node = map.get(key);
+            remove(node);
+            insert(node);
+            return node.val;
+        }
         return -1;
     }
 
     public void put(int key, int value) {
-        
+        if (map.containsKey(key)) {
+            remove(map.get(key));
+        }
+        if (map.size() == capacity) {
+            remove(tail.prev);
+        }
+        insert(new Node(key, value));
+    }
+
+    private void insert(Node node) {
+        map.put(node.key, node);
+        node.next = head.next;
+        node.next.prev = node;
+        head.next = node;
+        node.prev = head;
+    }
+
+    private void remove(Node node) {
+        map.remove(node.key);
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
     }
 }
+
 
 public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
-
         int capacity = sc.nextInt();
         int q = sc.nextInt();
 
         LRUCache cache = new LRUCache(capacity);
 
-        while (q-- > 0) {
+        for (int i = 0; i < q; i++) {
             String op = sc.next();
-
             if (op.equals("put")) {
                 int key = sc.nextInt();
                 int value = sc.nextInt();
                 cache.put(key, value);
-            } else if (op.equals("get")) {
+            } else { // get
                 int key = sc.nextInt();
                 System.out.println(cache.get(key));
             }
         }
-
         sc.close();
     }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <unordered_map>
+#include <list>
+
+using namespace std;
+
+class LRUCache {
+private:
+    int capacity;
+    list<pair<int, int>> items; // {key, value}
+    unordered_map<int, list<pair<int, int>>::iterator> cache;
+
+    void moveToFront(int key, int value) {
+        items.erase(cache[key]);
+        items.push_front({key, value});
+        cache[key] = items.begin();
+    }
+
+public:
+    LRUCache(int capacity) {
+        this->capacity = capacity;
+    }
+
+    int get(int key) {
+        if (cache.find(key) == cache.end()) {
+            return -1;
+        }
+        int value = cache[key]->second;
+        moveToFront(key, value);
+        return value;
+    }
+
+    void put(int key, int value) {
+        if (cache.find(key) != cache.end()) {
+            moveToFront(key, value);
+            items.begin()->second = value; // Update value
+            return;
+        }
+
+        if (items.size() == capacity) {
+            int key_to_del = items.back().first;
+            cache.erase(key_to_del);
+            items.pop_back();
+        }
+
+        items.push_front({key, value});
+        cache[key] = items.begin();
+    }
+};
+
+int main() {
+    ios::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int capacity;
+    cin >> capacity;
+
+    int q;
+    cin >> q;
+
+    LRUCCache cache(capacity);
+
+    while (q--) {
+        string op;
+        cin >> op;
+
+        if (op == "put") {
+            int key, value;
+            cin >> key >> value;
+            cache.put(key, value);
+        } else { // get
+            int key;
+            cin >> key;
+            cout << cache.get(key) << "\\n";
+        }
+    }
+
+    return 0;
+}`,
+    java: `import java.util.HashMap;
+import java.util.Scanner;
+
+class LRUCache {
+    private class Node {
+        int key, val;
+        Node prev, next;
+        Node(int key, int val) {
+            this.key = key;
+            this.val = val;
+        }
+    }
+
+    private final int capacity;
+    private final HashMap<Integer, Node> map;
+    private final Node head, tail;
+
+    public LRUCache(int capacity) {
+        this.capacity = capacity;
+        map = new HashMap<>();
+        head = new Node(0, 0);
+        tail = new Node(0, 0);
+        head.next = tail;
+        tail.prev = head;
+    }
+
+    public int get(int key) {
+        if (map.containsKey(key)) {
+            Node node = map.get(key);
+            remove(node);
+            insert(node);
+            return node.val;
+        }
+        return -1;
+    }
+
+    public void put(int key, int value) {
+        if (map.containsKey(key)) {
+            remove(map.get(key));
+        }
+        if (map.size() == capacity) {
+            remove(tail.prev);
+        }
+        insert(new Node(key, value));
+    }
+
+    private void insert(Node node) {
+        map.put(node.key, node);
+        node.next = head.next;
+        node.next.prev = node;
+        head.next = node;
+        node.prev = head;
+    }
+
+    private void remove(Node node) {
+        map.remove(node.key);
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+    }
 }
-`,
+
+
+public class Main {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int capacity = sc.nextInt();
+        int q = sc.nextInt();
+
+        LRUCache cache = new LRUCache(capacity);
+
+        for (int i = 0; i < q; i++) {
+            String op = sc.next();
+            if (op.equals("put")) {
+                int key = sc.nextInt();
+                int value = sc.nextInt();
+                cache.put(key, value);
+            } else { // get
+                int key = sc.nextInt();
+                System.out.println(cache.get(key));
+            }
+        }
+        sc.close();
+    }
+}`,
   },
 
   testCases: [

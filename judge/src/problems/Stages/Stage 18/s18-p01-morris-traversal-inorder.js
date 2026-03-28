@@ -16,144 +16,146 @@ module.exports = {
   category: 'Trees – Traversals & Properties',
   tags: ['Tree', 'Traversal', 'Threaded Binary Tree', 'O(1) Space'],
 
-  description: `Standard tree traversals (Recursive or Iterative with a Stack) use **$O(h)$** space, where $h$ is the height of the tree. If the tree is skewed, this becomes $O(n)$.
+  stageIntro: `Hagrid, hearing of your map-making skills, asks for your help. "The Forbidden Forest is a right mess," he says, leading you to the forest's edge. "The paths twist and turn, but they follow a sort of 'tree' structure. I need a way to walk every path-a traversal-but me memory's not what it used to be. I can't be usin' a great stack o' notes or goin' back and forth recursively. I need a way to do it with just a few pebbles in me pocket to keep track."`,
 
-**Morris Traversal** is a brilliant algorithm that achieves a traversal in **$O(n)$ time** and **$O(1)$ extra space** (no recursion, no stack!).
+  storyBriefing: `Hagrid points to a large, gnarled tree. "Let's start here. We need an in-order traversal. But here's the trick: you can't use recursion or a stack. You can, however, temporarily tie a bit o' string from one branch to another to find your way back. It's an old groundskeeper's secret. By creating these temporary 'threads', you can navigate the whole tree without gettin' lost or needin' extra storage. Show me how it's done."`,
 
-### The Secret: Threaded Binary Trees
-Morris Traversal uses the "null" pointers of leaf nodes to point back to their inorder successors. These temporary links are called **threads**.
+  description: `You are given the root of a binary tree. Your task is to perform an in-order traversal of the tree and return the node values. However, you must do so with O(1) extra space, meaning you cannot use recursion (which uses the call stack) or an explicit stack.
 
-### The Algorithm
-While the current node is not \`null\`:
-1.  **Case 1**: If the current node has **no left child**:
-    - Print the current node's value.
-    - Move to the right child.
-2.  **Case 2**: If the current node **has a left child**:
-    - Find the **Inorder Predecessor** (the rightmost node in the left subtree).
-    - **If the predecessor's right pointer is \`null\`**:
-        - Make it point to the current node (create a thread).
-        - Move to the left child.
-    - **If the predecessor's right pointer points to the current node**:
-        - Reset it to \`null\` (remove the thread).
-        - Print the current node's value.
-        - Move to the right child.
+This requires the Morris Traversal algorithm. This clever technique uses the empty right pointers of nodes to create temporary links (or "threads") back to their in-order successors. This allows you to navigate back up the tree without needing a stack. The algorithm carefully creates and then removes these threads, restoring the tree to its original structure upon completion.
 
-### Why use it?
-It is the ultimate space-optimized traversal. It modifies the tree temporarily during execution but leaves it in its original state upon completion.`,
+Return a single line of space-separated integers representing the in-order traversal of the tree.`,
 
   examples: [
     {
       input: '1 null 2 3',
       output: '1 3 2',
-      explanation: 'Standard Inorder: Left -> Root -> Right. Morris achieves this without a stack.'
+      explanation: 'The tree has root 1, a null left child, and a right child 2. Node 2 has a left child 3. The in-order traversal (Left, Root, Right) is 1, then the subtree of 2 which is (3, 2). Result: 1 3 2.'
+    },
+    {
+      input: '4 2 5 1 3',
+      output: '1 2 3 4 5',
+      explanation: 'The in-order traversal of a Binary Search Tree produces a sorted sequence of its values. The Morris traversal correctly achieves this.'
+    },
+    {
+      input: '1',
+      output: '1',
+      explanation: 'For a single-node tree, the in-order traversal is just the root itself.'
     }
   ],
 
   constraints: [
-    'Number of nodes ≤ 10⁵',
-    '-10⁹ ≤ node.val ≤ 10⁹'
+    'The number of nodes in the tree is between 0 and 100000.',
+    'The value of each node is between -10^9 and 10^9.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-#include <queue>
-#include <string>
-#include <sstream>
-
-using namespace std;
-
-struct TreeNode {
+    cpp: `struct TreeNode {
     int val;
     TreeNode *left, *right;
     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
 };
 
-void morrisInorder(TreeNode* root) {
-    TreeNode* curr = root;
-    while (curr != NULL) {
-        if (curr->left == NULL) {
-            cout << curr->val << " ";
-            curr = curr->right;
-        } else {
-            // Find the inorder predecessor
-            TreeNode* pre = curr->left;
-            while (pre->right != NULL && pre->right != curr) {
-                pre = pre->right;
-            }
-
-            if (pre->right == NULL) {
-                pre->right = curr; // Create thread
-                curr = curr->left;
-            } else {
-                pre->right = NULL; // Remove thread
-                cout << curr->val << " ";
-                curr = curr->right;
-            }
-        }
-    }
+void solve(TreeNode* root, std::vector<int>& result) {
+    // Your code here
 }
 
-// Level-order builder provided
-TreeNode* buildTree(string input) {
-    if (input.empty() || input == "null") return NULL;
-    stringstream ss(input); string item; ss >> item;
-    TreeNode* root = new TreeNode(stoi(item));
-    queue<TreeNode*> q; q.push(root);
-    while (!q.empty()) {
-        TreeNode* curr = q.front(); q.pop();
-        if (!(ss >> item)) break;
-        if (item != "null") { curr->left = new TreeNode(stoi(item)); q.push(curr->left); }
-        if (!(ss >> item)) break;
-        if (item != "null") { curr->right = new TreeNode(stoi(item)); q.push(curr->right); }
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
+#include <vector>
+#include <queue>
+#include <string>
+#include <sstream>
+
+TreeNode* buildTree(const std::vector<std::string>& nodes) {
+    if (nodes.empty() || nodes[0] == "null") return nullptr;
+    TreeNode* root = new TreeNode(std::stoi(nodes[0]));
+    std::queue<TreeNode*> q;
+    q.push(root);
+    int i = 1;
+    while (!q.empty() && i < nodes.size()) {
+        TreeNode* curr = q.front();
+        q.pop();
+        if (i < nodes.size() && nodes[i] != "null") {
+            curr->left = new TreeNode(std::stoi(nodes[i]));
+            q.push(curr->left);
+        }
+        i++;
+        if (i < nodes.size() && nodes[i] != "null") {
+            curr->right = new TreeNode(std::stoi(nodes[i]));
+            q.push(curr->right);
+        }
+        i++;
     }
     return root;
 }
 
 int main() {
-    string line; getline(cin, line);
-    TreeNode* root = buildTree(line);
-    morrisInorder(root);
-    cout << endl;
+    std::string line;
+    std::getline(std::cin, line);
+    std::stringstream ss(line);
+    std::string val_str;
+    std::vector<std::string> nodes;
+    while (ss >> val_str) {
+        nodes.push_back(val_str);
+    }
+    TreeNode* root = buildTree(nodes);
+    std::vector<int> result;
+    solve(root, result);
+    for (int i = 0; i < result.size(); ++i) {
+        std::cout << result[i] << (i == result.size() - 1 ? "" : " ");
+    }
+    std::cout << std::endl;
     return 0;
 }`,
-    java: `import java.util.*;
-
-class TreeNode {
+    java: `class TreeNode {
     int val;
     TreeNode left, right;
     TreeNode(int x) { val = x; }
 }
 
-public class Main {
-    public static void morrisInorder(TreeNode root) {
-        TreeNode curr = root;
-        while (curr != null) {
-            if (curr.left == null) {
-                System.out.print(curr.val + " ");
-                curr = curr.right;
-            } else {
-                TreeNode pre = curr.left;
-                while (pre.right != null && pre.right != curr) {
-                    pre = pre.right;
-                }
+class Solution {
+    public static java.util.List<Integer> solve(TreeNode root) {
+        // Your code here
+        return new java.util.ArrayList<>();
+    }
+}
 
-                if (pre.right == null) {
-                    pre.right = curr;
-                    curr = curr.left;
-                } else {
-                    pre.right = null;
-                    System.out.print(curr.val + " ");
-                    curr = curr.right;
-                }
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
+    public static TreeNode buildTree(String[] nodes) {
+        if (nodes.length == 0 || nodes[0].equals("null") || nodes[0].isEmpty()) return null;
+        TreeNode root = new TreeNode(Integer.parseInt(nodes[0]));
+        java.util.Queue<TreeNode> q = new java.util.LinkedList<>();
+        q.add(root);
+        int i = 1;
+        while (!q.isEmpty() && i < nodes.length) {
+            TreeNode curr = q.poll();
+            if (i < nodes.length && !nodes[i].equals("null")) {
+                curr.left = new TreeNode(Integer.parseInt(nodes[i]));
+                q.add(curr.left);
             }
+            i++;
+            if (i < nodes.length && !nodes[i].equals("null")) {
+                curr.right = new TreeNode(Integer.parseInt(nodes[i]));
+                q.add(curr.right);
+            }
+            i++;
         }
+        return root;
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
-        if (!sc.hasNextLine()) return;
-        // buildTree and call morrisInorder...
+        java.util.Scanner sc = new java.util.Scanner(System.in);
+        String line = sc.nextLine();
+        String[] nodes = line.isEmpty() ? new String[0] : line.split(" ");
+        TreeNode root = buildTree(nodes);
+        java.util.List<Integer> result = Solution.solve(root);
+        for (int i = 0; i < result.size(); ++i) {
+            System.out.print(result.get(i) + (i == result.size() - 1 ? "" : " "));
+        }
+        System.out.println();
+        sc.close();
     }
 }`
   },
@@ -161,6 +163,59 @@ public class Main {
   testCases: [
     { input: '1 2 3 4 5', expected: '4 2 5 1 3' },
     { input: '1 null 2 3', expected: '1 3 2' },
-    { input: '10 5 15', expected: '5 10 15' }
-  ]
+    { input: '10 5 15', expected: '5 10 15' },
+    { input: '1', expected: '1' },
+    { input: '', expected: '' },
+    { input: '4 2 7 1 3 6 9', expected: '1 2 3 4 6 7 9' },
+    { input: '1 2 null 3 null 4 null 5', expected: '5 4 3 2 1' },
+    { input: '1 null 2 3 4 null 5', expected: '1 3 5 4 2' }
+  ],
+  
+  solution: {
+    approach: `The Morris Traversal algorithm initializes a 'current' pointer to the root. While 'current' is not null, it checks if there is a left child. If not, it processes the current node and moves to the right. If there is a left child, it finds the in-order predecessor (the rightmost node in the left subtree). If the predecessor's right child is null, a 'thread' is created from the predecessor back to the 'current' node, and the algorithm moves to the left child. If the predecessor's right child is already pointing to the 'current' node, it means the left subtree has been visited. The algorithm then breaks the thread, processes the 'current' node, and moves to the right child. This continues until the entire tree is traversed.`,
+    cpp: `    TreeNode* curr = root;
+    while (curr != NULL) {
+        if (curr->left == NULL) {
+            result.push_back(curr->val);
+            curr = curr->right;
+        } else {
+            TreeNode* pre = curr->left;
+            while (pre->right != NULL && pre->right != curr) {
+                pre = pre->right;
+            }
+
+            if (pre->right == NULL) {
+                pre->right = curr;
+                curr = curr->left;
+            } else {
+                pre->right = NULL;
+                result.push_back(curr->val);
+                curr = curr->right;
+            }
+        }
+    }`,
+    java: `    java.util.List<Integer> result = new java.util.ArrayList<>();
+    TreeNode curr = root;
+    while (curr != null) {
+        if (curr.left == null) {
+            result.add(curr.val);
+            curr = curr.right;
+        } else {
+            TreeNode pre = curr.left;
+            while (pre.right != null && pre.right != curr) {
+                pre = pre.right;
+            }
+
+            if (pre.right == null) {
+                pre.right = curr;
+                curr = curr.left;
+            } else {
+                pre.right = null;
+                result.add(curr.val);
+                curr = curr.right;
+            }
+        }
+    }
+    return result;`
+  }
 };

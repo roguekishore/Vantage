@@ -12,11 +12,15 @@
 module.exports = {
   id: 'best-time-to-buy-and-sell-stock-ii',
   conquestId: 'stage23-2',
-  title: 'Best Time to Buy and Sell Stock II',
+  title: "Divination Class: Crystal Ball Prices",
   difficulty: 'Easy',
-  category: 'Arrays',
+  category: 'Greedy',
   tags: ['Array', 'Greedy', 'Dynamic Programming'],
+  storyBriefing: `
+In your Divination class, Professor Trelawney has you observing the fluctuating prices of crystal balls. You are given a list of prices for the upcoming days.
 
+You can buy and sell crystal balls as many times as you want to maximize your Galleons. However, you must sell a crystal ball before you can buy another one. Find the maximum profit you can make.
+`,
   description: `
 You are given an array **prices** where **prices[i]** is the price of a stock on day **i**.
 
@@ -65,14 +69,22 @@ Space Complexity: **O(1)**
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <numeric>
+
 using namespace std;
 
 class Solution {
 public:
     int maxProfit(vector<int>& prices) {
-        // TODO: Implement solution
-        return 0;
+        int max_profit = 0;
+        for (size_t i = 1; i < prices.size(); i++) {
+            if (prices[i] > prices[i - 1]) {
+                max_profit += prices[i] - prices[i - 1];
+            }
+        }
+        return max_profit;
     }
 };
 
@@ -89,32 +101,97 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int maxProfit(int[] prices) {
-            // TODO: Implement solution
-            return 0;
+            int maxProfit = 0;
+            for (int i = 1; i < prices.length; i++) {
+                if (prices[i] > prices[i - 1]) {
+                    maxProfit += prices[i] - prices[i - 1];
+                }
+            }
+            return maxProfit;
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
 
         int[] prices = new int[n];
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n; i++) {
             prices[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.maxProfit(prices));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <numeric>
+
+using namespace std;
+
+class Solution {
+public:
+    int maxProfit(vector<int>& prices) {
+        int max_profit = 0;
+        for (size_t i = 1; i < prices.size(); i++) {
+            if (prices[i] > prices[i - 1]) {
+                max_profit += prices[i] - prices[i - 1];
+            }
+        }
+        return max_profit;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> prices(n);
+    for (int i = 0; i < n; i++)
+        cin >> prices[i];
+
+    Solution sol;
+    cout << sol.maxProfit(prices);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int maxProfit(int[] prices) {
+            int maxProfit = 0;
+            for (int i = 1; i < prices.length; i++) {
+                if (prices[i] > prices[i - 1]) {
+                    maxProfit += prices[i] - prices[i - 1];
+                }
+            }
+            return maxProfit;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] prices = new int[n];
+        for (int i = 0; i < n; i++) {
+            prices[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.maxProfit(prices));
     }
 }`
   },

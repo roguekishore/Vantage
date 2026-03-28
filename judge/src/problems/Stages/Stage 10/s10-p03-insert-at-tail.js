@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'insert-at-tail',
   conquestId: 'stage10-3',
   title: 'Insert at Tail',
@@ -18,55 +19,42 @@ module.exports = {
   category: 'Linked List – Construction',
   tags: ['Linked List', 'Pointers', 'Traversal'],
 
-  description: `While inserting at the head is a simple $O(1)$ operation, inserting at the **tail** (the end) of a singly linked list usually requires traversing the entire list unless you maintain a tail pointer.
+  // ---- Story Layer ----
+  storyBriefing: `Professor Sprout now asks you to add a Devil's Snare seedling to the end of an existing chain of plants. Unlike inserting at the head, this requires you to traverse the entire chain to find the very last plant before you can add the new one.`,
 
-### Task
-Given the head of a singly linked list and an integer \`val\`, insert a new node with value \`val\` at the **end** of the list and return the head.
-1. Create a new node with the given \`val\`.
-2. If the list is empty (\`head == null\`), the new node becomes the head.
-3. Otherwise, traverse the list starting from the head until you reach the last node (the node where \`next\` is \`null\`).
-4. Set the \`next\` pointer of that last node to your new node.
-5. Return the original head.
+  // ---- Technical Layer ----
+  description: `You are given the head of a singly linked list and an integer 'val'. Your task is to insert a new node with this value at the end (tail) of the list. This operation requires traversing the list to find the last node.
 
-### Example
-**Input:**
-\`\`\`
-3
-1 2 3
-4
-\`\`\`
+First, create a new node with the given value. If the list is empty (head is null), the new node simply becomes the head. Otherwise, you must start from the head and iterate through the list using a temporary pointer until you reach the last node (the one whose 'next' pointer is null). Once you find the last node, update its 'next' pointer to point to your new node.
 
-**Output:**
-\`\`\`
-1 -> 2 -> 3 -> 4 -> NULL
-\`\`\`
-
-**Explanation:**
-We travel from 1 to 2 to 3, then attach 4 to the end of 3.`,
-
+Return the original head of the list.`,
   examples: [
     {
       input: '3\n1 2 3\n4',
       output: '1 -> 2 -> 3 -> 4 -> NULL',
-      explanation: '4 is appended to the end.'
+      explanation: 'Traverse to the end (node 3) and set its `next` pointer to the new node with value 4.'
     },
     {
       input: '0\n\n10',
       output: '10 -> NULL',
-      explanation: 'In an empty list, the new node becomes the head.'
+      explanation: 'The list is empty, so the new node becomes the head.'
+    },
+    {
+      input: '1\n-5\n-10',
+      output: '-5 -> -10 -> NULL',
+      explanation: 'Traverse to the first node (which is also the last) and attach the new node.'
     }
   ],
-
   constraints: [
-    '0 ≤ n ≤ 1000',
-    '-10⁵ ≤ val ≤ 10⁵'
+    '0 <= n <= 1000',
+    '-10^5 <= val <= 10^5'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
-
-using namespace std;
 
 struct Node {
     int data;
@@ -74,14 +62,15 @@ struct Node {
     Node(int val) : data(val), next(nullptr) {}
 };
 
-/**
- * Inserts a new value at the tail of the linked list.
- */
 Node* solve(Node* head, int val) {
     Node* newNode = new Node(val);
     if (head == nullptr) return newNode;
     
-    // Your code here: Traverse to the end and link newNode
+    Node* current = head;
+    while (current->next != nullptr) {
+        current = current->next;
+    }
+    current->next = newNode;
     
     return head; 
 }
@@ -112,7 +101,8 @@ int main() {
     printList(head);
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 class Node {
     int data;
@@ -124,14 +114,15 @@ class Node {
 }
 
 public class Main {
-    /**
-     * Inserts a new value at the tail of the linked list.
-     */
     public static Node solve(Node head, int val) {
         Node newNode = new Node(val);
         if (head == null) return newNode;
         
-        // Your code here: Traverse to the end and link newNode
+        Node current = head;
+        while (current.next != null) {
+            current = current.next;
+        }
+        current.next = newNode;
         
         return head;
     }
@@ -165,11 +156,29 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '3\n1 2 3\n4', expected: '1 -> 2 -> 3 -> 4 -> NULL' },
     { input: '0\n\n10', expected: '10 -> NULL' },
-    { input: '1\n5\n6', expected: '5 -> 6 -> NULL' },
-    { input: '2\n-1 -2\n-3', expected: '-1 -> -2 -> -3 -> NULL' },
-    { input: '5\n1 1 1 1 1\n2', expected: '1 -> 1 -> 1 -> 1 -> 1 -> 2 -> NULL' }
-  ]
+    { input: '1\n-5\n-10', expected: '-5 -> -10 -> NULL' },
+    { input: '5\n1 1 1 1 1\n1', expected: '1 -> 1 -> 1 -> 1 -> 1 -> 1 -> NULL' },
+    { input: '2\n-1 0\n1', expected: '-1 -> 0 -> 1 -> NULL' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `To insert a node at the tail, first, create the new node. Handle the edge case where the list is empty by returning the new node as the head. If the list is not empty, create a 'current' pointer starting at the head. Traverse the list by moving 'current' to 'current.next' until 'current.next' is null, which indicates you are at the last node. Finally, set 'current.next' to point to the new node.`,
+    cpp: `Node* current = head;
+while (current->next != nullptr) {
+    current = current->next;
+}
+current->next = newNode;
+return head;`,
+    java: `Node current = head;
+while (current.next != null) {
+    current = current.next;
+}
+current.next = newNode;
+return head;`
+  }
 };

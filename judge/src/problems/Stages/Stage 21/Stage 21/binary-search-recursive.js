@@ -14,11 +14,15 @@
 module.exports = {
   id: 'binary-search-recursive',
   conquestId: 'stage21-4',
-  title: 'Binary Search (Recursive)',
+  title: 'The Death Chamber',
   difficulty: 'Easy',
   category: 'Recursion',
   tags: ['Binary Search', 'Recursion', 'Array'],
+  storyBriefing: `
+You stand before the Veil in the Death Chamber. The Veil whispers countless voices from the other side, sorted by their time of passing. To find a specific soul's echo, you cannot listen to every single one.
 
+You must use a recursive form of divination—a binary search. At each step, listen to the voice at the midpoint of the remaining echoes. If it's not the one you seek, you'll know whether to search the older half or the newer half. This efficient magic is the only way to pinpoint a soul in the infinite chorus before you're driven mad.
+`,
   description: `
 **Binary Search** is an efficient algorithm used to find an element in a **sorted array**.
 
@@ -59,8 +63,17 @@ Space Complexity (recursive stack): **O(log n)**
 using namespace std;
 
 int binarySearch(vector<int>& arr, int left, int right, int target) {
-    // TODO: Implement recursive binary search
-    return -1;
+    if (left > right) {
+        return -1;
+    }
+    int mid = left + (right - left) / 2;
+    if (arr[mid] == target) {
+        return mid;
+    }
+    if (arr[mid] > target) {
+        return binarySearch(arr, left, mid - 1, target);
+    }
+    return binarySearch(arr, mid + 1, right, target);
 }
 
 int main() {
@@ -83,8 +96,85 @@ int main() {
 public class Main {
 
     static int binarySearch(int[] arr, int left, int right, int target) {
-        // TODO: Implement recursive binary search
+        if (left > right) {
+            return -1;
+        }
+        int mid = left + (right - left) / 2;
+        if (arr[mid] == target) {
+            return mid;
+        }
+        if (arr[mid] > target) {
+            return binarySearch(arr, left, mid - 1, target);
+        }
+        return binarySearch(arr, mid + 1, right, target);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        int[] arr = new int[n];
+        for(int i = 0; i < n; i++)
+            arr[i] = sc.nextInt();
+
+        int target = sc.nextInt();
+
+        System.out.print(binarySearch(arr, 0, n - 1, target));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+using namespace std;
+
+int binarySearch(vector<int>& arr, int left, int right, int target) {
+    if (left > right) {
         return -1;
+    }
+    int mid = left + (right - left) / 2;
+    if (arr[mid] == target) {
+        return mid;
+    }
+    if (arr[mid] > target) {
+        return binarySearch(arr, left, mid - 1, target);
+    }
+    return binarySearch(arr, mid + 1, right, target);
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> arr(n);
+    for(int i = 0; i < n; i++)
+        cin >> arr[i];
+
+    int target;
+    cin >> target;
+
+    cout << binarySearch(arr, 0, n - 1, target);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static int binarySearch(int[] arr, int left, int right, int target) {
+        if (left > right) {
+            return -1;
+        }
+        int mid = left + (right - left) / 2;
+        if (arr[mid] == target) {
+            return mid;
+        }
+        if (arr[mid] > target) {
+            return binarySearch(arr, left, mid - 1, target);
+        }
+        return binarySearch(arr, mid + 1, right, target);
     }
 
     public static void main(String[] args) {

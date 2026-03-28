@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'sliding-window-maximum',
   conquestId: 'stage5-5',
   title: 'Sliding Window Maximum',
@@ -18,71 +19,47 @@ module.exports = {
   category: 'Sliding Window',
   tags: ['Array', 'Queue', 'Sliding Window', 'Monotonic Queue'],
 
-  description: `You are given an array of integers \`nums\`, there is a sliding window of size \`k\` which is moving from the very left of the array to the very right. You can only see the \`k\` numbers in the window. Each time the sliding window moves right by one position.
+  // ---- Story Layer ----
+  storyBriefing: `For your final Quidditch trial, Oliver Wood wants to analyze your peak performance. He gives you a list of your speed readings during a long flight. You must analyze this data through a 'sliding window' of size 'k' to simulate looking at 'k' seconds of flight at a time. For each and every window, you need to report the absolute maximum speed you achieved. This will show your captain your highest burst of speed in any given phase of the flight.`,
 
-Return *the max sliding window*.
+  // ---- Technical Layer ----
+  description: `You are given an array of n integers 'nums' and a window size 'k'. A sliding window of size k is moving from the very left to the very right of the array. You can only see the k numbers in the window. Your task is to find the maximum value within the window as it slides.
 
-### Task
-Implement an efficient $O(n)$ solution. A naive $O(n \times k)$ approach will be too slow for large constraints. Instead, use a **Monotonic Deque** (double-ended queue):
-1. The deque will store **indices** of elements.
-2. Maintain the deque such that the elements at these indices are in **decreasing order**.
-3. For each new element:
-    - Remove indices from the back of the deque if \`nums[index] <= current_element\`.
-    - Remove the index from the front if it's no longer within the window (\`index <= i - k\`).
-4. The front of the deque always points to the maximum element of the current window.
+A naive approach would be to find the maximum in each window, leading to an O(n*k) complexity. An efficient O(n) solution uses a double-ended queue (deque) to maintain a monotonically decreasing sequence of indices. As the window slides, elements are added to and removed from the deque to ensure the index of the maximum element is always at the front, allowing for O(1) lookups for each window's maximum.
 
-### Example
-**Input:**
-\`\`\`
-8
-1 3 -1 -3 5 3 6 7
-3
-\`\`\`
-
-**Output:**
-\`\`\`
-3 3 5 5 6 7
-\`\`\`
-
-**Explanation:**
-Window position                Max
----------------               -----
-[1  3  -1] -3  5  3  6  7       3
- 1 [3  -1  -3] 5  3  6  7       3
- 1  3 [-1  -3  5] 3  6  7       5
- 1  3  -1 [-3  5  3] 6  7       5
- 1  3  -1  -3 [5  3  6] 7       6
- 1  3  -1  -3  5 [3  6  7]      7`,
-
+Return an array containing the maximum value for each sliding window. The elements should be space-separated on a single line.`,
   examples: [
     {
       input: '8\n1 3 -1 -3 5 3 6 7\n3',
       output: '3 3 5 5 6 7',
-      explanation: 'Maximums for each window of size 3.'
+      explanation: 'Window 1: [1,3,-1] max is 3. Window 2: [3,-1,-3] max is 3. Window 3: [-1,-3,5] max is 5. And so on.'
     },
     {
       input: '1\n1\n1',
       output: '1',
-      explanation: 'Only one window exists.'
+      explanation: 'The only window is [1] and its max is 1.'
+    },
+    {
+      input: '5\n5 4 3 2 1\n2',
+      output: '5 4 3 2',
+      explanation: 'For a decreasing array, the max of each window is its first element.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 10⁵',
-    '-10⁴ ≤ nums[i] ≤ 10⁴',
-    '1 ≤ k ≤ n'
+    '1 <= n <= 10^5',
+    '-10^4 <= nums[i] <= 10^4',
+    '1 <= k <= n'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <deque>
 
 using namespace std;
 
-/**
- * Returns the maximum element in each sliding window of size k.
- */
 vector<int> solve(int n, vector<int>& nums, int k) {
     vector<int> result;
     // Your code here
@@ -107,15 +84,14 @@ int main() {
     cout << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 import java.util.Deque;
 import java.util.LinkedList;
 
 public class Main {
-    /**
-     * Returns the maximum element in each sliding window of size k.
-     */
     public static int[] solve(int n, int[] nums, int k) {
+        if (n == 0 || k == 0) return new int[0];
         int[] result = new int[n - k + 1];
         // Your code here
         
@@ -141,16 +117,51 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '8\n1 3 -1 -3 5 3 6 7\n3', expected: '3 3 5 5 6 7' },
     { input: '1\n1\n1', expected: '1' },
-    { input: '2\n1 -1\n1', expected: '1 -1' },
-    { input: '4\n9 11 8 9\n2', expected: '11 11 9' },
-    { input: '4\n7 2 4 1\n2', expected: '7 4 4' },
-    { input: '5\n1 2 3 4 5\n3', expected: '3 4 5' },
-    { input: '5\n5 4 3 2 1\n3', expected: '5 4 3' },
-    { input: '6\n1 3 1 2 0 5\n3', expected: '3 3 2 5' },
-    { input: '7\n10 10 10 10 10 10 10\n4', expected: '10 10 10 10' },
-    { input: '4\n-7 -8 7 5\n2', expected: '-7 7 7' }
-  ]
+    { input: '1\n-1\n1', expected: '-1' },
+    { input: '3\n1 2 3\n3', expected: '3' },
+    { input: '5\n1 2 3 4 5\n5', expected: '5' },
+    { input: '5\n5 4 3 2 1\n2', expected: '5 4 3 2' },
+    { input: '5\n1 1 1 1 1\n2', expected: '1 1 1 1' },
+    { input: '4\n4 3 2 1\n4', expected: '4' },
+    { input: '6\n-1 -2 -3 -4 -5 -6\n3', expected: '-1 -2 -3 -4' },
+    { input: '3\n10 5 15\n2', expected: '10 15' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The problem is solved in O(n) time using a deque (double-ended queue) to maintain a monotonic (decreasing) sequence of indices. Iterate through the array from left to right. For each element, first remove indices from the back of the deque if the elements they point to are less than or equal to the current element. This ensures the deque stays sorted by value. Then, add the current element's index to the back. Next, remove the index from the front of the deque if it has fallen out of the current window's bounds (i.e., index < i - k + 1). Finally, once the window is full (i >= k - 1), the element at the index at the front of the deque is the maximum for that window, so add it to the result list.`,
+    cpp: `deque<int> dq;
+for (int i = 0; i < n; ++i) {
+    if (!dq.empty() && dq.front() == i - k) {
+        dq.pop_front();
+    }
+    while (!dq.empty() && nums[dq.back()] < nums[i]) {
+        dq.pop_back();
+    }
+    dq.push_back(i);
+    if (i >= k - 1) {
+        result.push_back(nums[dq.front()]);
+    }
+}
+return result;`,
+    java: `Deque<Integer> dq = new LinkedList<>();
+int resultIndex = 0;
+for (int i = 0; i < n; i++) {
+    if (!dq.isEmpty() && dq.peekFirst() == i - k) {
+        dq.pollFirst();
+    }
+    while (!dq.isEmpty() && nums[dq.peekLast()] < nums[i]) {
+        dq.pollLast();
+    }
+    dq.offerLast(i);
+    if (i >= k - 1) {
+        result[resultIndex++] = nums[dq.peekFirst()];
+    }
+}
+return result;`
+  }
 };

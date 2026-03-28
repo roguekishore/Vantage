@@ -17,98 +17,65 @@ module.exports = {
   category: 'Linked List – LC Problems',
   tags: ['Linked List', 'Recursion', 'Pointer Manipulation'],
 
-  description: `Given a linked list, swap every two adjacent nodes and return its head. You must solve the problem without modifying the values in the list's nodes (i.e., only nodes themselves may be changed).
+  storyBriefing: `As you finish sorting the armor, Peeves makes one last attempt to cause trouble. He zooms past the Grand Staircase, and with a flick of his wrist, every pair of adjacent steps magically swaps places, turning the elegant stairway into a hazardous, uneven path. "One last trick!" he screeches. "Fix the map for this! Swap every single pair of steps. That should keep you busy!" With that, he vanishes, leaving you with the final challenge of the moving staircases.`,
 
-### Task
-This is a test of your ability to maintain links while reordering.
-1. Use a **Dummy Node** to simplify the head swap.
-2. Maintain a pointer \`prev\` (initially the dummy).
-3. While there are at least two nodes to swap (\`first\` and \`second\`):
-   - Point \`first->next\` to \`second->next\`.
-   - Point \`second->next\` to \`first\`.
-   - Point \`prev->next\` to \`second\`.
-   - Move \`prev\` forward two spots to the now-second node (the original \`first\`).
+  description: `You are given a linked list. Your task is to swap every two adjacent nodes and return the modified head of the list. This operation must be done without modifying the values within the nodes themselves- only the pointers can be changed.
 
-### Example
-**Input:**
-\`\`\`
-4
-1 2 3 4
-\`\`\`
+This problem is a rigorous test of pointer manipulation. You must carefully manage the connections between four nodes at a time: the node before the pair, the first node of the pair, the second node, and the node after the pair. Using a dummy node can help simplify the logic, especially for handling the swap of the first two nodes in the list.
 
-**Output:**
-\`\`\`
-2 -> 1 -> 4 -> 3 -> NULL
-\`\`\`
-
-**Explanation:**
-Nodes 1 and 2 swap, then nodes 3 and 4 swap.`,
+Return the head of the modified list. If the list has an odd number of nodes, the final node should remain in its original position.`,
 
   examples: [
     {
       input: '4\n1 2 3 4',
       output: '2 -> 1 -> 4 -> 3 -> NULL',
-      explanation: 'Pairs (1,2) and (3,4) are swapped.'
-    },
-    {
-      input: '1\n1',
-      output: '1 -> NULL',
-      explanation: 'Only one node, nothing to swap.'
+      explanation: 'The node pair (1, 2) is swapped to become (2, 1). The node pair (3, 4) is swapped to become (4, 3). The new list is 2 -> 1 -> 4 -> 3.'
     },
     {
       input: '3\n1 2 3',
       output: '2 -> 1 -> 3 -> NULL',
-      explanation: 'The last node (3) remains in place as it has no pair.'
+      explanation: 'The node pair (1, 2) is swapped. The last node, 3, has no adjacent node to swap with, so it remains in place.'
+    },
+    {
+      input: '1\n1',
+      output: '1 -> NULL',
+      explanation: 'A list with a single node has no pairs to swap, so it remains unchanged.'
     }
   ],
 
   constraints: [
-    '0 ≤ n ≤ 100',
-    '0 ≤ Node.val ≤ 100'
+    'The number of nodes in the list is between 0 and 100.',
+    'The value of each node is between 0 and 100.'
   ],
 
   boilerplate: {
-    cpp: `#include <iostream>
-#include <vector>
-
-using namespace std;
-
-struct Node {
+    cpp: `struct Node {
     int data;
     Node* next;
     Node(int val) : data(val), next(nullptr) {}
 };
 
-/**
- * Swaps every two adjacent nodes and returns the new head.
- */
 Node* solve(Node* head) {
-    if (!head || !head->next) return head;
-    
-    Node dummy(0);
-    dummy.next = head;
-    Node* prev = &dummy;
-    
-    // Your swap logic here
-    
-    return dummy.next;
+    // Your code here
 }
 
+// DO NOT MODIFY THE MAIN FUNCTION
+#include <iostream>
 void printList(Node* head) {
     while (head) {
-        cout << head->data << " -> ";
+        std::cout << head->data << " -> ";
         head = head->next;
     }
-    cout << "NULL" << endl;
+    std::cout << "NULL" << std::endl;
 }
 
 int main() {
     int n, val;
-    if (!(cin >> n)) return 0;
-    if (n == 0) { cout << "NULL" << endl; return 0; }
+    if (!(std::cin >> n)) return 0;
+    if (n == 0) { std::cout << "NULL" << std::endl; return 0; }
     Node *head = nullptr, *tail = nullptr;
     for (int i = 0; i < n; i++) {
-        cin >> val;
+        std::cin >> val;
         Node* newNode = new Node(val);
         if (!head) head = newNode;
         else tail->next = newNode;
@@ -118,9 +85,7 @@ int main() {
     printList(head);
     return 0;
 }`,
-    java: `import java.util.Scanner;
-
-class Node {
+    java: `class Node {
     int data;
     Node next;
     Node(int data) {
@@ -129,22 +94,14 @@ class Node {
     }
 }
 
-public class Main {
-    /**
-     * Swaps every two adjacent nodes and returns the new head.
-     */
+class Solution {
     public static Node solve(Node head) {
-        if (head == null || head.next == null) return head;
-        
-        Node dummy = new Node(0);
-        dummy.next = head;
-        Node prev = dummy;
-        
-        // Your swap logic here
-        
-        return dummy.next;
+        // Your code here
     }
+}
 
+// DO NOT MODIFY THE MAIN CLASS
+public class Main {
     public static void printList(Node head) {
         while (head != null) {
             System.out.print(head.data + " -> ");
@@ -154,7 +111,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+        java.util.Scanner sc = new java.util.Scanner(System.in);
         if (!sc.hasNextInt()) return;
         int n = sc.nextInt();
         Node head = null, tail = null;
@@ -165,8 +122,9 @@ public class Main {
             else tail.next = newNode;
             tail = newNode;
         }
-        head = solve(head);
+        head = Solution.solve(head);
         printList(head);
+        sc.close();
     }
 }`
   },
@@ -177,6 +135,50 @@ public class Main {
     { input: '1\n10', expected: '10 -> NULL' },
     { input: '3\n1 2 3', expected: '2 -> 1 -> 3 -> NULL' },
     { input: '2\n100 200', expected: '200 -> 100 -> NULL' },
-    { input: '6\n1 2 3 4 5 6', expected: '2 -> 1 -> 4 -> 3 -> 6 -> 5 -> NULL' }
-  ]
+    { input: '5\n1 2 3 4 5', expected: '2 -> 1 -> 4 -> 3 -> 5 -> NULL' },
+    { input: '6\n10 20 30 40 50 60', expected: '20 -> 10 -> 40 -> 30 -> 60 -> 50 -> NULL' },
+    { input: '7\n0 1 2 3 4 5 6', expected: '1 -> 0 -> 3 -> 2 -> 5 -> 4 -> 6 -> NULL' }
+  ],
+
+  solution: {
+    approach: `The iterative solution uses a dummy node to handle the head of the list gracefully. We use three main pointers: 'prev_node' (which points to the node before the pair being swapped), 'first_node', and 'second_node'. We iterate through the list as long as there are at least two nodes left to swap. In each iteration, we rewire the pointers: 'prev_node' now points to 'second_node', 'first_node' points to where 'second_node' was pointing, and 'second_node' points back to 'first_node'. 'prev_node' is then updated to point to 'first_node' for the next iteration.`,
+    cpp: `    Node dummy(0);
+    dummy.next = head;
+    Node* prev_node = &dummy;
+
+    while (head != nullptr && head->next != nullptr) {
+        Node* first_node = head;
+        Node* second_node = head->next;
+
+        // Swapping
+        prev_node->next = second_node;
+        first_node->next = second_node->next;
+        second_node->next = first_node;
+
+        // Re-initializing for next iteration
+        prev_node = first_node;
+        head = first_node->next;
+    }
+
+    return dummy.next;`,
+    java: `    Node dummy = new Node(0);
+    dummy.next = head;
+    Node prev_node = dummy;
+
+    while (head != null && head.next != null) {
+        Node first_node = head;
+        Node second_node = head.next;
+
+        // Swapping
+        prev_node.next = second_node;
+        first_node.next = second_node.next;
+        second_node.next = first_node;
+
+        // Re-initializing for next iteration
+        prev_node = first_node;
+        head = first_node.next;
+    }
+
+    return dummy.next;`
+  }
 };

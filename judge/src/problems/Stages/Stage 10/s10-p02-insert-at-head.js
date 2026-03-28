@@ -11,6 +11,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'insert-at-head',
   conquestId: 'stage10-2',
   title: 'Insert at Head',
@@ -18,55 +19,42 @@ module.exports = {
   category: 'Linked List – Construction',
   tags: ['Linked List', 'Pointers'],
 
-  description: `One of the primary advantages of a linked list over an array is that inserting an element at the beginning (the "head") is an $O(1)$ operation. 
+  // ---- Story Layer ----
+  storyBriefing: `Neville, encouraged by your help, wants to add a fast-growing Mimbulus mimbletonia to the very front of his plant chain. Because this new plant needs the most sunlight, it must be the new head of the list. You need to perform this insertion and show him the updated chain.`,
 
-In an array, inserting at index 0 requires shifting every other element. In a linked list, you simply create a new node and point it to the current head.
+  // ---- Technical Layer ----
+  description: `You are given the head of a singly linked list and an integer 'val'. Your task is to insert a new node with this value at the beginning of the list. This is a fundamental O(1) operation for a linked list.
 
-### Task
-Given the head of a singly linked list and an integer \`val\`, insert a new node with value \`val\` at the **front** of the list and return the new head.
-1. Create a new node with the given \`val\`.
-2. Set the \`next\` pointer of the new node to the current \`head\`.
-3. Update the \`head\` to be this new node.
+To insert at the head, you first create a new node with the given value. Then, you set the 'next' pointer of this new node to point to the current head of the list. Finally, you update the head of the list to be your new node.
 
-### Example
-**Input:**
-\`\`\`
-3
-1 2 3
-0
-\`\`\`
-
-**Output:**
-\`\`\`
-0 -> 1 -> 2 -> 3 -> NULL
-\`\`\`
-
-**Explanation:**
-The new node (0) is placed before the existing head (1).`,
-
+Return the new head of the modified linked list.`,
   examples: [
     {
       input: '3\n1 2 3\n0',
       output: '0 -> 1 -> 2 -> 3 -> NULL',
-      explanation: '0 becomes the new head.'
+      explanation: 'A new node with value 0 is created. Its `next` is set to the old head (1). The new node becomes the head.'
     },
     {
       input: '0\n\n5',
       output: '5 -> NULL',
-      explanation: 'Inserting into an empty list makes the new node the head.'
+      explanation: 'The list is initially empty. The new node becomes the head, and its `next` pointer is null.'
+    },
+    {
+      input: '1\n10\n-5',
+      output: '-5 -> 10 -> NULL',
+      explanation: 'A new node with -5 is inserted at the front.'
     }
   ],
-
   constraints: [
-    '0 ≤ n ≤ 1000',
-    '-10⁵ ≤ val ≤ 10⁵'
+    '0 <= n <= 1000',
+    '-10^5 <= val <= 10^5'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
-
-using namespace std;
 
 struct Node {
     int data;
@@ -74,13 +62,10 @@ struct Node {
     Node(int val) : data(val), next(nullptr) {}
 };
 
-/**
- * Inserts a new value at the head of the linked list.
- */
 Node* solve(Node* head, int val) {
-    // Your code here
-    
-    return nullptr; 
+    Node* newNode = new Node(val);
+    newNode->next = head;
+    return newNode;
 }
 
 void printList(Node* head) {
@@ -109,7 +94,8 @@ int main() {
     printList(head);
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 class Node {
     int data;
@@ -121,13 +107,10 @@ class Node {
 }
 
 public class Main {
-    /**
-     * Inserts a new value at the head of the linked list.
-     */
     public static Node solve(Node head, int val) {
-        // Your code here
-        
-        return null;
+        Node newNode = new Node(val);
+        newNode.next = head;
+        return newNode;
     }
 
     public static void printList(Node head) {
@@ -159,11 +142,23 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '3\n1 2 3\n0', expected: '0 -> 1 -> 2 -> 3 -> NULL' },
     { input: '0\n\n5', expected: '5 -> NULL' },
-    { input: '2\n10 20\n5', expected: '5 -> 10 -> 20 -> NULL' },
-    { input: '4\n1 1 1 1\n2', expected: '2 -> 1 -> 1 -> 1 -> 1 -> NULL' },
-    { input: '1\n100\n-1', expected: '-1 -> 100 -> NULL' }
-  ]
+    { input: '1\n10\n-5', expected: '-5 -> 10 -> NULL' },
+    { input: '5\n1 2 3 4 5\n0', expected: '0 -> 1 -> 2 -> 3 -> 4 -> 5 -> NULL' },
+    { input: '2\n-1 -2\n0', expected: '0 -> -1 -> -2 -> NULL' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `To insert a node at the head of a linked list, first create a new node with the specified value. Then, set the 'next' pointer of this new node to the current head of the list. This links the new node to the rest of the list. Finally, update the head pointer to point to the new node, making it the new first element. This is an O(1) operation.`,
+    cpp: `Node* newNode = new Node(val);
+newNode->next = head;
+return newNode;`,
+    java: `Node newNode = new Node(val);
+newNode.next = head;
+return newNode;`
+  }
 };

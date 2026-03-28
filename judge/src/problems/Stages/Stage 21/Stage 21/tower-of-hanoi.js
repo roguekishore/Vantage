@@ -12,11 +12,15 @@
 module.exports = {
   id: 'tower-of-hanoi',
   conquestId: 'stage21-5',
-  title: 'Tower of Hanoi',
+  title: 'The Love Room',
   difficulty: 'Medium',
   category: 'Recursion',
   tags: ['Recursion', 'Backtracking', 'Mathematics'],
+  storyBriefing: `
+The Love Room contains a fountain of Amortentia, but its power is locked by a puzzle of stacked, enchanted rings. To unlock the fountain's full power, you must move a tower of 'n' rings from a source pedestal to a destination pedestal, using an auxiliary one.
 
+The rules are ancient and strict: move only one ring at a time, and never place a larger ring atop a smaller one. This is the Tower of Hanoi, a classic recursive puzzle. Your task is to calculate the minimum number of moves required. The solution's elegance lies in its recursive nature.
+`,
   description: `
 The **Tower of Hanoi** is a classic recursive problem involving three rods:
 
@@ -55,11 +59,11 @@ This problem demonstrates the power of **recursion**, where the solution for **n
 
   boilerplate: {
     cpp: `#include <iostream>
+#include <cmath>
 using namespace std;
 
 long long towerOfHanoi(int n) {
-    // TODO: Compute minimum moves using recursion or formula
-    return 0;
+    return pow(2, n) - 1;
 }
 
 int main() {
@@ -75,8 +79,42 @@ int main() {
 public class Main {
 
     static long towerOfHanoi(int n) {
-        // TODO: Compute minimum moves using recursion or formula
-        return 0;
+        return (long)Math.pow(2, n) - 1;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int n = sc.nextInt();
+
+        System.out.print(towerOfHanoi(n));
+    }
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <cmath>
+using namespace std;
+
+long long towerOfHanoi(int n) {
+    return pow(2, n) - 1;
+}
+
+int main() {
+    int n;
+    cin >> n;
+
+    cout << towerOfHanoi(n);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static long towerOfHanoi(int n) {
+        return (long)Math.pow(2, n) - 1;
     }
 
     public static void main(String[] args) {

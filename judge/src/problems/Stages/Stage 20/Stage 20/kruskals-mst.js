@@ -12,11 +12,17 @@
 
 module.exports = {
   id: 'kruskals-mst',
-  conquestId: 'stage20-7',
-  title: "Kruskal's MST",
+  conquestId: 's20-p07',
+  title: "Kruskal's House Cup Bridge",
   difficulty: 'Hard',
   category: 'Graphs',
-  tags: ['Graph', 'MST', 'Kruskal', 'Union Find', 'Greedy'],
+  tags: ['Graph', 'MST', 'Kruskal', 'Union Find', 'Greedy', 'Hogwarts'],
+
+  storyBriefing: `
+"The Great Hall needs a new set of magical bridges to connect the House tables," Professor Flitwick announces. "But magic is expensive! We must connect all tables with the minimum total cost of magical energy possible, ensuring there are no redundant loops."
+
+Using **Kruskal's Algorithm** and a **Disjoint Set Union (DSU)**, find the Minimum Spanning Tree (MST) of the connections between the house tables.
+`,
 
   description: `
 Given a **connected, undirected, weighted graph**, compute the **total weight of its Minimum Spanning Tree (MST)** using **Kruskal’s Algorithm**.
@@ -24,15 +30,8 @@ Given a **connected, undirected, weighted graph**, compute the **total weight of
 A **Minimum Spanning Tree** is a subset of edges that:
 - Connects all vertices in the graph
 - Contains **exactly (n − 1) edges**
-- Has the **minimum possible total edge weight**
+- Has the **minimized possible total edge weight**
 - Contains **no cycles**
-
-**Kruskal’s Algorithm:**
-1. Sort all edges by their weight.
-2. Start adding edges with the smallest weight.
-3. Use a **Disjoint Set Union (Union-Find)** structure to detect cycles.
-4. If adding an edge does not form a cycle, include it in the MST.
-5. Stop when **n−1 edges** are included.
 
 Return the **sum of weights of the edges in the MST**.
 `,
@@ -57,6 +56,7 @@ Return the **sum of weights of the edges in the MST**.
     cpp: `#include <iostream>
 #include <vector>
 #include <algorithm>
+
 using namespace std;
 
 struct Edge {
@@ -64,63 +64,228 @@ struct Edge {
     long long w;
 };
 
+struct DSU {
+    vector<int> parent;
+    DSU(int n) {
+        parent.resize(n);
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+    int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]);
+    }
+    bool unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            parent[root_i] = root_j;
+            return true;
+        }
+        return false;
+    }
+};
+
 long long kruskal(int n, vector<Edge>& edges) {
-    // TODO: Implement Kruskal's MST using Union-Find
-    return 0;
+    sort(edges.begin(), edges.end(), [](const Edge& a, const Edge& b) {
+        return a.w < b.w;
+    });
+
+    DSU dsu(n);
+    long long mst_weight = 0;
+    int edges_count = 0;
+
+    for (const auto& edge : edges) {
+        if (dsu.unite(edge.u, edge.v)) {
+            mst_weight += edge.w;
+            edges_count++;
+            if (edges_count == n - 1) break;
+        }
+    }
+    return mst_weight;
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n, m;
-    cin >> n >> m;
+    if (!(cin >> n >> m)) return 0;
 
     vector<Edge> edges(m);
-
     for(int i = 0; i < m; i++) {
         cin >> edges[i].u >> edges[i].v >> edges[i].w;
     }
 
-    cout << kruskal(n, edges);
+    cout << kruskal(n, edges) << endl;
 
     return 0;
 }`,
     java: `import java.util.*;
 
 public class Main {
-
     static class Edge {
         int u, v;
         long w;
+        Edge(int u, int v, long w) { this.u = u; this.v = v; this.w = w; }
+    }
 
-        Edge(int u, int v, long w) {
-            this.u = u;
-            this.v = v;
-            this.w = w;
+    static class DSU {
+        int[] parent;
+        DSU(int n) {
+            parent = new int[n];
+            for (int i = 0; i < n; i++) parent[i] = i;
+        }
+        int find(int i) {
+            if (parent[i] == i) return i;
+            return parent[i] = find(parent[i]);
+        }
+        boolean unite(int i, int j) {
+            int root_i = find(i);
+            int root_j = find(j);
+            if (root_i != root_j) {
+                parent[root_i] = root_j;
+                return true;
+            }
+            return false;
         }
     }
 
     static long kruskal(int n, List<Edge> edges) {
-        // TODO: Implement Kruskal's MST using Union-Find
-        return 0;
+        edges.sort((a, b) -> Long.compare(a.w, b.w));
+        DSU dsu = new DSU(n);
+        long mstWeight = 0;
+        int edgesCount = 0;
+
+        for (Edge edge : edges) {
+            if (dsu.unite(edge.u, edge.v)) {
+                mstWeight += edge.w;
+                edgesCount++;
+                if (edgesCount == n - 1) break;
+            }
+        }
+        return mstWeight;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
 
         int n = sc.nextInt();
         int m = sc.nextInt();
 
         List<Edge> edges = new ArrayList<>();
-
         for(int i = 0; i < m; i++) {
-            int u = sc.nextInt();
-            int v = sc.nextInt();
-            long w = sc.nextLong();
-            edges.add(new Edge(u, v, w));
+            edges.add(new Edge(sc.nextInt(), sc.nextInt(), sc.nextLong()));
         }
 
-        System.out.print(kruskal(n, edges));
+        System.out.println(kruskal(n, edges));
     }
 }`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+struct Edge {
+    int u, v;
+    long long w;
+};
+
+struct DSU {
+    vector<int> parent;
+    DSU(int n) {
+        parent.resize(n);
+        for (int i = 0; i < n; i++) parent[i] = i;
+    }
+    int find(int i) {
+        if (parent[i] == i) return i;
+        return parent[i] = find(parent[i]);
+    }
+    bool unite(int i, int j) {
+        int root_i = find(i);
+        int root_j = find(j);
+        if (root_i != root_j) {
+            parent[root_i] = root_j;
+            return true;
+        }
+        return false;
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+    vector<Edge> edges(m);
+    for(int i = 0; i < m; i++) cin >> edges[i].u >> edges[i].v >> edges[i].w;
+    sort(edges.begin(), edges.end(), [](const Edge& a, const Edge& b) { return a.w < b.w; });
+    DSU dsu(n);
+    long long mst_weight = 0;
+    int count = 0;
+    for (const auto& e : edges) {
+        if (dsu.unite(e.u, e.v)) {
+            mst_weight += e.w;
+            count++;
+            if (count == n - 1) break;
+        }
+    }
+    cout << mst_weight;
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    static class Edge {
+        int u, v;
+        long w;
+        Edge(int u, int v, long w) { this.u = u; this.v = v; this.w = w; }
+    }
+    static class DSU {
+        int[] parent;
+        DSU(int n) {
+            parent = new int[n];
+            for (int i = 0; i < n; i++) parent[i] = i;
+        }
+        int find(int i) {
+            if (parent[i] == i) return i;
+            return parent[i] = find(parent[i]);
+        }
+        boolean unite(int i, int j) {
+            int root_i = find(i);
+            int root_j = find(j);
+            if (root_i != root_j) {
+                parent[root_i] = root_j;
+                return true;
+            }
+            return false;
+        }
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+        List<Edge> edges = new ArrayList<>();
+        for(int i = 0; i < m; i++) edges.add(new Edge(sc.nextInt(), sc.nextInt(), sc.nextLong()));
+        edges.sort((a, b) -> Long.compare(a.w, b.w));
+        DSU dsu = new DSU(n);
+        long mstWeight = 0;
+        int count = 0;
+        for (Edge e : edges) {
+            if (dsu.unite(e.u, e.v)) {
+                mstWeight += e.w;
+                count++;
+                if (count == n - 1) break;
+            }
+        }
+        System.out.print(mstWeight);
+    }
+}`
   },
 
   testCases: [

@@ -80,8 +80,27 @@ struct Node {
  */
 Node* solve(Node* head, int target) {
     if (head == nullptr) return nullptr;
-    
-    // Your code here
+
+    // Case 1: The head node is the one to be deleted
+    if (head->data == target) {
+        Node* newHead = head->next;
+        // In a real-world scenario, you would delete the old head node to free memory.
+        // delete head; 
+        return newHead;
+    }
+
+    // Case 2: Traverse to find the node to delete
+    Node* current = head;
+    while (current->next != nullptr && current->next->data != target) {
+        current = current->next;
+    }
+
+    // If the node to delete is found
+    if (current->next != nullptr) {
+        Node* nodeToDelete = current->next;
+        current->next = nodeToDelete->next;
+        // delete nodeToDelete;
+    }
     
     return head; 
 }
@@ -130,7 +149,21 @@ public class Main {
     public static Node solve(Node head, int target) {
         if (head == null) return null;
         
-        // Your code here
+        // Case 1: The head node is the one to be deleted
+        if (head.data == target) {
+            return head.next;
+        }
+
+        // Case 2: Traverse to find the node to delete
+        Node current = head;
+        while (current.next != null && current.next.data != target) {
+            current = current.next;
+        }
+
+        // If the node to delete is found
+        if (current.next != null) {
+            current.next = current.next.next;
+        }
         
         return head;
     }

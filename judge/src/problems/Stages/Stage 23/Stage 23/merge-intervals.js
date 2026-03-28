@@ -13,11 +13,15 @@
 module.exports = {
   id: 'merge-intervals',
   conquestId: 'stage23-6',
-  title: 'Merge Intervals',
+  title: "Task Prep: Time-Turner Schedules",
   difficulty: 'Medium',
-  category: 'Intervals',
+  category: 'Greedy',
   tags: ['Array', 'Sorting', 'Intervals'],
+  storyBriefing: `
+To prepare for the Triwizard Tournament, you and your friends are using Time-Turners to attend extra lessons. You have a list of everyone's schedules, represented as time intervals.
 
+The Ministry of Magic has warned that overlapping Time-Turner usage can cause dangerous temporal paradoxes. To ensure safety, you must merge all overlapping schedules into a consolidated list of non-overlapping time blocks.
+`,
   description: `
 Given an array of **intervals** where **intervals[i] = [startᵢ, endᵢ]**, merge all overlapping intervals.
 
@@ -57,14 +61,29 @@ Space Complexity: **O(n)** for storing merged intervals.
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     vector<vector<int>> merge(vector<vector<int>>& intervals) {
-        // TODO: Implement merge intervals logic
-        return {};
+        if (intervals.empty()) {
+            return {};
+        }
+        sort(intervals.begin(), intervals.end());
+        vector<vector<int>> merged;
+        merged.push_back(intervals[0]);
+        for (int i = 1; i < intervals.size(); i++) {
+            if (merged.back()[1] >= intervals[i][0]) {
+                merged.back()[1] = max(merged.back()[1], intervals[i][1]);
+            } else {
+                merged.push_back(intervals[i]);
+            }
+        }
+        return merged;
     }
 };
 
@@ -80,47 +99,155 @@ int main() {
     Solution sol;
     vector<vector<int>> result = sol.merge(intervals);
 
-    for (auto &it : result) {
-        cout << it[0] << " " << it[1];
-        if (&it != &result.back()) cout << "\\n";
+    for (size_t i = 0; i < result.size(); ++i) {
+        cout << result[i][0] << " " << result[i][1];
+        if (i < result.size() - 1) {
+            cout << "\\n";
+        }
     }
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
-        public List<int[]> merge(int[][] intervals) {
-            // TODO: Implement merge intervals logic
-            return new ArrayList<>();
+        public int[][] merge(int[][] intervals) {
+            if (intervals.length <= 1) {
+                return intervals;
+            }
+            Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+            List<int[]> result = new ArrayList<>();
+            int[] currentInterval = intervals[0];
+            result.add(currentInterval);
+            for (int[] interval : intervals) {
+                if (currentInterval[1] >= interval[0]) {
+                    currentInterval[1] = Math.max(currentInterval[1], interval[1]);
+                } else {
+                    currentInterval = interval;
+                    result.add(currentInterval);
+                }
+            }
+            return result.toArray(new int[result.size()][]);
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
-        int[][] intervals = new int[n][2];
 
+        int[][] intervals = new int[n][2];
         for (int i = 0; i < n; i++) {
             intervals[i][0] = sc.nextInt();
             intervals[i][1] = sc.nextInt();
         }
 
         Solution sol = new Solution();
-        List<int[]> result = sol.merge(intervals);
+        int[][] result = sol.merge(intervals);
 
-        for (int i = 0; i < result.size(); i++) {
-            int[] it = result.get(i);
-            System.out.print(it[0] + " " + it[1]);
-            if (i != result.size() - 1) System.out.print("\\n");
+        for (int i = 0; i < result.length; i++) {
+            System.out.print(result[i][0] + " " + result[i][1]);
+            if (i < result.length - 1) {
+                System.out.println();
+            }
+        }
+    }
+}`
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    vector<vector<int>> merge(vector<vector<int>>& intervals) {
+        if (intervals.empty()) {
+            return {};
+        }
+        sort(intervals.begin(), intervals.end());
+        vector<vector<int>> merged;
+        merged.push_back(intervals[0]);
+        for (int i = 1; i < intervals.size(); i++) {
+            if (merged.back()[1] >= intervals[i][0]) {
+                merged.back()[1] = max(merged.back()[1], intervals[i][1]);
+            } else {
+                merged.push_back(intervals[i]);
+            }
+        }
+        return merged;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> intervals(n, vector<int>(2));
+    for (int i = 0; i < n; i++) {
+        cin >> intervals[i][0] >> intervals[i][1];
+    }
+
+    Solution sol;
+    vector<vector<int>> result = sol.merge(intervals);
+
+    for (size_t i = 0; i < result.size(); ++i) {
+        cout << result[i][0] << " " << result[i][1];
+        if (i < result.size() - 1) {
+            cout << "\\n";
+        }
+    }
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int[][] merge(int[][] intervals) {
+            if (intervals.length <= 1) {
+                return intervals;
+            }
+            Arrays.sort(intervals, (a, b) -> Integer.compare(a[0], b[0]));
+            List<int[]> result = new ArrayList<>();
+            int[] currentInterval = intervals[0];
+            result.add(currentInterval);
+            for (int[] interval : intervals) {
+                if (currentInterval[1] >= interval[0]) {
+                    currentInterval[1] = Math.max(currentInterval[1], interval[1]);
+                } else {
+                    currentInterval = interval;
+                    result.add(currentInterval);
+                }
+            }
+            return result.toArray(new int[result.size()][]);
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[][] intervals = new int[n][2];
+        for (int i = 0; i < n; i++) {
+            intervals[i][0] = sc.nextInt();
+            intervals[i][1] = sc.nextInt();
         }
 
-        sc.close();
+        Solution sol = new Solution();
+        int[][] result = sol.merge(intervals);
+
+        for (int i = 0; i < result.length; i++) {
+            System.out.print(result[i][0] + " " + result[i][1]);
+            if (i < result.length - 1) {
+                System.out.println();
+            }
+        }
     }
 }`
   },

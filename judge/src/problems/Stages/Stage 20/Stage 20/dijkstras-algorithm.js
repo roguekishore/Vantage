@@ -14,11 +14,17 @@
 
 module.exports = {
   id: 'dijkstras-algorithm',
-  conquestId: 'stage20-5',
-  title: "Dijkstra's Algorithm",
+  conquestId: 's20-p05',
+  title: "Dijkstra's Marauder Map",
   difficulty: 'Hard',
   category: 'Graphs',
-  tags: ['Graph', 'Shortest Path', 'Dijkstra', 'Priority Queue'],
+  tags: ['Graph', 'Shortest Path', 'Dijkstra', 'Priority Queue', 'Hogwarts'],
+
+  storyBriefing: `
+"The map isn't just about where people are," George explains, tapping the parchment with his wand. "It's about the fastest way to get there without being spotted by Filch."
+
+Using **Dijkstra's Algorithm**, calculate the shortest distance from your current location to every other point in the castle. The weighted edges represent the time or risk involved in traveling between different locations.
+`,
 
   description: `
 Given a **weighted directed graph**, compute the **shortest distance from a source node to all other nodes** using **Dijkstra's Algorithm**.
@@ -32,11 +38,6 @@ Dijkstra’s algorithm works for graphs with **non-negative edge weights**.
 - Relax its edges and update distances if a shorter path is found.
 
 If a node cannot be reached from the source, its distance should be **-1** in the output.
-
-This is one of the most important algorithms used in:
-- GPS navigation systems
-- Network routing
-- Shortest path problems
 `,
 
   examples: [
@@ -60,20 +61,50 @@ This is one of the most important algorithms used in:
 #include <vector>
 #include <queue>
 #include <limits>
+
 using namespace std;
 
-vector<long long> dijkstra(int n, vector<vector<pair<int,int>>>& adj, int s) {
-    // TODO: Implement Dijkstra's Algorithm
-    return vector<long long>(n, -1);
+const long long INF = 1e18;
+
+vector<long long> dijkstra(int n, vector<vector<pair<int, int>>>& adj, int s) {
+    vector<long long> dist(n, INF);
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+
+    dist[s] = 0;
+    pq.push({0, s});
+
+    while (!pq.empty()) {
+        long long d = pq.top().first;
+        int u = pq.top().second;
+        pq.pop();
+
+        if (d > dist[u]) continue;
+
+        for (auto& edge : adj[u]) {
+            int v = edge.first;
+            int w = edge.second;
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (dist[i] == INF) dist[i] = -1;
+    }
+    return dist;
 }
 
 int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
     int n, m;
-    cin >> n >> m;
+    if (!(cin >> n >> m)) return 0;
 
-    vector<vector<pair<int,int>>> adj(n);
-
-    for(int i = 0; i < m; i++) {
+    vector<vector<pair<int, int>>> adj(n);
+    for (int i = 0; i < m; i++) {
         int u, v, w;
         cin >> u >> v >> w;
         adj[u].push_back({v, w});
@@ -83,52 +114,191 @@ int main() {
     cin >> s;
 
     vector<long long> dist = dijkstra(n, adj, s);
-
-    for(int i = 0; i < n; i++) {
-        if(i) cout << " ";
-        cout << dist[i];
+    for (int i = 0; i < n; i++) {
+        cout << dist[i] << (i == n - 1 ? "" : " ");
     }
-
     return 0;
 }`,
     java: `import java.util.*;
 
 public class Main {
+    static class Node implements Comparable<Node> {
+        int u;
+        long d;
+        Node(int u, long d) { this.u = u; this.d = d; }
+        public int compareTo(Node other) { return Long.compare(this.d, other.d); }
+    }
 
     static long[] dijkstra(int n, List<List<int[]>> adj, int s) {
-        // TODO: Implement Dijkstra's Algorithm
-        return new long[n];
+        long[] dist = new long[n];
+        Arrays.fill(dist, Long.MAX_VALUE);
+        PriorityQueue<Node> pq = new PriorityQueue<>();
+
+        dist[s] = 0;
+        pq.add(new Node(s, 0));
+
+        while (!pq.isEmpty()) {
+            Node curr = pq.poll();
+            int u = curr.u;
+            long d = curr.d;
+
+            if (d > dist[u]) continue;
+
+            for (int[] edge : adj.get(u)) {
+                int v = edge[0];
+                int w = edge[1];
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.add(new Node(v, dist[v]));
+                }
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            if (dist[i] == Long.MAX_VALUE) dist[i] = -1;
+        }
+        return dist;
     }
 
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
 
         int n = sc.nextInt();
         int m = sc.nextInt();
 
         List<List<int[]>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
 
-        for(int i = 0; i < n; i++)
-            adj.add(new ArrayList<>());
-
-        for(int i = 0; i < m; i++) {
+        for (int i = 0; i < m; i++) {
             int u = sc.nextInt();
             int v = sc.nextInt();
             int w = sc.nextInt();
-
             adj.get(u).add(new int[]{v, w});
         }
 
         int s = sc.nextInt();
-
         long[] dist = dijkstra(n, adj, s);
 
-        for(int i = 0; i < n; i++) {
-            if(i > 0) System.out.print(" ");
-            System.out.print(dist[i]);
+        for (int i = 0; i < n; i++) {
+            System.out.print(dist[i] + (i == n - 1 ? "" : " "));
         }
     }
 }`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <queue>
+#include <limits>
+
+using namespace std;
+
+const long long INF = 1e18;
+
+int main() {
+    ios_base::sync_with_stdio(false);
+    cin.tie(NULL);
+
+    int n, m;
+    if (!(cin >> n >> m)) return 0;
+
+    vector<vector<pair<int, int>>> adj(n);
+    for (int i = 0; i < m; i++) {
+        int u, v, w;
+        cin >> u >> v >> w;
+        adj[u].push_back({v, w});
+    }
+
+    int s;
+    cin >> s;
+
+    vector<long long> dist(n, INF);
+    priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> pq;
+
+    dist[s] = 0;
+    pq.push({0, s});
+
+    while (!pq.empty()) {
+        long long d = pq.top().first;
+        int u = pq.top().second;
+        pq.pop();
+
+        if (d > dist[u]) continue;
+
+        for (auto& edge : adj[u]) {
+            int v = edge.first;
+            int w = edge.second;
+            if (dist[u] + w < dist[v]) {
+                dist[v] = dist[u] + w;
+                pq.push({dist[v], v});
+            }
+        }
+    }
+
+    for (int i = 0; i < n; i++) {
+        cout << (dist[i] == INF ? -1 : dist[i]) << (i == n - 1 ? "" : " ");
+    }
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    static class Node implements Comparable<Node> {
+        int u;
+        long d;
+        Node(int u, long d) { this.u = u; this.d = d; }
+        public int compareTo(Node other) { return Long.compare(this.d, other.d); }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        if (!sc.hasNextInt()) return;
+
+        int n = sc.nextInt();
+        int m = sc.nextInt();
+
+        List<List<int[]>> adj = new ArrayList<>();
+        for (int i = 0; i < n; i++) adj.add(new ArrayList<>());
+
+        for (int i = 0; i < m; i++) {
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            int w = sc.nextInt();
+            adj.get(u).add(new int[]{v, w});
+        }
+
+        int s = sc.nextInt();
+        long[] dist = new long[n];
+        Arrays.fill(dist, Long.MAX_VALUE);
+        PriorityQueue<Node> pq = new PriorityQueue<>();
+
+        dist[s] = 0;
+        pq.add(new Node(s, 0));
+
+        while (!pq.isEmpty()) {
+            Node curr = pq.poll();
+            int u = curr.u;
+            long d = curr.d;
+
+            if (d > dist[u]) continue;
+
+            for (int[] edge : adj.get(u)) {
+                int v = edge[0];
+                int w = edge[1];
+                if (dist[u] + w < dist[v]) {
+                    dist[v] = dist[u] + w;
+                    pq.add(new Node(v, dist[v]));
+                }
+            }
+        }
+
+        for (int i = 0; i < n; i++) {
+            System.out.print((dist[i] == Long.MAX_VALUE ? -1 : dist[i]) + (i == n - 1 ? "" : " "));
+        }
+    }
+}`
   },
 
   testCases: [

@@ -12,11 +12,15 @@
 module.exports = {
   id: 'unique-paths',
   conquestId: 'stage22-1',
-  title: 'Unique Paths',
+  title: 'The Goblin Cart Tracks',
   difficulty: 'Medium',
   category: 'Dynamic Programming',
   tags: ['Dynamic Programming', 'Grid', 'Combinatorics'],
+  storyBriefing: `
+You are in a Gringotts cart on a grid of tracks, starting at the top-left corner. Your destination is a vault at the bottom-right corner. The cart is old and can only move either right or down.
 
+To ensure you've explored all possibilities before choosing a path, you must calculate the total number of unique paths from your starting point to the vault.
+`,
   description: `
 You are given two integers **m** and **n** representing the number of rows and columns of a grid.
 
@@ -59,14 +63,21 @@ The first row and first column have exactly **1 path** because the robot can onl
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+
 using namespace std;
 
 class Solution {
 public:
     int uniquePaths(int m, int n) {
-        // TODO: Implement dynamic programming solution
-        return 0;
+        vector<vector<int>> dp(m, vector<int>(n, 1));
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+            }
+        }
+        return dp[m - 1][n - 1];
     }
 };
 
@@ -79,15 +90,23 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int uniquePaths(int m, int n) {
-            // TODO: Implement dynamic programming solution
-            return 0;
+            int[][] dp = new int[m][n];
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (i == 0 || j == 0) {
+                        dp[i][j] = 1;
+                    } else {
+                        dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+                    }
+                }
+            }
+            return dp[m - 1][n - 1];
         }
     }
 
@@ -99,8 +118,66 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.uniquePaths(m, n));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+
+using namespace std;
+
+class Solution {
+public:
+    int uniquePaths(int m, int n) {
+        vector<vector<int>> dp(m, vector<int>(n, 1));
+        for (int i = 1; i < m; i++) {
+            for (int j = 1; j < n; j++) {
+                dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+            }
+        }
+        return dp[m - 1][n - 1];
+    }
+};
+
+int main() {
+    int m, n;
+    cin >> m >> n;
+
+    Solution sol;
+    cout << sol.uniquePaths(m, n);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int uniquePaths(int m, int n) {
+            int[][] dp = new int[m][n];
+            for (int i = 0; i < m; i++) {
+                for (int j = 0; j < n; j++) {
+                    if (i == 0 || j == 0) {
+                        dp[i][j] = 1;
+                    } else {
+                        dp[i][j] = dp[i - 1][j] + dp[i][j - 1];
+                    }
+                }
+            }
+            return dp[m - 1][n - 1];
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        int m = sc.nextInt();
+        int n = sc.nextInt();
+
+        Solution sol = new Solution();
+        System.out.print(sol.uniquePaths(m, n));
     }
 }`
   },

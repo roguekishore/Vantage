@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'search-in-rotated-sorted-array',
   conquestId: 'stage9-1',
   title: 'Search in Rotated Sorted Array',
@@ -19,68 +20,48 @@ module.exports = {
   category: 'Binary Search – Advanced',
   tags: ['Array', 'Binary Search'],
 
-  description: `There is an integer array \`nums\` sorted in ascending order (with **distinct** values).
+  // ---- Story Layer ----
+  stageIntro: `The clues from the library have led you deep into the castle's less-traveled corridors. Nearly Headless Nick drifts through a wall, looking troubled. 'The passages ahead are enchanted,' he whispers. 'They are like a sorted list of rooms, but the Grey Lady has rotated the sequence as a prank! Finding anything in this state requires a... particular kind of thinking. A more advanced form of searching.'`,
+  storyBriefing: `Nearly Headless Nick presents you with a map of a corridor, represented as a sorted array of room numbers that has been rotated at an unknown point. He needs you to find the index of a specific 'target' room number. A linear search would take too long and risk getting caught by Filch. You must adapt your binary search logic to handle the rotation and find the room in logarithmic time.`,
 
-Prior to being passed to your function, \`nums\` is **possibly rotated** at an unknown pivot index \`k\` ($1 \le k < nums.length$) such that the resulting array is \`[nums[k], nums[k+1], ..., nums[n-1], nums, nums, ..., nums[k-1]]\`.
+  // ---- Technical Layer ----
+  description: `You are given an integer array 'nums' sorted in ascending order with distinct values, which has been possibly rotated at an unknown pivot. Your task is to find the index of a given 'target'. If the target is not in the array, return -1. Your algorithm must run in O(log n) time.
 
-For example, \`\` might be rotated at pivot index 3 and become \`\`.
+This requires a modified binary search. In each step, you determine which half of the current search space (from 'left' to 'mid' or 'mid' to 'right') is sorted. You can do this by comparing 'nums[left]' and 'nums[mid]'. Once you've identified the sorted half, you check if the target lies within its range. If it does, you search in that half; otherwise, you search in the other, unsorted half.
 
-Given the array \`nums\` **after** the rotation and an integer \`target\`, return the index of \`target\` if it is in \`nums\`, or \`-1\` if it is not in \`nums\`.
-
-### Task
-You must write an algorithm with $O(\log n)$ runtime complexity.
-1. Use **Binary Search**. 
-2. In every step, one half (either \`left\` to \`mid\` or \`mid\` to \`right\`) **must** be sorted.
-3. Identify which half is sorted:
-   - If \`nums[left] <= nums[mid]\`, the left side is sorted.
-   - Otherwise, the right side is sorted.
-4. Check if the \`target\` lies within the sorted half's range. If it does, drop the other half. If not, the target must be in the "unsorted" (rotated) half.
-
-### Example
-**Input:**
-\`\`\`
-7
-4 5 6 7 0 1 2
-0
-\`\`\`
-
-**Output:**
-\`\`\`
-4
-\`\`\`
-
-**Explanation:**
-The target 0 is found at index 4.`,
-
+Return the index of the target if it is found, otherwise return -1.`,
   examples: [
     {
       input: '7\n4 5 6 7 0 1 2\n0',
       output: '4',
-      explanation: 'Target 0 is at index 4.'
+      explanation: 'The array was rotated. The target 0 is found at index 4.'
     },
     {
       input: '7\n4 5 6 7 0 1 2\n3',
       output: '-1',
-      explanation: 'Target 3 is not in the array.'
+      explanation: 'The target 3 is not present in the rotated array.'
+    },
+    {
+      input: '1\n1\n0',
+      output: '-1',
+      explanation: 'A single element array does not contain the target.'
     }
   ],
-
   constraints: [
-    '1 ≤ n ≤ 5000',
-    '-10⁴ ≤ nums[i], target ≤ 10⁴',
+    '1 <= nums.length <= 5000',
+    '-10^4 <= nums[i] <= 10^4',
     'All values of nums are unique.',
-    'nums is an ascending array that has been possibly rotated.'
+    'nums is an ascending array that is possibly rotated.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 
 using namespace std;
 
-/**
- * Searches for target in a rotated sorted array.
- */
 int solve(int n, vector<int>& nums, int target) {
     int left = 0, right = n - 1;
     // Your code here
@@ -101,12 +82,10 @@ int main() {
     cout << solve(n, nums, target) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Searches for target in a rotated sorted array.
-     */
     public static int solve(int n, int[] nums, int target) {
         int left = 0, right = n - 1;
         // Your code here
@@ -127,16 +106,68 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '7\n4 5 6 7 0 1 2\n0', expected: '4' },
     { input: '7\n4 5 6 7 0 1 2\n3', expected: '-1' },
     { input: '1\n1\n0', expected: '-1' },
     { input: '1\n1\n1', expected: '0' },
     { input: '2\n3 1\n1', expected: '1' },
-    { input: '2\n3 1\n3', expected: '0' },
-    { input: '5\n1 3 5 7 9\n3', expected: '1' },
-    { input: '6\n5 6 7 8 1 2\n8', expected: '3' },
-    { input: '4\n2 4 5 6\n4', expected: '1' },
-    { input: '8\n4 5 6 7 8 1 2 3\n1', expected: '5' }
-  ]
+    { input: '2\n1 3\n1', expected: '0' },
+    { input: '5\n1 2 3 4 5\n4', expected: '3' },
+    { input: '5\n3 4 5 1 2\n1', expected: '3' },
+    { input: '5\n5 1 2 3 4\n1', expected: '1' },
+    { input: '3\n5 1 3\n5', expected: '0' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The core of the solution is a modified binary search. In each iteration, calculate 'mid'. Check if the left half (from 'left' to 'mid') is sorted by comparing nums[left] and nums[mid]. If it is, check if the target falls within this sorted range. If it does, search this half (right = mid - 1). Otherwise, search the other half (left = mid + 1). If the left half is not sorted, then the right half must be. Check if the target falls within the right half's range and adjust the pointers accordingly. Repeat until the target is found or the pointers cross.`,
+    cpp: `while (left <= right) {
+    int mid = left + (right - left) / 2;
+    if (nums[mid] == target) {
+        return mid;
+    }
+    // Check if left half is sorted
+    if (nums[left] <= nums[mid]) {
+        if (target >= nums[left] && target < nums[mid]) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    } 
+    // Otherwise, right half must be sorted
+    else {
+        if (target > nums[mid] && target <= nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+}
+return -1;`,
+    java: `while (left <= right) {
+    int mid = left + (right - left) / 2;
+    if (nums[mid] == target) {
+        return mid;
+    }
+    // Check if left half is sorted
+    if (nums[left] <= nums[mid]) {
+        if (target >= nums[left] && target < nums[mid]) {
+            right = mid - 1;
+        } else {
+            left = mid + 1;
+        }
+    } 
+    // Otherwise, right half must be sorted
+    else {
+        if (target > nums[mid] && target <= nums[right]) {
+            left = mid + 1;
+        } else {
+            right = mid - 1;
+        }
+    }
+}
+return -1;`
+  }
 };

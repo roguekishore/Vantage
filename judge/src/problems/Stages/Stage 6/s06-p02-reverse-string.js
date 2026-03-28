@@ -9,6 +9,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'reverse-string',
   conquestId: 'stage6-2',
   title: 'Reverse String',
@@ -16,56 +17,46 @@ module.exports = {
   category: 'String Fundamentals',
   tags: ['String', 'Two Pointers'],
 
-  description: `Write a function that reverses a string. 
+  // ---- Story Layer ----
+  storyBriefing: `Seamus Finnigan accidentally casts a jumbling jinx on a simple 'Lumos' incantation, writing it backwards on the blackboard. To help him fix it before Professor Flitwick notices, you need to quickly reverse the string of the incantation back to its correct form.`,
 
-### Task
-Implement an $O(n)$ solution. While many languages have built-in reverse functions, the goal here is to understand the **Two Pointer** swap logic:
-1. Initialize \`left = 0\` and \`right = n - 1\`.
-2. Swap the characters at \`left\` and \`right\`.
-3. Increment \`left\` and decrement \`right\` until they meet in the middle.
+  // ---- Technical Layer ----
+  description: `You are given a string 's'. Your task is to write a function that reverses the string in-place. You should not allocate extra space for another array; modify the input array directly.
 
-### Example
-**Input:**
-\`\`\`
-hello
-\`\`\`
+The standard way to solve this is with a two-pointer approach. Place one pointer at the start of the string (left) and another at the end (right). Swap the characters at these pointers, then move the left pointer forward and the right pointer backward. Continue this process until the pointers meet or cross in the middle of the string.
 
-**Output:**
-\`\`\`
-olleh
-\`\`\`
-
-**Explanation:**
-The characters are reversed in order.`,
-
+Modify the string in-place. The judge will print the resulting reversed string.`,
   examples: [
     {
       input: 'hello',
       output: 'olleh',
-      explanation: 'h-e-l-l-o becomes o-l-l-e-h.'
+      explanation: 'The characters are swapped from the ends inward: h/o -> o/h, e/l -> l/e. The middle l stays.'
     },
     {
       input: 'Hannah',
       output: 'hannaH',
-      explanation: 'Capitalization is preserved in its new position.'
+      explanation: 'The case of the characters is preserved. H/h swap, a/n swap, n/n swap.'
+    },
+    {
+      input: 'a',
+      output: 'a',
+      explanation: 'A single character string is its own reverse.'
     }
   ],
-
   constraints: [
-    '1 ≤ s.length ≤ 10⁵',
+    '1 <= s.length <= 10^5',
     's consists of printable ASCII characters.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <string>
 #include <algorithm>
 
 using namespace std;
 
-/**
- * Returns the reversed string.
- */
 string solve(string s) {
     // Your code here
     
@@ -81,12 +72,10 @@ int main() {
     cout << solve(s) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the reversed string.
-     */
     public static String solve(String s) {
         char[] chars = s.toCharArray();
         // Your code here
@@ -104,16 +93,38 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: 'hello', expected: 'olleh' },
     { input: 'Hannah', expected: 'hannaH' },
     { input: 'a', expected: 'a' },
-    { input: 'abcd', expected: 'dcba' },
+    { input: 'ab', expected: 'ba' },
+    { input: 'abc', expected: 'cba' },
     { input: '12345', expected: '54321' },
-    { input: '!@#$', expected: '$#@!' },
     { input: 'racecar', expected: 'racecar' },
-    { input: 'Google', expected: 'elgooG' },
+    { input: 'abcdef', expected: 'fedcba' },
     { input: 'A', expected: 'A' },
-    { input: 'Space', expected: 'ecapS' }
-  ]
+    { input: 'string', expected: 'gnirts' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The problem is solved by using two pointers, 'left' starting at the beginning of the string and 'right' at the end. In a loop that continues as long as 'left' is less than 'right', swap the characters at the 'left' and 'right' indices. After the swap, increment 'left' and decrement 'right' to move the pointers closer to the center. This process effectively reverses the string in-place.`,
+    cpp: `int left = 0, right = s.length() - 1;
+while (left < right) {
+    swap(s[left], s[right]);
+    left++;
+    right--;
+}
+return s;`,
+    java: `int left = 0, right = chars.length - 1;
+while (left < right) {
+    char temp = chars[left];
+    chars[left] = chars[right];
+    chars[right] = temp;
+    left++;
+    right--;
+}
+return new String(chars);`
+  }
 };

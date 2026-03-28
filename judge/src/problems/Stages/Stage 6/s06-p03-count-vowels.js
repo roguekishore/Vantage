@@ -9,6 +9,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'count-vowels',
   conquestId: 'stage6-3',
   title: 'Count Vowels',
@@ -16,64 +17,46 @@ module.exports = {
   category: 'String Fundamentals',
   tags: ['String', 'Iteration'],
 
-  description: `Given a string \`s\`, count and return the total number of vowels present in it.
+  // ---- Story Layer ----
+  storyBriefing: `Professor Flitwick moves on to the importance of pronunciation. He explains that the power of many spells lies in their vowel sounds. To demonstrate, he gives you a long, complex incantation from a textbook and asks you to count the total number of vowels ('a', 'e', 'i', 'o', 'u') it contains, treating both uppercase and lowercase as the same.`,
 
-Vowels are the characters \`a\`, \`e\`, \`i\`, \`o\`, and \`u\`. The check should be **case-insensitive**, meaning both lowercase and uppercase vowels should be counted.
+  // ---- Technical Layer ----
+  description: `You are given a string 's'. Your task is to count the total number of vowels within the string. For this problem, the vowels are 'a', 'e', 'i', 'o', 'u', and the check should be case-insensitive, meaning 'A', 'E', 'I', 'O', 'U' should also be counted.
 
-### Task
-Implement a simple linear scan $O(n)$ solution.
-1. Initialize a counter to zero.
-2. Iterate through each character of the string.
-3. Check if the character (converted to lowercase) is one of 'a', 'e', 'i', 'o', or 'u'.
-4. Increment the counter for every match.
+The approach for this problem is a simple linear scan of the string. Iterate through each character of the input string. For each character, convert it to lowercase and check if it is one of the five vowels. If it is, increment a counter.
 
-### Example
-**Input:**
-\`\`\`
-Hello World
-\`\`\`
-
-**Output:**
-\`\`\`
-3
-\`\`\`
-
-**Explanation:**
-The vowels are 'e', 'o', and 'o'.`,
-
+Return a single integer representing the total count of vowels found in the string.`,
   examples: [
     {
       input: 'Hello World',
       output: '3',
-      explanation: 'e, o, o are the vowels.'
+      explanation: 'The vowels are e, o, o. The total count is 3.'
     },
     {
-      input: 'AEIOU',
-      output: '5',
-      explanation: 'All characters are uppercase vowels.'
+      input: 'AEIOUaeiou',
+      output: '10',
+      explanation: 'All ten characters are vowels (five uppercase, five lowercase).'
     },
     {
-      input: 'bcdfg',
+      input: 'rhythm',
       output: '0',
-      explanation: 'No vowels present.'
+      explanation: 'There are no vowels in this string.'
     }
   ],
-
   constraints: [
-    '0 ≤ s.length ≤ 10⁵',
+    '0 <= s.length <= 10^5',
     's consists of English letters, spaces, and punctuation.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <string>
 #include <cctype>
 
 using namespace std;
 
-/**
- * Returns the count of vowels in the string.
- */
 int solve(string s) {
     int count = 0;
     // Your code here
@@ -90,12 +73,10 @@ int main() {
     cout << solve(s) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Returns the count of vowels in the string.
-     */
     public static int solve(String s) {
         int count = 0;
         // Your code here
@@ -112,16 +93,36 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: 'Hello World', expected: '3' },
     { input: 'AEIOU', expected: '5' },
-    { input: 'bcdfg', expected: '0' },
-    { input: 'Education', expected: '5' },
-    { input: 'Why?', expected: '0' },
+    { input: 'rhythm', expected: '0' },
     { input: 'The quick brown fox jumps over the lazy dog', expected: '11' },
-    { input: '1234567890', expected: '0' },
-    { input: 'a e i o u', expected: '5' },
-    { input: 'AaaaA', expected: '5' },
-    { input: '', expected: '0' }
-  ]
+    { input: '12345', expected: '0' },
+    { input: '', expected: '0' },
+    { input: 'a', expected: '1' },
+    { input: 'b', expected: '0' },
+    { input: 'programming is fun', expected: '5' },
+    { input: 'UPPERCASE', expected: '4' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The solution involves iterating through each character of the input string. For each character, convert it to lowercase to handle case-insensitivity. Then, check if the lowercase character is 'a', 'e', 'i', 'o', or 'u'. A counter, initialized to zero, is incremented for each vowel found. After checking all characters, the final count is returned.`,
+    cpp: `for (char c : s) {
+    char lower_c = tolower(c);
+    if (lower_c == 'a' || lower_c == 'e' || lower_c == 'i' || lower_c == 'o' || lower_c == 'u') {
+        count++;
+    }
+}
+return count;`,
+    java: `for (char c : s.toCharArray()) {
+    char lowerC = Character.toLowerCase(c);
+    if (lowerC == 'a' || lowerC == 'e' || lowerC == 'i' || lowerC == 'o' || lowerC == 'u') {
+        count++;
+    }
+}
+return count;`
+  }
 };

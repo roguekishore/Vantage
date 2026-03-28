@@ -12,6 +12,7 @@
  */
 
 module.exports = {
+  // ---- Identity ----
   id: 'string-compression',
   conquestId: 'stage7-2',
   title: 'String Compression',
@@ -19,71 +20,46 @@ module.exports = {
   category: 'Advanced Strings',
   tags: ['String', 'Two Pointers'],
 
-  description: `Given an array of characters \`chars\`, compress it using the following algorithm:
+  // ---- Story Layer ----
+  storyBriefing: `To save space on the library's magical archiving shelves, Madam Pince needs you to compress the text of long spell scrolls. She explains a method where consecutive repeating characters are replaced by the character itself, followed by its count. For example, 'aaaa' becomes 'a4'. Your task is to apply this compression to a given array of characters in-place and report the new, shorter length of the text.`,
 
-Begin with an empty string \`s\`. For each group of **consecutive repeating characters** in \`chars\`:
-1. If the group's length is 1, append the character to \`s\`.
-2. Otherwise, append the character followed by the group's length.
+  // ---- Technical Layer ----
+  description: `You are given an array of characters 'chars'. Your task is to compress it in-place. For each group of consecutive repeating characters, if the group's length is 1, append the character. Otherwise, append the character followed by the group's length as a sequence of digits.
 
-The compressed string \`s\` **should not be returned separately**, but instead, be stored **in the input character array \`chars\`**. Note that group lengths that are 10 or longer will be split into multiple characters in \`chars\`.
+This problem should be solved in O(n) time and O(1) extra space. Use a 'read' pointer to iterate through the input array and a 'write' pointer to keep track of the position in the modified part of the array. For each group of identical characters, count them, then write the character and its count (if greater than 1) to the 'write' position.
 
-After you are done modifying the input array, return the new length of the array.
-
-### Task
-Implement an $O(n)$ in-place solution using **Two Pointers**:
-1. Use one pointer (\`read\`) to iterate through the source array and another (\`write\`) to modify it.
-2. For each new character, count how many times it repeats.
-3. Write the character to \`chars[write]\`.
-4. If the count > 1, convert the count to a string and write each digit to the following indices.
-
-### Example
-**Input:**
-\`\`\`
-7
-a a b b c c c
-\`\`\`
-
-**Output:**
-\`\`\`
-6
-\`\`\`
-
-**Explanation:**
-The groups are "aa", "bb", and "ccc". This compresses to "a2b2c3". The length is 6.`,
-
+After modifying the input array in-place, return the new length of the compressed array.`,
   examples: [
     {
       input: '7\na a b b c c c',
       output: '6',
-      explanation: 'Compressed: ["a","2","b","2","c","3"]'
+      explanation: 'The groups are "aa", "bb", and "ccc". This compresses to "a2b2c3". The modified array begins with these 6 characters.'
     },
     {
       input: '1\na',
       output: '1',
-      explanation: 'Compressed: ["a"]'
+      explanation: 'The group "a" has length 1, so it remains "a". The length is 1.'
     },
     {
       input: '13\na b b b b b b b b b b b b',
       output: '4',
-      explanation: 'Compressed: ["a","b","1","2"]'
+      explanation: 'The groups are "a" and "bbbbbbbbbbbb" (12 \'b\'s). This compresses to "ab12". The length is 4.'
     }
   ],
-
   constraints: [
-    '1 ≤ chars.length ≤ 2000',
-    'chars[i] is a lowercase English letter, uppercase letter, digit, or symbol.'
+    '1 <= chars.length <= 2000',
+    'chars[i] is a lowercase English letter, uppercase English letter, digit, or symbol.'
   ],
 
+  // ---- Boilerplate ----
   boilerplate: {
-    cpp: `#include <iostream>
+    cpp: `// Do not change this function's name and signature.
+#include <iostream>
 #include <vector>
 #include <string>
 
 using namespace std;
 
-/**
- * Modifies the array in-place and returns the new length.
- */
 int solve(int n, vector<char>& chars) {
     if (n == 0) return 0;
     // Your code here
@@ -102,12 +78,10 @@ int main() {
     cout << solve(n, chars) << endl;
     return 0;
 }`,
-    java: `import java.util.Scanner;
+    java: `// Do not change this function's name and signature.
+import java.util.Scanner;
 
 public class Main {
-    /**
-     * Modifies the array in-place and returns the new length.
-     */
     public static int solve(int n, char[] chars) {
         if (n == 0) return 0;
         // Your code here
@@ -127,16 +101,56 @@ public class Main {
 }`
   },
 
+  // ---- Test Cases ----
   testCases: [
     { input: '7\na a b b c c c', expected: '6' },
     { input: '1\na', expected: '1' },
     { input: '13\na b b b b b b b b b b b b', expected: '4' },
-    { input: '6\na a a a a a', expected: '2' },
+    { input: '6\na a a b b b', expected: '4' },
+    { input: '1\n#', expected: '1' },
+    { input: '10\na a a a a a a a a a', expected: '3' },
     { input: '4\na b c d', expected: '4' },
-    { input: '2\na a', expected: '2' },
-    { input: '10\nz z z z z z z z z z', expected: '3' },
-    { input: '3\n# # #', expected: '2' },
-    { input: '5\n1 1 2 2 2', expected: '4' },
-    { input: '11\na a b b b c c c c d d', expected: '8' }
-  ]
+    { input: '5\na b b c c', expected: '5' },
+    { input: '2\n1 1', expected: '2' },
+    { input: '3\\na b b', expected: '3' }
+  ],
+
+  // ---- Solution ----
+  solution: {
+    approach: `The in-place compression is achieved using a read pointer 'i' and a write pointer 'write_idx'. Iterate 'i' through the array to identify groups of consecutive characters. For each group starting at 'i', find its end 'j' and count its length. Write the character at 'i' to 'write_idx' and increment 'write_idx'. If the group length is greater than 1, convert the length to a string. Then, write each digit of the length string to the subsequent positions starting from 'write_idx'. Finally, move 'i' to 'j' to start processing the next group. The final value of 'write_idx' is the compressed length.`,
+    cpp: `int write_idx = 0;
+int i = 0;
+while (i < n) {
+    int j = i;
+    while (j < n && chars[j] == chars[i]) {
+        j++;
+    }
+    chars[write_idx++] = chars[i];
+    if (j - i > 1) {
+        string count = to_string(j - i);
+        for (char c : count) {
+            chars[write_idx++] = c;
+        }
+    }
+    i = j;
+}
+return write_idx;`,
+    java: `int writeIdx = 0;
+int i = 0;
+while (i < n) {
+    int j = i;
+    while (j < n && chars[j] == chars[i]) {
+        j++;
+    }
+    chars[writeIdx++] = chars[i];
+    if (j - i > 1) {
+        String count = Integer.toString(j - i);
+        for (char c : count.toCharArray()) {
+            chars[writeIdx++] = c;
+        }
+    }
+    i = j;
+}
+return writeIdx;`
+  }
 };

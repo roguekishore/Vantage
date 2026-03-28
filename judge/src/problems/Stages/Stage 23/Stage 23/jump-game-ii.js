@@ -13,11 +13,15 @@
 module.exports = {
   id: 'jump-game-ii',
   conquestId: 'stage23-7',
-  title: 'Jump Game II',
+  title: "The Third Task: The Maze",
   difficulty: 'Medium',
   category: 'Greedy',
   tags: ['Array', 'Greedy', 'Dynamic Programming'],
+  storyBriefing: `
+Welcome to the final task! You are at the entrance of a magical maze. The maze is a straight line of enchanted tiles. Each tile you land on tells you the maximum number of tiles you can jump forward.
 
+Your goal is to reach the Triwizard Cup at the end of the maze using the minimum number of jumps. You are guaranteed that a path to the cup exists.
+`,
   description: `
 You are given a **0-indexed array nums** of length **n**.
 
@@ -68,14 +72,26 @@ Space Complexity: **O(1)**
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
 using namespace std;
 
 class Solution {
 public:
     int jump(vector<int>& nums) {
-        // TODO: Implement greedy solution
-        return 0;
+        int jumps = 0;
+        int current_end = 0;
+        int farthest = 0;
+        for (int i = 0; i < nums.size() - 1; i++) {
+            farthest = max(farthest, i + nums[i]);
+            if (i == current_end) {
+                jumps++;
+                current_end = farthest;
+            }
+        }
+        return jumps;
     }
 };
 
@@ -92,32 +108,109 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
 
     static class Solution {
         public int jump(int[] nums) {
-            // TODO: Implement greedy solution
-            return 0;
+            int jumps = 0;
+            int current_end = 0;
+            int farthest = 0;
+            for (int i = 0; i < nums.length - 1; i++) {
+                farthest = Math.max(farthest, i + nums[i]);
+                if (i == current_end) {
+                    jumps++;
+                    current_end = farthest;
+                }
+            }
+            return jumps;
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
-        int[] nums = new int[n];
 
-        for (int i = 0; i < n; i++)
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
             nums[i] = sc.nextInt();
+        }
 
         Solution sol = new Solution();
         System.out.print(sol.jump(nums));
+    }
+}`
+  },
 
-        sc.close();
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
+
+class Solution {
+public:
+    int jump(vector<int>& nums) {
+        int jumps = 0;
+        int current_end = 0;
+        int farthest = 0;
+        for (int i = 0; i < nums.size() - 1; i++) {
+            farthest = max(farthest, i + nums[i]);
+            if (i == current_end) {
+                jumps++;
+                current_end = farthest;
+            }
+        }
+        return jumps;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<int> nums(n);
+    for (int i = 0; i < n; i++)
+        cin >> nums[i];
+
+    Solution sol;
+    cout << sol.jump(nums);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+
+    static class Solution {
+        public int jump(int[] nums) {
+            int jumps = 0;
+            int current_end = 0;
+            int farthest = 0;
+            for (int i = 0; i < nums.length - 1; i++) {
+                farthest = Math.max(farthest, i + nums[i]);
+                if (i == current_end) {
+                    jumps++;
+                    current_end = farthest;
+                }
+            }
+            return jumps;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[] nums = new int[n];
+        for (int i = 0; i < n; i++) {
+            nums[i] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.jump(nums));
     }
 }`
   },

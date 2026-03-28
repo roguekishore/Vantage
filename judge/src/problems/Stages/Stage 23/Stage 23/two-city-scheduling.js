@@ -14,11 +14,15 @@
 module.exports = {
   id: 'two-city-scheduling',
   conquestId: 'stage23-4',
-  title: 'Two City Scheduling',
+  title: "International Cooperation: Portkey Travel",
   difficulty: 'Medium',
   category: 'Greedy',
   tags: ['Greedy', 'Sorting', 'Array'],
+  storyBriefing: `
+For the Triwizard Tournament, students from Beauxbatons and Durmstrang are arriving. You are in charge of coordinating their travel via Portkeys. There are two destinations: Hogwarts (City A) and a nearby village (City B).
 
+You have the costs to send each student to either city. To maintain balance, exactly half of the students must go to Hogwarts and the other half to the village. Your job is to minimize the total travel cost.
+`,
   description: `
 There are **2n people** planning to fly to **two cities: A and B**.
 
@@ -68,14 +72,29 @@ Space Complexity: **O(1)** (excluding sorting)
   ],
 
   boilerplate: {
-    cpp: `#include <bits/stdc++.h>
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+
 using namespace std;
 
 class Solution {
 public:
     int twoCitySchedCost(vector<vector<int>>& costs) {
-        // TODO: Implement greedy solution
-        return 0;
+        sort(costs.begin(), costs.end(), [](const vector<int>& a, const vector<int>& b) {
+            return (a[0] - a[1]) < (b[0] - b[1]);
+        });
+
+        int total_cost = 0;
+        int n = costs.size() / 2;
+        for (int i = 0; i < n; ++i) {
+            total_cost += costs[i][0];
+        }
+        for (int i = n; i < 2 * n; ++i) {
+            total_cost += costs[i][1];
+        }
+        return total_cost;
     }
 };
 
@@ -94,25 +113,30 @@ int main() {
 
     return 0;
 }`,
-
     java: `import java.util.*;
 
 public class Main {
-
     static class Solution {
         public int twoCitySchedCost(int[][] costs) {
-            // TODO: Implement greedy solution
-            return 0;
+            Arrays.sort(costs, (a, b) -> (a[0] - a[1]) - (b[0] - b[1]));
+            
+            int totalCost = 0;
+            int n = costs.length / 2;
+            for (int i = 0; i < n; i++) {
+                totalCost += costs[i][0];
+            }
+            for (int i = n; i < 2 * n; i++) {
+                totalCost += costs[i][1];
+            }
+            return totalCost;
         }
     }
 
     public static void main(String[] args) {
-
         Scanner sc = new Scanner(System.in);
-
         int n = sc.nextInt();
-        int[][] costs = new int[n][2];
 
+        int[][] costs = new int[n][2];
         for (int i = 0; i < n; i++) {
             costs[i][0] = sc.nextInt();
             costs[i][1] = sc.nextInt();
@@ -120,10 +144,85 @@ public class Main {
 
         Solution sol = new Solution();
         System.out.print(sol.twoCitySchedCost(costs));
-
-        sc.close();
     }
-}`
+}`,
+  },
+
+  solution: {
+    cpp: `#include <iostream>
+#include <vector>
+#include <algorithm>
+#include <numeric>
+
+using namespace std;
+
+class Solution {
+public:
+    int twoCitySchedCost(vector<vector<int>>& costs) {
+        sort(costs.begin(), costs.end(), [](const vector<int>& a, const vector<int>& b) {
+            return (a[0] - a[1]) < (b[0] - b[1]);
+        });
+
+        int total_cost = 0;
+        int n = costs.size() / 2;
+        for (int i = 0; i < n; ++i) {
+            total_cost += costs[i][0];
+        }
+        for (int i = n; i < 2 * n; ++i) {
+            total_cost += costs[i][1];
+        }
+        return total_cost;
+    }
+};
+
+int main() {
+    int n;
+    cin >> n;
+
+    vector<vector<int>> costs(n, vector<int>(2));
+
+    for (int i = 0; i < n; i++) {
+        cin >> costs[i][0] >> costs[i][1];
+    }
+
+    Solution sol;
+    cout << sol.twoCitySchedCost(costs);
+
+    return 0;
+}`,
+    java: `import java.util.*;
+
+public class Main {
+    static class Solution {
+        public int twoCitySchedCost(int[][] costs) {
+            Arrays.sort(costs, (a, b) -> (a[0] - a[1]) - (b[0] - b[1]));
+            
+            int totalCost = 0;
+            int n = costs.length / 2;
+            for (int i = 0; i < n; i++) {
+                totalCost += costs[i][0];
+            }
+            for (int i = n; i < 2 * n; i++) {
+                totalCost += costs[i][1];
+            }
+            return totalCost;
+        }
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        int n = sc.nextInt();
+
+        int[][] costs = new int[n][2];
+        for (int i = 0; i < n; i++) {
+            costs[i][0] = sc.nextInt();
+            costs[i][1] = sc.nextInt();
+        }
+
+        Solution sol = new Solution();
+        System.out.print(sol.twoCitySchedCost(costs));
+    }
+}`,
   },
 
   testCases: [
