@@ -594,6 +594,7 @@ public class BattleService {
         me.setTotalSubmissions(me.getTotalSubmissions() + 1);
 
         boolean allSolved = false;
+        boolean shouldCompleteGroupBattle = false;
         if (judgeResult.verdict() == Verdict.ACCEPTED) {
             me.setProblemsSolved(me.getProblemsSolved() + 1);
             // Add solve time (ms from battle start)
@@ -603,6 +604,9 @@ public class BattleService {
             if (battle.getMode() == BattleMode.GROUP_FFA) {
                 int ffaPoints = calculateFfaPoints(battle, battleId, userId, problemIndex, elapsed);
                 me.setGroupScore(me.getGroupScore() + ffaPoints);
+                if (me.getProblemsSolved() >= battle.getProblemCount()) {
+                    allSolved = true;
+                }
                 log.info("FFA: user {} solved problem {} for {} points (total={})",
                         userId, problemIndex, ffaPoints, me.getGroupScore());
             } else {
@@ -620,24 +624,40 @@ public class BattleService {
 
         participantRepo.saveAndFlush(me);
 
-        // ── WebSocket: broadcast updated state to participants ──
-        try {
-            List<BattleParticipant> allParticipants = participantRepo.findByBattleId(battleId);
-            if (battle.getMode() == BattleMode.GROUP_FFA) {
-                // Broadcast group scoreboard to each player
-                for (BattleParticipant p : allParticipants) {
-                    GroupBattleStateDTO stateDTO = getGroupBattleState(battleId, p.getUserId());
-                    broadcastSafe("/topic/battle/" + battleId + "/group-state/" + p.getUserId(), stateDTO);
-                }
-            } else {
-                // Broadcast 1v1 state to each player
-                for (BattleParticipant p : allParticipants) {
-                    BattleStateDTO stateDTO = getBattleState(battleId, p.getUserId());
-                    broadcastSafe("/topic/battle/" + battleId + "/state/" + p.getUserId(), stateDTO);
-                }
+        if (battle.getMode() == BattleMode.GROUP_FFA) {
+            List<BattleParticipant> activeParticipants = participantRepo.findByBattleId(battleId).stream()
+                    .filter(p -> !p.isForfeited())
+                    .toList();
+
+            shouldCompleteGroupBattle = !activeParticipants.isEmpty()
+                    && activeParticipants.stream().allMatch(p -> p.getProblemsSolved() >= battle.getProblemCount());
+
+            if (shouldCompleteGroupBattle) {
+                incrementMetric("battle.complete.trigger", "reason", "all_players_finished", "mode", battle.getMode().name());
+                completeGroupBattle(battleId);
             }
-        } catch (Exception e) {
-            log.warn("WebSocket broadcast failed after submission: {}", e.getMessage());
+        }
+
+        // ── WebSocket: broadcast updated state to participants ──
+        if (!shouldCompleteGroupBattle) {
+            try {
+                List<BattleParticipant> allParticipants = participantRepo.findByBattleId(battleId);
+                if (battle.getMode() == BattleMode.GROUP_FFA) {
+                    // Broadcast group scoreboard to each player
+                    for (BattleParticipant p : allParticipants) {
+                        GroupBattleStateDTO stateDTO = getGroupBattleState(battleId, p.getUserId());
+                        broadcastSafe("/topic/battle/" + battleId + "/group-state/" + p.getUserId(), stateDTO);
+                    }
+                } else {
+                    // Broadcast 1v1 state to each player
+                    for (BattleParticipant p : allParticipants) {
+                        BattleStateDTO stateDTO = getBattleState(battleId, p.getUserId());
+                        broadcastSafe("/topic/battle/" + battleId + "/state/" + p.getUserId(), stateDTO);
+                    }
+                }
+            } catch (Exception e) {
+                log.warn("WebSocket broadcast failed after submission: {}", e.getMessage());
+            }
         }
 
         return new SubmitResultDTO(
@@ -1251,6 +1271,10 @@ public class BattleService {
         // The battle keeps running for other players.
         if (battle.getMode() == BattleMode.GROUP_FFA) {
             BattleParticipant me = participantRepo.findByBattleIdAndUserId(battleId, userId).orElse(null);
+            if (me != null && me.getProblemsSolved() >= battle.getProblemCount()) {
+                log.info("🏟️ User {} left group battle {} after finishing all problems", userId, battleId);
+                return;
+            }
             if (me != null && !me.isForfeited()) {
                 forfeit(battleId, userId);
             }

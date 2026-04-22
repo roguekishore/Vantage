@@ -70,9 +70,18 @@ export async function authFetch(url, options = {}) {
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
-  return fetch(url, {
+  const res = await fetch(url, {
     ...options,
     headers,
     credentials: options.credentials ?? "include",
   });
+
+  if (res.status === 401) {
+    const state = useUserStore.getState();
+    if (typeof state?.forceLogout === "function") {
+      state.forceLogout("Your session expired. Please log in again.");
+    }
+  }
+
+  return res;
 }
