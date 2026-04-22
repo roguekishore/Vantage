@@ -702,9 +702,9 @@ export default function ProblemsTable({
       }}
     >
       <CustomCursor />
-      <BgCanvas />
+      {/* <BgCanvas /> */}
 
-      {/* Masked algorithm animation background */}
+      {/* Masked algorithm animation background
       <div
         style={{
           position: "fixed",
@@ -762,7 +762,7 @@ export default function ProblemsTable({
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
 
       {/* Atmosphere */}
       <div style={{
