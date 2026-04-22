@@ -42,6 +42,22 @@ function sanitizeUserForStorage(user) {
   return user;
 }
 
+function broadcastLogoutSignals() {
+  try {
+    window.postMessage({ type: "VANTAGE_LOGOUT" }, "*");
+  } catch { /* SSR / non-browser */ }
+}
+
+function emitAuthExpired(message = "Session expired. Please log in again.") {
+  try {
+    window.dispatchEvent(
+      new CustomEvent("vantage:auth-expired", {
+        detail: { message },
+      })
+    );
+  } catch { /* SSR / non-browser */ }
+}
+
 const useUserStore = create((set, get) => ({
   /** The logged-in user object, or null when logged out. */
   user: readStoredUser(),
@@ -56,6 +72,18 @@ const useUserStore = create((set, get) => ({
       localStorage.setItem("user", JSON.stringify(sanitizeUserForStorage(user)));
     } catch { /* storage full / private mode */ }
     set({ user });
+  },
+
+  /**
+   * Local-only session cleanup.
+   * Used for token expiry / unauthorized flows where we want immediate UI reset.
+   */
+  forceLogout: (reason = "Session expired. Please log in again.") => {
+    const hadUser = Boolean(get().user?.uid || readStoredUser()?.uid);
+    localStorage.removeItem("user");
+    set({ user: null });
+    broadcastLogoutSignals();
+    if (hadUser) emitAuthExpired(reason);
   },
 
   /**
@@ -77,10 +105,7 @@ const useUserStore = create((set, get) => ({
 
     localStorage.removeItem("user");
     set({ user: null });
-    // Notify the Chrome extension (content-script listens for this)
-    try {
-      window.postMessage({ type: 'VANTAGE_LOGOUT' }, '*');
-    } catch { /* SSR / non-browser */ }
+    broadcastLogoutSignals();
   },
 
   /**
@@ -114,19 +139,9 @@ const useUserStore = create((set, get) => ({
         headers,
       });
       if (!res.ok) {
-        // In cross-origin deployments, cookie-based /auth/me can 401 while
-        // Bearer token auth still works. Keep local session if token exists.
-        if (cachedToken && (get().user?.uid || existing?.uid)) {
-          return;
-        }
-
-        // No usable token fallback -> clear stale local auth state.
-        if (get().user?.uid || existing?.uid) {
-          localStorage.removeItem("user");
-          set({ user: null });
-          try {
-            window.postMessage({ type: "VANTAGE_LOGOUT" }, "*");
-          } catch { /* non-browser env */ }
+        // Auth is invalid -> clear stale local auth state immediately.
+        if (res.status === 401 || get().user?.uid || existing?.uid) {
+          get().forceLogout("Session expired. Please log in again.");
         }
         return;
       }

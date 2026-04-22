@@ -135,6 +135,21 @@ function AppContent() {
   // whenever the logged-in user changes.
   useAppInit();
 
+  useEffect(() => {
+    const onAuthExpired = (event) => {
+      const message = event?.detail?.message || "Session expired. Please log in again.";
+      if (location.pathname !== "/login" && location.pathname !== "/signup") {
+        navigate("/login", {
+          replace: true,
+          state: { authExpiredMessage: message },
+        });
+      }
+    };
+
+    window.addEventListener("vantage:auth-expired", onAuthExpired);
+    return () => window.removeEventListener("vantage:auth-expired", onAuthExpired);
+  }, [location.pathname, navigate]);
+
   const [scrollDirection, setScrollDirection] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
 
