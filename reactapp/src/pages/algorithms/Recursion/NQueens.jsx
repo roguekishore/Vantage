@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Crown, ChevronLeft, ChevronRight, RotateCcw, Play, Terminal } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, Play, Terminal } from "lucide-react";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
 import CustomCursor from "@/components/common/CustomCursor";
 
@@ -22,6 +22,28 @@ const C = {
   amber:    "#fbbf24",
   purple:   "#c4b5fd",
 };
+
+const QueenIcon = ({ size = 16, color = C.accent, glow = false, style }) => (
+  <span
+    aria-hidden="true"
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: size,
+      height: size,
+      fontSize: size,
+      lineHeight: 1,
+      color,
+      filter: glow
+        ? `drop-shadow(0 0 6px ${color})`
+        : `drop-shadow(0 0 4px rgba(237,255,102,0.5))`,
+      ...style,
+    }}
+  >
+    ♛
+  </span>
+);
 
 /* ─────────────────────────────────────────────────────────────
    ALGORITHM
@@ -195,11 +217,12 @@ function Board({ state }) {
                       position: "relative",
                     }}>
                       {hasQueen && (
-                        <Crown size={CELL * 0.52} style={{
-                          color: isSol ? C.accent : C.amber,
-                          filter: isSol ? `drop-shadow(0 0 6px ${C.accent})` : `drop-shadow(0 0 4px rgba(251,191,36,0.5))`,
-                          transition: "color 0.2s",
-                        }} />
+                        <QueenIcon
+                          size={CELL * 0.56}
+                          color={C.accent}
+                          glow={isSol}
+                          style={{ transition: "color 0.2s" }}
+                        />
                       )}
                       {/* Active col highlight dot */}
                       {r === activeRow && c === activeCol && !hasQueen && (
@@ -467,7 +490,7 @@ const NQueensVisualizer = () => {
       {!loaded ? (
         /* ── IDLE STATE ── */
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 0", gap: 16, textAlign: "center" }}>
-          <Crown size={36} style={{ color: C.accentDim }} />
+          <QueenIcon size={36} color={C.accent} glow />
           <div>
             <div style={{ fontFamily: T.fontFamily, fontWeight: 900, fontSize: 18, color: "rgba(255,255,255,0.15)", letterSpacing: "0.04em" }}>AWAITING INPUT</div>
             <div style={{ fontFamily: "monospace", fontSize: 11, color: C.dim, marginTop: 6 }}>
@@ -487,7 +510,7 @@ const NQueensVisualizer = () => {
           </Panel>
 
           {/* ── BOARD ── */}
-          <Panel title={`board · n=${state.board?.length ?? "?"}`} icon={Crown} accent={C.amber}
+          <Panel title={`board · n=${state.board?.length ?? "?"}`} icon={QueenIcon} accent={C.accent}
             style={{ padding: 0 }}>
             <div style={{ padding: "20px 16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
               <Board state={state} />
