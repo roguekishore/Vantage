@@ -1,52 +1,40 @@
-// Visualizer Design System - shadcn-styled Reusable Components
-// =============================================================
+/**
+ * Vantage Visualizer — Component Library
+ *
+ * Barrel export for all reusable visualizer components.
+ * Import everything from "@/components/visualizer"
+ *
+ * Usage:
+ *   import { VisualizerShell, VisualizerHeader, Panel, ControlBar, ... } from "@/components/visualizer";
+ *   import { V, MONO, MONUMENT, TOKEN_COLORS } from "@/components/visualizer";
+ */
 
-import VisualizerShell from './VisualizerShell';
-import ControlPanel from './ControlPanel';
-import CodeBlock from './CodeBlock';
-import ExplanationBox from './ExplanationBox';
-import ComplexityCard from './ComplexityCard';
-import StatsGrid from './StatsGrid';
-import ArrayBar from './ArrayBar';
-import GridBoard from './GridBoard';
-import TreeCanvas from './TreeCanvas';
-import GraphCanvas from './GraphCanvas';
-import LinkedListChain from './LinkedListChain';
-import StackColumn from './StackColumn';
-import QueueRow from './QueueRow';
-import DPTable from './DPTable';
-import HashMapView from './HashMapView';
-import SlidingWindowOverlay from './SlidingWindowOverlay';
-import ModeToggle from './ModeToggle';
-import LangTabs from './LangTabs';
-import ColorLegend from './ColorLegend';
-import InputBar from './InputBar';
-import StatusBanner from './StatusBanner';
-import CallStackView from './CallStackView';
-import BinaryView from './BinaryView';
+// ── Design tokens ──
+export { V, TOKEN_COLORS, MONO, MONUMENT, LABEL_STYLE, MONO_TEXT } from "./theme";
 
-export {
-  VisualizerShell,
-  ControlPanel,
-  CodeBlock,
-  ExplanationBox,
-  ComplexityCard,
-  StatsGrid,
-  ArrayBar,
-  GridBoard,
-  TreeCanvas,
-  GraphCanvas,
-  LinkedListChain,
-  StackColumn,
-  QueueRow,
-  DPTable,
-  HashMapView,
-  SlidingWindowOverlay,
-  ModeToggle,
-  LangTabs,
-  ColorLegend,
-  InputBar,
-  StatusBanner,
-  CallStackView,
-  BinaryView,
-};
+// ── Layout ──
+export { default as VisualizerShell } from "./VisualizerShell";
+export { default as VisualizerHeader } from "./VisualizerHeader";
+export { default as Panel } from "./Panel";
+export { default as Divider } from "./Divider";
+
+// ── Controls ──
+export { default as ControlBar } from "./ControlBar";
+export { default as ProgressBar } from "./ProgressBar";
+export { default as InputField } from "./InputField";
+
+// ── Code & Explanation ──
+export { default as CodePanel } from "./CodePanel";
+export { default as ExplanationLog } from "./ExplanationLog";
+
+// ── Data Display ──
+export { default as StatBlock } from "./StatBlock";
+export { default as InfoBlock } from "./InfoBlock";
+export { default as Legend } from "./Legend";
+export { default as ComplexityFooter } from "./ComplexityFooter";
+
+// ── Visualization Primitives ──
+export { default as ArrayBox } from "./ArrayBox";
+export { default as GraphNode } from "./GraphNode";
+export { default as TreeNode } from "./TreeNode";
+export { default as IdleState } from "./IdleState";

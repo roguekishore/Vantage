@@ -3,9 +3,9 @@ import { useParams, Link } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { fetchProblem, submitCode, runCode } from "../../services/judgeApi";
 import { getStoredUser } from "../../services/userApi";
-import { useTheme } from "../../components/theme-provider";
+import { useTheme } from "../../components/common/ThemeProvider";
 import useProgressStore, { getConquestIdByJudgeId } from "../../map/useProgressStore";
-import { ThemeToggle } from "../../components/theme-toggle";
+import { ThemeToggle } from "../../components/common/ThemeToggle";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
 import { ScrollArea } from "../../components/ui/scroll-area";
 import {
@@ -29,14 +29,14 @@ import VisualizerDrawer, { VisualizerToggleButton } from "./VisualizerDrawer";
 
 /* ── Constants ── */
 const LANGUAGES = [
-  { value: "cpp",  label: "C++",  monacoId: "cpp"  },
+  { value: "cpp", label: "C++", monacoId: "cpp" },
   { value: "java", label: "Java", monacoId: "java" },
 ];
 
 const DIFF_COLOR = {
-  Easy:   { text: "text-emerald-400", dot: "bg-emerald-500" },
-  Medium: { text: "text-amber-400",   dot: "bg-amber-500"   },
-  Hard:   { text: "text-rose-400",    dot: "bg-rose-500"    },
+  Easy: { text: "text-emerald-400", dot: "bg-emerald-500" },
+  Medium: { text: "text-amber-400", dot: "bg-amber-500" },
+  Hard: { text: "text-rose-400", dot: "bg-rose-500" },
 };
 
 const S = {
@@ -57,27 +57,27 @@ const S = {
    MAIN COMPONENT
    ════════════════════════════════════════════ */
 export default function JudgePage() {
-  const { problemId }       = useParams();
-  const { theme }           = useTheme();
-  const completeProblem     = useProgressStore(s => s.completeProblem);
+  const { problemId } = useParams();
+  const { theme } = useTheme();
+  const completeProblem = useProgressStore(s => s.completeProblem);
   const markProblemAttempted = useProgressStore(s => s.markProblemAttempted);
-  const user                = useMemo(() => getStoredUser(), []);
-  const isLoggedIn          = !!user?.uid;
+  const user = useMemo(() => getStoredUser(), []);
+  const isLoggedIn = !!user?.uid;
 
-  const [problem, setProblem]       = useState(null);
-  const [loading, setLoading]       = useState(true);
-  const [language, setLanguage]     = useState("cpp");
-  const [code, setCode]             = useState("");
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [language, setLanguage] = useState("cpp");
+  const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [running, setRunning]       = useState(false);
-  const [result, setResult]         = useState(null);
-  const [runResult, setRunResult]   = useState(null);
-  const [leftTab, setLeftTab]       = useState("description");
-  const [bottomTab, setBottomTab]   = useState("testcases");
-  const [copied, setCopied]         = useState(false);
+  const [running, setRunning] = useState(false);
+  const [result, setResult] = useState(null);
+  const [runResult, setRunResult] = useState(null);
+  const [leftTab, setLeftTab] = useState("description");
+  const [bottomTab, setBottomTab] = useState("testcases");
+  const [copied, setCopied] = useState(false);
   const [activeTestCase, setActiveTestCase] = useState(0);
-  const [vizOpen, setVizOpen]       = useState(false);
-  const [testCases, setTestCases]   = useState([]);
+  const [vizOpen, setVizOpen] = useState(false);
+  const [testCases, setTestCases] = useState([]);
   const editorRef = useRef(null);
 
   useEffect(() => {
@@ -87,8 +87,8 @@ export default function JudgePage() {
     }
   }, [problem]);
 
-  const customInput      = testCases[activeTestCase]?.input || "";
-  const sampleCount      = problem?.sampleTestCases?.length || 0;
+  const customInput = testCases[activeTestCase]?.input || "";
+  const sampleCount = problem?.sampleTestCases?.length || 0;
 
   const updateActiveInput = (value) =>
     setTestCases(prev => prev.map((tc, i) => i === activeTestCase ? { ...tc, input: value } : tc));
@@ -114,9 +114,9 @@ export default function JudgePage() {
   const testArray = useMemo(() => {
     const tc = testCases[activeTestCase];
     if (!tc?.input) return null;
-    const lines  = tc.input.trim().split("\n");
+    const lines = tc.input.trim().split("\n");
     const arrLine = lines.length > 1 ? lines[lines.length - 1] : lines[0];
-    const nums   = arrLine.trim().split(/\s+/).map(Number);
+    const nums = arrLine.trim().split(/\s+/).map(Number);
     return nums.length > 0 && nums.every(n => !isNaN(n)) ? nums : null;
   }, [testCases, activeTestCase]);
 
@@ -158,9 +158,9 @@ export default function JudgePage() {
     finally { setRunning(false); }
   };
 
-  const handleEditorMount  = (editor) => { editorRef.current = editor; editor.focus(); };
-  const handleResetCode    = () => { if (problem?.boilerplate?.[language]) setCode(problem.boilerplate[language]); };
-  const handleCopyCode     = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
+  const handleEditorMount = (editor) => { editorRef.current = editor; editor.focus(); };
+  const handleResetCode = () => { if (problem?.boilerplate?.[language]) setCode(problem.boilerplate[language]); };
+  const handleCopyCode = () => { navigator.clipboard.writeText(code); setCopied(true); setTimeout(() => setCopied(false), 2000); };
 
   /* ── Loading ── */
   if (loading) {
@@ -190,8 +190,8 @@ export default function JudgePage() {
     );
   }
 
-  const currentLang  = LANGUAGES.find(l => l.value === language);
-  const diffStyle    = DIFF_COLOR[problem.difficulty] || { text: "text-zinc-400", dot: "bg-zinc-500" };
+  const currentLang = LANGUAGES.find(l => l.value === language);
+  const diffStyle = DIFF_COLOR[problem.difficulty] || { text: "text-zinc-400", dot: "bg-zinc-500" };
 
   /* ════════════════════════════════════════════
      RENDER
@@ -824,17 +824,17 @@ export default function JudgePage() {
    ──────────────────────────────────────────── */
 
 const STATUS_MAP = {
-  Accepted:              { icon: CheckCircle2,  color: S.green, bg: "rgba(52,211,153,0.1)",   border: "rgba(52,211,153,0.22)" },
-  Success:               { icon: CheckCircle2,  color: S.green, bg: "rgba(52,211,153,0.1)",   border: "rgba(52,211,153,0.22)" },
-  "Wrong Answer":        { icon: XCircle,       color: S.red,   bg: "rgba(248,113,113,0.1)",  border: "rgba(248,113,113,0.2)"  },
-  "Compilation Error":   { icon: AlertTriangle, color: S.red,   bg: "rgba(248,113,113,0.1)",  border: "rgba(248,113,113,0.2)"  },
-  "Runtime Error":       { icon: AlertTriangle, color: S.amber, bg: "rgba(251,191,36,0.1)",   border: "rgba(251,191,36,0.22)" },
-  "Time Limit Exceeded": { icon: Clock,         color: S.amber, bg: "rgba(251,191,36,0.1)",   border: "rgba(251,191,36,0.22)" },
-  Error:                 { icon: AlertTriangle, color: S.red,   bg: "rgba(248,113,113,0.1)",  border: "rgba(248,113,113,0.2)"  },
+  Accepted: { icon: CheckCircle2, color: S.green, bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.22)" },
+  Success: { icon: CheckCircle2, color: S.green, bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.22)" },
+  "Wrong Answer": { icon: XCircle, color: S.red, bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
+  "Compilation Error": { icon: AlertTriangle, color: S.red, bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
+  "Runtime Error": { icon: AlertTriangle, color: S.amber, bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.22)" },
+  "Time Limit Exceeded": { icon: Clock, color: S.amber, bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.22)" },
+  Error: { icon: AlertTriangle, color: S.red, bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
 };
 
 function StatusBanner({ status, time, compact }) {
-  const cfg  = STATUS_MAP[status] || STATUS_MAP.Error;
+  const cfg = STATUS_MAP[status] || STATUS_MAP.Error;
   const Icon = cfg.icon;
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 10, border: `1px solid ${cfg.border}`, background: cfg.bg, padding: compact ? "7px 12px" : "9px 14px" }}>

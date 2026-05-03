@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { ArrowLeft, Play, RotateCw, Pause, SkipBack, SkipForward, Search } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
-import Tooltip from "../../../components/Tooltip";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
+import Tooltip from "../../../components/common/Tooltip";
 
 const SearchInRotatedSortedArray = () => {
   const initialArray = [4, 5, 6, 7, 0, 1, 2];

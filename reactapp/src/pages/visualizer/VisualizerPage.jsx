@@ -1,16 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
-import "../HomePage.css";
+import "../home/HomePage.css";
 
 /**
  * VisualizerPage - A wrapper component for algorithm visualizers.
  * Uses navigate(-1) so the back button returns to wherever the user came from.
  */
-const VisualizerPage = ({ 
-  children, 
-  title, 
-  icon: Icon 
+const VisualizerPage = ({
+  children,
+  title,
+  icon: Icon
 }) => {
   const navigate = useNavigate();
 

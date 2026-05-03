@@ -8,7 +8,7 @@ import {
   Clock,
   Droplets,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 // Main Visualizer Component
 const ContainerWithMostWater = () => {

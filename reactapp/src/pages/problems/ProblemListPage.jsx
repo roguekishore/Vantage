@@ -8,7 +8,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen } from "lucide-react";
 import { fetchProblems, fetchProblemById, fetchStages } from "../../services/problemApi";
-import ProblemsTable from "../../components/ProblemsTable";
+import ProblemsTable from "../../components/problems/ProblemsTable";
 import { resolveJudgeProblemId } from "../../lib/judgeProblemIdResolver";
 
 export default function ProblemListPage() {

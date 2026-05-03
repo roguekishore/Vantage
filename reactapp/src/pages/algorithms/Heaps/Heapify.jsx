@@ -11,7 +11,7 @@ import {
   Calculator,
   CheckCircle,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 const HeapifyVisualizer = () => {
   const [mode, setMode] = useState("heapify");

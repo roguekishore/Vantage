@@ -1,30 +1,30 @@
 import React, { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
-import { ThemeProvider } from "./components/theme-provider";
-import ZentryNavbar from "./components/zentry/ZentryNavbar";
-import HomePage from "./pages/HomePage";
+import { ThemeProvider } from "./components/common/ThemeProvider";
+import Navbar from "./components/layout/Navbar";
+import HomePage from "./pages/home/HomePage";
 import AppRoutes from "./routes";
 import WorldMap from "./map/WorldMap";
-import AuthPage from "./pages/AuthPage";
-import ProfilePage from "./pages/ProfilePage";
-import StorePage from "./pages/StorePage";
-import InventoryPage from "./pages/InventoryPage";
-import LeaderboardPage from "./pages/LeaderboardPage";
-import BattleLobbyPage from "./pages/BattleLobbyPage";
-import BattleArenaPage from "./pages/BattleArenaPage";
-import BattleResultPage from "./pages/BattleResultPage";
-import AchievementsPage from "./pages/AchievementsPage";
-import FriendsPage from "./pages/FriendsPage";
-import GroupLobbyPage from "./pages/GroupLobbyPage";
-import GroupArenaPage from "./pages/GroupArenaPage";
-import GroupResultPage from "./pages/GroupResultPage";
+import AuthPage from "./pages/auth/AuthPage";
+import ProfilePage from "./pages/profile/ProfilePage";
+import StorePage from "./pages/store/StorePage";
+import InventoryPage from "./pages/inventory/InventoryPage";
+import LeaderboardPage from "./pages/leaderboard/LeaderboardPage";
+import BattleLobbyPage from "./pages/battle/BattleLobbyPage";
+import BattleArenaPage from "./pages/battle/BattleArenaPage";
+import BattleResultPage from "./pages/battle/BattleResultPage";
+import AchievementsPage from "./pages/achievements/AchievementsPage";
+import FriendsPage from "./pages/friends/FriendsPage";
+import GroupLobbyPage from "./pages/group/GroupLobbyPage";
+import GroupArenaPage from "./pages/group/GroupArenaPage";
+import GroupResultPage from "./pages/group/GroupResultPage";
 import useUserStore from "./stores/useUserStore";
 import useGamificationStore from "./stores/useGamificationStore";
 import useAchievementStore from "./stores/useAchievementStore";
 import useFriendsStore from "./stores/useFriendsStore";
 import useProgressStore from "./map/useProgressStore";
-import ProtectedRoute from "./components/ProtectedRoute";
-import FriendChallengeModal from "./components/FriendChallengeModal";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import FriendChallengeModal from "./pages/friends/FriendChallengeModal";
 import useBattleStore from "./stores/useBattleStore";
 
 const JudgePage = lazy(() => import("./pages/judge/JudgePage"));
@@ -255,7 +255,7 @@ function AppContent() {
     <div>
       <ScrollToTop />
       {showNavbar && (
-        <ZentryNavbar
+        <Navbar
           allowTransparency={allowTransparency}
           controls={{
             scrollDirection,

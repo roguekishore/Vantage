@@ -8,7 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer"; // Assuming this path
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer"; // Assuming this path
 
 // --- Helper functions ---
 // (These are pure functions, so they can live outside the component)

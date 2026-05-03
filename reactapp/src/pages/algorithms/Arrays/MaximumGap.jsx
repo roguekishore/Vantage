@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Code, CheckCircle, Clock, TrendingUp } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer.jsx";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer.jsx";
 
 const MaximumGap = () => {
     const [history, setHistory] = useState([]);

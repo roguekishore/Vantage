@@ -1,651 +1,226 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { BarChart3, Terminal, ListOrdered } from "lucide-react";
 import {
-  Code,
-  CheckCircle,
-  BarChart3,
-  Clock,
-  Repeat,
-  GitCompareArrows,
-  ListOrdered,
-} from "lucide-react";
+  V, MONO,
+  VisualizerShell, VisualizerHeader, ControlBar, ProgressBar,
+  Panel, CodePanel, ExplanationLog, Divider,
+  StatBlock, Legend, ComplexityFooter,
+  ArrayBox, InputField, IdleState,
+} from "@/components/visualizer";
+import CustomCursor from "@/components/common/CustomCursor";
 
-// Highlighting is done via CSS classes.
+const CODE_LINES = [
+  { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "countingSort(arr) {", k: "" }] },
+  { n: 2, tokens: [{ t: "  max = findMax", k: "fn" }, { t: "(arr);", k: "" }] },
+  { n: 3, tokens: [{ t: "  count = Array(max+1).fill(0);", k: "var" }] },
+  { n: 4, tokens: [{ t: "  output = Array(n);", k: "var" }] },
+  { n: 5, tokens: [{ t: "  for ", k: "kw" }, { t: "(i = 0; i < n; i++)", k: "" }] },
+  { n: 6, tokens: [{ t: "    count[arr[i]]++;", k: "" }] },
+  { n: 7, tokens: [{ t: "  for ", k: "kw" }, { t: "(i = 1; i <= max; i++)", k: "" }] },
+  { n: 8, tokens: [{ t: "    count[i] += count[i-1];", k: "" }] },
+  { n: 9, tokens: [{ t: "  for ", k: "kw" }, { t: "(i = n-1; i >= 0; i--) {", k: "" }] },
+  { n: 10, tokens: [{ t: "    output[count[arr[i]]-1] = arr[i];", k: "" }] },
+  { n: 11, tokens: [{ t: "    count[arr[i]]--;", k: "" }] },
+  { n: 12, tokens: [{ t: "  }", k: "dim" }] },
+  { n: 13, tokens: [{ t: "  arr = output;", k: "" }] },
+  { n: 14, tokens: [{ t: "}", k: "dim" }] },
+];
 
-// Main Visualizer Component
+const LEGEND_ITEMS = [
+  { color: V.elevated, border: V.borderHi, label: "Default" },
+  { color: V.amberDim, border: V.amber, label: "Processing" },
+  { color: V.accentDim, border: V.accent, label: "Placed" },
+  { color: V.greenDim, border: V.green, label: "Sorted" },
+];
+
 const CountingSortVisualizer = () => {
   const [history, setHistory] = useState([]);
-  const [currentStep, setCurrentStep] = useState(-1);
+  const [step, setStep] = useState(-1);
   const [arrayInput, setArrayInput] = useState("4,2,2,8,3,3,1");
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [active, setActive] = useState(false);
-  const visualizerRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [loaded, setLoaded] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(false);
+  const [speed, setSpeed] = useState(300);
+  const intervalRef = useRef(null);
 
-  const generateCountingSortHistory = useCallback((initialArray) => {
+  const generateHistory = useCallback((initialArray) => {
     const arr = JSON.parse(JSON.stringify(initialArray));
     const n = arr.length;
-    const newHistory = [];
-    let totalOperations = 0;
+    const hist = [];
+    let ops = 0;
     let sortedIndices = [];
 
-    const max = Math.max(...arr.map((obj) => obj.value));
+    const max = Math.max(...arr.map((o) => o.value));
 
-    const addState = (props) =>
-      newHistory.push({
+    const snap = (extra) =>
+      hist.push({
         array: JSON.parse(JSON.stringify(arr)),
-        countArray: [],
-        outputArray: new Array(n).fill(null),
-        highlightedIndex: null,
-        countIndex: null,
-        outputIndex: null,
+        countArray: extra.countArray || [],
+        outputArray: extra.outputArray || new Array(n).fill(null),
+        ops,
         sortedIndices: [...sortedIndices],
-        explanation: "",
-        totalOperations,
-        ...props,
+        ...extra,
       });
 
-    addState({ line: 2, explanation: "Initialize Counting Sort algorithm." });
+    snap({ line: 1, msg: "Initialize Counting Sort.", phase: "start" });
 
     const count = new Array(max + 1).fill(0);
     const output = new Array(n).fill(null);
 
-    addState({
-      line: 3,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation: `Found the maximum value in the array: ${max}.`,
-    });
+    snap({ line: 2, countArray: [...count], outputArray: [...output], msg: `Max value = ${max}. Count array size = ${max + 1}.`, phase: "info" });
 
-    addState({
-      line: 4,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation: `Created a 'count' array of size ${
-        max + 1
-      } to store frequencies.`,
-    });
-
-    addState({
-      line: 5,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation: `Created an 'output' array of size ${n} to store the sorted elements.`,
-    });
-
-    // 1. Store count of each element
-    addState({
-      line: 6,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation: "Count the frequency of each element in the input array.",
-    });
+    // Count frequencies
     for (let i = 0; i < n; i++) {
-      const value = arr[i].value;
-      count[value]++;
-      totalOperations++;
-      addState({
-        line: 7,
-        highlightedIndex: i,
-        countIndex: value,
-        countArray: [...count],
-        outputArray: [...output],
-        explanation: `Element is ${value}. Incrementing count at index ${value}. Count is now ${count[value]}.`,
-      });
+      const v = arr[i].value;
+      count[v]++;
+      ops++;
+      snap({ line: 6, highlightedIndex: i, countIndex: v, countArray: [...count], outputArray: [...output], msg: `count[${v}]++ → ${count[v]}`, phase: "try" });
     }
 
-    // 2. Store cumulative count
-    addState({
-      line: 8,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation:
-        "Modify the count array to store the cumulative sum of counts.",
-    });
+    // Cumulative count
     for (let i = 1; i <= max; i++) {
       count[i] += count[i - 1];
-      totalOperations++;
-      addState({
-        line: 9,
-        countIndex: i,
-        countArray: [...count],
-        outputArray: [...output],
-        explanation: `Updating count at index ${i} to ${count[i]} (cumulative sum of previous counts). This value now represents the last position for element ${i}.`,
-      });
+      ops++;
+      snap({ line: 8, countIndex: i, countArray: [...count], outputArray: [...output], msg: `count[${i}] = ${count[i]} (cumulative).`, phase: "info" });
     }
 
-    // 3. Build the output array
-    addState({
-      line: 10,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation: "Build the sorted output array using the cumulative counts.",
-    });
+    // Build output
     for (let i = n - 1; i >= 0; i--) {
-      const value = arr[i].value;
-      const pos = count[value] - 1;
+      const v = arr[i].value;
+      const pos = count[v] - 1;
       output[pos] = arr[i];
-      totalOperations++;
-      addState({
-        line: 11,
-        highlightedIndex: i,
-        countIndex: value,
-        outputIndex: pos,
-        countArray: [...count],
-        outputArray: [...output],
-        explanation: `Element is ${value}. Its position is at count[${value}]-1 = ${pos}. Placing it in the output array.`,
-      });
-
-      count[value]--;
-      totalOperations++;
-      addState({
-        line: 12,
-        highlightedIndex: i,
-        countIndex: value,
-        outputIndex: pos,
-        countArray: [...count],
-        outputArray: [...output],
-        explanation: `Decrementing count at index ${value} for the next occurrence of this element.`,
-      });
+      ops++;
+      snap({ line: 10, highlightedIndex: i, countIndex: v, outputIndex: pos, countArray: [...count], outputArray: [...output], msg: `Place ${v} at output[${pos}].`, phase: "place" });
+      count[v]--;
+      snap({ line: 11, countIndex: v, countArray: [...count], outputArray: [...output], msg: `count[${v}]-- → ${count[v]}.`, phase: "info" });
     }
 
-    // 4. Copy the output array to arr
-    addState({
-      line: 13,
-      countArray: [...count],
-      outputArray: [...output],
-      explanation:
-        "Copy the sorted elements from the output array back to the original array.",
-    });
+    // Copy back
     for (let i = 0; i < n; i++) {
       arr[i] = output[i];
       sortedIndices.push(i);
-      totalOperations++;
-      addState({
-        line: 14,
-        array: [...arr],
-        outputArray: [...output],
-        countArray: [...count],
-        highlightedIndex: i,
-        sortedIndices: [...sortedIndices],
-        explanation: `Copying ${arr[i].value} from output to the final position ${i}.`,
-      });
+      snap({ line: 13, countArray: [...count], outputArray: [...output], highlightedIndex: i, msg: `Copy output[${i}] (${arr[i].value}) → arr[${i}].`, phase: "success" });
     }
 
-    addState({
-      line: 15,
-      finished: true,
-      array: [...arr],
-      outputArray: [...output],
-      countArray: [...count],
-      sortedIndices: Array.from({ length: n }, (_, k) => k),
-      explanation: "Counting Sort completed. Array is fully sorted.",
-    });
-
-    setHistory(newHistory);
-    setCurrentStep(0);
+    snap({ line: 14, countArray: [...count], outputArray: [...output], finished: true, sortedIndices: Array.from({ length: n }, (_, k) => k), msg: `Complete. ${ops} operations.`, phase: "done" });
+    setHistory(hist);
+    setStep(0);
   }, []);
 
-  const loadArray = () => {
-    const localArray = arrayInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(Number);
-
-    if (
-      localArray.some(isNaN) ||
-      localArray.length === 0 ||
-      localArray.some((n) => n < 0)
-    ) {
-      alert("Invalid input. Please use comma-separated non-negative numbers.");
-      return;
-    }
-
-    const initialObjects = localArray.map((value, id) => ({ value, id }));
-    setIsLoaded(true);
-    generateCountingSortHistory(initialObjects);
+  const load = () => {
+    const nums = arrayInput.split(",").map((s) => s.trim()).filter(Boolean).map(Number);
+    if (nums.some(isNaN) || nums.length === 0 || nums.some((n) => n < 0)) { alert("Use non-negative comma-separated numbers."); return; }
+    setLoaded(true);
+    generateHistory(nums.map((value, id) => ({ value, id })));
   };
 
-  const reset = () => {
-    setIsLoaded(false);
-    setHistory([]);
-    setCurrentStep(-1);
-  };
-
-  const handleEnterKey = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      const btn = document.getElementById("load-button"); // the Load & Visualize button
-      if (btn) btn.click();
-    }
-  };
-
-  const handleSpeedChange = (e) => {
-    setSpeed(parseFloat(e.target.value));
-  };
-
-  const playhead = useCallback(() => {
-    setIsPlaying((prev) => !prev); // toggle between play/pause
-  }, []);
-
-  const stepForward = useCallback(
-    () => setCurrentStep((prev) => Math.min(prev + 1, history.length - 1)),
-    [history.length]
-  );
-
-  const stepBackward = useCallback(
-    () => setCurrentStep((prev) => Math.max(prev - 1, 0)),
-    []
-  );
-
-  // --- Keyboard control only when active ---
-  useEffect(() => {
-    if (!active || !isLoaded) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        stepBackward();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        stepForward();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [active, isLoaded, stepForward, stepBackward]);
-
-  // --- Click outside to deactivate ---
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (visualizerRef.current && !visualizerRef.current.contains(e.target)) {
-        setActive(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const reset = () => { setLoaded(false); setHistory([]); setStep(-1); setAutoPlay(false); };
+  const fwd = useCallback(() => setStep((s) => Math.min(s + 1, history.length - 1)), [history.length]);
+  const back = useCallback(() => setStep((s) => Math.max(s - 1, 0)), []);
 
   useEffect(() => {
-    if (!isPlaying || history.length === 0) return;
+    if (!autoPlay) { clearInterval(intervalRef.current); return; }
+    intervalRef.current = setInterval(() => {
+      setStep((s) => { if (s >= history.length - 1) { setAutoPlay(false); return s; } return s + 1; });
+    }, Math.max(50, speed));
+    return () => clearInterval(intervalRef.current);
+  }, [autoPlay, speed, history.length]);
 
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev >= history.length - 1) {
-          clearInterval(interval);
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1000 / speed); // faster speed = shorter delay
+  useEffect(() => {
+    const h = (e) => { if (!loaded) return; if (e.key === "ArrowRight") fwd(); if (e.key === "ArrowLeft") back(); if (e.key === " ") { e.preventDefault(); setAutoPlay((p) => !p); } };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [loaded, fwd, back]);
 
-    return () => clearInterval(interval); // cleanup
-  }, [isPlaying, speed, history.length]);
-
-  const state = history[currentStep] || {};
+  const state = history[step] || {};
   const { array = [], countArray = [], outputArray = [] } = state;
 
-  const colorMapping = {
-    purple: "text-purple400",
-    cyan: "text-teal",
-    yellow: "text-warning",
-    orange: "text-orange400",
-    "light-gray": "text-theme-tertiary",
-    "": "text-theme-secondary",
-  };
-
-  const CodeLine = ({ line, content }) => (
-    <div
-      className={`block rounded-md transition-colors ${
-        state.line === line ? "bg-accent-primary-light" : ""
-      }`}
-    >
-      <span className="text-theme-muted w-8 inline-block text-right pr-4 select-none">
-        {line}
-      </span>
-      {content.map((token, index) => (
-        <span key={index} className={colorMapping[token.c]}>
-          {token.t}
-        </span>
-      ))}
+  /* Helper: mini box for count/output arrays */
+  const MiniBox = ({ value, index, highlighted, accent }) => (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+      <div style={{
+        width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
+        background: highlighted ? (accent || V.amberDim) : V.elevated,
+        border: `2px solid ${highlighted ? (accent ? V.accent : V.amber) : V.borderHi}`,
+        fontFamily: MONO, fontSize: 14, fontWeight: 700, color: V.primary,
+        transition: "all 0.2s ease",
+      }}>
+        {value ?? ""}
+      </div>
+      <span style={{ fontFamily: MONO, fontSize: 10, color: V.secondary }}>{index}</span>
     </div>
   );
 
-  const countingSortCode = [
-    { l: 2, c: [{ t: "function countingSort(arr) {", c: "" }] },
-    { l: 3, c: [{ t: "  max = findMax(arr)", c: "" }] },
-    { l: 4, c: [{ t: "  count = new Array(max + 1).fill(0)", c: "" }] },
-    { l: 5, c: [{ t: "  output = new Array(arr.length)", c: "" }] },
-    { l: 6, c: [{ t: "  for i from 0 to arr.length-1:", c: "purple" }] },
-    { l: 7, c: [{ t: "    count[arr[i]]++", c: "" }] },
-    { l: 8, c: [{ t: "  for i from 1 to max:", c: "purple" }] },
-    { l: 9, c: [{ t: "    count[i] += count[i-1]", c: "" }] },
-    { l: 10, c: [{ t: "  for i from arr.length-1 down to 0:", c: "purple" }] },
-    { l: 11, c: [{ t: "    output[count[arr[i]]-1] = arr[i]", c: "" }] },
-    { l: 12, c: [{ t: "    count[arr[i]]--", c: "" }] },
-    { l: 13, c: [{ t: "  for i from 0 to arr.length-1:", c: "purple" }] },
-    { l: 14, c: [{ t: "    arr[i] = output[i]", c: "" }] },
-    { l: 15, c: [{ t: "}", c: "" }] },
-  ];
-
   return (
-    <div
-      ref={visualizerRef}
-      tabIndex={0}
-      onClick={() => setActive(true)}
-      className="p-4 max-w-7xl mx-auto focus:outline-none"
-    >
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-accent-primary flex items-center justify-center gap-3">
-          <ListOrdered /> Counting Sort Visualizer
-        </h1>
-        <p className="text-lg text-theme-tertiary mt-2">
-          Visualizing the non-comparative integer sorting algorithm
-        </p>
-      </header>
+    <VisualizerShell noCursor>
+      <CustomCursor />
+      <VisualizerHeader title="COUNTING" subtitle="SORT." category="Sorting" icon={ListOrdered}
+        right={
+          <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}
+            speed={speed} onRun={load} onReset={reset} onForward={fwd} onBackward={back}
+            onPlayPause={() => { if (step >= history.length - 1) setStep(0); setAutoPlay((p) => !p); }} onSpeedChange={setSpeed}>
+            <InputField label="Array" value={arrayInput} onChange={(e) => setArrayInput(e.target.value)}
+              disabled={loaded} inputProps={{ onKeyDown: (e) => e.key === "Enter" && load() }} style={{ flex: 1, minWidth: 160 }} />
+          </ControlBar>
+        }
+      />
+      {loaded && <ProgressBar step={step} totalSteps={history.length} />}
+      <Divider spacing={12} />
 
-      <div className="w-full flex justify-center">
-        <div className="shadow-2xl border border-theme-primary/50 bg-theme-tertiary/50 p-4 rounded-lg  flex flex-col md:flex-row items-center justify-between gap-2 mb-6 w-full">
-          <div
-            className={`flex items-center gap-4 ${
-              isLoaded ? "w-full" : "w-full md:w-950"
-            }`}
-          >
-            <label
-              htmlFor="array-input"
-              className="font-medium text-theme-secondary font-mono hidden md:block"
-            >
-              Array:
-            </label>
-            <input
-              id="array-input"
-              type="text"
-              value={arrayInput}
-              onChange={(e) => setArrayInput(e.target.value)}
-              onKeyDown={handleEnterKey}
-              disabled={isLoaded}
-              className="font-mono flex-grow bg-theme-secondary border border-theme-primary rounded-md p-2 focus:ring-2 focus:ring-accent-primary"
-            />
-          </div>
-          <div className="flex items-center flex-wrap gap-4 md:flex-nowrap w-full md:w-150">
-            {!isLoaded ? (
-              <button
-                id="load-button"
-                onClick={loadArray}
-                className="bg-accent-primary hover:bg-accent-primary-hover text-theme-primary font-bold py-2 px-4 rounded-lg w-full"
-              >
-                Load & Visualize
-              </button>
-            ) : (
-              <>
-                <div className="flex gap-2 w-full md:w-40 justify-center">
-                  <button
-                    onClick={stepBackward}
-                    disabled={currentStep <= 0}
-                    className="bg-theme-elevated p-2 rounded-md disabled:opacity-50 w-full md:w-10 flex justify-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  {/* on click change state form play to pause */}
-                  <button
-                    onClick={playhead}
-                    disabled={currentStep >= history.length - 1}
-                    className="bg-theme-elevated p-2 rounded-md disabled:opacity-50 w-full md:w-10 flex justify-center"
-                  >
-                    {isPlaying ? (
-                      // Pause icon
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="white"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-                      </svg>
-                    ) : (
-                      // Play icon
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="white"
-                        viewBox="0 0 448 512"
-                      >
-                        <path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72v368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1L91.2 36.9z" />
-                      </svg>
-                    )}
-                  </button>
-
-                  <button
-                    onClick={stepForward}
-                    disabled={currentStep >= history.length - 1}
-                    className="bg-theme-elevated p-2 rounded-md disabled:opacity-50 w-full md:w-10 flex justify-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex gap-2 w-full lg:w-72 justify-center gap-4">
-                  <div className="flex items-center gap-2 rounded-lg flex-shrink-0 lg:w-72 w-full">
-                    <span className="text-sm font-semibold">Speed</span>
-                    <input
-                      type="range"
-                      className="w-full h-1.5 bg-theme-elevated rounded-lg outline-none cursor-pointer"
-                      min="0.25"
-                      max="2"
-                      step="0.25"
-                      value={speed}
-                      onChange={handleSpeedChange}
-                    />
-                    <span className="text-sm min-w-8 font-mono text-theme-secondary  text-right">
-                      {speed}x
-                    </span>
-                    <span className="font-mono w-18 px-4 py-2 flex items-center justify-center text-center bg-theme-secondary border border-theme-primary rounded-md">
-                      {currentStep >= 0 ? currentStep + 1 : 0}/{history.length}
-                    </span>
-                    {/* Array size display - showing current number of elements */}
-                    {isLoaded && arrayInput && (
-                      <span className="text-sm text-theme-tertiary font-medium ml-4">
-                        Array Size: {arrayInput.split(',').filter(item => item.trim() !== '').length}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-            <div className="flex w-full md:w-20">
-              <button
-                onClick={reset}
-                className="bg-danger-hover hover:bg-danger-hover font-bold py-2 px-4 rounded-lg whitespace-nowrap text-sm sm:text-base flex-shrink-0 mx-auto w-full "
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {isLoaded ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-theme-tertiary/50 p-5 rounded-xl shadow-2xl border border-theme-primary/50">
-            <h3 className="font-bold text-xl text-accent-primary mb-4 pb-3 border-b border-theme-primary/50 flex items-center gap-2">
-              <Code size={20} /> Pseudocode
-            </h3>
-            <pre className="text-sm overflow-auto">
-              <code className="font-mono leading-relaxed">
-                {countingSortCode.map((line) => (
-                  <CodeLine key={line.l} line={line.l} content={line.c} />
-                ))}
-              </code>
-            </pre>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            {/* Main Array Visualization */}
-            <div className="bg-theme-tertiary/50 p-6 rounded-xl border border-theme-primary/50 shadow-2xl">
-              <h3 className="font-bold text-lg text-theme-secondary mb-4 flex items-center gap-2">
-                <BarChart3 size={20} /> Input/Final Array
-              </h3>
-              <div className="flex justify-center items-end flex-wrap gap-2 min-h-[80px]">
-                {array.map((item, index) => {
-                  const isHighlighted = state.highlightedIndex === index;
-                  const isSorted = state.sortedIndices?.includes(index);
-
-                  let boxStyles = "bg-theme-elevated border-theme-primary";
-                  if (state.finished || isSorted) {
-                    boxStyles = "bg-success700 border-success text-theme-primary";
-                  } else if (isHighlighted) {
-                    boxStyles = "bg-orange600 border-orange text-theme-primary";
-                  }
-
-                  return (
-                    <div key={item.id} className="text-center">
-                      <div
-                        className={`w-14 h-14 flex items-center justify-center rounded-lg shadow-md border-2 font-bold text-xl transition-all duration-300 ${boxStyles}`}
-                      >
-                        {item.value}
-                      </div>
-                      <span className="text-xs text-theme-tertiary mt-1">
-                        {index}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Count Array Visualization */}
-            <div className="bg-theme-tertiary/50 p-6 rounded-xl border border-theme-primary/50 shadow-2xl">
-              <h3 className="font-bold text-lg text-theme-secondary mb-4">
-                Count Array
-              </h3>
-              <div className="flex justify-center items-end flex-wrap gap-2 min-h-[60px]">
-                {countArray.map((count, index) => {
-                  const isCountIndex = state.countIndex === index;
-                  const boxStyles = isCountIndex
-                    ? "bg-warning-hover border-warning text-theme-primary"
-                    : "bg-theme-elevated border-theme-primary";
-                  return (
-                    <div key={index} className="text-center">
-                      <div
-                        className={`w-12 h-12 flex items-center justify-center rounded-md shadow-md border-2 font-medium text-lg transition-all duration-300 ${boxStyles}`}
-                      >
-                        {count}
-                      </div>
-                      <span className="text-xs text-theme-tertiary mt-1">
-                        {index}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Output Array Visualization */}
-            <div className="bg-theme-tertiary/50 p-6 rounded-xl border border-theme-primary/50 shadow-2xl">
-              <h3 className="font-bold text-lg text-theme-secondary mb-4">
-                Output Array
-              </h3>
-              <div className="flex justify-center items-end flex-wrap gap-2 min-h-[80px]">
-                {outputArray.map((item, index) => {
-                  const isOutputIndex = state.outputIndex === index;
-                  const boxStyles = isOutputIndex
-                    ? "bg-accent-primary-hover border-accent-primary text-theme-primary"
-                    : "bg-theme-elevated border-theme-primary";
-                  return (
-                    <div key={index} className="text-center">
-                      <div
-                        className={`w-14 h-14 flex items-center justify-center rounded-lg shadow-md border-2 font-bold text-xl transition-all duration-300 ${boxStyles}`}
-                      >
-                        {item?.value ?? ""}
-                      </div>
-                      <span className="text-xs text-theme-tertiary mt-1">
-                        {index}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4">
-              <div className="bg-teal800/30 p-4 rounded-xl border border-teal700/50">
-                <h3 className="text-teal300 text-sm flex items-center gap-2">
-                  <GitCompareArrows size={16} /> Total Operations
-                </h3>
-                <p className="font-mono text-4xl text-teal mt-2">
-                  {state.totalOperations ?? 0}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-theme-tertiary/50 p-4 rounded-xl border border-theme-primary/50 min-h-[5rem]">
-              <h3 className="text-theme-tertiary text-sm mb-1">Explanation</h3>
-              <p className="text-theme-secondary">{state.explanation}</p>
-              {state.finished && (
-                <CheckCircle className="inline-block ml-2 text-success" />
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-3 bg-theme-tertiary/50 p-5 rounded-xl shadow-2xl border border-theme-primary/50">
-            <h3 className="font-bold text-xl text-accent-primary mb-4 pb-3 border-b border-theme-primary/50 flex items-center gap-2">
-              <Clock size={20} /> Complexity Analysis
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6 text-sm">
-              <div className="space-y-4">
-                <h4 className="font-semibold text-accent-primary">Time Complexity</h4>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    All Cases: O(N + K)
-                  </strong>
-                  <br />
-                  Where N is the number of elements in the input array and K is
-                  the range of the input (i.e., the maximum value). The
-                  algorithm iterates through the input array a fixed number of
-                  times and also iterates through the count array of size K. Its
-                  performance is not dependent on the initial order of elements.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-semibold text-accent-primary">
-                  Space Complexity
-                </h4>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">O(N + K)</strong>
-                  <br />
-                  The space complexity is determined by the extra arrays used.
-                  It requires an 'output' array of size N and a 'count' array of
-                  size K. Therefore, the total auxiliary space is proportional
-                  to N + K.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {!loaded ? (
+        <IdleState icon={ListOrdered} message='Enter non-negative comma-separated numbers and press <span style="color:#EDFF66">Run</span>' />
       ) : (
-        <p className="text-center text-theme-muted py-10">
-          Load an array to begin visualization.
-        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 220px", gridTemplateRows: "auto auto auto", gap: 14 }}>
+          <Panel title="pseudocode.js" icon={Terminal} style={{ gridRow: "1 / 4" }}>
+            <div style={{ padding: "12px 0", flex: 1, overflow: "hidden" }}><CodePanel lines={CODE_LINES} activeLine={state.line} /></div>
+          </Panel>
+
+          {/* Input array */}
+          <Panel title={`input · ${array.length} elements`} icon={BarChart3} accent={V.amber}>
+            <div style={{ padding: "14px 12px 10px", display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
+              {array.map((item, index) => {
+                let variant = "default";
+                if (state.finished || state.sortedIndices?.includes(index)) variant = "sorted";
+                else if (state.highlightedIndex === index) variant = "comparing";
+                return <ArrayBox key={item.id} value={item.value} index={index} variant={variant} size={48} showIndex />;
+              })}
+            </div>
+          </Panel>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <StatBlock label="Operations" value={state.ops ?? 0} color={V.green} />
+            <StatBlock label="Progress" value={`${history.length > 1 ? Math.round((step / (history.length - 1)) * 100) : 0}%`} color={V.purple} />
+          </div>
+
+          {/* Count array */}
+          <Panel title={`count · ${countArray.length} slots`} icon={BarChart3} accent={V.purple}>
+            <div style={{ padding: "14px 12px 10px", display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
+              {countArray.map((c, i) => <MiniBox key={i} value={c} index={i} highlighted={state.countIndex === i} />)}
+            </div>
+          </Panel>
+
+          {/* Output array */}
+          <Panel title={`output · ${outputArray.length} slots`} icon={BarChart3} accent={V.green} style={{ gridColumn: "2 / 3" }}>
+            <div style={{ padding: "14px 12px 10px", display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center" }}>
+              {outputArray.map((item, i) => <MiniBox key={i} value={item?.value} index={i} highlighted={state.outputIndex === i} accent />)}
+            </div>
+          </Panel>
+
+          {/* Log spans full bottom */}
+          <Panel title="execution log" icon={Terminal} accent={V.green} style={{ gridColumn: "2 / 4" }}>
+            <ExplanationLog entries={history.slice(0, step + 1).filter((s) => s.msg).map((s) => ({ msg: s.msg, phase: s.phase }))} autoPlay={autoPlay} />
+          </Panel>
+        </div>
       )}
-    </div>
+
+      {loaded && (
+        <div style={{ marginTop: 10 }}>
+          <ComplexityFooter items={[
+            { label: "Time Complexity", value: "O(N + K)", color: V.amber, description: "Where N = elements, K = max value. Fixed iterations through input and count arrays — not input-order dependent." },
+            { label: "Space Complexity", value: "O(N + K)", color: V.green, description: "Requires output array (N) and count array (K)." },
+          ]} />
+        </div>
+      )}
+    </VisualizerShell>
   );
 };
 

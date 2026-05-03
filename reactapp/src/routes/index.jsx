@@ -3,8 +3,8 @@ import { Routes, Route } from "react-router-dom";
 import { topicConfig } from "./config";
 import TopicPage from "../pages/topics/TopicPage";
 import VisualizerPage from "../pages/visualizer/VisualizerPage";
-import TopicsPage from "../pages/TopicsPage";
-import AlgoCards from "../components/AlgoCards";
+import TopicsPage from "../pages/topics/TopicsPage";
+import AlgoCards from "../components/problems/AlgoCards";
 
 // Loading fallback component
 const LoadingFallback = () => (

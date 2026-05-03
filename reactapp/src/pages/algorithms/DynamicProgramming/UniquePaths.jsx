@@ -14,8 +14,8 @@ import {
   FileText,
   Terminal,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
-import Tooltip from "../../../components/Tooltip";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
+import Tooltip from "../../../components/common/Tooltip";
 
 const LANG_TABS = ["C++", "Python", "Java"];
 

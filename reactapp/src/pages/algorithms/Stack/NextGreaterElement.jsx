@@ -6,7 +6,7 @@ import {
   Layers,
   Clock,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer"; // Assuming this path is correct
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer"; // Assuming this path is correct
 // import { useModeHistorySwitch } from "../../../hooks/useModeHistorySwitch"; // Assuming this path is correct
 
 const NextGreaterElementVisualizer = () => {

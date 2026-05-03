@@ -1,399 +1,250 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { List, GitCompareArrows, Repeat } from "lucide-react";
+import { BarChart3, Terminal } from "lucide-react";
 import {
-  VisualizerShell,
-  ControlPanel,
-  ArrayBar,
-  CodeBlock,
-  ExplanationBox,
-  ComplexityCard,
-  StatsGrid,
-  ColorLegend,
-} from "../../../components/visualizer";
+    V, MONO,
+    VisualizerShell, VisualizerHeader, ControlBar, ProgressBar,
+    Panel, CodePanel, ExplanationLog, Divider,
+    StatBlock, Legend, ComplexityFooter,
+    ArrayBox, InputField, IdleState,
+} from "@/components/visualizer";
+import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
+import CustomCursor from "@/components/common/CustomCursor";
 
-// ─── Algorithm Logic (unchanged) ─────────────────────────────────────
-const generateBubbleSortHistory = (initialArray) => {
-  const arr = JSON.parse(JSON.stringify(initialArray));
-  const n = arr.length;
-  const history = [];
-  let totalSwaps = 0;
-  let totalComparisons = 0;
-  let sortedIndices = [];
-
-  const snap = (props) =>
-    history.push({
-      array: JSON.parse(JSON.stringify(arr)),
-      i: null,
-      j: null,
-      sortedIndices: [...sortedIndices],
-      explanation: "",
-      totalSwaps,
-      totalComparisons,
-      ...props,
-    });
-
-  snap({ line: 2, explanation: "Initialize Bubble Sort algorithm." });
-
-  for (let i = 0; i < n - 1; i++) {
-    let swappedInPass = false;
-    snap({
-      line: 3,
-      i,
-      explanation: `Start Pass ${i + 1}. The largest unsorted element will bubble to the end.`,
-    });
-
-    for (let j = 0; j < n - i - 1; j++) {
-      totalComparisons++;
-      snap({
-        line: 4,
-        i,
-        j,
-        explanation: `Comparing adjacent elements at index ${j} (${arr[j].value}) and ${j + 1} (${arr[j + 1].value}).`,
-      });
-
-      if (arr[j].value > arr[j + 1].value) {
-        swappedInPass = true;
-        totalSwaps++;
-        snap({
-          line: 5,
-          i,
-          j,
-          explanation: `${arr[j].value} > ${arr[j + 1].value}, so they need to be swapped.`,
-        });
-        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
-        snap({ line: 6, i, j, explanation: "Elements swapped." });
-      }
-    }
-
-    sortedIndices.push(n - 1 - i);
-    snap({
-      line: 8,
-      i,
-      explanation: `End of Pass ${i + 1}. Element ${arr[n - 1 - i].value} is now in its correct sorted position.`,
-    });
-
-    if (!swappedInPass) {
-      snap({
-        line: 9,
-        i,
-        explanation: "No swaps occurred in this pass. The array is already sorted. Breaking early.",
-      });
-      const remaining = Array.from(
-        { length: n - sortedIndices.length },
-        (_, k) => k
-      );
-      sortedIndices.push(...remaining);
-      break;
-    }
-  }
-
-  snap({
-    line: 13,
-    sortedIndices: Array.from({ length: n }, (_, k) => k),
-    finished: true,
-    explanation: "Algorithm finished. The array is fully sorted.",
-  });
-
-  return history;
-};
-
-// ─── Pseudocode (Format A: token-based) ──────────────────────────────
-const BUBBLE_SORT_CODE = [
-  { l: 2, c: [{ t: "function bubbleSort(arr) {", c: "" }] },
-  {
-    l: 3,
-    c: [
-      { t: "  for", c: "purple" },
-      { t: " (let i = 0; i < n - 1; i++) {", c: "" },
-    ],
-  },
-  {
-    l: 4,
-    c: [
-      { t: "    for", c: "purple" },
-      { t: " (let j = 0; j < n - i - 1; j++) {", c: "" },
-    ],
-  },
-  {
-    l: 5,
-    c: [
-      { t: "      if", c: "purple" },
-      { t: " (arr[j] > arr[j + 1]) {", c: "" },
-    ],
-  },
-  { l: 6, c: [{ t: "        swap(arr[j], arr[j + 1]);", c: "" }] },
-  { l: 7, c: [{ t: "      }", c: "light-gray" }] },
-  { l: 8, c: [{ t: "    }", c: "light-gray" }] },
-  {
-    l: 9,
-    c: [
-      { t: "    if", c: "purple" },
-      { t: " (!swappedInPass) ", c: "" },
-      { t: "break", c: "purple" },
-      { t: ";", c: "light-gray" },
-    ],
-  },
-  { l: 12, c: [{ t: "  }", c: "light-gray" }] },
-  {
-    l: 13,
-    c: [
-      { t: "  return", c: "purple" },
-      { t: " arr;", c: "" },
-    ],
-  },
+/* ─────────────────────────────────────────────────────────────
+   CODE LINES
+───────────────────────────────────────────────────────────── */
+const CODE_LINES = [
+    { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "bubbleSort(arr) {", k: "" }] },
+    { n: 2, tokens: [{ t: "  for ", k: "kw" }, { t: "(i = 0; i < n-1; i++) {", k: "" }] },
+    { n: 3, tokens: [{ t: "    for ", k: "kw" }, { t: "(j = 0; j < n-i-1; j++) {", k: "" }] },
+    { n: 4, tokens: [{ t: "      if ", k: "kw" }, { t: "(arr[j] > arr[j+1]) {", k: "" }] },
+    { n: 5, tokens: [{ t: "        swap", k: "fn" }, { t: "(arr[j], arr[j+1]);", k: "" }] },
+    { n: 6, tokens: [{ t: "      }", k: "dim" }] },
+    { n: 7, tokens: [{ t: "    }", k: "dim" }] },
+    { n: 8, tokens: [{ t: "  }", k: "dim" }] },
+    { n: 9, tokens: [{ t: "}", k: "dim" }] },
 ];
 
-// ─── Complexity Data ─────────────────────────────────────────────────
-const TIME_COMPLEXITY = [
-  {
-    label: "Worst Case",
-    value: "O(N²)",
-    description:
-      "Occurs when the array is in reverse order. We must make N-1 passes, and each pass compares and swaps through the unsorted portion.",
-  },
-  {
-    label: "Average Case",
-    value: "O(N²)",
-    description:
-      "For a random array, the number of comparisons and swaps is also proportional to N².",
-  },
-  {
-    label: "Best Case",
-    value: "O(N)",
-    description:
-      "Occurs when the array is already sorted. A single pass with no swaps terminates the algorithm early.",
-  },
+const LEGEND_ITEMS = [
+    { color: V.elevated, border: V.borderHi, label: "Unsorted" },
+    { color: V.amberDim, border: V.amber, label: "Comparing" },
+    { color: V.purpleDim, border: V.purple, label: "Swapping" },
+    { color: V.greenDim, border: V.green, label: "Sorted" },
 ];
 
-const SPACE_COMPLEXITY = [
-  {
-    value: "O(1)",
-    description:
-      "Bubble sort is in-place. Only a constant amount of extra memory is needed for loop counters and a temporary swap variable.",
-  },
-];
-
-const INSIGHTS = [
-  "Bubble Sort is a stable sorting algorithm - equal elements retain their relative order.",
-  "The early-termination optimisation (no swaps → break) gives O(N) best-case performance.",
-  "Our visualizer stores the full history for educational replay. The algorithm itself uses O(1) space.",
-];
-
-// ─── Color Legend ────────────────────────────────────────────────────
-const LEGEND = [
-  { color: "bg-secondary", label: "Unsorted" },
-  { color: "bg-primary/40", label: "Comparing" },
-  { color: "bg-emerald-500/40", label: "Sorted" },
-];
-
-// ─── Main Component ──────────────────────────────────────────────────
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════════ */
 const BubbleSortVisualizer = () => {
-  // ── State ──────────────────────────────────────────────────────────
-  const [history, setHistory] = useState([]);
-  const [currentStep, setCurrentStep] = useState(-1);
-  const [arrayInput, setArrayInput] = useState("8,5,2,9,5,6,3");
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1000);
-  const [active, setActive] = useState(false);
-  const ref = useRef(null);
+    const [history, setHistory] = useState([]);
+    const [step, setStep] = useState(-1);
+    const [arrayInput, setArrayInput] = useState("8,5,2,9,5,6,3");
+    const [loaded, setLoaded] = useState(false);
+    const [autoPlay, setAutoPlay] = useState(false);
+    const [speed, setSpeed] = useState(300);
+    const intervalRef = useRef(null);
 
-  const state = history[currentStep] || {};
-  const { array = [] } = state;
+    /* ── Algorithm ── */
+    const generateHistory = useCallback((initialArray) => {
+        const arr = JSON.parse(JSON.stringify(initialArray));
+        const n = arr.length;
+        const hist = [];
+        let comparisons = 0;
+        let swaps = 0;
 
-  // ── Load / Reset ───────────────────────────────────────────────────
-  const loadArray = () => {
-    const nums = arrayInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(Number);
-    if (nums.some(isNaN) || nums.length === 0) {
-      alert("Invalid input. Please use comma-separated numbers.");
-      return;
-    }
-    const objects = nums.map((value, id) => ({ value, id }));
-    const h = generateBubbleSortHistory(objects);
-    setHistory(h);
-    setCurrentStep(0);
-    setIsLoaded(true);
-  };
+        const snap = (extra) =>
+            hist.push({ array: JSON.parse(JSON.stringify(arr)), comparisons, swaps, ...extra });
 
-  const reset = () => {
-    setIsLoaded(false);
-    setHistory([]);
-    setCurrentStep(-1);
-    setIsPlaying(false);
-  };
+        snap({ line: 1, msg: "Initialize Bubble Sort.", phase: "start" });
 
-  // ── Playback ───────────────────────────────────────────────────────
-  const stepForward = useCallback(
-    () => setCurrentStep((p) => Math.min(p + 1, history.length - 1)),
-    [history.length]
-  );
-  const stepBackward = useCallback(
-    () => setCurrentStep((p) => Math.max(p - 1, 0)),
-    []
-  );
+        for (let i = 0; i < n - 1; i++) {
+            let swappedInPass = false;
+            snap({
+                line: 2, i, explanation: `Start Pass ${i + 1}.`,
+                msg: `▶ Pass ${i + 1}`, phase: "info",
+            });
 
-  // Auto-play interval
-  useEffect(() => {
-    if (!isPlaying || !history.length) return;
-    const id = setInterval(() => {
-      setCurrentStep((p) => {
-        if (p >= history.length - 1) {
-          setIsPlaying(false);
-          return p;
+            for (let j = 0; j < n - i - 1; j++) {
+                comparisons++;
+                snap({
+                    line: 4, i, j,
+                    msg: `Compare arr[${j}] (${arr[j].value}) vs arr[${j + 1}] (${arr[j + 1].value})`,
+                    phase: "try",
+                });
+
+                if (arr[j].value > arr[j + 1].value) {
+                    swappedInPass = true;
+                    [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+                    swaps++;
+                    snap({
+                        line: 5, i, j,
+                        msg: `✓ Swapped ${arr[j].value} ↔ ${arr[j + 1].value}`,
+                        phase: "place",
+                    });
+                }
+            }
+
+            if (!swappedInPass) {
+                snap({
+                    line: 8, i,
+                    msg: `No swaps in pass ${i + 1} — array sorted early.`,
+                    phase: "success",
+                });
+                break;
+            }
         }
-        return p + 1;
-      });
-    }, speed);
-    return () => clearInterval(id);
-  }, [isPlaying, speed, history.length]);
 
-  // Keyboard (arrows) when active
-  useEffect(() => {
-    if (!active || !isLoaded) return;
-    const handler = (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        stepBackward();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        stepForward();
-      }
+        snap({
+            line: 9,
+            sortedIndices: Array.from({ length: n }, (_, k) => k),
+            finished: true,
+            msg: `Complete. ${comparisons} comparisons, ${swaps} swaps.`,
+            phase: "done",
+        });
+
+        setHistory(hist);
+        setStep(0);
+    }, []);
+
+    /* ── Controls ── */
+    const load = () => {
+        const nums = arrayInput.split(",").map((s) => s.trim()).filter(Boolean).map(Number);
+        if (nums.some(isNaN) || nums.length === 0) { alert("Invalid input."); return; }
+        const objects = nums.map((value, id) => ({ value, id }));
+        setLoaded(true);
+        generateHistory(objects);
     };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [active, isLoaded, stepForward, stepBackward]);
 
-  // Click-outside deactivation
-  useEffect(() => {
-    const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setActive(false);
+    const reset = () => { setLoaded(false); setHistory([]); setStep(-1); setAutoPlay(false); };
+    const fwd = useCallback(() => setStep((s) => Math.min(s + 1, history.length - 1)), [history.length]);
+    const back = useCallback(() => setStep((s) => Math.max(s - 1, 0)), []);
+
+    /* Auto-play */
+    useEffect(() => {
+        if (!autoPlay) { clearInterval(intervalRef.current); return; }
+        intervalRef.current = setInterval(() => {
+            setStep((s) => { if (s >= history.length - 1) { setAutoPlay(false); return s; } return s + 1; });
+        }, Math.max(50, speed));
+        return () => clearInterval(intervalRef.current);
+    }, [autoPlay, speed, history.length]);
+
+    /* Keyboard */
+    useEffect(() => {
+        const h = (e) => {
+            if (!loaded) return;
+            if (e.key === "ArrowRight") fwd();
+            if (e.key === "ArrowLeft") back();
+            if (e.key === " ") { e.preventDefault(); setAutoPlay((p) => !p); }
+        };
+        window.addEventListener("keydown", h);
+        return () => window.removeEventListener("keydown", h);
+    }, [loaded, fwd, back]);
+
+    const state = history[step] || {};
+    const { array = [] } = state;
+
+    const getVariant = (index) => {
+        if (state.finished || state.sortedIndices?.includes(index)) return "sorted";
+        if (state.j === index || state.j + 1 === index) {
+            return state.line === 5 ? "swapping" : "comparing";
+        }
+        return "default";
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
 
-  // ── ArrayBar styling callback ──────────────────────────────────────
-  const getBoxStyle = (item, index) => {
-    const isSorted =
-      state.finished || state.sortedIndices?.includes(index);
-    const isComparing =
-      state.j === index || state.j + 1 === index;
+    /* ── Render ── */
+    return (
+        <VisualizerShell noCursor>
+            <CustomCursor />
 
-    if (isSorted) return "bg-emerald-500/15 border-emerald-500/40 text-emerald-400";
-    if (isComparing) return "bg-primary/15 border-primary/50 text-primary";
-    return "bg-secondary text-secondary-foreground";
-  };
-
-  // ── Render ─────────────────────────────────────────────────────────
-  return (
-    <div ref={ref} onClick={() => setActive(true)}>
-      <VisualizerShell
-        title="Bubble Sort Visualizer"
-        subtitle="Visualizing the classic comparison sorting algorithm"
-        icon={<List />}
-      >
-        {/* ── Controls ──────────────────────────────────────────── */}
-        <ControlPanel
-          isLoaded={isLoaded}
-          onLoad={loadArray}
-          onStepForward={stepForward}
-          onStepBackward={stepBackward}
-          onPlay={() => setIsPlaying(true)}
-          onPause={() => setIsPlaying(false)}
-          onReset={reset}
-          isPlaying={isPlaying}
-          currentStep={currentStep}
-          totalSteps={history.length}
-          speed={speed}
-          onSpeedChange={setSpeed}
-          inputSlot={
-            <div className="flex items-center gap-2 w-full">
-              <label className="text-[11px] font-medium text-muted-foreground shrink-0 hidden md:block">
-                Array
-              </label>
-              <input
-                type="text"
-                value={arrayInput}
-                onChange={(e) => setArrayInput(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && loadArray()}
-                disabled={isLoaded}
-                className="font-mono text-sm flex-grow bg-background border border-input rounded-md px-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-              />
-            </div>
-          }
-        />
-
-        {/* ── Main Content ──────────────────────────────────────── */}
-        {isLoaded ? (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Left: Pseudocode */}
-            <CodeBlock
-              title="Pseudocode"
-              lines={BUBBLE_SORT_CODE}
-              activeLine={state.line}
+            <VisualizerHeader
+                title="BUBBLE"
+                subtitle="SORT."
+                category="Sorting"
+                right={
+                    <ControlBar
+                        loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}
+                        speed={speed} onRun={load} onReset={reset} onForward={fwd} onBackward={back}
+                        onPlayPause={() => { if (step >= history.length - 1) setStep(0); setAutoPlay((p) => !p); }} onSpeedChange={setSpeed}
+                    >
+                        <InputField
+                            label="Array"
+                            value={arrayInput}
+                            onChange={(e) => setArrayInput(e.target.value)}
+                            disabled={loaded}
+                            inputProps={{ onKeyDown: (e) => e.key === "Enter" && load() }}
+                            style={{ flex: 1, minWidth: 160 }}
+                        />
+                    </ControlBar>
+                }
             />
 
-            {/* Right: Visualization + Stats + Explanation */}
-            <div className="lg:col-span-2 space-y-6">
-              <ArrayBar
-                items={array}
-                containerId="array-container"
-                title="Swapping Boxes Visualization"
-                getStyle={getBoxStyle}
-                pointers={[
-                  { index: state.j, color: "amber", label: "j" },
-                  {
-                    index: state.j != null ? state.j + 1 : null,
-                    color: "amber",
-                    label: "j+1",
-                  },
-                ]}
-              />
+            {loaded && <ProgressBar step={step} totalSteps={history.length} />}
+            <Divider spacing={12} />
 
-              <ColorLegend items={LEGEND} />
+            {!loaded ? (
+                <IdleState icon={BarChart3} message='Enter comma-separated numbers and press <span style="color:#EDFF66">Run</span>' />
+            ) : (
+                <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 220px", gridTemplateRows: "auto auto", gap: 14 }}>
 
-              <StatsGrid
-                stats={[
-                  {
-                    icon: <GitCompareArrows size={16} />,
-                    label: "Total Comparisons",
-                    value: state.totalComparisons ?? 0,
-                    color: "teal",
-                  },
-                  {
-                    icon: <Repeat size={16} />,
-                    label: "Total Swaps",
-                    value: state.totalSwaps ?? 0,
-                    color: "purple",
-                  },
-                ]}
-              />
+                    {/* ── Code Panel ── */}
+                    <Panel title="pseudocode.js" icon={Terminal} style={{ gridRow: "1 / 3" }}>
+                        <div style={{ padding: "12px 0", flex: 1, overflow: "hidden" }}>
+                            <CodePanel lines={CODE_LINES} activeLine={state.line} />
+                        </div>
+                    </Panel>
 
-              <ExplanationBox
-                explanation={state.explanation}
-                finished={state.finished}
-              />
-            </div>
+                    {/* ── Array Visualization ── */}
+                    <Panel title={`array · ${array.length} elements`} icon={BarChart3} accent={V.amber}>
+                        <div style={{ padding: "16px 16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+                            <div id="array-container" style={{ position: "relative", width: `${array.length * 4.5}rem`, height: "8rem" }}>
+                                {array.map((item, index) => (
+                                    <div
+                                        key={item.id}
+                                        id={`array-container-element-${index}`}
+                                        style={{ position: "absolute", left: `${index * 4.5}rem`, transition: "left 0.4s ease" }}
+                                    >
+                                        <ArrayBox value={item.value} index={index} variant={getVariant(index)} showIndex />
+                                    </div>
+                                ))}
+                                {state.j !== null && state.j !== undefined && (
+                                    <>
+                                        <VisualizerPointer index={state.j} containerId="array-container" color="amber" label="j" direction="up" />
+                                        <VisualizerPointer index={state.j + 1} containerId="array-container" color="amber" label="j+1" direction="up" />
+                                    </>
+                                )}
+                            </div>
+                            <Legend items={LEGEND_ITEMS} />
+                        </div>
+                    </Panel>
 
-            {/* Full-width: Complexity */}
-            <ComplexityCard
-              time={TIME_COMPLEXITY}
-              space={SPACE_COMPLEXITY}
-              insights={INSIGHTS}
-            />
-          </div>
-        ) : (
-          <p className="text-center text-muted-foreground py-10">
-            Load an array to begin visualization.
-          </p>
-        )}
-      </VisualizerShell>
-    </div>
-  );
+                    {/* ── Stats ── */}
+                    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                        <StatBlock label="Comparisons" value={state.comparisons ?? 0} color={V.green} />
+                        <StatBlock label="Swaps" value={state.swaps ?? 0} color={V.accent} />
+                        <StatBlock label="Progress" value={`${history.length > 1 ? Math.round((step / (history.length - 1)) * 100) : 0}%`} color={V.purple} />
+                    </div>
+
+                    {/* ── Execution Log ── */}
+                    <Panel title="execution log" icon={Terminal} accent={V.green} style={{ gridColumn: "2 / 3" }}>
+                        <ExplanationLog
+                            entries={history.slice(0, step + 1).filter((s) => s.msg).map((s) => ({ msg: s.msg, phase: s.phase }))}
+                            autoPlay={autoPlay}
+                        />
+                    </Panel>
+                </div>
+            )}
+
+            {/* ── Complexity Footer ── */}
+            {loaded && (
+                <div style={{ marginTop: 10 }}>
+                    <ComplexityFooter items={[
+                        { label: "Time Complexity", value: "O(N²)", color: V.amber, description: "Nested loops compare adjacent elements. Worst/average case is O(N²). Best case O(N) with early termination when no swaps occur in a pass." },
+                        { label: "Space Complexity", value: "O(1)", color: V.green, description: "Sorts in-place. Only a constant amount of extra space is used for the swap variable." },
+                    ]} />
+                </div>
+            )}
+        </VisualizerShell>
+    );
 };
 
 export default BubbleSortVisualizer;
