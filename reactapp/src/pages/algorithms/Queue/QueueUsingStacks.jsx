@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Code, Layers, Clock } from 'lucide-react';
-import VisualizerPointer from '../../../components/VisualizerPointer';
+import VisualizerPointer from '../../../components/visualizer/VisualizerPointer';
 
 const QueueUsingStacks = () => {
   const [history, setHistory] = useState([]);

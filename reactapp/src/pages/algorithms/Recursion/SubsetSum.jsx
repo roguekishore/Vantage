@@ -10,7 +10,7 @@ import {
     Clock,
     Search,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 const SubsetSumVisualizer = () => {
     const [arrayInput, setArrayInput] = useState("3,34,4,12,5,2");

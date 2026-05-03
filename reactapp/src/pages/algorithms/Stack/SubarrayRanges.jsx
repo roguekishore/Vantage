@@ -8,7 +8,7 @@ import {
   Calculator,
   Layers,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 const SubarrayRangesVisualizer = () => {
   const [mode, setMode] = useState("brute-force");

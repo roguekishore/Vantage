@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Code, Clock } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 const parseInput = (str) =>
   str

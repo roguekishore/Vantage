@@ -15,8 +15,8 @@ import {
   Star, TrendingUp, BookOpen,
 } from "lucide-react";
 import { problems as PROBLEM_CATALOG } from "../../search/catalog";
-import CustomCursor from "@/components/CustomCursor";
-import { MONUMENT_TYPO as T } from "@/components/MonumentTypography";
+import CustomCursor from "@/components/common/CustomCursor";
+import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
 
 gsap.registerPlugin(ScrollTrigger);
 

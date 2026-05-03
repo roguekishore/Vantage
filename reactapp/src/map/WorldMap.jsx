@@ -58,6 +58,7 @@ const WorldMap = () => {
   const [hudCollapsed, setHudCollapsed]                   = useState(false);
   const [showQualityTip, setShowQualityTip]               = useState(false);
   const [dontShowQualityTipAgain, setDontShowQualityTipAgain] = useState(false);
+  const [storyContent, setStoryContent]                   = useState({ loading: false, story: null, description: null });
 
   const toggleResolution = useCallback(() => setIsHighRes(p => !p), []);
 
@@ -782,6 +783,20 @@ const WorldMap = () => {
                 </div>
               )}
             </div>
+
+            <ScrollArea className="max-h-[200px] px-4">
+              <div className="py-3 text-sm text-zinc-400 leading-relaxed story-panel">
+                {storyContent.loading && (
+                  <p className="italic text-zinc-500">Loading story...</p>
+                )}
+                {storyContent.story && (
+                  <p className="mb-3 italic">{storyContent.story}</p>
+                )}
+                {storyContent.description && (
+                  <p>{storyContent.description}</p>
+                )}
+              </div>
+            </ScrollArea>
           </div>
         );
       })()}

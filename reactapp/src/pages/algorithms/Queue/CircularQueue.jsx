@@ -9,7 +9,7 @@ import {
   Activity,
   RotateCw,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 // Main Visualizer Component
 const CircularQueueVisualizer = () => {

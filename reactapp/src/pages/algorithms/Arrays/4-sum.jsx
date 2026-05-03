@@ -11,7 +11,7 @@ import {
   CheckCircle,
   List,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 import useModeHistorySwitch from "../../../hooks/useModeHistorySwitch";
 
 const LANG_TABS = ["C++", "Python", "Java"];

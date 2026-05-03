@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Code, CheckCircle, Clock, RotateCw } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer.jsx";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer.jsx";
 
 const RotateArray = () => {
   const [history, setHistory] = useState([]);

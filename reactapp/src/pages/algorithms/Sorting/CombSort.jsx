@@ -1,578 +1,178 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { BarChart3, Terminal, List } from "lucide-react";
 import {
-  Code,
-  CheckCircle,
-  BarChart3,
-  Clock,
-  Repeat,
-  GitCompareArrows,
-  List,
-} from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+  V,
+  VisualizerShell, VisualizerHeader, ControlBar, ProgressBar,
+  Panel, CodePanel, ExplanationLog, Divider,
+  StatBlock, Legend, ComplexityFooter,
+  ArrayBox, InputField, IdleState,
+} from "@/components/visualizer";
+import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
+import CustomCursor from "@/components/common/CustomCursor";
 
-// Main Visualizer Component
+const CODE_LINES = [
+  { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "combSort(arr) {", k: "" }] },
+  { n: 2, tokens: [{ t: "  gap = n; shrink = 1.3;", k: "var" }] },
+  { n: 3, tokens: [{ t: "  while ", k: "kw" }, { t: "(gap > 1 || swapped) {", k: "" }] },
+  { n: 4, tokens: [{ t: "    gap = floor(gap / shrink);", k: "" }] },
+  { n: 5, tokens: [{ t: "    swapped = false;", k: "var" }] },
+  { n: 6, tokens: [{ t: "    for ", k: "kw" }, { t: "(i = 0; i+gap < n; i++) {", k: "" }] },
+  { n: 7, tokens: [{ t: "      if ", k: "kw" }, { t: "(arr[i] > arr[i+gap]) {", k: "" }] },
+  { n: 8, tokens: [{ t: "        swap", k: "fn" }, { t: "(arr[i], arr[i+gap]);", k: "" }] },
+  { n: 9, tokens: [{ t: "        swapped = true;", k: "" }] },
+  { n: 10, tokens: [{ t: "      }", k: "dim" }] },
+  { n: 11, tokens: [{ t: "    }", k: "dim" }] },
+  { n: 12, tokens: [{ t: "  }", k: "dim" }] },
+  { n: 13, tokens: [{ t: "}", k: "dim" }] },
+];
+
+const LEGEND_ITEMS = [
+  { color: V.elevated, border: V.borderHi, label: "Default" },
+  { color: V.amberDim, border: V.amber, label: "Comparing" },
+  { color: V.greenDim, border: V.green, label: "Sorted" },
+];
+
 const CombSortVisualizer = () => {
   const [history, setHistory] = useState([]);
-  const [currentStep, setCurrentStep] = useState(-1);
+  const [step, setStep] = useState(-1);
   const [arrayInput, setArrayInput] = useState("8,5,2,9,5,6,3");
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [active, setActive] = useState(false);
-  const visualizerRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [loaded, setLoaded] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(false);
+  const [speed, setSpeed] = useState(300);
+  const intervalRef = useRef(null);
 
-  const generateCombSortHistory = useCallback((initialArray) => {
+  const generateHistory = useCallback((initialArray) => {
     const arr = JSON.parse(JSON.stringify(initialArray));
     const n = arr.length;
-    const newHistory = [];
-    let totalSwaps = 0;
-    let totalComparisons = 0;
+    const hist = [];
+    let swaps = 0, comparisons = 0;
 
-    const addState = (props) =>
-      newHistory.push({
-        array: JSON.parse(JSON.stringify(arr)),
-        i: null,
-        j: null,
-        sortedIndices: [],
-        explanation: "",
-        totalSwaps,
-        totalComparisons,
-        ...props,
-      });
+    const snap = (extra) => hist.push({ array: JSON.parse(JSON.stringify(arr)), comparisons, swaps, ...extra });
 
-    addState({ line: 2, explanation: "Initialize Comb Sort algorithm." });
+    snap({ line: 1, msg: "Initialize Comb Sort.", phase: "start" });
 
-    let gap = n;
-    let shrink = 1.3;
-    let swapped = true;
-
-    addState({ line: 3, explanation: `Initial gap is ${gap}.` });
+    let gap = n, shrink = 1.3, swapped = true;
 
     while (gap > 1 || swapped) {
       gap = Math.floor(gap / shrink);
-      if (gap < 1) {
-        gap = 1;
-      }
-      addState({ line: 4, explanation: `New gap is ${gap}.` });
+      if (gap < 1) gap = 1;
+      snap({ line: 4, gap, msg: `New gap = ${gap}.`, phase: "info" });
 
       swapped = false;
-      addState({ line: 5, explanation: "Start a pass." });
-
       for (let i = 0; i + gap < n; i++) {
-        totalComparisons++;
-        addState({
-          line: 6,
-          i,
-          j: i + gap,
-          explanation: `Comparing elements at index ${i} (${arr[i].value}) and ${i + gap} (${arr[i + gap].value}).`,
-        });
-
+        comparisons++;
+        snap({ line: 7, gap, i, j: i + gap, msg: `Compare arr[${i}] (${arr[i].value}) vs arr[${i + gap}] (${arr[i + gap].value}).`, phase: "try" });
         if (arr[i].value > arr[i + gap].value) {
           swapped = true;
-          totalSwaps++;
-          addState({
-            line: 7,
-            i,
-            j: i + gap,
-            explanation: `${arr[i].value} > ${arr[i + gap].value}, so they need to be swapped.`,
-          });
-          [arr[i], arr[i + gap]] = [arr[i + gap], arr[i]]; // Swap
-          addState({
-            line: 8,
-            i,
-            j: i + gap,
-            explanation: `Elements swapped.`,
-          });
+          swaps++;
+          [arr[i], arr[i + gap]] = [arr[i + gap], arr[i]];
+          snap({ line: 8, gap, i, j: i + gap, msg: `Swapped ${arr[i + gap].value} ↔ ${arr[i].value}.`, phase: "place" });
         }
       }
     }
 
-    addState({
-      line: 12,
-      finished: true,
-      explanation: "Algorithm finished. The array is fully sorted.",
-    });
-
-    setHistory(newHistory);
-    setCurrentStep(0);
+    snap({ line: 13, finished: true, msg: `Complete. ${comparisons} comparisons, ${swaps} swaps.`, phase: "done" });
+    setHistory(hist);
+    setStep(0);
   }, []);
 
-  const loadArray = () => {
-    const localArray = arrayInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(Number);
-
-    if (localArray.some(isNaN) || localArray.length === 0) {
-      alert("Invalid input. Please use comma-separated numbers.");
-      return;
-    }
-
-    // Convert to array of objects with stable IDs
-    const initialObjects = localArray.map((value, id) => ({ value, id }));
-
-    setIsLoaded(true);
-    generateCombSortHistory(initialObjects);
+  const load = () => {
+    const nums = arrayInput.split(",").map((s) => s.trim()).filter(Boolean).map(Number);
+    if (nums.some(isNaN) || nums.length === 0) { alert("Invalid input."); return; }
+    setLoaded(true);
+    generateHistory(nums.map((value, id) => ({ value, id })));
   };
 
-  const reset = () => {
-    setIsLoaded(false);
-    setHistory([]);
-    setCurrentStep(-1);
-  };
-
-  const handleEnterKey = (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    const btn = document.getElementById("load-button"); // the Load & Visualize button
-    if (btn) btn.click();
-  }
-};
-
-  const handleSpeedChange = (e) => {
-    setSpeed(parseFloat(e.target.value));
-  };
-
-  const playhead = useCallback(() => {
-    setIsPlaying((prev) => !prev); // toggle between play/pause
-  }, []);
-
-  const stepForward = useCallback(
-    () => setCurrentStep((prev) => Math.min(prev + 1, history.length - 1)),
-    [history.length]
-  );
-
-  const stepBackward = useCallback(
-    () => setCurrentStep((prev) => Math.max(prev - 1, 0)),
-    []
-  );
-
-  // --- Keyboard control only when active ---
-  useEffect(() => {
-    if (!active || !isLoaded) return;
-
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        stepBackward();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        stepForward();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [active, isLoaded, stepForward, stepBackward]);
-
-  // --- Click outside to deactivate ---
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (visualizerRef.current && !visualizerRef.current.contains(e.target)) {
-        setActive(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  const reset = () => { setLoaded(false); setHistory([]); setStep(-1); setAutoPlay(false); };
+  const fwd = useCallback(() => setStep((s) => Math.min(s + 1, history.length - 1)), [history.length]);
+  const back = useCallback(() => setStep((s) => Math.max(s - 1, 0)), []);
 
   useEffect(() => {
-    if (!isPlaying || history.length === 0) return;
+    if (!autoPlay) { clearInterval(intervalRef.current); return; }
+    intervalRef.current = setInterval(() => {
+      setStep((s) => { if (s >= history.length - 1) { setAutoPlay(false); return s; } return s + 1; });
+    }, Math.max(50, speed));
+    return () => clearInterval(intervalRef.current);
+  }, [autoPlay, speed, history.length]);
 
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev >= history.length - 1) {
-          clearInterval(interval);
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1000 / speed); // faster speed = shorter delay
+  useEffect(() => {
+    const h = (e) => { if (!loaded) return; if (e.key === "ArrowRight") fwd(); if (e.key === "ArrowLeft") back(); if (e.key === " ") { e.preventDefault(); setAutoPlay((p) => !p); } };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [loaded, fwd, back]);
 
-    return () => clearInterval(interval); // cleanup
-  }, [isPlaying, speed, history.length]);
-
-  const state = history[currentStep] || {};
+  const state = history[step] || {};
   const { array = [] } = state;
 
-  const colorMapping = {
-    purple: "text-purple400",
-    cyan: "text-teal",
-    yellow: "text-warning",
-    orange: "text-orange400",
-    "light-gray": "text-theme-tertiary",
-    "": "text-theme-secondary",
+  const getVariant = (index) => {
+    if (state.finished) return "sorted";
+    if (state.i === index || state.j === index) return "comparing";
+    return "default";
   };
 
-  const CodeLine = ({ line, content }) => (
-    <div
-      className={`block rounded-md transition-colors ${
-        state.line === line ? "bg-accent-primary-light" : ""
-      }`}
-    >
-      <span className="text-theme-muted w-8 inline-block text-right pr-4 select-none">
-        {line}
-      </span>
-      {content.map((token, index) => (
-        <span key={index} className={colorMapping[token.c]}>
-          {token.t}
-        </span>
-      ))}
-    </div>
-  );
-
-  const combSortCode = [
-    { l: 2, c: [{ t: "function combSort(arr) {", c: "" }] },
-    {
-      l: 3,
-      c: [
-        { t: "  let gap = arr.length;", c: "" },
-        { t: "  let shrink = 1.3;", c: "" },
-        { t: "  let swapped = true;", c: "" },
-      ],
-    },
-    {
-      l: 4,
-      c: [
-        { t: "  while (gap > 1 || swapped) {", c: "" },
-      ],
-    },
-    {
-      l: 5,
-      c: [
-        { t: "    gap = Math.floor(gap / shrink);", c: "" },
-        { t: "    if (gap < 1) gap = 1;", c: "" },
-      ],
-    },
-    { l: 6, c: [{ t: "    swapped = false;", c: "" }] },
-    {
-      l: 7,
-      c: [
-        { t: "    for (let i = 0; i + gap < arr.length; i++) {", c: "" },
-      ],
-    },
-    {
-      l: 8,
-      c: [
-        { t: "      if (arr[i] > arr[i + gap]) {", c: "" },
-      ],
-    },
-    { l: 9, c: [{ t: "        swap(arr[i], arr[i + gap]);", c: "" }] },
-    { l: 10, c: [{ t: "        swapped = true;", c: "" }] },
-    { l: 11, c: [{ t: "      }", c: "light-gray" }] },
-    { l: 12, c: [{ t: "    }", c: "light-gray" }] },
-    { l: 13, c: [{ t: "  }", c: "light-gray" }] },
-  ];
-
   return (
-    <div
-      ref={visualizerRef}
-      tabIndex={0}
-      onClick={() => setActive(true)}
-      className="p-4 max-w-7xl mx-auto focus:outline-none"
-    >
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-accent-primary flex items-center justify-center gap-3">
-          <List /> Comb Sort Visualizer
-        </h1>
-        <p className="text-lg text-theme-tertiary mt-2">
-          Visualizing an improvement over Bubble Sort
-        </p>
-      </header>
-      {/* ---------------------------------------under work---------------------------------------------- */}
-      <div className="w-full flex justify-center">
-        <div className="shadow-2xl border border-theme-primary/50 bg-theme-tertiary/50 p-4 rounded-lg  flex flex-col md:flex-row items-center justify-between gap-2 mb-6 w-full">
-          <div
-            className={`flex items-center gap-4 ${
-              isLoaded ? "w-full" : "w-full md:w-950"
-            }`}
-          >
-            <label
-              htmlFor="array-input"
-              className="font-medium text-theme-secondary font-mono hidden md:block"
-            >
-              Array:
-            </label>
-            <input
-              id="array-input"
-              type="text"
-              value={arrayInput}
-              onChange={(e) => setArrayInput(e.target.value)}
-              onKeyDown={handleEnterKey}
-              disabled={isLoaded}
-              className="font-mono flex-grow bg-theme-secondary border border-theme-primary rounded-md p-2 focus:ring-2 focus:ring-accent-primary"
-            />
-          </div>
-          <div className="flex items-center flex-wrap gap-4 md:flex-nowrap w-full md:w-150">
-            {!isLoaded ? (
-              <button
-                id="load-button"
-                onClick={loadArray}
-                className="bg-accent-primary hover:bg-accent-primary-hover text-theme-primary font-bold py-2 px-4 rounded-lg w-full"
-              >
-                Load & Visualize
-              </button>
-            ) : (
-              <>
-                <div className="flex gap-2 w-full md:w-40 justify-center">
-                  <button
-                    onClick={stepBackward}
-                    disabled={currentStep <= 0}
-                    className="bg-theme-elevated p-2 rounded-md disabled:opacity-50 w-full md:w-10 flex justify-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  {/* on click change state form play to pause */}
-                  <button
-                    onClick={playhead}
-                    disabled={currentStep >= history.length - 1}
-                    className="bg-theme-elevated p-2 rounded-md disabled:opacity-50 w-full md:w-10 flex justify-center"
-                  >
-                    {isPlaying ? (
-                      // Pause icon
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="white"
-                        viewBox="0 0 24 24"
-                      >
-                        <path d="M6 4h4v16H6zM14 4h4v16h-4z" />
-                      </svg>
-                    ) : (
-                      // Play icon
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="white"
-                        viewBox="0 0 448 512"
-                      >
-                        <path d="M91.2 36.9c-12.4-6.8-27.4-6.5-39.6 .7S32 57.9 32 72v368c0 14.1 7.5 27.2 19.6 34.4s27.2 7.5 39.6 .7l336-184c12.8-7 20.8-20.5 20.8-35.1s-8-28.1-20.8-35.1L91.2 36.9z" />
-                      </svg>
-                    )}
-                  </button>
+    <VisualizerShell noCursor>
+      <CustomCursor />
+      <VisualizerHeader title="COMB" subtitle="SORT." category="Sorting" icon={List}
+        right={
+          <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}
+            speed={speed} onRun={load} onReset={reset} onForward={fwd} onBackward={back}
+            onPlayPause={() => { if (step >= history.length - 1) setStep(0); setAutoPlay((p) => !p); }} onSpeedChange={setSpeed}>
+            <InputField label="Array" value={arrayInput} onChange={(e) => setArrayInput(e.target.value)}
+              disabled={loaded} inputProps={{ onKeyDown: (e) => e.key === "Enter" && load() }} style={{ flex: 1, minWidth: 160 }} />
+          </ControlBar>
+        }
+      />
+      {loaded && <ProgressBar step={step} totalSteps={history.length} />}
+      <Divider spacing={12} />
 
-                  <button
-                    onClick={stepForward}
-                    disabled={currentStep >= history.length - 1}
-                    className="bg-theme-elevated p-2 rounded-md disabled:opacity-50 w-full md:w-10 flex justify-center"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-6 w-6"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="flex gap-2 w-full lg:w-72 justify-center ">
-                  <div className="flex items-center gap-2 rounded-lg flex-shrink-0 lg:w-72 w-full">
-                    <span className="text-sm font-semibold">Speed</span>
-                    <input
-                      type="range"
-                      className="w-full h-1.5 bg-theme-elevated rounded-lg outline-none cursor-pointer"
-                      min="0.25"
-                      max="2"
-                      step="0.25"
-                      value={speed}
-                      onChange={handleSpeedChange}
-                    />
-                    <span className="text-sm min-w-8 font-mono text-theme-secondary  text-right">
-                      {speed}x
-                    </span>
-                    <span className="font-mono w-18 px-4 py-2 flex items-center justify-center text-center bg-theme-secondary border border-theme-primary rounded-md">
-                      {currentStep >= 0 ? currentStep + 1 : 0}/{history.length}
-                    </span>
-                    {/* Array size display - showing current number of elements */}
-                    {isLoaded && arrayInput && (
-                      <span className="text-sm text-theme-tertiary font-medium ml-4">
-                        Array Size: {arrayInput.split(',').filter(item => item.trim() !== '').length}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-            <div className="flex w-full md:w-20">
-              <button
-                onClick={reset}
-                className="bg-danger-hover hover:bg-danger-hover font-bold py-2 px-4 rounded-lg whitespace-nowrap text-sm sm:text-base flex-shrink-0 mx-auto w-full "
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-      {/* ----------------------------------------------------------------------------------------------- */}
-      {isLoaded ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-theme-tertiary/50 p-5 rounded-xl shadow-2xl border border-theme-primary/50">
-            <h3 className="font-bold text-xl text-accent-primary mb-4 pb-3 border-b border-theme-primary/50 flex items-center gap-2">
-              <Code size={20} />
-              Pseudocode
-            </h3>
-            <pre className="text-sm overflow-auto">
-              <code className="font-mono leading-relaxed">
-                {combSortCode.map((line) => (
-                  <CodeLine key={line.l} line={line.l} content={line.c} />
-                ))}
-              </code>
-            </pre>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-theme-tertiary/50 p-6 rounded-xl border border-theme-primary/50 shadow-2xl">
-              <h3 className="font-bold text-lg text-theme-secondary mb-4 flex items-center gap-2">
-                <BarChart3 size={20} />
-                Swapping Boxes Visualization
-              </h3>
-              <div className="flex justify-center items-center min-h-[170px] py-4 overflow-x-auto">
-                <div
-                  id="array-container"
-                  className="relative transition-all"
-                  style={{ width: `${array.length * 4.5}rem`, height: "4rem" }}
-                >
-                  {array.map((item, index) => {
-                    const isComparing =
-                      state.i === index || state.j === index;
-                    const isSorted = state.sortedIndices?.includes(index);
-
-                    let boxStyles = "bg-theme-elevated border-theme-primary";
-                    if (state.finished || isSorted) {
-                      boxStyles = "bg-success700 border-success text-theme-primary";
-                    } else if (isComparing) {
-                      boxStyles = "bg-orange600 border-orange text-theme-primary";
-                    }
-
-                    return (
-                      <div
-                        key={item.id} // Use stable ID for key
-                        id={`array-container-element-${index}`}
-                        className={`absolute w-16 h-16 flex items-center justify-center rounded-lg shadow-md border-2 font-bold text-2xl transition-all duration-500 ease-in-out ${boxStyles}`}
-                        style={{
-                          left: `${
-                            index * 4.5
-                          }rem` /* 4rem width + 0.5rem gap */,
-                        }}
-                      >
-                        {item.value}
-                      </div>
-                    );
-                  })}
-                  {isLoaded && (
-                    <>
-                      <VisualizerPointer
-                        index={state.i}
-                        containerId="array-container"
-                        color="amber"
-                        label="i"
-                      />
-                      <VisualizerPointer
-                        index={state.j}
-                        containerId="array-container"
-                        color="amber"
-                        label="i + gap"
-                      />
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-teal800/30 p-4 rounded-xl border border-teal700/50">
-                <h3 className="text-teal300 text-sm flex items-center gap-2">
-                  <GitCompareArrows size={16} /> Total Comparisons
-                </h3>
-                <p className="font-mono text-4xl text-teal mt-2">
-                  {state.totalComparisons ?? 0}
-                </p>
-              </div>
-              <div className="bg-purple800/30 p-4 rounded-xl border border-purple700/50">
-                <h3 className="text-purple300 text-sm flex items-center gap-2">
-                  <Repeat size={16} /> Total Swaps
-                </h3>
-                <p className="font-mono text-4xl text-purple400 mt-2">
-                  {state.totalSwaps ?? 0}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-theme-tertiary/50 p-4 rounded-xl border border-theme-primary/50 min-h-[5rem]">
-              <h3 className="text-theme-tertiary text-sm mb-1">Explanation</h3>
-              <p className="text-theme-secondary">{state.explanation}</p>
-              {state.finished && (
-                <CheckCircle className="inline-block ml-2 text-success" />
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-3 bg-theme-tertiary/50 p-5 rounded-xl shadow-2xl border border-theme-primary/50">
-            <h3 className="font-bold text-xl text-accent-primary mb-4 pb-3 border-b border-theme-primary/50 flex items-center gap-2">
-              <Clock size={20} /> Complexity Analysis
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6 text-sm">
-              <div className="space-y-4">
-                <h4 className="font-semibold text-accent-primary">Time Complexity</h4>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    Worst Case: O(N²)
-                  </strong>
-                  <br />
-                  Occurs with "killer" sequences, but is rare.
-                </p>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    Average Case: O(N log N)
-                  </strong>
-                  <br />
-                  For a random array, the number of comparisons and swaps is
-                  proportional to N log N.
-                </p>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    Best Case: O(N log N)
-                  </strong>
-                  <br />
-                   The algorithm's performance is consistently O(N log N).
-                </p>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-semibold text-accent-primary">
-                  Space Complexity
-                </h4>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">O(1)</strong>
-                  <br />
-                  Comb sort is an in-place sorting algorithm. It only requires
-                  a constant amount of extra memory for variables like loop
-                  counters, regardless of the input size. (Note: Our
-                  visualizer's history adds space for demonstration, but
-                  the algorithm itself is O(1)).
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {!loaded ? (
+        <IdleState icon={List} message='Enter comma-separated numbers and press <span style="color:#EDFF66">Run</span>' />
       ) : (
-        <p className="text-center text-theme-muted py-10">
-          Load an array to begin visualization.
-        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 220px", gridTemplateRows: "auto auto", gap: 14 }}>
+          <Panel title="pseudocode.js" icon={Terminal} style={{ gridRow: "1 / 3" }}>
+            <div style={{ padding: "12px 0", flex: 1, overflow: "hidden" }}><CodePanel lines={CODE_LINES} activeLine={state.line} /></div>
+          </Panel>
+
+          <Panel title={`array · ${array.length} elements`} icon={BarChart3} accent={V.amber}>
+            <div style={{ padding: "16px 16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+              <div id="array-container" style={{ position: "relative", width: `${array.length * 4.5}rem`, height: "8rem" }}>
+                {array.map((item, index) => (
+                  <div key={item.id} id={`array-container-element-${index}`}
+                    style={{ position: "absolute", left: `${index * 4.5}rem`, transition: "left 0.4s ease" }}>
+                    <ArrayBox value={item.value} index={index} variant={getVariant(index)} showIndex />
+                  </div>
+                ))}
+                {loaded && (<>
+                  <VisualizerPointer index={state.i} containerId="array-container" color="amber" label="i" direction="up" />
+                  <VisualizerPointer index={state.j} containerId="array-container" color="amber" label="i+gap" direction="up" />
+                </>)}
+              </div>
+              <Legend items={LEGEND_ITEMS} />
+            </div>
+          </Panel>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <StatBlock label="Gap" value={state.gap ?? "-"} color={V.accent} />
+            <StatBlock label="Comparisons" value={state.comparisons ?? 0} color={V.green} />
+            <StatBlock label="Swaps" value={state.swaps ?? 0} color={V.purple} />
+          </div>
+
+          <Panel title="execution log" icon={Terminal} accent={V.green} style={{ gridColumn: "2 / 3" }}>
+            <ExplanationLog entries={history.slice(0, step + 1).filter((s) => s.msg).map((s) => ({ msg: s.msg, phase: s.phase }))} autoPlay={autoPlay} />
+          </Panel>
+        </div>
       )}
-    </div>
+
+      {loaded && (
+        <div style={{ marginTop: 10 }}>
+          <ComplexityFooter items={[
+            { label: "Time Complexity", value: "O(N²)", color: V.amber, description: "Worst O(N²) with killer sequences (rare). Average/best O(N log N) with shrink factor 1.3." },
+            { label: "Space Complexity", value: "O(1)", color: V.green, description: "In-place with constant extra memory." },
+          ]} />
+        </div>
+      )}
+    </VisualizerShell>
   );
 };
 

@@ -9,7 +9,7 @@ import {
   Play,
   RotateCcw,
 } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 const TopKFrequentVisualizer = () => {
   const [mode, setMode] = useState("bucket-sort");

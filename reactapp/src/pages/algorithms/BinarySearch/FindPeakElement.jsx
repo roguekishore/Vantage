@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { ArrowLeft, Play, RotateCw, Pause, SkipBack, SkipForward, Mountain } from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+import VisualizerPointer from "../../../components/visualizer/VisualizerPointer";
 
 const FindPeakElement = () => {
   const initialArray = [1, 2, 3, 1];

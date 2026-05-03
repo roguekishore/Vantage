@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ArrowLeft, RefreshCw, Play, RotateCcw, Code, Zap, Clock, Cpu, ArrowRight, ArrowLeft as ArrowLeftIcon } from "lucide-react";
-import Tooltip from "../../../components/Tooltip";
+import Tooltip from "../../../components/common/Tooltip";
 
 const ReverseArray = ({ navigate }) => {
   const [array, setArray] = useState([1, 2, 3, 4, 5, 6, 7, 8]);

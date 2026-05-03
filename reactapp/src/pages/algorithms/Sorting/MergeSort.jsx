@@ -1,790 +1,233 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { BarChart3, Terminal, GitMerge } from "lucide-react";
 import {
-  Code,
-  CheckCircle,
-  BarChart3,
-  Clock,
-  Repeat,
-  GitCompareArrows,
-  GitMerge,
-} from "lucide-react";
-import VisualizerPointer from "../../../components/VisualizerPointer";
+  V, MONO,
+  VisualizerShell, VisualizerHeader, ControlBar, ProgressBar,
+  Panel, CodePanel, ExplanationLog, Divider,
+  StatBlock, Legend, ComplexityFooter,
+  ArrayBox, InputField, IdleState,
+} from "@/components/visualizer";
+import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
+import CustomCursor from "@/components/common/CustomCursor";
 
-// Main Visualizer Component
+/* ─────────────────────────────────────────────────────────────
+   CODE LINES
+───────────────────────────────────────────────────────────── */
+const CODE_LINES = [
+  { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "mergeSort(arr, l, r) {", k: "" }] },
+  { n: 2, tokens: [{ t: "  if ", k: "kw" }, { t: "(l < r) {", k: "" }] },
+  { n: 3, tokens: [{ t: "    mid = (l + r) / 2;", k: "var" }] },
+  { n: 4, tokens: [{ t: "    mergeSort", k: "fn" }, { t: "(arr, l, mid);", k: "" }] },
+  { n: 5, tokens: [{ t: "    mergeSort", k: "fn" }, { t: "(arr, mid+1, r);", k: "" }] },
+  { n: 6, tokens: [{ t: "    merge", k: "fn" }, { t: "(arr, l, mid, r);", k: "" }] },
+  { n: 7, tokens: [{ t: "  }", k: "dim" }] },
+  { n: 8, tokens: [{ t: "}", k: "dim" }] },
+  { n: 9, tokens: [{ t: "", k: "dim" }] },
+  { n: 10, tokens: [{ t: "function ", k: "kw" }, { t: "merge(arr, l, mid, r) {", k: "" }] },
+  { n: 11, tokens: [{ t: "  while ", k: "kw" }, { t: "(i < left.len && j < right.len) {", k: "" }] },
+  { n: 12, tokens: [{ t: "    if ", k: "kw" }, { t: "(left[i] <= right[j])", k: "" }] },
+  { n: 13, tokens: [{ t: "      arr[k++] = left[i++];", k: "" }] },
+  { n: 14, tokens: [{ t: "    else", k: "kw" }] },
+  { n: 15, tokens: [{ t: "      arr[k++] = right[j++];", k: "" }] },
+  { n: 16, tokens: [{ t: "  }", k: "dim" }] },
+  { n: 17, tokens: [{ t: "  // copy remaining", k: "comment" }] },
+  { n: 18, tokens: [{ t: "}", k: "dim" }] },
+];
+
+const LEGEND_ITEMS = [
+  { color: V.elevated, border: V.borderHi, label: "Default" },
+  { color: V.accentDim, border: V.accent, label: "Left half" },
+  { color: V.purpleDim, border: V.purple, label: "Right half" },
+  { color: V.amberDim, border: V.amber, label: "Merging" },
+  { color: V.greenDim, border: V.green, label: "Sorted" },
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN COMPONENT
+═══════════════════════════════════════════════════════════════ */
 const MergeSortVisualizer = () => {
   const [history, setHistory] = useState([]);
-  const [currentStep, setCurrentStep] = useState(-1);
+  const [step, setStep] = useState(-1);
   const [arrayInput, setArrayInput] = useState("8,5,2,9,5,6,3");
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [autoPlay, setAutoPlay] = useState(false);
+  const [speed, setSpeed] = useState(300);
+  const intervalRef = useRef(null);
 
-  const [active, setActive] = useState(false);
-  const visualizerRef = useRef(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
-  const [codeLanguage, setCodeLanguage] = useState("cpp");
-
-
-  const generateMergeSortHistory = useCallback((initialArray) => {
+  /* ── Algorithm ── */
+  const generateHistory = useCallback((initialArray) => {
     const arr = JSON.parse(JSON.stringify(initialArray));
     const n = arr.length;
-    const newHistory = [];
-    let totalComparisons = 0;
-    let totalMerges = 0;
-    let sortedIndices = [];
+    const hist = [];
+    let comparisons = 0, merges = 0;
 
-    const addState = (props) =>
-      newHistory.push({
-        array: JSON.parse(JSON.stringify(arr)), // Deep copy of objects
-        left: null,
-        right: null,
-        mid: null,
-        i: null,
-        j: null,
-        k: null,
-        leftArray: [],
-        rightArray: [],
-        sortedIndices: [...sortedIndices],
-        explanation: "",
-        totalComparisons,
-        totalMerges,
-        ...props,
-      });
+    const snap = (extra) =>
+      hist.push({ array: JSON.parse(JSON.stringify(arr)), comparisons, merges, ...extra });
 
-    addState({ line: 2, explanation: "Initialize Merge Sort algorithm." });
+    snap({ line: 1, msg: "Initialize Merge Sort.", phase: "start" });
 
-    const merge = (arr, left, mid, right) => {
-      const leftArr = [];
-      const rightArr = [];
+    const merge = (left, mid, right) => {
+      const leftArr = [], rightArr = [];
+      for (let i = left; i <= mid; i++) leftArr.push(arr[i]);
+      for (let j = mid + 1; j <= right; j++) rightArr.push(arr[j]);
 
-      // Create left and right subarrays
-      for (let i = left; i <= mid; i++) {
-        leftArr.push(arr[i]);
-      }
-      for (let j = mid + 1; j <= right; j++) {
-        rightArr.push(arr[j]);
-      }
+      snap({ line: 10, left, right, mid, msg: `Merging [${leftArr.map(x => x.value)}] and [${rightArr.map(x => x.value)}]`, phase: "info" });
 
-      addState({
-        line: 8,
-        left: left,
-        right: right,
-        mid: mid,
-        leftArray: leftArr,
-        rightArray: rightArr,
-        i: left,
-        j: mid + 1,
-        k: left,
-        explanation: `Merging left array [${leftArr
-          .map((x) => x.value)
-          .join(", ")}] and right array [${rightArr
-          .map((x) => x.value)
-          .join(", ")}]`,
-      });
-
-      let i = 0,
-        j = 0,
-        k = left;
-
+      let i = 0, j = 0, k = left;
       while (i < leftArr.length && j < rightArr.length) {
-        totalComparisons++;
-        addState({
-          line: 9,
-          left: left,
-          right: right,
-          mid: mid,
-          leftArray: leftArr,
-          rightArray: rightArr,
-          i: left + i,
-          j: mid + 1 + j,
-          k: k,
-          explanation: `Comparing left[${i}] (${leftArr[i].value}) with right[${j}] (${rightArr[j].value})`,
-        });
-
+        comparisons++;
+        snap({ line: 12, left, right, mid, k, i: left + i, j: mid + 1 + j, msg: `Compare ${leftArr[i].value} vs ${rightArr[j].value}`, phase: "try" });
         if (leftArr[i].value <= rightArr[j].value) {
-          arr[k] = leftArr[i];
-          addState({
-            line: 10,
-            left: left,
-            right: right,
-            mid: mid,
-            leftArray: leftArr,
-            rightArray: rightArr,
-            i: left + i,
-            j: mid + 1 + j,
-            k: k,
-            explanation: `${leftArr[i].value} <= ${rightArr[j].value}, taking from left array`,
-          });
-          i++;
+          arr[k] = leftArr[i]; i++;
+          snap({ line: 13, left, right, mid, k, msg: `Take ${arr[k].value} from left`, phase: "place" });
         } else {
-          arr[k] = rightArr[j];
-          addState({
-            line: 12,
-            left: left,
-            right: right,
-            mid: mid,
-            leftArray: leftArr,
-            rightArray: rightArr,
-            i: left + i,
-            j: mid + 1 + j,
-            k: k,
-            explanation: `${leftArr[i].value} > ${rightArr[j].value}, taking from right array`,
-          });
-          j++;
+          arr[k] = rightArr[j]; j++;
+          snap({ line: 15, left, right, mid, k, msg: `Take ${arr[k].value} from right`, phase: "place" });
         }
         k++;
       }
-
-      while (i < leftArr.length) {
-        arr[k] = leftArr[i];
-        addState({
-          line: 15,
-          left: left,
-          right: right,
-          mid: mid,
-          leftArray: leftArr,
-          rightArray: rightArr,
-          i: left + i,
-          j: mid + 1 + j,
-          k: k,
-          explanation: `Copying remaining elements from left array: ${leftArr[i].value}`,
-        });
-        i++;
-        k++;
-      }
-
-      while (j < rightArr.length) {
-        arr[k] = rightArr[j];
-        addState({
-          line: 18,
-          left: left,
-          right: right,
-          mid: mid,
-          leftArray: leftArr,
-          rightArray: rightArr,
-          i: left + i,
-          j: mid + 1 + j,
-          k: k,
-          explanation: `Copying remaining elements from right array: ${rightArr[j].value}`,
-        });
-        j++;
-        k++;
-      }
-
-      totalMerges++;
-      addState({
-        line: 21,
-        left: left,
-        right: right,
-        mid: mid,
-        leftArray: leftArr,
-        rightArray: rightArr,
-        i: left + i,
-        j: mid + 1 + j,
-        k: k,
-        explanation: `Merge complete. Sorted subarray from index ${left} to ${right}`,
-      });
+      while (i < leftArr.length) { arr[k] = leftArr[i]; i++; k++; }
+      while (j < rightArr.length) { arr[k] = rightArr[j]; j++; k++; }
+      merges++;
+      snap({ line: 18, left, right, mid, msg: `✓ Merge complete [${left}..${right}]`, phase: "success" });
     };
 
-    const mergeSort = (arr, left, right) => {
+    const mergeSort = (left, right) => {
       if (left < right) {
         const mid = Math.floor((left + right) / 2);
-
-        addState({
-          line: 4,
-          left: left,
-          right: right,
-          mid: mid,
-          explanation: `Dividing array from index ${left} to ${right}. Mid point: ${mid}`,
-        });
-
-        mergeSort(arr, left, mid);
-        mergeSort(arr, mid + 1, right);
-        merge(arr, left, mid, right);
+        snap({ line: 3, left, right, mid, msg: `Divide [${left}..${right}] at mid=${mid}`, phase: "info" });
+        mergeSort(left, mid);
+        mergeSort(mid + 1, right);
+        merge(left, mid, right);
       } else {
-        addState({
-          line: 6,
-          left: left,
-          right: right,
-          explanation: `Base case: single element at index ${left} (value: ${arr[left].value})`,
-        });
+        snap({ line: 2, left, right, msg: `Base case: single element at ${left} (${arr[left].value})`, phase: "info" });
       }
     };
 
-    mergeSort(arr, 0, n - 1);
+    mergeSort(0, n - 1);
+    snap({ line: 18, sortedIndices: Array.from({ length: n }, (_, k) => k), finished: true, msg: `Complete. ${comparisons} comparisons, ${merges} merges.`, phase: "done" });
 
-    // Mark all elements as sorted
-    const finalSorted = Array.from({ length: n }, (_, k) => k);
-
-    addState({
-      line: 23,
-      sortedIndices: finalSorted,
-      finished: true,
-      explanation:
-        "Algorithm finished. The array is fully sorted using divide and conquer approach.",
-    });
-
-    setHistory(newHistory);
-    setCurrentStep(0);
+    setHistory(hist);
+    setStep(0);
   }, []);
 
-  const loadArray = () => {
-    const localArray = arrayInput
-      .split(",")
-      .map((s) => s.trim())
-      .filter(Boolean)
-      .map(Number);
-
-    if (localArray.some(isNaN) || localArray.length === 0) {
-      alert("Invalid input. Please use comma-separated numbers.");
-      return;
-    }
-
-    // Convert to array of objects with stable IDs
-    const initialObjects = localArray.map((value, id) => ({ value, id }));
-
-    setIsLoaded(true);
-    generateMergeSortHistory(initialObjects);
+  const load = () => {
+    const nums = arrayInput.split(",").map((s) => s.trim()).filter(Boolean).map(Number);
+    if (nums.some(isNaN) || nums.length === 0) { alert("Invalid input."); return; }
+    setLoaded(true);
+    generateHistory(nums.map((value, id) => ({ value, id })));
   };
 
-  const reset = () => {
-    setIsLoaded(false);
-    setHistory([]);
-    setCurrentStep(-1);
-  };
+  const reset = () => { setLoaded(false); setHistory([]); setStep(-1); setAutoPlay(false); };
+  const fwd = useCallback(() => setStep((s) => Math.min(s + 1, history.length - 1)), [history.length]);
+  const back = useCallback(() => setStep((s) => Math.max(s - 1, 0)), []);
 
-  const handleEnterKey = (event) => {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      const btn = document.getElementById("load-button"); // the Load & Visualize button
-      if (btn) btn.click();
-    }
-  };
-
-  const handleSpeedChange = (e) => {
-    setSpeed(parseFloat(e.target.value));
-  };
-
-  const playhead = useCallback(() => {
-    setIsPlaying((prev) => !prev); // toggle between play/pause
-  }, []);
-
-  const stepForward = useCallback(
-    () => setCurrentStep((prev) => Math.min(prev + 1, history.length - 1)),
-    [history.length]
-  );
-
-  const stepBackward = useCallback(
-    () => setCurrentStep((prev) => Math.max(prev - 1, 0)),
-    []
-  );
-
-  // --- Keyboard control only when active ---
   useEffect(() => {
-    if (!active || !isLoaded) return;
+    if (!autoPlay) { clearInterval(intervalRef.current); return; }
+    intervalRef.current = setInterval(() => {
+      setStep((s) => { if (s >= history.length - 1) { setAutoPlay(false); return s; } return s + 1; });
+    }, Math.max(50, speed));
+    return () => clearInterval(intervalRef.current);
+  }, [autoPlay, speed, history.length]);
 
-    const handleKeyDown = (e) => {
-      if (e.key === "ArrowLeft") {
-        e.preventDefault();
-        stepBackward();
-      } else if (e.key === "ArrowRight") {
-        e.preventDefault();
-        stepForward();
-      }
+  useEffect(() => {
+    const h = (e) => {
+      if (!loaded) return;
+      if (e.key === "ArrowRight") fwd();
+      if (e.key === "ArrowLeft") back();
+      if (e.key === " ") { e.preventDefault(); setAutoPlay((p) => !p); }
     };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, [loaded, fwd, back]);
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [active, isLoaded, stepForward, stepBackward]);
-
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (visualizerRef.current && !visualizerRef.current.contains(e.target)) {
-        setActive(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  useEffect(() => {
-    if (!isPlaying || history.length === 0) return;
-
-    const interval = setInterval(() => {
-      setCurrentStep((prev) => {
-        if (prev >= history.length - 1) {
-          clearInterval(interval);
-          setIsPlaying(false);
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1000 / speed); // faster speed = shorter delay
-
-    return () => clearInterval(interval); // cleanup
-  }, [isPlaying, speed, history.length]);
-
-  const state = history[currentStep] || {};
+  const state = history[step] || {};
   const { array = [] } = state;
 
-  const colorMapping = {
-    purple: "text-purple",
-    cyan: "text-teal",
-    yellow: "text-warning",
-    orange: "text-orange",
-    "light-gray": "text-theme-tertiary",
-    "": "text-theme-secondary",
+  const getVariant = (index) => {
+    if (state.finished || state.sortedIndices?.includes(index)) return "sorted";
+    if (state.k === index) return "comparing";
+    if (state.left != null && state.mid != null && index >= state.left && index <= state.mid) return "active";
+    if (state.mid != null && state.right != null && index > state.mid && index <= state.right) return "swapping";
+    return "default";
   };
 
-  const CodeLine = ({ line, content }) => (
-    <div
-      className={`block rounded-md transition-colors ${
-        state.line === line ? "bg-accent-primary-light" : ""
-      }`}
-    >
-      <span className="text-theme-muted w-8 inline-block text-right pr-4 select-none">
-        {line}
-      </span>
-      {content.map((token, index) => (
-        <span key={index} className={colorMapping[token.c]}>
-          {token.t}
-        </span>
-      ))}
-    </div>
-  );
-
-  const mergeSortCode = [
-    { l: 2, c: [{ t: "function mergeSort(arr, left, right) {", c: "" }] },
-    {
-      l: 3,
-      c: [
-        { t: "  if", c: "purple" },
-        { t: " (left < right) {", c: "" },
-      ],
-    },
-    { l: 4, c: [{ t: "    mid = (left + right) / 2;", c: "" }] },
-    { l: 5, c: [{ t: "    mergeSort(arr, left, mid);", c: "" }] },
-    { l: 6, c: [{ t: "    mergeSort(arr, mid+1, right);", c: "" }] },
-    { l: 7, c: [{ t: "    merge(arr, left, mid, right);", c: "" }] },
-    { l: 8, c: [{ t: "  }", c: "light-gray" }] },
-    { l: 9, c: [{ t: "}", c: "light-gray" }] },
-    { l: 10, c: [{ t: "", c: "" }] },
-    { l: 11, c: [{ t: "function merge(arr, left, mid, right) {", c: "" }] },
-    {
-      l: 12,
-      c: [
-        { t: "  while", c: "purple" },
-        { t: " (i < leftArr.length && j < rightArr.length) {", c: "" },
-      ],
-    },
-    {
-      l: 13,
-      c: [
-        { t: "    if", c: "purple" },
-        { t: " (leftArr[i] <= rightArr[j]) {", c: "" },
-      ],
-    },
-    { l: 14, c: [{ t: "      arr[k] = leftArr[i]; i++;", c: "" }] },
-    { l: 15, c: [{ t: "    } else {", c: "light-gray" }] },
-    { l: 16, c: [{ t: "      arr[k] = rightArr[j]; j++;", c: "" }] },
-    { l: 17, c: [{ t: "    }", c: "light-gray" }] },
-    { l: 18, c: [{ t: "    k++;", c: "" }] },
-    { l: 19, c: [{ t: "  }", c: "light-gray" }] },
-    { l: 20, c: [{ t: "  // Copy remaining elements", c: "light-gray" }] },
-    { l: 21, c: [{ t: "}", c: "light-gray" }] },
-  ];
-
-  const mergeSortCodeJava = [
-    { l: 1, c: [{ t: "public static void mergeSort(int arr[]) {", c: "" }] },
-    { l: 2, c: [{ t: "    mergeSortHelper(arr, 0, arr.length - 1);", c: "" }] },
-    { l: 3, c: [{ t: "}", c: "light-gray" }] },
-    { l: 4, c: [{ t: "", c: "" }] },
-    {
-      l: 5,
-      c: [
-        {
-          t: "private static void mergeSortHelper(int arr[], int si, int ei) {",
-          c: "",
-        },
-      ],
-    },
-    {
-      l: 6,
-      c: [
-        { t: "    if", c: "purple" },
-        { t: " (si >= ei) return;", c: "" },
-      ],
-    },
-    { l: 7, c: [{ t: "    int mid = si + (ei - si) / 2;", c: "" }] },
-    { l: 8, c: [{ t: "    mergeSortHelper(arr, si, mid);", c: "" }] },
-    { l: 9, c: [{ t: "    mergeSortHelper(arr, mid + 1, ei);", c: "" }] },
-    { l: 10, c: [{ t: "    merge(arr, si, mid, ei);", c: "" }] },
-    { l: 11, c: [{ t: "}", c: "light-gray" }] },
-    { l: 12, c: [{ t: "", c: "" }] },
-    {
-      l: 13,
-      c: [
-        {
-          t: "private static void merge(int arr[], int si, int mid, int ei) {",
-          c: "",
-        },
-      ],
-    },
-    { l: 14, c: [{ t: "    int temp[] = new int[ei - si + 1];", c: "" }] },
-    { l: 15, c: [{ t: "    int i = si, j = mid + 1, k = 0;", c: "" }] },
-    {
-      l: 16,
-      c: [
-        { t: "    while", c: "purple" },
-        { t: " (i <= mid && j <= ei) {", c: "" },
-      ],
-    },
-    {
-      l: 17,
-      c: [
-        { t: "        if", c: "purple" },
-        { t: " (arr[i] < arr[j]) temp[k++] = arr[i++];", c: "" },
-      ],
-    },
-    { l: 18, c: [{ t: "        else temp[k++] = arr[j++];", c: "" }] },
-    { l: 19, c: [{ t: "    }", c: "light-gray" }] },
-    {
-      l: 20,
-      c: [
-        { t: "    while", c: "purple" },
-        { t: " (i <= mid) temp[k++] = arr[i++];", c: "" },
-      ],
-    },
-    {
-      l: 21,
-      c: [
-        { t: "    while", c: "purple" },
-        { t: " (j <= ei) temp[k++] = arr[j++];", c: "" },
-      ],
-    },
-    {
-      l: 22,
-      c: [
-        {
-          t: "    for (k = 0, i = si; k < temp.length; k++, i++) arr[i] = temp[k];",
-          c: "",
-        },
-      ],
-    },
-    { l: 23, c: [{ t: "}", c: "light-gray" }] },
-  ];
-
   return (
-    <div
-      ref={visualizerRef}
-      tabIndex={0}
-      onClick={() => setActive(true)}
-      className="p-4 max-w-7xl mx-auto focus:outline-none"
-    >
-      <header className="text-center mb-6">
-        <h1 className="text-4xl font-bold text-accent-primary flex items-center justify-center gap-3">
-          <GitMerge /> Merge Sort Visualizer
-        </h1>
-        <p className="text-lg text-theme-tertiary mt-2">
-          Visualizing the divide and conquer sorting algorithm
-        </p>
-      </header>
+    <VisualizerShell noCursor>
+      <CustomCursor />
 
-
-
-
-      <div className="bg-theme-tertiary p-4 rounded-lg shadow-xl border border-theme-primary flex flex-col md:flex-row items-center justify-between gap-4 mb-6">
-        <div className="flex items-center gap-4 flex-grow w-full">
-          <label
-            htmlFor="array-input"
-            className="font-medium text-theme-secondary font-mono"
+      <VisualizerHeader
+        title="MERGE"
+        subtitle="SORT."
+        category="Sorting"
+        icon={GitMerge}
+        right={
+          <ControlBar
+            loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}
+            speed={speed} onRun={load} onReset={reset} onForward={fwd} onBackward={back}
+            onPlayPause={() => { if (step >= history.length - 1) setStep(0); setAutoPlay((p) => !p); }} onSpeedChange={setSpeed}
           >
-            Array:
-          </label>
-          <input
-            id="array-input"
-            type="text"
-            value={arrayInput}
-            onChange={(e) => setArrayInput(e.target.value)}
-            disabled={isLoaded}
-            className="font-mono flex-grow bg-theme-secondary border border-theme-primary rounded-md p-2 focus:ring-2 focus:ring-accent-primary"
-          />
-          {/* Array size display - showing current number of elements */}
-          {isLoaded && arrayInput && (
-            <div className="ml-4 flex items-center">
-              <span className="text-sm text-theme-tertiary font-medium">
-                Array Size: {arrayInput.split(',').filter(item => item.trim() !== '').length}
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-2">
-          {!isLoaded ? (
-            <button
-              onClick={loadArray}
-              className="bg-accent-primary hover:bg-accent-primary-hover cursor-pointer text-theme-primary font-bold py-2 px-4 rounded-lg"
-            >
-              Load & Visualize
-            </button>
-          ) : (
-            <>
-              <button
-                onClick={stepBackward}
-                disabled={currentStep <= 0}
-                className="bg-theme-elevated p-2 rounded-md disabled:opacity-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-                </svg>
-              </button>
-              <span className="font-mono w-24 text-center">
-                {currentStep >= 0 ? currentStep + 1 : 0}/{history.length}
-              </span>
-              <button
-                onClick={stepForward}
-                disabled={currentStep >= history.length - 1}
-                className="bg-theme-elevated p-2 rounded-md disabled:opacity-50"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path d="M13 5l7 7-7 7M5 5l7 7-7 7" />
-                </svg>
-              </button>
-            </>
-          )}
-          <button
-            onClick={reset}
-            className="ml-4 bg-danger-hover hover:bg-danger-hover font-bold py-2 px-4 rounded-lg"
-          >
-            Reset
-          </button>
-        </div>
-      </div>
+            <InputField label="Array" value={arrayInput} onChange={(e) => setArrayInput(e.target.value)}
+              disabled={loaded} inputProps={{ onKeyDown: (e) => e.key === "Enter" && load() }} style={{ flex: 1, minWidth: 160 }} />
+          </ControlBar>
+        }
+      />
 
-      {isLoaded ? (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1 bg-theme-tertiary/50 p-5 rounded-xl shadow-2xl border border-theme-primary/50">
-            <h3 className="font-bold text-xl text-accent-primary mb-4 pb-3 border-b border-theme-primary/50 flex items-center gap-2">
-              <span className="flex items-center gap-2">
-                <Code size={20} /> Pseudocode
-              </span>
+      {loaded && <ProgressBar step={step} totalSteps={history.length} />}
+      <Divider spacing={12} />
 
-              {/* 👇 Toggle buttons for C++ and Java */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setCodeLanguage("cpp")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium ${
-                    codeLanguage === "cpp"
-                      ? "bg-accent-primary text-theme-primary"
-                      : "bg-theme-elevated text-theme-secondary hover:bg-theme-elevated"
-                  }`}
-                >
-                  C++
-                </button>
-
-                <button
-                  onClick={() => setCodeLanguage("java")}
-                  className={`px-3 py-1 rounded-md text-sm font-medium ${
-                    codeLanguage === "java"
-                      ? "bg-accent-primary text-theme-primary"
-                      : "bg-theme-elevated text-theme-secondary hover:bg-theme-elevated"
-                  }`}
-                >
-                  Java
-                </button>
-              </div>
-            </h3>
-
-            <pre className="text-sm overflow-auto">
-              <code className="font-mono leading-relaxed">
-                {(codeLanguage === "cpp"
-                  ? mergeSortCode
-                  : mergeSortCodeJava
-                ).map((line) => (
-                  <CodeLine key={line.l} line={line.l} content={line.c} />
-                ))}
-              </code>
-            </pre>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-theme-tertiary/50 p-6 rounded-xl border border-theme-primary/50 shadow-2xl">
-              <h3 className="font-bold text-lg text-theme-secondary mb-4 flex items-center gap-2">
-                <BarChart3 size={20} />
-                Array Visualization
-              </h3>
-
-              <div className="flex justify-center items-center min-h-[170px] py-4 overflow-x-auto">
-
-
-                <div
-                  id="array-container"
-                  className="relative transition-all"
-                  style={{ width: `${array.length * 4.5}rem`, height: "4rem" }}
-                >
-                  {array.map((item, index) => {
-                    const isInLeftRange =
-                      state.left !== null &&
-                      state.right !== null &&
-                      index >= state.left &&
-                      index <= state.mid;
-                    const isInRightRange =
-                      state.left !== null &&
-                      state.right !== null &&
-                      index > state.mid &&
-                      index <= state.right;
-                    const isComparing = state.k === index;
-                    const isSorted = state.sortedIndices?.includes(index);
-
-                    let boxStyles = "bg-theme-elevated border-theme-primary";
-                    if (state.finished || isSorted) {
-                      boxStyles = "bg-success700 border-success text-theme-primary";
-                    } else if (isComparing) {
-                      boxStyles = "bg-orange600 border-orange text-theme-primary";
-                    } else if (isInLeftRange) {
-                      boxStyles = "bg-accent-primary-hover border-accent-primary text-theme-primary";
-                    } else if (isInRightRange) {
-                      boxStyles = "bg-purplehover border-purple text-theme-primary";
-                    }
-
-                    return (
-                      <div
-                        key={item.id} // Use stable ID for key
-                        id={`array-container-element-${index}`}
-                        className={`absolute w-16 h-16 flex items-center justify-center rounded-lg shadow-md border-2 font-bold text-2xl transition-all duration-500 ease-in-out ${boxStyles}`}
-                        style={{
-                          left: `${
-                            index * 4.5
-                          }rem` /* 4rem width + 0.5rem gap */,
-                        }}
-                      >
-                        {item.value}
-                      </div>
-                    );
-                  })}
-                  {isLoaded && state.left !== null && state.right !== null && (
-                    <>
-                      <VisualizerPointer
-                        index={state.left}
-                        containerId="array-container"
-                        color="blue"
-                        label="L"
-                      />
-                      <VisualizerPointer
-                        index={state.right}
-                        containerId="array-container"
-                        color="purple"
-                        label="R"
-                      />
-                      {state.mid !== null && (
-                        <VisualizerPointer
-                          index={state.mid}
-                          containerId="array-container"
-                          color="cyan"
-                          label="M"
-                        />
-                      )}
-                    </>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-teal800/30 p-4 rounded-xl border border-teal700/50">
-                <h3 className="text-teal300 text-sm flex items-center gap-2">
-                  <GitCompareArrows size={16} /> Total Comparisons
-                </h3>
-                <p className="font-mono text-4xl text-teal mt-2">
-                  {state.totalComparisons ?? 0}
-                </p>
-              </div>
-              <div className="bg-purple800/30 p-4 rounded-xl border border-purple700/50">
-                <h3 className="text-purple text-sm flex items-center gap-2">
-                  <GitMerge size={16} /> Total Merges
-                </h3>
-                <p className="font-mono text-4xl text-purple mt-2">
-                  {state.totalMerges ?? 0}
-                </p>
-              </div>
-            </div>
-
-            <div className="bg-theme-tertiary/50 p-4 rounded-xl border border-theme-primary/50 min-h-[5rem]">
-              <h3 className="text-theme-tertiary text-sm mb-1">Explanation</h3>
-              <p className="text-theme-secondary">{state.explanation}</p>
-              {state.finished && (
-                <CheckCircle className="inline-block ml-2 text-success" />
-              )}
-            </div>
-          </div>
-
-          <div className="lg:col-span-3 bg-theme-tertiary/50 p-5 rounded-xl shadow-2xl border border-theme-primary/50">
-            <h3 className="font-bold text-xl text-accent-primary mb-4 pb-3 border-b border-theme-primary/50 flex items-center gap-2">
-              <Clock size={20} /> Complexity Analysis
-            </h3>
-            <div className="grid md:grid-cols-2 gap-6 text-sm">
-              <div className="space-y-4">
-                <h4 className="font-semibold text-accent-primary">Time Complexity</h4>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    Worst Case: O(N log N)
-                  </strong>
-                  <br />
-                  Always divides the array in half and merges in O(N) time. The
-                  recursion depth is log N, and each level takes O(N) time for
-                  merging.
-                </p>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    Average Case: O(N log N)
-                  </strong>
-                  <br />
-                  Merge sort consistently divides the array in half regardless
-                  of input distribution, making it stable across all cases.
-                </p>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">
-                    Best Case: O(N log N)
-                  </strong>
-                  <br />
-                  Even for already sorted arrays, merge sort still performs the
-                  full divide and conquer process, maintaining O(N log N)
-                  complexity.
-                </p>
-              </div>
-              <div className="space-y-4">
-                <h4 className="font-semibold text-accent-primary">
-                  Space Complexity
-                </h4>
-                <p className="text-theme-tertiary">
-                  <strong className="text-teal300 font-mono">O(N)</strong>
-                  <br />
-                  Merge sort requires additional space for temporary arrays
-                  during the merge process. The maximum space used is
-                  proportional to the input size N. (Note: Our visualizer's
-                  history adds O(N log N) space for demonstration, but the
-                  algorithm itself is O(N)).
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+      {!loaded ? (
+        <IdleState icon={GitMerge} message='Enter comma-separated numbers and press <span style="color:#EDFF66">Run</span>' />
       ) : (
-        <p className="text-center text-theme-muted py-10">
-          Load an array to begin visualization.
-        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "300px 1fr 220px", gridTemplateRows: "auto auto", gap: 14 }}>
+          <Panel title="pseudocode.js" icon={Terminal} style={{ gridRow: "1 / 3" }}>
+            <div style={{ padding: "12px 0", flex: 1, overflow: "hidden" }}>
+              <CodePanel lines={CODE_LINES} activeLine={state.line} />
+            </div>
+          </Panel>
+
+          <Panel title={`array · ${array.length} elements`} icon={BarChart3} accent={V.amber}>
+            <div style={{ padding: "16px 16px 12px", display: "flex", flexDirection: "column", alignItems: "center", gap: 14 }}>
+              <div id="array-container" style={{ position: "relative", width: `${array.length * 4.5}rem`, height: "8rem" }}>
+                {array.map((item, index) => (
+                  <div key={item.id} id={`array-container-element-${index}`}
+                    style={{ position: "absolute", left: `${index * 4.5}rem`, transition: "left 0.4s ease" }}>
+                    <ArrayBox value={item.value} index={index} variant={getVariant(index)} showIndex />
+                  </div>
+                ))}
+                {state.left != null && state.right != null && (
+                  <>
+                    <VisualizerPointer index={state.left} containerId="array-container" color="blue" label="L" direction="up" />
+                    <VisualizerPointer index={state.right} containerId="array-container" color="purple" label="R" direction="up" />
+                    {state.mid != null && <VisualizerPointer index={state.mid} containerId="array-container" color="cyan" label="M" direction="up" />}
+                  </>
+                )}
+              </div>
+              <Legend items={LEGEND_ITEMS} />
+            </div>
+          </Panel>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <StatBlock label="Comparisons" value={state.comparisons ?? 0} color={V.green} />
+            <StatBlock label="Merges" value={state.merges ?? 0} color={V.accent} />
+            <StatBlock label="Progress" value={`${history.length > 1 ? Math.round((step / (history.length - 1)) * 100) : 0}%`} color={V.purple} />
+          </div>
+
+          <Panel title="execution log" icon={Terminal} accent={V.green} style={{ gridColumn: "2 / 3" }}>
+            <ExplanationLog entries={history.slice(0, step + 1).filter((s) => s.msg).map((s) => ({ msg: s.msg, phase: s.phase }))} autoPlay={autoPlay} />
+          </Panel>
+        </div>
       )}
-    </div>
+
+      {loaded && (
+        <div style={{ marginTop: 10 }}>
+          <ComplexityFooter items={[
+            { label: "Time Complexity", value: "O(N log N)", color: V.amber, description: "Always O(N log N) — divides in half at each level (log N levels) and merges in O(N). Consistent across best, average, and worst cases." },
+            { label: "Space Complexity", value: "O(N)", color: V.green, description: "Requires O(N) auxiliary space for temporary arrays during merge. Not in-place — trades space for guaranteed O(N log N) time." },
+          ]} />
+        </div>
+      )}
+    </VisualizerShell>
   );
 };
 
