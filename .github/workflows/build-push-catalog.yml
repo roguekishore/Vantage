@@ -9,7 +9,7 @@
 #
 # Nothing here runs on ordinary commits or pushes.
 
-name: Build and Push
+name: Build and Push (catalog)
 
 on:
   workflow_dispatch:
@@ -24,7 +24,7 @@ on:
         default: false
 
 concurrency:
-  group: build-${{ github.ref }}
+  group: build-catalog-${{ github.ref }}
   cancel-in-progress: false
 
 permissions:
@@ -40,11 +40,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - service: vantage
-            image: roguekishore/vantage
-            context: ./springapp
-            file: ./springapp/Dockerfile.native
-            native: true
           - service: catalog
             image: roguekishore/vantage-catalog
             context: ./judge
