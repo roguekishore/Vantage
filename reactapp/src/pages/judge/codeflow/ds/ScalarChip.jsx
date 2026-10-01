@@ -1,5 +1,8 @@
 import React from "react";
-import { V, MONO } from "../../../../components/visualizer/theme";
+// V.accent stays on changed values only because the *.test.js files pin that
+// hex; Judge.css maps it to --accent-ink in the light theme.
+import { V } from "../../../../components/visualizer/theme";
+import { T, MONO } from "../cfTheme";
 
 /**
  * ScalarChip — single-value renderer for the Code Flow dry-run window.
@@ -35,18 +38,18 @@ export default function ScalarChip({ model }) {
         padding: "0 10px",
         fontFamily: MONO,
         fontSize: 12,
-        color: isChanged ? V.accent : V.text,
-        background: isChanged ? V.accentDim : V.elevated,
-        border: `1px solid ${isChanged ? V.accentMid : V.border}`,
-        boxShadow: isChanged ? `0 0 8px ${V.accentDim}` : "none",
-        transition: "background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
+        color: isChanged ? V.accent : T.fg,
+        background: isChanged ? T.accentSoft : T.elevated,
+        border: `1px solid ${isChanged ? T.accentInk : T.border}`,
+        boxShadow: "none",
+        transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
       }}
       title={value}
     >
       {name && (
         <>
-          <span style={{ color: V.muted, fontWeight: 500 }}>{name}</span>
-          <span style={{ color: V.dim, userSelect: "none" }}>=</span>
+          <span style={{ color: T.fgMuted, fontWeight: 500 }}>{name}</span>
+          <span style={{ color: T.fgDim, userSelect: "none" }}>=</span>
         </>
       )}
       <span style={{ fontWeight: isChanged ? 700 : 500 }}>

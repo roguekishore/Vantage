@@ -1,12 +1,11 @@
 import React, { Suspense, lazy } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import { topicConfig } from "./config";
 import VisualizerPage from "../pages/visualizer/VisualizerPage";
 import { lazyVisualizer } from "../pages/visualizer/legacyViz";
 
 const TopicPage = lazy(() => import("../pages/topics/TopicPage"));
 const TopicsPage = lazy(() => import("../pages/topics/TopicsPage"));
-const AlgoCards = lazy(() => import("../components/problems/AlgoCards"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -24,6 +23,7 @@ const VisualizerRoute = ({ component: Component, title, topic }) => {
     <VisualizerPage
       title={title}
       icon={config.icon}
+      topic={config}
     >
       <Component />
     </VisualizerPage>
@@ -228,7 +228,7 @@ const AppRoutes = () => {
       <Routes>
         {/* VISUALIZERS PAGE */}
         <Route path="/visualizers" element={<TopicsPage />} />
-        <Route path="/explore" element={<AlgoCards />} />
+        <Route path="/explore" element={<Navigate to="/visualizers" replace />} />
 
         {/* SORTING */}
         <Route path={sorting.path} element={

@@ -2,7 +2,29 @@ import React, { useEffect, useRef } from "react";
 import { observeElementResize } from "../../lib/observeResize";
 // rgba(tokenOrHex, a): rgba("fg", 0.1) reads --fg-rgb at call time, so a
 // theme toggle applies on the next frame without a remount.
-import { rgba } from "../../lib/canvasTheme";
+import { rgba, cssVar } from "../../lib/canvasTheme";
+import { prefersReducedMotion } from "../../hooks/useReducedMotion";
+
+// Theme + motion helpers.
+// tok("accent-ink") -> the current theme's hex for that token (hex/rgba pass
+// through), re-read every frame so a theme toggle applies without a remount.
+const tok = (c) => (typeof c === "string" && /^[a-z][a-z-]*$/.test(c) ? cssVar(c) : c);
+// Reduced motion: hold() lets one frame through, then only redraws when the
+// theme or the canvas size changes (one static frame, still theme-correct).
+function makeMotionGate(canvas) {
+  const reduced = prefersReducedMotion();
+  let drawnKey = null;
+  return {
+    hold() {
+      if (!reduced) return false;
+      const key = `${document.documentElement.className}|${canvas.width}x${canvas.height}`;
+      if (key === drawnKey) return true;
+      drawnKey = key;
+      return false;
+    },
+  };
+}
+
 
 const lerp = (a, b, t) => a + (b - a) * t;
 
@@ -20,7 +42,7 @@ function getCanvasPerfProfile() {
 
 export const COMPLEX_ALGO_CONFIGS = {
   nqueens: {
-    color: "#f59e0b",
+    color: "accent-ink",
     label: "N-Queens",
     sub: "Backtracking",
     complexity: "O(N!)",
@@ -29,7 +51,7 @@ export const COMPLEX_ALGO_CONFIGS = {
     size: 8,
   },
   sudoku: {
-    color: "#22d3ee",
+    color: "accent-ink",
     label: "Sudoku Solver",
     sub: "Backtracking",
     complexity: "Exponential",
@@ -38,7 +60,7 @@ export const COMPLEX_ALGO_CONFIGS = {
     size: 9,
   },
   snakesladders: {
-    color: "#f43f5e",
+    color: "accent-ink",
     label: "Snakes & Ladders",
     sub: "Simulation",
     complexity: "O(T)",
@@ -46,7 +68,7 @@ export const COMPLEX_ALGO_CONFIGS = {
     isSnakesLadders: true,
   },
   knightstour: {
-    color: "#8b5cf6",
+    color: "accent-ink",
     label: "Knight's Tour",
     sub: "Backtracking",
     complexity: "O(8^(N²))",
@@ -245,7 +267,7 @@ function buildKnightsTourPath(size = 8) {
   return [[0, 0]];
 }
 
-export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
+export function NQueensCanvas({ size = 8, color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -253,6 +275,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -272,6 +295,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
       { threshold: 0.01 }
     );
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -302,7 +326,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
 
     const glow = (blur = 10) => {
       ctx.shadowColor = color;
-      ctx.shadowBlur = blur * perf.glowScale;
+      ctx.shadowBlur = 0;
     };
     const noGlow = () => {
       ctx.shadowBlur = 0;
@@ -325,7 +349,8 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       if (W() === 0 || H() === 0) return;
 
       clearCanvas();
@@ -401,7 +426,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
           }
 
           if ((state.kind === "try" || state.kind === "reject") && state.row === r && state.col === c) {
-            ctx.fillStyle = state.kind === "reject" ? "rgba(239,68,68,0.2)" : rgba(color, 0.22);
+            ctx.fillStyle = state.kind === "reject" ? rgba("err", 0.2) : rgba(color, 0.22);
             ctx.fillRect(x, y, cell, cell);
           }
 
@@ -414,7 +439,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
             ctx.stroke();
           }
           if (rejectPulse[key] > 0) {
-            ctx.strokeStyle = `rgba(239,68,68,${0.75 * rejectPulse[key]})`;
+            ctx.strokeStyle = rgba("err", 0.75 * rejectPulse[key]);
             ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.roundRect(x + 3, y + 3, cell - 6, cell - 6, 4);
@@ -434,7 +459,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
           const cx = bx + c * cell + cell / 2;
           const cy = by + r * cell + cell / 2;
           ctx.save();
-          ctx.strokeStyle = "rgba(239,68,68,0.55)";
+          ctx.strokeStyle = rgba("err", 0.55);
           ctx.lineWidth = 1.2;
           ctx.setLineDash([3, 3]);
           ctx.beginPath();
@@ -527,12 +552,12 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [size, color]);
+  }, [size, colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function SudokuCanvas({ color = "#22d3ee" }) {
+export function SudokuCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -540,6 +565,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -559,6 +585,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
       { threshold: 0.01 }
     );
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -604,7 +631,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
 
     const glow = (blur = 10) => {
       ctx.shadowColor = color;
-      ctx.shadowBlur = blur * perf.glowScale;
+      ctx.shadowBlur = 0;
     };
     const noGlow = () => {
       ctx.shadowBlur = 0;
@@ -615,7 +642,8 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       if (W() === 0 || H() === 0) return;
 
       clearCanvas();
@@ -694,7 +722,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
 
           // active candidate cell
           if (state.row === r && state.col === c) {
-            ctx.fillStyle = state.kind === "reject" ? "rgba(239,68,68,0.2)" : rgba(color, 0.18);
+            ctx.fillStyle = state.kind === "reject" ? rgba("err", 0.2) : rgba(color, 0.18);
             ctx.fillRect(x, y, cell, cell);
           }
 
@@ -707,7 +735,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
             ctx.stroke();
           }
           if (rejectPulse[key] > 0) {
-            ctx.strokeStyle = `rgba(239,68,68,${0.8 * rejectPulse[key]})`;
+            ctx.strokeStyle = rgba("err", 0.8 * rejectPulse[key]);
             ctx.lineWidth = 1.1;
             ctx.beginPath();
             ctx.roundRect(x + 3, y + 3, cell - 6, cell - 6, 3);
@@ -725,7 +753,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
           const cx = bx + c * cell + cell / 2;
           const cy = by + r * cell + cell / 2;
           ctx.save();
-          ctx.strokeStyle = "rgba(239,68,68,0.52)";
+          ctx.strokeStyle = rgba("err", 0.52);
           ctx.lineWidth = 1.1;
           ctx.setLineDash([3, 3]);
           ctx.beginPath();
@@ -768,7 +796,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
 
           ctx.save();
           if (active && !given) glow(8);
-          ctx.fillStyle = given ? rgba("fg", 0.92) : (active ? color : "rgba(178,242,255,0.9)");
+          ctx.fillStyle = given ? rgba("fg", 0.92) : (active ? color : rgba("fg", 0.66));
           ctx.font = `700 ${Math.max(10, cell * 0.5)}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -784,7 +812,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
         const y = by + state.row * cell + cell / 2;
         ctx.save();
         ctx.globalAlpha = state.kind === "reject" ? 0.5 : 0.75;
-        ctx.fillStyle = state.kind === "reject" ? "rgba(248,113,113,0.9)" : "rgba(34,211,238,0.95)";
+        ctx.fillStyle = state.kind === "reject" ? rgba("err", 0.9) : rgba(color, 0.95);
         ctx.font = `700 ${Math.max(10, cell * 0.48)}px 'JetBrains Mono', monospace`;
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -846,12 +874,12 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
+export function SnakesLaddersCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -859,6 +887,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -878,6 +907,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
       { threshold: 0.01 }
     );
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -953,7 +983,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
 
     const glow = (blur = 10, c = color) => {
       ctx.shadowColor = c;
-      ctx.shadowBlur = blur * perf.glowScale;
+      ctx.shadowBlur = 0;
     };
     const noGlow = () => {
       ctx.shadowBlur = 0;
@@ -973,7 +1003,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
       const a = cellCenter(from, bx, by, boardSize, cell);
       const b = cellCenter(to, bx, by, boardSize, cell);
       ctx.save();
-      const c = isLadder ? "#34d399" : "#f87171";
+      const c = tok(isLadder ? "accent-ink" : "err");
       glow(8, c);
       ctx.strokeStyle = rgba(c, 0.8);
       ctx.lineWidth = isLadder ? 2 : 1.8;
@@ -1002,7 +1032,8 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       if (W() === 0 || H() === 0) return;
 
       clearCanvas();
@@ -1075,7 +1106,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
       ctx.beginPath();
       ctx.arc(tp.x, tp.y, Math.max(4, cell * 0.18 + pulse * 2), 0, Math.PI * 2);
       ctx.fill();
-      ctx.fillStyle = "#fff";
+      ctx.fillStyle = rgba("fg", 1);
       ctx.beginPath();
       ctx.arc(tp.x, tp.y, Math.max(1.8, cell * 0.07), 0, Math.PI * 2);
       ctx.fill();
@@ -1121,12 +1152,12 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
+export function KnightsTourCanvas({ color: colorToken = "accent-ink", size = 8 }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -1134,6 +1165,7 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -1153,6 +1185,7 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
       { threshold: 0.01 }
     );
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -1182,7 +1215,7 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
 
     const glow = (blur = 10, c = color) => {
       ctx.shadowColor = c;
-      ctx.shadowBlur = blur * perf.glowScale;
+      ctx.shadowBlur = 0;
     };
     const noGlow = () => {
       ctx.shadowBlur = 0;
@@ -1193,7 +1226,8 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       if (W() === 0 || H() === 0) return;
 
       clearCanvas();
@@ -1363,23 +1397,23 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color, size]);
+  }, [colorToken, size]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
 export function ComplexAlgoCanvas({ algo }) {
   if (algo?.isNQueens) {
-    return <NQueensCanvas size={algo.size || 8} color={algo.color || "#f59e0b"} />;
+    return <NQueensCanvas size={algo.size || 8} color={algo.color || "accent-ink"} />;
   }
   if (algo?.isSudoku) {
-    return <SudokuCanvas color={algo.color || "#22d3ee"} />;
+    return <SudokuCanvas color={algo.color || "accent-ink"} />;
   }
   if (algo?.isSnakesLadders) {
-    return <SnakesLaddersCanvas color={algo.color || "#f43f5e"} />;
+    return <SnakesLaddersCanvas color={algo.color || "accent-ink"} />;
   }
   if (algo?.isKnightsTour) {
-    return <KnightsTourCanvas color={algo.color || "#8b5cf6"} size={algo.size || 8} />;
+    return <KnightsTourCanvas color={algo.color || "accent-ink"} size={algo.size || 8} />;
   }
   return null;
 }

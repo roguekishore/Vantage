@@ -1,24 +1,38 @@
 import React from "react";
-import { V, MONO, MONUMENT, LABEL_STYLE } from "../../../components/visualizer/theme";
-import ControlBar from "../../../components/visualizer/ControlBar";
-import IdleState from "../../../components/visualizer/IdleState";
 import {
-  GitBranch,
-  Loader,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
+  GitBranch,
   Layers,
+  Pause,
+  Play,
+  RotateCcw,
 } from "lucide-react";
+
+/*
+ * Code-flow playback chrome on design tokens. These
+ * views are imported by DryRunPanel.test.js, and jest has no "@/" alias, so
+ * they mirror the ds Button / EmptyState / ErrorState classes here instead of
+ * importing "@/components/ds".
+ */
+const FOCUS = "ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-2 ds-focus:outline-focus";
+const ICON_BTN = [
+  "inline-flex h-7 w-7 shrink-0 items-center justify-center border border-border-strong bg-transparent text-fg",
+  "transition-colors duration-[120ms] ease-out ds-hover:border-fg ds-hover:bg-fg ds-hover:text-bg",
+  "disabled:cursor-not-allowed disabled:opacity-50",
+  FOCUS,
+].join(" ");
+const LABEL = "font-mono text-label uppercase";
+const ICON = { size: 14, strokeWidth: 1.5, "aria-hidden": true };
 
 /**
  * FlowControlBar — Playback controls for the Code Flow Visualizer.
  *
- * Thin wrapper around the shared {@link ControlBar} playback semantics
- * (prev / play-pause / next / speed / step counter / reset). The trace is
- * loaded by the "Visualize Flow" affordance in JudgePage, so this bar always
- * renders in the post-load (`loaded`) playback mode driven by `useCodeFlow`.
- *
- * Stepping is bounded by `useCodeFlow` and ControlBar additionally disables the
- * prev/next buttons at the range edges, satisfying the step no-op requirements.
+ * Same semantics as the shared visualizer ControlBar in its post-load mode:
+ * prev / play-pause / next / speed / step counter / reset. Prev and next are
+ * disabled at the range edges; the speed slider is inverted (right = faster)
+ * and reports the interval in ms through `onSpeedChange`.
  *
  * @param {Object} props
  * @param {boolean} props.playing      - whether auto-play is active
@@ -48,31 +62,71 @@ export default function FlowControlBar({
 }) {
   return (
     <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "8px 12px",
-        background: V.surface,
-        borderBottom: `1px solid ${V.border}`,
-        flexWrap: "wrap",
-      }}
+      className="flex shrink-0 flex-wrap items-center gap-2 border-b border-border bg-surface px-3 py-2"
+      role="toolbar"
+      aria-label="Flow playback"
     >
-      <span style={{ ...LABEL_STYLE, marginRight: 4 }}>flow</span>
-      <ControlBar
-        loaded
-        playing={playing}
-        step={step}
-        totalSteps={totalSteps}
-        speed={speed}
-        minSpeed={minSpeed}
-        maxSpeed={maxSpeed}
-        onForward={onForward}
-        onBackward={onBackward}
-        onPlayPause={onPlayPause}
-        onReset={onReset}
-        onSpeedChange={onSpeedChange}
-      />
+      <span className={`${LABEL} mr-1 text-fg-muted`}>Flow</span>
+
+      <div className="flex items-center gap-1">
+        <button type="button" className={ICON_BTN} onClick={onBackward} disabled={step <= 0} aria-label="Previous step" title="Previous step">
+          <ChevronLeft {...ICON} />
+        </button>
+        <button
+          type="button"
+          className={`${ICON_BTN} ${playing ? "border-accent-edge bg-accent text-on-accent" : ""}`}
+          onClick={onPlayPause}
+          aria-label={playing ? "Pause" : "Play"}
+          aria-pressed={playing}
+          title={playing ? "Pause" : "Play"}
+        >
+          {playing ? <Pause {...ICON} /> : <Play {...ICON} />}
+        </button>
+        <button
+          type="button"
+          className={ICON_BTN}
+          onClick={onForward}
+          disabled={step >= totalSteps - 1}
+          aria-label="Next step"
+          title="Next step"
+        >
+          <ChevronRight {...ICON} />
+        </button>
+      </div>
+
+      <label className="flex min-w-0 items-center gap-2">
+        <span className="font-mono text-micro uppercase text-fg-dim">Speed</span>
+        <input
+          type="range"
+          min={minSpeed}
+          max={maxSpeed}
+          value={maxSpeed - speed + minSpeed}
+          onChange={(e) => onSpeedChange(maxSpeed - parseInt(e.target.value) + minSpeed)}
+          className={`h-1 w-24 cursor-pointer ${FOCUS}`}
+          style={{ accentColor: "var(--accent-ink)" }}
+          aria-label="Playback speed"
+        />
+      </label>
+
+      <span className="ml-auto font-mono text-small tabular-nums text-fg" aria-live="polite">
+        {step + 1}
+        <span className="text-fg-dim">/{totalSteps}</span>
+      </span>
+
+      <button type="button" className={ICON_BTN} onClick={onReset} aria-label="Reset playback" title="Reset playback">
+        <RotateCcw {...ICON} />
+      </button>
+    </div>
+  );
+}
+
+/* Shared frame for the idle / loading / error states (ds StateBox look). */
+function StateFrame({ icon: Icon, iconClassName = "text-fg-muted", title, children, role }) {
+  return (
+    <div role={role} className="grid justify-items-center gap-3 px-6 py-12 text-center">
+      {Icon ? <Icon size={20} strokeWidth={1.5} aria-hidden="true" className={iconClassName} /> : null}
+      {title ? <h2 className="font-mono text-h3 text-fg">{title}</h2> : null}
+      {children}
     </div>
   );
 }
@@ -83,11 +137,11 @@ export default function FlowControlBar({
  */
 export function FlowIdleState() {
   return (
-    <IdleState
-      icon={GitBranch}
-      heading="NO FLOW YET"
-      message='Run <b>Visualize Flow</b> to capture and replay your program&apos;s execution.'
-    />
+    <StateFrame icon={GitBranch} title="No flow yet">
+      <p className="max-w-[48ch] font-mono text-body text-fg-muted">
+        Use <span className="text-fg">Visualize flow</span> to capture and replay your program's execution.
+      </p>
+    </StateFrame>
   );
 }
 
@@ -97,36 +151,12 @@ export function FlowIdleState() {
  */
 export function FlowLoading() {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "80px 0",
-        gap: 16,
-        textAlign: "center",
-      }}
-    >
-      <Loader
-        size={32}
-        style={{ color: V.accent, animation: "flow-spin 1s linear infinite" }}
-      />
-      <div
-        style={{
-          fontFamily: MONUMENT,
-          fontWeight: 900,
-          fontSize: 16,
-          color: "rgba(255,255,255,0.55)",
-          letterSpacing: "0.04em",
-        }}
-      >
-        CAPTURING FLOW
+    <div role="status" aria-live="polite" className="grid justify-items-center gap-3 px-6 py-12 text-center">
+      <div aria-hidden="true" className="h-0.5 w-40 overflow-hidden bg-border">
+        <span className="block h-full w-2/5 animate-ds-indeterminate bg-accent-ink" />
       </div>
-      <div style={{ fontFamily: MONO, fontSize: 11, color: V.dim }}>
-        Instrumenting and running your program…
-      </div>
-      <style>{`@keyframes flow-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      <div className={`${LABEL} text-fg`}>Capturing flow</div>
+      <p className="font-mono text-small text-fg-muted">Instrumenting and running your program.</p>
     </div>
   );
 }
@@ -140,45 +170,11 @@ export function FlowLoading() {
  */
 export function FlowError({ message }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "64px 24px",
-        gap: 14,
-        textAlign: "center",
-      }}
-    >
-      <AlertTriangle size={32} style={{ color: V.red }} />
-      <div
-        style={{
-          fontFamily: MONUMENT,
-          fontWeight: 900,
-          fontSize: 16,
-          color: V.red,
-          letterSpacing: "0.04em",
-        }}
-      >
-        TRACE FAILED
-      </div>
+    <StateFrame icon={AlertTriangle} iconClassName="text-err" title="Trace failed" role="alert">
       {message && (
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 11,
-            color: V.muted,
-            maxWidth: 480,
-            lineHeight: 1.6,
-            wordBreak: "break-word",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {message}
-        </div>
+        <pre className="max-w-[60ch] whitespace-pre-wrap break-words font-mono text-small text-fg-muted">{message}</pre>
       )}
-    </div>
+    </StateFrame>
   );
 }
 
@@ -193,43 +189,11 @@ export function FlowError({ message }) {
  */
 export function StaticOnlyNotice({ message }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "flex-start",
-        gap: 10,
-        padding: "10px 12px",
-        margin: 12,
-        background: V.amberDim,
-        border: `1px solid ${V.amber}`,
-        borderLeft: `3px solid ${V.amber}`,
-      }}
-    >
-      <Layers size={16} style={{ color: V.amber, flexShrink: 0, marginTop: 1 }} />
-      <div>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-            color: V.amber,
-          }}
-        >
-          Static view only
-        </div>
-        <div
-          style={{
-            fontFamily: MONO,
-            fontSize: 11,
-            color: V.muted,
-            marginTop: 4,
-            lineHeight: 1.6,
-            wordBreak: "break-word",
-            whiteSpace: "pre-wrap",
-          }}
-        >
+    <div role="status" className="m-3 flex shrink-0 items-start gap-3 border border-warn border-l-[3px] bg-warn-soft px-3 py-2">
+      <Layers size={16} strokeWidth={1.5} aria-hidden="true" className="mt-0.5 shrink-0 text-warn" />
+      <div className="min-w-0">
+        <div className={`${LABEL} text-warn`}>Static view only</div>
+        <div className="mt-1 whitespace-pre-wrap break-words font-mono text-small text-fg-muted">
           {message ||
             "The block structure was parsed, but execution could not be traced (compilation or instrumentation failed). Playback is unavailable."}
         </div>

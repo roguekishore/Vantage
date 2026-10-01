@@ -1,123 +1,229 @@
-import React, { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Search, X } from "lucide-react";
 import topics from "../../data/topics";
 import { problems as PROBLEM_CATALOG } from "../../search/catalog";
-import { topicConfig, getTopicByKey } from "../../routes/config";
-import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
-import { COMPLEX_ALGO_CONFIGS, ComplexAlgoCanvas } from "../../components/animations/ComplexAnimations";
-import "../home/HomePage.css";
-import TopicPixelCard from "./TopicPixelCard";
-import { Input } from "../../components/ui/input";
-import { Badge } from "../../components/ui/badge";
+import { getTopicByKey } from "../../routes/config";
+import { Badge, IconButton, Input, Kbd, PageHeader, PageShell, Panel } from "@/components/ds";
+import { cn } from "@/lib/utils";
 
-const BATTLE_HEADER_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
-const BATTLE_HEADER_LETTER_SPACING = MONUMENT_TYPO.letterSpacing.monument;
+/*
+ * Visualizers hub: PageHeader, full-width search with a
+ * `/` shortcut, then a grid of topic tiles (icon, name, count, difficulty
+ * mix). Topic list comes from data/topics; counts from search/catalog.
+ */
 
-const TopicGrid = () => (
-  <div className="category-grid">
-    {topics.map((topic) => (
-      <TopicPixelCard key={topic.name} topic={topic} />
-    ))}
-  </div>
-);
+const DIFFICULTIES = [
+  { key: "Easy", label: "Easy", bar: "bg-ok", text: "text-ok" },
+  { key: "Medium", label: "Medium", bar: "bg-warn", text: "text-warn" },
+  { key: "Hard", label: "Hard", bar: "bg-err", text: "text-err" },
+];
 
-const SearchBar = ({
-  query,
-  onQueryChange,
-  results,
-  onSelect,
-  open,
-  setOpen,
-  onSubmit,
-}) => {
+// "BinarySearch" -> "Binary Search"; other names already read as prose.
+const displayName = (name) => name.replace(/([a-z])([A-Z])/g, "$1 $2");
+
+function isTypingTarget(el) {
+  if (!el) return false;
+  const tag = el.tagName;
+  return tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || el.isContentEditable;
+}
+
+function DifficultyMix({ counts, total }) {
   return (
-    <div className="w-full max-w-5xl mx-auto rounded-2xl border border-white/10 bg-[#0d0d10] p-4">
-      <form onSubmit={onSubmit} className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-[13px] w-[13px] text-white/20" />
-        <Input
-          value={query}
-          onChange={(event) => {
-            onQueryChange(event.target.value);
-            setOpen(true);
-          }}
-          onFocus={() => setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
-          placeholder="Search problems, topics, tags…"
-          className="h-10 rounded-[10px] border border-white/10 bg-white/[0.04] pl-9 pr-9 text-[13px] text-white placeholder:text-white/20 focus-visible:ring-0 focus-visible:border-[#EDFF66]/30"
-          aria-label="Search problems or topics"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => { onQueryChange(""); setOpen(false); }}
-            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors"
-          >
-            <X className="h-[13px] w-[13px]" />
-          </button>
-        )}
-      </form>
-
-      {open && query && (
-        <div className="mt-2 bg-[#0d0d10] border border-white/10 rounded-[10px] overflow-hidden max-h-80 overflow-y-auto z-50" role="listbox">
-          {results.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-white/35">
-              No matches found for "<span className="font-medium text-white">{query}</span>"
+    <dl className="grid grid-cols-3 gap-3">
+      {DIFFICULTIES.map((d) => {
+        const n = counts[d.key] || 0;
+        const pct = total > 0 ? Math.round((n / total) * 100) : 0;
+        return (
+          <div key={d.key} className="grid gap-1">
+            <div className="flex items-baseline justify-between gap-2 font-mono text-micro uppercase tabular-nums">
+              <dt className="text-fg-dim">{d.label}</dt>
+              <dd className={n > 0 ? d.text : "text-fg-dim"}>{n}</dd>
             </div>
+            <div aria-hidden="true" className="h-0.5 w-full bg-elevated">
+              <div className={cn("h-full", d.bar)} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+function TopicTile({ topic }) {
+  const Icon = topic.icon;
+  const config = getTopicByKey(topic.page);
+  const routePath = config?.path || `/${topic.page.toLowerCase()}`;
+  const name = displayName(topic.name);
+
+  const { total, counts } = useMemo(() => {
+    const list = PROBLEM_CATALOG.filter((p) => p.topic === topic.page && p.subpage);
+    const c = { Easy: 0, Medium: 0, Hard: 0 };
+    list.forEach((p) => {
+      if (c[p.difficulty] !== undefined) c[p.difficulty] += 1;
+    });
+    return { total: list.length, counts: c };
+  }, [topic.page]);
+
+  return (
+    <Panel as={Link} to={routePath} variant="interactive" className="h-full" bodyClassName="h-full">
+      <div className="flex h-full flex-col gap-4">
+        <div className="flex items-start justify-between gap-3">
+          {Icon ? <Icon size={20} strokeWidth={1.5} aria-hidden="true" className="text-fg" /> : <span />}
+          <Badge tone="neutral">
+            {total} {total === 1 ? "visualizer" : "visualizers"}
+          </Badge>
+        </div>
+        <div className="grid gap-1">
+          <h3 className="font-mono text-h3 text-fg">{name}</h3>
+          {topic.description ? (
+            <p className="line-clamp-2 font-mono text-small text-fg-muted">{topic.description}</p>
+          ) : null}
+        </div>
+        <div className="mt-auto">
+          <DifficultyMix counts={counts} total={total} />
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function SearchBar({ inputRef, query, onQueryChange, results, onSelect, open, setOpen, onSubmit, activeIndex, setActiveIndex }) {
+  const listId = "visualizer-search-results";
+  const showList = open && query;
+
+  const handleKeyDown = (event) => {
+    if (event.key === "Escape") {
+      setOpen(false);
+      return;
+    }
+    if (!results.length) return;
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((i) => (i + 1) % results.length);
+    } else if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setOpen(true);
+      setActiveIndex((i) => (i - 1 + results.length) % results.length);
+    }
+  };
+
+  return (
+    <form onSubmit={onSubmit} role="search" className="relative">
+      <Search
+        size={16}
+        strokeWidth={1.5}
+        aria-hidden="true"
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-dim"
+      />
+      <Input
+        ref={inputRef}
+        size="lg"
+        value={query}
+        onChange={(event) => {
+          onQueryChange(event.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setTimeout(() => setOpen(false), 150)}
+        onKeyDown={handleKeyDown}
+        placeholder="Search algorithms, topics, tags"
+        aria-label="Search visualizers and topics"
+        role="combobox"
+        aria-expanded={Boolean(showList)}
+        aria-controls={listId}
+        aria-autocomplete="list"
+        aria-keyshortcuts="/"
+        aria-activedescendant={showList && results[activeIndex] ? `${listId}-${activeIndex}` : undefined}
+        autoComplete="off"
+        className="pl-10 pr-20"
+      />
+      <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-2">
+        {query ? (
+          <IconButton
+            icon={X}
+            size="sm"
+            aria-label="Clear search"
+            onClick={() => {
+              onQueryChange("");
+              setOpen(false);
+              inputRef.current?.focus();
+            }}
+          />
+        ) : null}
+        <Kbd aria-hidden="true">/</Kbd>
+      </div>
+
+      {showList ? (
+        <div
+          id={listId}
+          role="listbox"
+          aria-label="Search results"
+          className="absolute inset-x-0 top-full z-overlay mt-1 max-h-80 overflow-y-auto border border-border-strong bg-surface"
+        >
+          {results.length === 0 ? (
+            <p className="px-4 py-8 text-center font-mono text-small text-fg-muted">
+              No matches for &ldquo;<span className="text-fg">{query}</span>&rdquo;
+            </p>
           ) : (
-            <div className="py-1">
-              {results.map((item) => (
+            results.map((item, index) => {
+              const active = index === activeIndex;
+              const meta =
+                item.type === "problem"
+                  ? `${displayName(item.topic)}${item.platforms?.length ? ` · ${item.platforms.join(", ")}` : ""}`
+                  : null;
+              return (
                 <button
                   key={`${item.type}-${item.label}`}
+                  id={`${listId}-${index}`}
                   type="button"
-                  className="flex items-center gap-3 w-full px-4 py-3 text-left hover:bg-white/[0.03] transition-colors"
+                  role="option"
+                  aria-selected={active}
+                  tabIndex={-1}
+                  className={cn(
+                    "flex min-h-12 w-full items-center gap-3 border-b border-border px-4 py-2 text-left font-mono last:border-b-0",
+                    "transition-colors duration-[120ms] ease-out ds-hover:bg-elevated",
+                    active && "bg-elevated"
+                  )}
                   onMouseDown={(event) => event.preventDefault()}
+                  onMouseEnter={() => setActiveIndex(index)}
                   onClick={() => onSelect(item)}
                 >
-                  <Badge variant={item.type === "problem" ? "secondary" : "outline"} className="text-[10px] uppercase tracking-wider shrink-0">
-                    {item.type === "problem" ? "Problem" : "Topic"}
+                  <Badge tone={item.type === "problem" ? "neutral" : "outline"} className="shrink-0">
+                    {item.type === "problem" ? "Algorithm" : "Topic"}
                   </Badge>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{item.label}</p>
-                    {item.type === "problem" && (
-                      <p className="text-xs text-muted-foreground mt-0.5 truncate">
-                        {item.topic}
-                        {item.platforms?.length ? ` · ${item.platforms.join(", ")}` : ""}
-                      </p>
-                    )}
-                    {item.type === "topic" && (
-                      <p className="text-xs text-muted-foreground mt-0.5">{item.topic}</p>
-                    )}
-                  </div>
+                  <span className="grid min-w-0 flex-1 gap-0.5">
+                    <span className="truncate text-body text-fg">{item.label}</span>
+                    {meta ? <span className="truncate text-small text-fg-muted">{meta}</span> : null}
+                  </span>
                 </button>
-              ))}
-            </div>
+              );
+            })
           )}
         </div>
-      )}
-    </div>
+      ) : null}
+    </form>
   );
-};
+}
 
 const TopicsPage = () => {
   const navigate = useNavigate();
+  const inputRef = useRef(null);
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(0);
   const totalProblems = useMemo(
     () => PROBLEM_CATALOG.filter((problem) => problem.topic && problem.subpage).length,
     []
   );
-  const configuredTopicsCount = useMemo(() => Object.keys(topicConfig || {}).length, []);
-  const coverage = topics.length > 0
-    ? Math.min(100, Math.round((configuredTopicsCount / topics.length) * 100))
-    : 0;
 
   const searchIndex = useMemo(() => {
     const topicItems = topics.map((topic) => {
       const config = getTopicByKey(topic.page);
       return {
         type: "topic",
-        label: topic.name,
+        label: displayName(topic.name),
         topic: topic.page,
         path: config?.path || `/${topic.page.toLowerCase()}`,
         keywords: [topic.name.toLowerCase()],
@@ -155,6 +261,22 @@ const TopicsPage = () => {
     return matches.slice(0, 10);
   }, [query, searchIndex]);
 
+  useEffect(() => {
+    setActiveIndex(0);
+  }, [query]);
+
+  // "/" focuses the search from anywhere on the page.
+  useEffect(() => {
+    const onKey = (event) => {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) return;
+      if (isTypingTarget(document.activeElement)) return;
+      event.preventDefault();
+      inputRef.current?.focus();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
   const handleSelect = (item) => {
     if (item.type === "topic") {
       navigate(item.path);
@@ -168,152 +290,46 @@ const TopicsPage = () => {
   const handleSubmit = (event) => {
     event.preventDefault();
     if (results.length > 0) {
-      handleSelect(results[0]);
+      handleSelect(results[activeIndex] || results[0]);
     }
   };
 
   return (
-    <div className="relative min-h-screen w-screen bg-background pt-24 md:pt-28">
+    <PageShell>
+      <PageHeader
+        eyebrow="Learn"
+        title="Visualizers"
+        description={`${totalProblems} step-by-step algorithm visualizers across ${topics.length} topics. Pick a topic, or search by algorithm name or keyword.`}
+      />
 
-      {/* Masked complex animation background */}
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 0,
-          opacity: 0.15,
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 82%, transparent 100%)",
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 82%, transparent 100%)",
-        }}
-      >
-        <div
-          style={{
-            width: "100vw",
-            height: "100vh",
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            border: "1px solid rgba(255,255,255,0.04)",
-            background: "rgba(255,255,255,0.005)",
-          }}
-        >
-          {["nqueens", "knightstour"].map((key, index) => (
-            <div
-              key={key}
-              style={{
-                position: "relative",
-                overflow: "hidden",
-                borderRight: index === 0 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                background: "rgba(255,255,255,0.006)",
-              }}
-            >
-              <div style={{ position: "absolute", inset: 0 }}>
-                <ComplexAlgoCanvas algo={COMPLEX_ALGO_CONFIGS[key]} />
-              </div>
-            </div>
+      <section aria-label="Search" className="mb-8">
+        <SearchBar
+          inputRef={inputRef}
+          query={query}
+          onQueryChange={setQuery}
+          results={results}
+          onSelect={handleSelect}
+          open={open}
+          setOpen={setOpen}
+          onSubmit={handleSubmit}
+          activeIndex={activeIndex}
+          setActiveIndex={setActiveIndex}
+        />
+      </section>
+
+      <section aria-labelledby="topics-heading">
+        <h2 id="topics-heading" className="mb-4 font-mono text-label uppercase text-fg-muted">
+          Topics · <span className="tabular-nums">{topics.length}</span>
+        </h2>
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {topics.map((topic) => (
+            <li key={topic.name} className="min-w-0">
+              <TopicTile topic={topic} />
+            </li>
           ))}
-        </div>
-      </div>
-
-      <div className="home-content" style={{ position: "relative", zIndex: 1 }}>
-        {/* ── Hero ── */}
-        <section style={{ position: "relative", overflow: "hidden" }}>
-          {/* <div style={{
-            position: "absolute",
-            left: "50%",
-            top: "50%",
-            transform: "translate(-50%,-50%)",
-            pointerEvents: "none",
-            userSelect: "none",
-            whiteSpace: "nowrap",
-            fontFamily: BATTLE_HEADER_FONT_FAMILY,
-            fontWeight: 900,
-            fontSize: "clamp(4.8rem,13vw,10rem)",
-            letterSpacing: "-0.02em",
-            color: "rgba(255,255,255,0.03)",
-            lineHeight: 0.9,
-          }}>
-            TOPICS
-          </div> */}
-
-          <div className="tp-hero-grid" style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 30, alignItems: "end", paddingBottom: 28, borderBottom: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
-            <div>
-              <div className="tp-hero-text" style={{ opacity: 1, fontSize: 9, fontWeight: 900, letterSpacing: "0.3em", textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 14 }}>
-                - Learning Hub
-              </div>
-
-              <h1 className="tp-hero-text" style={{ opacity: 1, fontFamily: BATTLE_HEADER_FONT_FAMILY, letterSpacing: "-0.02em", fontWeight: 900, fontSize: "clamp(2.6rem,5vw,4.8rem)", lineHeight: 0.9, margin: "0 0 14px" }}>
-                <span style={{ color: "#fff", display: "block" }}>Explore</span>
-                <span style={{ color: "#34d399", display: "block" }}>Topics.</span>
-              </h1>
-
-              <p className="tp-hero-text" style={{ opacity: 1, fontSize: 14, color: "rgba(255,255,255,0.3)", lineHeight: 1.7, maxWidth: 430 }}>
-                Pick a track, discover core patterns, and jump straight into interactive algorithm visualizers.
-              </p>
-            </div>
-
-            <div className="tp-hero-text tp-hero-stats" style={{ opacity: 1, display: "flex", flexDirection: "column", gap: 0, flexShrink: 0, minWidth: 250, background: "#0d0d10", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 16, overflow: "hidden" }}>
-              <div style={{ height: 2, background: "linear-gradient(90deg,#34d399,rgba(52,211,153,0.2))" }} />
-
-              <div style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: 6 }}>
-                  Topic Overview
-                </div>
-                <div style={{ fontFamily: BATTLE_HEADER_FONT_FAMILY, letterSpacing: "-0.015em", fontSize: 30, fontWeight: 900, color: "#34d399", lineHeight: 1, textShadow: "0 0 24px rgba(52,211,153,0.28)" }}>
-                  {topics.length}
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-                {[
-                  { label: "Topics", value: topics.length, color: "#34d399" },
-                  { label: "Problems", value: totalProblems, color: "#fbbf24" },
-                  { label: "Rate", value: `${coverage}%`, color: "#EDFF66" },
-                ].map((metric, index) => (
-                  <div key={metric.label} style={{ padding: "12px 14px", borderRight: index < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                    <div style={{ fontFamily: BATTLE_HEADER_FONT_FAMILY, fontSize: 17, fontWeight: 900, color: metric.color, lineHeight: 1, marginBottom: 3, textShadow: `0 0 14px ${metric.color}30` }}>
-                      {metric.value}
-                    </div>
-                    <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>{metric.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ padding: "10px 16px 14px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${coverage}%`, borderRadius: 3, background: "linear-gradient(90deg,#34d399,#EDFF66)", boxShadow: "0 0 6px rgba(52,211,153,0.35)", transition: "width 0.7s ease-out" }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* ── Search ── */}
-        <section className="pb-2">
-          <SearchBar
-            query={query}
-            onQueryChange={setQuery}
-            results={results}
-            onSelect={handleSelect}
-            open={open}
-            setOpen={setOpen}
-            onSubmit={handleSubmit}
-          />
-        </section>
-
-        {/* ── Topic Grid ── */}
-        <section>
-          <TopicGrid />
-        </section>
-      </div>
-
-      <style>{`
-        @media (max-width: 820px) {
-          .tp-hero-grid { grid-template-columns: 1fr !important; gap: 16px !important; }
-          .tp-hero-stats { min-width: 0 !important; width: 100% !important; }
-        }
-      `}</style>
-    </div>
+        </ul>
+      </section>
+    </PageShell>
   );
 };
 

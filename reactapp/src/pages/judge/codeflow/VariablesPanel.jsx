@@ -1,5 +1,5 @@
 import React from "react";
-import { V, MONO, LABEL_STYLE } from "../../../components/visualizer/theme";
+import { T, MONO, LABEL } from "./cfTheme";
 
 /**
  * VariablesPanel — Renders the variable snapshots visible at the current step,
@@ -28,14 +28,18 @@ export default function VariablesPanel({ currentStep = null }) {
     <div
       style={{
         padding: 12,
-        background: V.surface,
-        borderTop: `1px solid ${V.border}`,
+        background: T.surface,
+        borderTop: `1px solid ${T.border}`,
+        flexShrink: 0,
+        maxHeight: "40%",
+        overflowY: "auto",
       }}
+      className="cf-vars"
     >
-      <div style={{ ...LABEL_STYLE, marginBottom: 8 }}>Variables</div>
+      <div style={{ ...LABEL, marginBottom: 8 }}>Variables</div>
 
       {vars.length === 0 ? (
-        <div style={{ fontFamily: MONO, fontSize: 12, color: V.dim }}>
+        <div style={{ fontFamily: MONO, fontSize: 12, color: T.fgDim }}>
           No variables in scope.
         </div>
       ) : (
@@ -48,10 +52,9 @@ export default function VariablesPanel({ currentStep = null }) {
                 alignItems: "center",
                 gap: 8,
                 padding: "4px 8px",
-                borderRadius: 2,
-                background: v.changed ? V.accentDim : V.elevated,
-                border: `1px solid ${v.changed ? V.accentMid : V.border}`,
-                transition: "background 0.15s ease, border-color 0.15s ease",
+                background: v.changed ? T.accentSoft : T.elevated,
+                border: `1px solid ${v.changed ? T.accentInk : T.border}`,
+                transition: "background-color 120ms ease-out, border-color 120ms ease-out",
               }}
             >
               {/* type */}
@@ -60,7 +63,7 @@ export default function VariablesPanel({ currentStep = null }) {
                   fontFamily: MONO,
                   fontSize: 10,
                   fontWeight: 700,
-                  color: V.cyan,
+                  color: T.fgMuted,
                   flexShrink: 0,
                 }}
               >
@@ -73,21 +76,22 @@ export default function VariablesPanel({ currentStep = null }) {
                   fontFamily: MONO,
                   fontSize: 12,
                   fontWeight: 700,
-                  color: v.changed ? V.accent : V.textBright,
+                  color: v.changed ? T.accentInk : T.fg,
                   flexShrink: 0,
                 }}
               >
                 {v.name}
               </span>
 
-              <span style={{ fontFamily: MONO, fontSize: 12, color: V.dim }}>=</span>
+              <span style={{ fontFamily: MONO, fontSize: 12, color: T.fgDim }}>=</span>
 
               {/* value */}
               <span
                 style={{
                   fontFamily: MONO,
                   fontSize: 12,
-                  color: v.changed ? V.textBright : V.text,
+                  color: T.fg,
+                  fontVariantNumeric: "tabular-nums",
                   whiteSpace: "nowrap",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
@@ -103,8 +107,8 @@ export default function VariablesPanel({ currentStep = null }) {
                 <span
                   style={{
                     fontFamily: MONO,
-                    fontSize: 9,
-                    color: V.dim,
+                    fontSize: 10,
+                    color: T.fgDim,
                     flexShrink: 0,
                   }}
                   title={`scope: ${v.scope}`}

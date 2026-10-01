@@ -1,425 +1,180 @@
 /**
- * ProblemsTable — Vantage aesthetic overhaul.
- * Dark #09090b base · Monument Extended titles · EDFF66 accents
- * GSAP scroll animations · custom row interactions · full parity with original API
+ * ProblemsTable: the /problems list.
+ * PageShell + PageHeader, a filter panel (search, stage and sort Selects,
+ * segmented difficulty and status Tabs), then a ds Table with status icons,
+ * difficulty as text + 2px left bar, stage Badges and an optional LeetCode
+ * link. Data flow (paged Spring fetch with infinite scroll, or the client-side
+ * filtered judge list) is unchanged; only the view is rebuilt on ds/*.
  */
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useGSAP } from "@gsap/react";
+import React, { useState, useEffect, useCallback, useMemo, useRef, useId } from "react";
+import { Link } from "react-router-dom";
 import {
-  ArrowUp, ArrowDown, ArrowUpDown, Search,
-  ExternalLink, X, Loader2, Filter, RotateCcw,
-  Check, BookOpen, ChevronRight, Zap,
+  ArrowUp, ArrowDown, ArrowUpDown, Search, ExternalLink, X, RotateCcw,
+  BookOpen, CircleCheck, CircleDot, Circle,
 } from "lucide-react";
-import { Dialog, DialogContent } from "../ui/dialog";
-import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
+import {
+  PageShell, PageHeader, Button, IconButton, Input, Select, SelectItem,
+  Tabs, TabsList, TabsTrigger, Table, TableHead, TableBody, TableRow,
+  TableHeaderCell, TableCell, Badge, Stat, Progress, Skeleton,
+  EmptyState, ErrorState, OfflineState, Dialog, DialogContent,
+} from "@/components/ds";
+import { cn } from "@/lib/utils";
 import { fetchProgressStats } from "../../services/problemApi";
-import { ALGO_CONFIGS, AlgoCanvas, MergeSortCanvas } from "@/components/animations/HomePageAnimations";
-import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
-
-gsap.registerPlugin(ScrollTrigger);
 
 /* ─────────────────────────────────────────────────────────
    CONSTANTS
 ───────────────────────────────────────────────────────── */
 const LC_BASE = "https://leetcode.com/problems";
+const RESULTS_ID = "problems-results";
+const FOCUS_RING = "ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-2 ds-focus:outline-focus";
+const COLOR_TRANSITION = "transition-colors duration-[120ms] ease-out";
+const LABEL = "font-mono text-label uppercase";
 
+/* Difficulty: status tokens only (§3.1). Easy ok, Medium warn, Hard err. */
+const EASY = { label: "Easy", text: "text-ok", bar: "border-ok" };
+const MEDIUM = { label: "Medium", text: "text-warn", bar: "border-warn" };
+const HARD = { label: "Hard", text: "text-err", bar: "border-err" };
 const DIFF = {
-  BASIC: { color: "#888", dot: "rgba(136,136,136,0.8)", label: "Basic" },
-  EASY: { color: "#34d399", dot: "rgba(52,211,153,0.85)", label: "Easy" },
-  MEDIUM: { color: "#fbbf24", dot: "rgba(251,191,36,0.85)", label: "Medium" },
-  HARD: { color: "#f87171", dot: "rgba(248,113,113,0.85)", label: "Hard" },
-  Easy: { color: "#34d399", dot: "rgba(52,211,153,0.85)", label: "Easy" },
-  Medium: { color: "#fbbf24", dot: "rgba(251,191,36,0.85)", label: "Medium" },
-  Hard: { color: "#f87171", dot: "rgba(248,113,113,0.85)", label: "Hard" },
+  BASIC: { label: "Basic", text: "text-fg-muted", bar: "border-border-strong" },
+  EASY, MEDIUM, HARD,
+  Easy: EASY, Medium: MEDIUM, Hard: HARD,
 };
 
 const STATUS_CFG = {
-  SOLVED: { label: "Solved" },
-  ATTEMPTED: { label: "Attempted" },
-  NOT_STARTED: { label: "Todo" },
+  SOLVED: { label: "Solved", Icon: CircleCheck, className: "text-ok" },
+  ATTEMPTED: { label: "Attempted", Icon: CircleDot, className: "text-warn" },
+  NOT_STARTED: { label: "To do", Icon: Circle, className: "text-fg-dim" },
 };
 
-/* ─────────────────────────────────────────────────────────
-   BACKGROUND CANVAS
-───────────────────────────────────────────────────────── */
-function BgCanvas() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    const dpr = window.devicePixelRatio || 1;
-    const resize = () => {
-      canvas.width = canvas.offsetWidth * dpr;
-      canvas.height = canvas.offsetHeight * dpr;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-    const W = () => canvas.offsetWidth;
-    const H = () => canvas.offsetHeight;
-    const pts = Array.from({ length: 40 }, () => ({
-      x: Math.random() * W(), y: Math.random() * H(),
-      vx: (Math.random() - .5) * .14, vy: (Math.random() - .5) * .14,
-      r: .5 + Math.random() * 1.2, op: .04 + Math.random() * .08,
-      ph: Math.random() * Math.PI * 2,
-    }));
-    let t = 0, id;
-    const tick = () => {
-      t += .007;
-      ctx.clearRect(0, 0, W(), H());
-      pts.forEach(p => {
-        p.x += p.vx; p.y += p.vy;
-        if (p.x < 0) p.x = W(); if (p.x > W()) p.x = 0;
-        if (p.y < 0) p.y = H(); if (p.y > H()) p.y = 0;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(255,255,255,${p.op * (.7 + .3 * Math.sin(t + p.ph))})`;
-        ctx.fill();
-      });
-      for (let i = 0; i < pts.length; i++) {
-        for (let j = i + 1; j < pts.length; j++) {
-          const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-          const d = Math.sqrt(dx * dx + dy * dy);
-          if (d < 100) {
-            ctx.beginPath();
-            ctx.moveTo(pts[i].x, pts[i].y);
-            ctx.lineTo(pts[j].x, pts[j].y);
-            ctx.strokeStyle = `rgba(255,255,255,${(1 - d / 100) * .025})`;
-            ctx.lineWidth = .5;
-            ctx.stroke();
-          }
-        }
-      }
-      id = requestAnimationFrame(tick);
-    };
-    id = requestAnimationFrame(tick);
-    return () => { cancelAnimationFrame(id); window.removeEventListener("resize", resize); };
-  }, []);
-  return (
-    <canvas ref={ref} style={{
-      position: "fixed", inset: 0, width: "100%", height: "100%",
-      pointerEvents: "none", zIndex: 0, opacity: .45,
-    }} />
-  );
-}
+const SORT_OPTIONS = [
+  { value: "pid,asc", label: "Number, ascending" },
+  { value: "pid,desc", label: "Number, descending" },
+  { value: "title,asc", label: "Title, A to Z" },
+  { value: "title,desc", label: "Title, Z to A" },
+  { value: "tag,asc", label: "Difficulty, ascending" },
+  { value: "tag,desc", label: "Difficulty, descending" },
+];
+
+/* fetch() rejects with a bare TypeError when the API is unreachable. */
+const NETWORK_ERROR_RE = /^(failed to fetch|load failed|network ?error|networkerror when attempting to fetch resource\.?)$/i;
+const isNetworkError = (msg) =>
+  NETWORK_ERROR_RE.test(String(msg || "").trim()) ||
+  (typeof navigator !== "undefined" && navigator.onLine === false);
 
 /* ─────────────────────────────────────────────────────────
-   STATUS DOT
+   SMALL VIEW PIECES
 ───────────────────────────────────────────────────────── */
-function StatusDot({ status }) {
-  if (status === "SOLVED") return (
-    <div style={{
-      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-      background: "rgba(52,211,153,0.12)",
-      border: "1px solid rgba(52,211,153,0.35)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-    }}>
-      <Check size={11} color="#34d399" strokeWidth={2.8} />
-    </div>
-  );
-  if (status === "ATTEMPTED") return (
-    <div style={{
-      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
-      border: "1.5px solid rgba(251,191,36,0.5)",
-      display: "flex", alignItems: "center", justifyContent: "center",
-    }}>
-      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(251,191,36,0.7)" }} />
-    </div>
-  );
-  return <div style={{ width: 20, height: 20, flexShrink: 0 }} />;
-}
-
-/* ─────────────────────────────────────────────────────────
-   SORT HEADER
-───────────────────────────────────────────────────────── */
-function SortHeader({ label, field, current, onSort }) {
-  const [f, d] = (current || "").split(",");
-  const active = f === field;
-  const Icon = active ? (d === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+function StatusIcon({ status, withLabel = false }) {
+  const cfg = STATUS_CFG[status] || STATUS_CFG.NOT_STARTED;
+  const { Icon } = cfg;
   return (
-    <button
-      onClick={() => onSort(active && d === "asc" ? `${field},desc` : `${field},asc`)}
-      data-cursor={label.toUpperCase()}
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 5,
-        fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
-        textTransform: "uppercase",
-        color: active ? "#EDFF66" : "rgba(255,255,255,0.28)",
-        background: "none", border: "none",
-        transition: "color .15s",
-        padding: 0,
-      }}
-    >
-      {label}
-      <Icon size={10} style={{ opacity: active ? 1 : .4 }} />
-    </button>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────
-   COLUMN HEADER LABEL (non-sortable)
-───────────────────────────────────────────────────────── */
-function ColLabel({ children }) {
-  return (
-    <span style={{
-      fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
-      textTransform: "uppercase", color: "rgba(255,255,255,0.28)",
-    }}>
-      {children}
+    <span className="inline-flex items-center gap-2" title={withLabel ? undefined : cfg.label}>
+      <Icon size={16} strokeWidth={1.5} aria-hidden="true" className={cn("shrink-0", cfg.className)} />
+      {withLabel ? (
+        <span className="font-mono text-body text-fg">{cfg.label}</span>
+      ) : (
+        <span className="sr-only">{cfg.label}</span>
+      )}
     </span>
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   STAT CHIP
-───────────────────────────────────────────────────────── */
-function StatChip({ label, value, color }) {
+function DifficultyText({ value, className }) {
+  const d = DIFF[value] || { label: value || "—", text: "text-fg-muted", bar: "border-border" };
   return (
-    <div style={{ padding: "12px 20px" }}>
-      <div style={{
-        fontFamily: T.fontFamily, fontSize: 22, fontWeight: 900,
-        color: color || "#fff", lineHeight: 1,
-        fontVariantNumeric: "tabular-nums",
-      }}>
-        {value}
-      </div>
-      <div style={{
-        fontSize: 9, fontWeight: 800, letterSpacing: ".2em",
-        textTransform: "uppercase", color: "rgba(255,255,255,0.25)", marginTop: 4,
-      }}>
+    <span className={cn("inline-flex h-5 items-center border-l-2 pl-2 font-mono text-small font-bold", d.text, d.bar, className)}>
+      {d.label}
+    </span>
+  );
+}
+
+function SortHeader({ label, field, current, onSort, align = "left", className }) {
+  const [f, d] = (current || "").split(",");
+  const active = f === field;
+  const Icon = active ? (d === "asc" ? ArrowUp : ArrowDown) : ArrowUpDown;
+  return (
+    <TableHeaderCell
+      align={align}
+      aria-sort={active ? (d === "asc" ? "ascending" : "descending") : "none"}
+      className={className}
+    >
+      <button
+        type="button"
+        onClick={() => onSort(active && d === "asc" ? `${field},desc` : `${field},asc`)}
+        className={cn(
+          "inline-flex items-center gap-1 uppercase",
+          COLOR_TRANSITION,
+          FOCUS_RING,
+          active ? "text-fg" : "text-fg-muted ds-hover:text-fg"
+        )}
+      >
         {label}
-      </div>
-    </div>
+        <Icon size={14} strokeWidth={1.5} aria-hidden="true" className={active ? "text-accent-ink" : undefined} />
+      </button>
+    </TableHeaderCell>
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   SKELETON ROW
-───────────────────────────────────────────────────────── */
-function SkeletonRow({ i }) {
+function FilterTabs({ label, value, onChange, options }) {
+  const labelId = useId();
   return (
-    <div style={{
-      display: "flex", alignItems: "center",
-      padding: "14px 22px", gap: 0,
-      borderBottom: "1px solid rgba(255,255,255,0.04)",
-      animation: "vantage-pulse 1.6s ease-in-out infinite",
-      animationDelay: `${i * 0.07}s`,
-    }}>
-      <div style={{ width: 36, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-        <div style={{ width: 20, height: 20, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
-      </div>
-      <div style={{ width: 52, flexShrink: 0, padding: "0 10px" }}>
-        <div style={{ height: 10, width: 28, borderRadius: 4, background: "rgba(255,255,255,0.05)" }} />
-      </div>
-      <div style={{ flex: 1, paddingRight: 20 }}>
-        <div style={{ height: 11, width: `${35 + (i * 17) % 44}%`, borderRadius: 4, background: "rgba(255,255,255,0.06)" }} />
-      </div>
-      <div style={{ width: 140, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-        <div style={{ height: 22, width: 80, borderRadius: 8, background: "rgba(255,255,255,0.04)" }} />
-      </div>
-      <div style={{ width: 96, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-        <div style={{ height: 10, width: 50, borderRadius: 4, background: "rgba(255,255,255,0.05)" }} />
-      </div>
-      <div style={{ width: 40, flexShrink: 0 }} />
-    </div>
-  );
-}
-
-/* ─────────────────────────────────────────────────────────
-   DETAIL ROW (inside dialog)
-───────────────────────────────────────────────────────── */
-function DetailRow({ label, children }) {
-  return (
-    <div style={{ display: "flex", gap: 16 }}>
-      <span style={{
-        width: 90, flexShrink: 0, fontSize: 9, fontWeight: 900,
-        letterSpacing: ".2em", textTransform: "uppercase",
-        color: "rgba(255,255,255,0.22)", paddingTop: 2,
-      }}>
+    <div className="flex flex-wrap items-center gap-3">
+      <span id={labelId} className={cn(LABEL, "text-fg-muted")}>
         {label}
       </span>
-      <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+      <Tabs variant="segmented" value={value} onValueChange={onChange}>
+        <TabsList aria-labelledby={labelId}>
+          {options.map((o) => (
+            <TabsTrigger key={o.value || "all"} value={o.value} aria-controls={RESULTS_ID}>
+              {o.label}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   PROBLEM ROW
-───────────────────────────────────────────────────────── */
-function ProblemRow({ problem, index, showStage, showLeetCode, source, onClick, getUserStatus, getDifficulty, getTitle, getId, getLcSlug, getCategory, getStages }) {
-  const [hov, setHov] = useState(false);
-  const diff = getDifficulty(problem);
-  const dStyle = DIFF[diff] || { color: "rgba(255,255,255,0.3)", dot: "rgba(255,255,255,0.2)", label: diff };
-  const status = getUserStatus(problem);
-  const slug = getLcSlug(problem);
-
+function ProgressSummary({ completionPct, solved, attempted, total }) {
+  const cells = [
+    { label: "Complete", value: `${completionPct}%` },
+    { label: "Solved", value: solved },
+    { label: "Attempted", value: attempted },
+    { label: "Total", value: total },
+  ];
   return (
-    <div
-      className="prob-row"
-      onClick={() => onClick(problem)}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      data-cursor="OPEN"
-      style={{
-        display: "flex", alignItems: "center",
-        padding: "0 22px",
-        height: 52,
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
-        background: hov ? "rgba(255,255,255,0.025)" : "transparent",
-        transition: "background 0.14s",
-        position: "relative",
-      }}
-    >
-      {/* Left accent line on hover */}
-      <div style={{
-        position: "absolute", left: 0, top: 8, bottom: 8,
-        width: 2, borderRadius: 2,
-        background: dStyle.color,
-        opacity: hov ? 0.7 : 0,
-        transition: "opacity 0.14s",
-      }} />
-
-      {/* Status */}
-      <div style={{ width: 36, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-        <StatusDot status={status} />
+    <div className="w-full border border-border bg-surface sm:w-auto">
+      <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-4">
+        {cells.map((c) => (
+          <Stat key={c.label} label={c.label} value={c.value} className="bg-surface px-4 py-3" />
+        ))}
       </div>
-
-      {/* # */}
-      <div style={{ width: 52, flexShrink: 0, padding: "0 10px" }}>
-        <span style={{
-          fontFamily: "monospace", fontSize: 11,
-          color: "rgba(255,255,255,0.22)",
-          fontVariantNumeric: "tabular-nums",
-        }}>
-          {index + 1}
-        </span>
+      <div className="border-t border-border px-4 py-3">
+        <Progress value={completionPct} label={`${completionPct}% of problems solved`} />
       </div>
-
-      {/* Title */}
-      <div style={{ flex: 1, minWidth: 0, paddingRight: 20 }}>
-        <span style={{
-          fontSize: 13, fontWeight: 600,
-          color: hov ? "#fff" : "rgba(255,255,255,0.62)",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-          display: "block",
-          transition: "color 0.14s",
-        }}>
-          {getTitle(problem)}
-        </span>
-      </div>
-
-      {/* Stage / Topic */}
-      {(showStage || source === "judge") && (
-        <div style={{ width: 160, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-          <span style={{
-            fontSize: 11, fontWeight: 600,
-            color: "rgba(255,255,255,0.25)",
-            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-            maxWidth: "100%",
-          }}>
-            {source === "judge" ? getCategory(problem) : (getStages(problem)[0] || "—")}
-          </span>
-        </div>
-      )}
-
-      {/* Difficulty */}
-      <div style={{ width: 96, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-        <div style={{
-          width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
-          background: dStyle.dot,
-        }} />
-        <span style={{
-          fontSize: 11, fontWeight: 700,
-          color: dStyle.color,
-        }}>
-          {dStyle.label}
-        </span>
-      </div>
-
-      {/* LC */}
-      {showLeetCode && (
-        <div
-          style={{ width: 40, flexShrink: 0, display: "flex", justifyContent: "center" }}
-          onClick={e => e.stopPropagation()}
-        >
-          {slug ? (
-            <a
-              href={`${LC_BASE}/${slug}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-cursor="LC"
-              style={{
-                width: 28, height: 28, borderRadius: 8,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "rgba(255,255,255,0.22)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                transition: "all .15s",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = "#FFA116";
-                e.currentTarget.style.borderColor = "rgba(255,161,22,0.3)";
-                e.currentTarget.style.background = "rgba(255,161,22,0.08)";
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = "rgba(255,255,255,0.22)";
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)";
-                e.currentTarget.style.background = "transparent";
-              }}
-            >
-              <ExternalLink size={13} />
-            </a>
-          ) : null}
-        </div>
-      )}
-
-      {/* Chevron */}
-      <ChevronRight
-        size={13}
-        style={{
-          color: "rgba(255,255,255,0.18)",
-          opacity: hov ? 1 : 0,
-          transition: "opacity 0.14s",
-          flexShrink: 0,
-          marginLeft: 4,
-        }}
-      />
     </div>
   );
 }
 
-/* ─────────────────────────────────────────────────────────
-   FILTER PILL BUTTON
-───────────────────────────────────────────────────────── */
-function FilterPill({ children, active, onClick, color }) {
-  const [hov, setHov] = useState(false);
+function SkeletonRows({ count, cols }) {
+  return Array.from({ length: count }).map((_, i) => (
+    <TableRow key={i} aria-hidden="true">
+      {cols.map((c) => (
+        <TableCell key={c.key} className={c.className}>
+          <Skeleton className={c.skeleton(i)} />
+        </TableCell>
+      ))}
+    </TableRow>
+  ));
+}
+
+function DetailRow({ label, children }) {
   return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHov(true)}
-      onMouseLeave={() => setHov(false)}
-      data-cursor="FILTER"
-      style={{
-        height: 32, padding: "0 14px", borderRadius: 8,
-        flexShrink: 0,
-        border: active
-          ? `1px solid ${color || "rgba(237,255,102,0.35)"}`
-          : "1px solid rgba(255,255,255,0.07)",
-        background: active
-          ? (color ? `${color}14` : "rgba(237,255,102,0.07)")
-          : (hov ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.02)"),
-        color: active
-          ? (color || "#EDFF66")
-          : (hov ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.32)"),
-        fontSize: 11, fontWeight: 800, letterSpacing: ".04em",
-        transition: "all .15s", whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </button>
+    <div className="grid gap-1 sm:grid-cols-[120px_1fr] sm:gap-4">
+      <dt className={cn(LABEL, "pt-0.5 text-fg-muted")}>{label}</dt>
+      <dd className="min-w-0">{children}</dd>
+    </div>
   );
 }
 
@@ -434,13 +189,14 @@ export default function ProblemsTable({
   progressMap = {},
   title = "Problems",
   subtitle,
+  eyebrow = "Practice",
+  // eslint-disable-next-line no-unused-vars
   icon: HeaderIcon = BookOpen,
   onRowClick,
+  rowHref,
   showLeetCode = true,
   showStage = source === "spring",
 }) {
-  const pageRef = useRef(null);
-
   /* ── State ── */
   const [problems, setProblems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -465,6 +221,7 @@ export default function ProblemsTable({
 
   const [userStats, setUserStats] = useState(null);
   const [judgeDiffFilter, setJudgeDiffFilter] = useState("All");
+  // eslint-disable-next-line no-unused-vars
   const [judgeStatusFilter, setJudgeStatusFilter] = useState("All");
 
   const sentinelRef = useRef(null);
@@ -620,816 +377,372 @@ export default function ProblemsTable({
 
   const completionPct = displayTotal > 0 ? Math.round((solvedCount / displayTotal) * 100) : 0;
 
-  /* ── GSAP entrance ── */
-  useGSAP(() => {
-    gsap.fromTo(".pt-eyebrow",
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", delay: 0.05 }
-    );
-    gsap.fromTo(".pt-title",
-      { opacity: 0, y: 36, skewY: 1 },
-      { opacity: 1, y: 0, skewY: 0, duration: 0.8, ease: "expo.out", delay: 0.14 }
-    );
-    gsap.fromTo(".pt-sub",
-      { opacity: 0, y: 16 },
-      { opacity: 1, y: 0, duration: 0.55, ease: "expo.out", delay: 0.28 }
-    );
-    gsap.fromTo(".pt-stats",
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", delay: 0.38 }
-    );
-    gsap.fromTo(".pt-filterbar",
-      { opacity: 0, y: 12 },
-      { opacity: 1, y: 0, duration: 0.45, ease: "expo.out", delay: 0.48 }
-    );
-    gsap.fromTo(".pt-table-wrap",
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.5, ease: "expo.out", delay: 0.58 }
-    );
-  }, { scope: pageRef });
-
-  /* ── Animate rows when loaded ── */
-  useGSAP(() => {
-    if (loading) return;
-    gsap.fromTo(".prob-row",
-      { opacity: 0, x: -12 },
-      {
-        opacity: 1, x: 0,
-        duration: 0.4, ease: "expo.out",
-        stagger: 0.025,
-        scrollTrigger: { trigger: ".pt-table-wrap", start: "top 90%" },
-      }
-    );
-  }, { scope: pageRef, dependencies: [loading] });
-
-  /* ── Difficulty quick-filter pills ── */
-  const diffPills = source === "spring"
+  /* ── Filter options ── */
+  const diffOptions = source === "spring"
     ? [
       { label: "All", value: "" },
-      { label: "Easy", value: "EASY", color: "#34d399" },
-      { label: "Medium", value: "MEDIUM", color: "#fbbf24" },
-      { label: "Hard", value: "HARD", color: "#f87171" },
+      { label: "Easy", value: "EASY" },
+      { label: "Medium", value: "MEDIUM" },
+      { label: "Hard", value: "HARD" },
     ]
     : [
       { label: "All", value: "All" },
-      { label: "Easy", value: "Easy", color: "#34d399" },
-      { label: "Medium", value: "Medium", color: "#fbbf24" },
-      { label: "Hard", value: "Hard", color: "#f87171" },
+      { label: "Easy", value: "Easy" },
+      { label: "Medium", value: "Medium" },
+      { label: "Hard", value: "Hard" },
     ];
 
-  const statusPills = [
+  const statusOptions = [
     { label: "All", value: "" },
-    { label: "Solved", value: "SOLVED", color: "#34d399" },
-    { label: "Attempted", value: "ATTEMPTED", color: "#fbbf24" },
-    { label: "Todo", value: "NOT_STARTED", color: "rgba(255,255,255,0.4)" },
+    { label: "Solved", value: "SOLVED" },
+    { label: "Attempted", value: "ATTEMPTED" },
+    { label: "To do", value: "NOT_STARTED" },
   ];
 
-  return (
-    <div
-      ref={pageRef}
-      style={{
-        minHeight: "100vh",
-        background: "#09090b",
-        position: "relative",
-        overflowX: "hidden",
-        paddingTop: 56,
-        paddingBottom: 80,
-      }}
-    >
-      {/* <BgCanvas /> */}
+  /* ── Columns (shared by header, skeleton and rows) ── */
+  const showTopicCol = showStage || source === "judge";
+  const cols = [
+    { key: "status", className: "w-12", skeleton: () => "h-4 w-4" },
+    { key: "num", className: "w-16", skeleton: () => "h-3 w-6" },
+    { key: "title", className: "", skeleton: i => cn("h-3", ["w-3/5", "w-2/5", "w-1/2", "w-3/4"][i % 4]) },
+    showTopicCol && { key: "topic", className: "hidden w-48 sm:table-cell", skeleton: () => "h-5 w-24" },
+    { key: "diff", className: "w-28", skeleton: () => "h-3 w-14" },
+    showLeetCode && { key: "lc", className: "hidden w-16 md:table-cell", skeleton: () => "h-7 w-7" },
+  ].filter(Boolean);
 
-      {/* Masked algorithm animation background
-      <div
-        style={{
-          position: "fixed",
-          inset: 0,
-          pointerEvents: "none",
-          zIndex: 0,
-          opacity: 0.1,
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 80%, transparent 100%)",
-          maskImage: "linear-gradient(to bottom, transparent 0%, black 14%, black 80%, transparent 100%)",
+  const colClass = key => cols.find(c => c.key === key)?.className;
+  const showFirstLoadError = Boolean(error) && !loading && displayList.length === 0;
+  const errorIsNetwork = isNetworkError(error);
+
+  /* ── Rows ── */
+  const renderRow = (problem, index) => {
+    const id = getId(problem);
+    const titleText = getTitle(problem);
+    const slug = getLcSlug(problem);
+    const href = rowHref ? rowHref(id, problem) : null;
+    const stageList = source === "judge" ? [getCategory(problem)].filter(Boolean) : getStages(problem);
+
+    return (
+      <TableRow
+        key={id}
+        interactive
+        onClick={e => {
+          if (e.target.closest("a, button")) return;
+          handleRowClick(problem);
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100vw",
-            height: "100vh",
-            display: "grid",
-            gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
-            gridTemplateRows: "repeat(3, minmax(0, 1fr))",
-            border: "1px solid rgba(255,255,255,0.04)",
-            background: "rgba(255,255,255,0.005)",
-          }}
-        >
-          {[
-            "bfs",
-            "dfs",
-            "dijkstra",
-            "floydwarshall",
-            "inorder",
-            "slidingwindow",
-            "bsearch",
-            "mergesort",
-            "twopointers",
-            "kadane",
-            "kruskal",
-            "heapsort",
-          ].map((key, i, arr) => (
-            <div
-              key={key}
-              style={{
-                position: "relative",
-                overflow: "hidden",
-                borderRight: (i % 4) < 3 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                borderBottom: i < arr.length - 4 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                background: "rgba(255,255,255,0.006)",
-              }}
+        <TableCell className={colClass("status")}>
+          <StatusIcon status={getUserStatus(problem)} />
+        </TableCell>
+        <TableCell className={cn(colClass("num"), "text-fg-muted")}>{index + 1}</TableCell>
+        <TableCell className="max-w-0">
+          {href ? (
+            <Link
+              to={href}
+              className={cn("block truncate text-body text-fg", COLOR_TRANSITION, FOCUS_RING, "ds-hover:text-accent-ink")}
             >
-              <div style={{ position: "absolute", inset: 0 }}>
-                {key === "mergesort"
-                  ? <MergeSortCanvas />
-                  : <AlgoCanvas algo={ALGO_CONFIGS[key]} />}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div> */}
-
-      {/* Atmosphere */}
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: .018,
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        backgroundSize: "256px",
-      }} />
-      <div style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, opacity: .013,
-        backgroundImage: "linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px)",
-        backgroundSize: "52px 52px",
-      }} />
-      <div style={{
-        position: "fixed", top: "-20%", right: "-12%",
-        width: 600, height: 600, borderRadius: "50%", pointerEvents: "none", zIndex: 0,
-        background: "radial-gradient(circle, rgba(237,255,102,0.04) 0%, transparent 65%)",
-      }} />
-      <div style={{
-        position: "fixed", bottom: "-10%", left: "-10%",
-        width: 500, height: 500, borderRadius: "50%", pointerEvents: "none", zIndex: 0,
-        background: "radial-gradient(circle, rgba(52,211,153,0.04) 0%, transparent 65%)",
-      }} />
-
-      <div style={{ position: "relative", zIndex: 1, maxWidth: 1080, margin: "0 auto", padding: "40px clamp(20px,5vw,52px) 0" }}>
-
-        {/* ══ HERO ══════════════════════════════════════════════════ */}
-        <div style={{ position: "relative", overflow: "hidden" }}>
-
-          {/* Watermark */}
-          {/* <div style={{
-            position: "absolute", left: "50%", top: "50%", transform: "translate(-50%,-50%)",
-            fontFamily: T.fontFamily, fontWeight: 900,
-            fontSize: "clamp(5rem,15vw,12rem)", letterSpacing: "-.03em",
-            color: "rgba(255,255,255,0.022)", lineHeight: .85,
-            textTransform: "uppercase", pointerEvents: "none", userSelect: "none",
-          }}>
-            GRIND
-          </div> */}
-
-          <div className="pt-hero-grid" style={{
-            display: "grid", gridTemplateColumns: "1fr auto",
-            gap: 30, alignItems: "end",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            paddingBottom: 28, marginBottom: 28,
-            position: "relative",
-          }}>
-            <div>
-              <p className="pt-eyebrow" style={{
-                fontSize: 9, fontWeight: 900, letterSpacing: ".28em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.22)",
-                marginBottom: 14,
-              }}>
-                - Practice Arena
-              </p>
-
-              <h1 className="pt-title" style={{
-                fontFamily: T.fontFamily,
-                fontSize: "clamp(2.8rem,5vw,4.8rem)",
-                fontWeight: 900, letterSpacing: "-0.02em",
-                lineHeight: 0.9, color: "#fff",
-                marginBottom: 14,
-              }}>
-                <span style={{ color: "#fff", display: "block" }}>{title}</span>
-                <span style={{ color: "#EDFF66", display: "block" }}>Arena.</span>
-              </h1>
-              <p className="pt-sub" style={{
-                fontSize: 14, color: "rgba(255,255,255,0.3)", lineHeight: 1.7, maxWidth: 420,
-              }}>
-                {subtitle || `${displayTotal} challenges. Every problem solved is a step closer to #1.`}
-              </p>
-            </div>
-
-            {/* Progress block */}
-            <div className="pt-stats pt-hero-stats" style={{
-              flexShrink: 0, minWidth: 250,
-              background: "#0d0d10", border: "1px solid rgba(255,255,255,0.07)",
-              borderRadius: 16, overflow: "hidden",
-            }}>
-              <div style={{ height: 2, background: "linear-gradient(90deg,#EDFF66,rgba(237,255,102,0.2))" }} />
-
-              <div style={{ padding: "16px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{
-                  fontSize: 9, fontWeight: 900, letterSpacing: ".22em",
-                  textTransform: "uppercase", color: "rgba(255,255,255,0.2)", marginBottom: 6,
-                }}>
-                  Completion
-                </div>
-                <div style={{
-                  fontFamily: T.fontFamily, letterSpacing: "-0.015em", fontSize: 30, fontWeight: 900,
-                  color: "#EDFF66", lineHeight: 1, textShadow: "0 0 24px rgba(237,255,102,0.28)",
-                }}>
-                  {completionPct}%
-                </div>
-              </div>
-
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-                {[
-                  { label: "Solved", value: solvedCount, color: "#34d399" },
-                  { label: "Attempt", value: attemptedCount, color: "#fbbf24" },
-                  { label: "Total", value: displayTotal, color: "#fff" },
-                ].map((s, i) => (
-                  <div key={s.label} style={{ padding: "12px 14px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.05)" : "none" }}>
-                    <div style={{
-                      fontFamily: T.fontFamily, fontSize: 17, fontWeight: 900,
-                      color: s.color, lineHeight: 1, marginBottom: 3,
-                      textShadow: s.color === "#fff" ? "none" : `0 0 14px ${s.color}30`,
-                    }}>{s.value}</div>
-                    <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: ".16em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)" }}>{s.label}</div>
-                  </div>
-                ))}
-              </div>
-
-              <div style={{ padding: "10px 16px 14px", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ height: 3, borderRadius: 3, overflow: "hidden", background: "rgba(255,255,255,0.06)" }}>
-                  <div style={{
-                    height: "100%", width: `${completionPct}%`, borderRadius: 3,
-                    background: "linear-gradient(90deg,#EDFF66,#34d399)",
-                    transition: "width 1.2s cubic-bezier(0.16,1,0.3,1)",
-                  }} />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Stats strip */}
-          {/* <div className="pt-stats" style={{
-            display: "flex", alignItems: "stretch", width: "fit-content",
-            borderRadius: 16, overflow: "hidden",
-            border: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.02)",
-          }}>
-            {[
-              { label: "Total",     value: displayTotal,   color: "rgba(255,255,255,0.85)" },
-              { label: "Solved",    value: solvedCount,    color: "#34d399" },
-              { label: "Attempted", value: attemptedCount, color: "#fbbf24" },
-              { label: "Remaining", value: displayTotal - solvedCount - attemptedCount, color: "rgba(255,255,255,0.3)" },
-            ].map(({ label, value, color }, i) => (
-              <React.Fragment key={label}>
-                {i > 0 && <div style={{ width: 1, background: "rgba(255,255,255,0.05)", alignSelf: "stretch" }} />}
-                <StatChip label={label} value={value} color={color} />
-              </React.Fragment>
-            ))}
-          </div> */}
-        </div>
-
-        {/* ══ FILTER BAR ════════════════════════════════════════════ */}
-        <div className="pt-filterbar" style={{
-          background: "#0d0d10",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 16, padding: "16px 20px",
-          marginBottom: 16,
-          display: "flex", flexDirection: "column", gap: 14,
-          position: "relative",
-          zIndex: 20, // Increased z-index to stay above table
-          // Removed overflowX: "auto" from here
-        }}>
-          {/* Search */}
-          <div style={{ position: "relative" }}>
-            <Search size={13} style={{
-              position: "absolute", left: 12, top: "50%",
-              transform: "translateY(-50%)", pointerEvents: "none",
-              color: "rgba(255,255,255,0.2)",
-            }} />
-            <input
-              ref={searchRef}
-              type="text"
-              placeholder="Search problems, topics, tags…"
-              value={searchKeyword}
-              onChange={e => setSearchKeyword(e.target.value)}
-              style={{
-                width: "100%", height: 40, borderRadius: 10,
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                paddingLeft: 36, paddingRight: 36,
-                fontSize: 13, color: "#fff", outline: "none",
-                transition: "border-color .15s",
-              }}
-              onFocus={e => e.currentTarget.style.borderColor = "rgba(237,255,102,0.3)"}
-              onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
-            />
-            {searchKeyword && (
-              <button
-                onClick={() => setSearchKeyword("")}
-                data-cursor="CLEAR"
-                style={{
-                  position: "absolute", right: 10, top: "50%",
-                  transform: "translateY(-50%)",
-                  background: "none", border: "none",
-                  color: "rgba(255,255,255,0.28)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  padding: 2,
-                }}
-              >
-                <X size={13} />
-              </button>
-            )}
-          </div>
-
-          {/* Pill rows - This container now handles horizontal scrolling for pills only */}
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            width: "100%"
-          }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              overflowX: "auto", // Moved scroll here
-              paddingBottom: 4, // Small buffer for scrollbar height
-              flex: 1,
-              msOverflowStyle: 'none',
-              scrollbarWidth: 'none'
-            }}>
-              <span style={{
-                fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.22)",
-                display: "flex", alignItems: "center", gap: 6,
-                flexShrink: 0,
-                marginRight: 4,
-              }}>
-                <Filter size={10} /> Difficulty
-              </span>
-              {diffPills.map(pill => (
-                <FilterPill
-                  key={pill.value}
-                  active={source === "spring" ? tagFilter === pill.value : judgeDiffFilter === pill.value}
-                  onClick={() => source === "spring" ? setTagFilter(pill.value) : setJudgeDiffFilter(pill.value)}
-                  color={pill.color}
-                >
-                  {pill.label}
-                </FilterPill>
-              ))}
-
-              {source === "spring" && (
-                <>
-                  <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 4px", flexShrink: 0 }} />
-                  <span style={{
-                    fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
-                    textTransform: "uppercase", color: "rgba(255,255,255,0.22)",
-                    display: "flex", alignItems: "center", gap: 6, marginRight: 4,
-                    flexShrink: 0,
-                  }}>
-                    <Zap size={10} /> Status
-                  </span>
-                  {statusPills.map(pill => (
-                    <FilterPill
-                      key={pill.value}
-                      active={statusFilter === pill.value}
-                      onClick={() => setStatusFilter(pill.value)}
-                      color={pill.color}
-                    >
-                      {pill.label}
-                    </FilterPill>
-                  ))}
-                </>
-              )}
-            </div>
-
-            {/* Stage select - Kept outside the scroll container to prevent clipping */}
-            {showStage && stages.length > 0 && (
-              <>
-                <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 4px", flexShrink: 0 }} />
-                <div style={{ position: "relative", zIndex: 50 }}>
-                  <Select value={stageFilter || "__all__"} onValueChange={v => setStageFilter(v === "__all__" ? "" : v)}>
-                    <SelectTrigger style={{
-                      height: 32, width: 160, borderRadius: 8,
-                      flexShrink: 0,
-                      background: stageFilter ? "rgba(237,255,102,0.07)" : "rgba(255,255,255,0.02)",
-                      border: stageFilter ? "1px solid rgba(237,255,102,0.3)" : "1px solid rgba(255,255,255,0.07)",
-                      color: stageFilter ? "#EDFF66" : "rgba(255,255,255,0.35)",
-                      fontSize: 11, fontWeight: 800,
-                    }}>
-                      <SelectValue placeholder="All stages" />
-                    </SelectTrigger>
-                    {/* Added Portal or high z-index handling */}
-                    <SelectContent
-                      position="popper"
-                      sideOffset={5}
-                      style={{
-                        background: "#0d0d10",
-                        border: "1px solid rgba(255,255,255,0.15)",
-                        borderRadius: 10,
-                        zIndex: 100,
-                        // Fix: Constrain the height and allow internal scrolling
-                        maxHeight: "240px",
-                        width: "var(--radix-select-trigger-width)", // Keeps dropdown same width as button
-                        overflowY: "auto",
-                      }}
-                    >
-                      <SelectItem value="__all__">All stages</SelectItem>
-                      {stages.map(s => (
-                        <SelectItem key={s} value={s}>
-                          {s}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </>
-            )}
-
-            {/* Reset */}
-            {hasFilters && (
-              <>
-                <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.08)", margin: "0 4px", flexShrink: 0 }} />
-                <button
-                  onClick={clearAll}
-                  data-cursor="RESET"
-                  style={{
-                    height: 32, padding: "0 12px", borderRadius: 8,
-                    border: "1px solid rgba(248,113,113,0.25)",
-                    background: "rgba(248,113,113,0.06)",
-                    color: "#f87171", fontSize: 11, fontWeight: 800,
-                    display: "flex", alignItems: "center", gap: 5,
-                    transition: "all .15s",
-                    flexShrink: 0
-                  }}
-                >
-                  <RotateCcw size={10} /> Reset
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* ══ ERROR ════════════════════════════════════════════════ */}
-        {error && (
-          <div style={{
-            borderRadius: 12, padding: "12px 18px", marginBottom: 12,
-            background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.2)",
-            display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12,
-          }}>
-            <span style={{ fontSize: 13, color: "#f87171", overflow: "hidden", textOverflow: "ellipsis" }}>{error}</span>
+              {titleText}
+            </Link>
+          ) : (
             <button
-              onClick={retryLoad}
-              data-cursor="RETRY"
-              style={{
-                height: 30, padding: "0 12px", borderRadius: 8,
-                border: "1px solid rgba(248,113,113,0.3)", background: "transparent",
-                color: "#f87171", fontSize: 11, fontWeight: 800,
-                display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
-              }}
+              type="button"
+              onClick={() => handleRowClick(problem)}
+              className={cn("block w-full truncate text-left text-body text-fg", COLOR_TRANSITION, FOCUS_RING, "ds-hover:text-accent-ink")}
             >
-              <RotateCcw size={10} /> Retry
+              {titleText}
             </button>
-          </div>
+          )}
+        </TableCell>
+        {showTopicCol && (
+          <TableCell className={colClass("topic")}>
+            {stageList.length > 0 ? (
+              <span className="flex items-center gap-1">
+                <Badge className="block max-w-[10rem] truncate leading-[18px]" title={stageList[0]}>
+                  {stageList[0]}
+                </Badge>
+                {stageList.length > 1 && (
+                  <Badge tone="outline" title={stageList.slice(1).join(", ")}>
+                    +{stageList.length - 1}
+                  </Badge>
+                )}
+              </span>
+            ) : (
+              <span className="text-fg-dim">—</span>
+            )}
+          </TableCell>
         )}
+        <TableCell className={colClass("diff")}>
+          <DifficultyText value={getDifficulty(problem)} />
+        </TableCell>
+        {showLeetCode && (
+          <TableCell className={colClass("lc")}>
+            {slug ? (
+              <IconButton asChild size="sm" aria-label={`Open ${titleText} on LeetCode`}>
+                <a href={`${LC_BASE}/${slug}`} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink />
+                </a>
+              </IconButton>
+            ) : null}
+          </TableCell>
+        )}
+      </TableRow>
+    );
+  };
 
-        {/* ══ TABLE ════════════════════════════════════════════════ */}
-        <div className="pt-table-wrap" style={{
-          background: "#0d0d10",
-          border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 18, overflow: "hidden",
-        }}>
-
-          {/* Top accent */}
-          <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(237,255,102,0.25),transparent)" }} />
-
-          {/* Table head */}
-          <div style={{
-            display: "flex", alignItems: "center",
-            padding: "11px 22px",
-            background: "rgba(255,255,255,0.02)",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-          }}>
-            <div style={{ width: 36, flexShrink: 0 }} />
-            <div style={{ width: 52, flexShrink: 0, padding: "0 10px" }}>
+  /* ── Results block ── */
+  let results;
+  if (showFirstLoadError) {
+    results = errorIsNetwork
+      ? <OfflineState onRetry={retryLoad} />
+      : <ErrorState title="Couldn't load problems" description={error} onRetry={retryLoad} />;
+  } else if (!loading && displayList.length === 0) {
+    results = (
+      <EmptyState
+        icon={Search}
+        title={hasFilters ? "No matching problems" : "No problems yet"}
+        description={hasFilters ? "Try a different search or clear the filters." : "Check back later."}
+        action={hasFilters ? <Button onClick={clearAll}>Clear filters</Button> : null}
+      />
+    );
+  } else {
+    results = (
+      <>
+        <Table wrapperClassName="bg-surface" aria-busy={loading || undefined}>
+          {loading ? <caption className="sr-only">Loading problems</caption> : null}
+          <TableHead>
+            <TableRow>
+              <TableHeaderCell className={colClass("status")}>
+                <span className="sr-only">Status</span>
+              </TableHeaderCell>
               {source === "spring"
-                ? <SortHeader label="#" field="pid" current={sort} onSort={setSort} />
-                : <ColLabel>#</ColLabel>}
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
+                ? <SortHeader label="#" field="pid" current={sort} onSort={setSort} className={colClass("num")} />
+                : <TableHeaderCell className={colClass("num")}>#</TableHeaderCell>}
               {source === "spring"
                 ? <SortHeader label="Title" field="title" current={sort} onSort={setSort} />
-                : <ColLabel>Title</ColLabel>}
-            </div>
-            {(showStage || source === "judge") && (
-              <div style={{ width: 160, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-                <ColLabel>{source === "judge" ? "Topic" : "Stage"}</ColLabel>
-              </div>
-            )}
-            <div style={{ width: 96, flexShrink: 0, display: "flex", justifyContent: "center" }}>
+                : <TableHeaderCell>Title</TableHeaderCell>}
+              {showTopicCol && (
+                <TableHeaderCell className={colClass("topic")}>{source === "judge" ? "Topic" : "Stage"}</TableHeaderCell>
+              )}
               {source === "spring"
-                ? <SortHeader label="Difficulty" field="tag" current={sort} onSort={setSort} />
-                : <ColLabel>Difficulty</ColLabel>}
-            </div>
-            {showLeetCode && (
-              <div style={{ width: 40, flexShrink: 0, display: "flex", justifyContent: "center" }}>
-                <ColLabel>LC</ColLabel>
-              </div>
+                ? <SortHeader label="Difficulty" field="tag" current={sort} onSort={setSort} className={colClass("diff")} />
+                : <TableHeaderCell className={colClass("diff")}>Difficulty</TableHeaderCell>}
+              {showLeetCode && (
+                <TableHeaderCell className={colClass("lc")}>
+                  <abbr title="LeetCode" className="no-underline">LC</abbr>
+                </TableHeaderCell>
+              )}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {loading
+              ? <SkeletonRows count={12} cols={cols} />
+              : displayList.map((p, i) => renderRow(p, i))}
+          </TableBody>
+        </Table>
+
+        {!loading && displayList.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-x border-b border-border bg-surface px-3 py-2 font-mono text-small tabular-nums text-fg-muted">
+            <span>{displayList.length} of {displayTotal} problems</span>
+            {hasMore && <span className={cn(LABEL, "text-fg-dim")}>Scroll for more</span>}
+          </div>
+        )}
+
+        {error && displayList.length > 0 && (
+          <div className="mt-4">
+            {errorIsNetwork
+              ? <OfflineState onRetry={retryLoad} />
+              : <ErrorState title="Couldn't load more problems" description={error} onRetry={retryLoad} />}
+          </div>
+        )}
+      </>
+    );
+  }
+
+  return (
+    <PageShell>
+      <PageHeader
+        eyebrow={eyebrow}
+        title={title}
+        description={subtitle || "Filter by difficulty, stage or status, then open a problem in the judge."}
+        actions={
+          <ProgressSummary
+            completionPct={completionPct}
+            solved={solvedCount}
+            attempted={attemptedCount}
+            total={displayTotal}
+          />
+        }
+      />
+
+      {/* ══ FILTERS ══ */}
+      <section aria-label="Filters" className="mb-4 grid gap-4 border border-border bg-surface p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="relative min-w-0 flex-1 basis-64">
+            <Input
+              ref={searchRef}
+              type="text"
+              label="Search"
+              placeholder="Search problems, topics, tags"
+              value={searchKeyword}
+              onChange={e => setSearchKeyword(e.target.value)}
+              className="pl-9 pr-10"
+            />
+            <Search
+              size={16}
+              strokeWidth={1.5}
+              aria-hidden="true"
+              className="pointer-events-none absolute bottom-[10px] left-3 text-fg-dim"
+            />
+            {searchKeyword && (
+              <IconButton
+                icon={X}
+                size="sm"
+                aria-label="Clear search"
+                onClick={() => setSearchKeyword("")}
+                className="absolute bottom-1 right-1"
+              />
             )}
-            <div style={{ width: 20, flexShrink: 0 }} />
           </div>
 
-          {/* Rows */}
-          {loading ? (
-            <div>
-              {Array.from({ length: 12 }).map((_, i) => <SkeletonRow key={i} i={i} />)}
-            </div>
-          ) : displayList.length === 0 ? (
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", padding: "64px 24px", gap: 14,
-            }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 12,
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Search size={18} style={{ color: "rgba(255,255,255,0.14)" }} />
-              </div>
-              <div style={{ textAlign: "center" }}>
-                <p style={{
-                  fontFamily: T.fontFamily, fontSize: 14, fontWeight: 900,
-                  textTransform: "uppercase", letterSpacing: ".06em",
-                  color: "rgba(255,255,255,0.18)", marginBottom: 6,
-                }}>
-                  {hasFilters ? "No matches" : "No problems"}
-                </p>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.2)", lineHeight: 1.6 }}>
-                  {hasFilters ? "Try adjusting your filters above." : "Check back later."}
-                </p>
-              </div>
-              {hasFilters && (
-                <button
-                  onClick={clearAll}
-                  data-cursor="RESET"
-                  style={{
-                    height: 32, padding: "0 16px", borderRadius: 8,
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    background: "rgba(255,255,255,0.03)",
-                    color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 800,
-                    transition: "all .15s",
-                  }}
-                >
-                  Clear filters
-                </button>
-              )}
-            </div>
-          ) : (
-            displayList.map((p, i) => (
-              <ProblemRow
-                key={getId(p)}
-                problem={p}
-                index={i}
-                showStage={showStage}
-                showLeetCode={showLeetCode}
-                source={source}
-                onClick={handleRowClick}
-                getUserStatus={getUserStatus}
-                getDifficulty={getDifficulty}
-                getTitle={getTitle}
-                getId={getId}
-                getLcSlug={getLcSlug}
-                getCategory={getCategory}
-                getStages={getStages}
-              />
-            ))
+          {showStage && stages.length > 0 && (
+            <Select
+              label="Stage"
+              value={stageFilter || "__all__"}
+              onValueChange={v => setStageFilter(v === "__all__" ? "" : v)}
+              placeholder="All stages"
+              fieldClassName="w-full sm:w-56"
+            >
+              <SelectItem value="__all__">All stages</SelectItem>
+              {stages.map(s => (
+                <SelectItem key={s} value={s}>{s}</SelectItem>
+              ))}
+            </Select>
           )}
 
-          {/* Bottom status bar */}
-          {!loading && displayList.length > 0 && (
-            <div style={{
-              padding: "10px 22px",
-              borderTop: "1px solid rgba(255,255,255,0.04)",
-              display: "flex", alignItems: "center", justifyContent: "space-between",
-            }}>
-              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.18)", fontVariantNumeric: "tabular-nums" }}>
-                {displayList.length} of {displayTotal} problems
-              </span>
-              {hasMore && (
-                <span style={{
-                  fontSize: 10, fontWeight: 700, color: "rgba(237,255,102,0.5)",
-                  letterSpacing: ".1em", textTransform: "uppercase",
-                }}>
-                  Scroll for more ↓
-                </span>
-              )}
-            </div>
+          {source === "spring" && (
+            <Select
+              label="Sort"
+              value={sort}
+              onValueChange={setSort}
+              fieldClassName="w-full sm:w-56"
+            >
+              {SORT_OPTIONS.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </Select>
           )}
         </div>
 
-        {/* ══ INFINITE SCROLL SENTINEL ════════════════════════════ */}
-        {source === "spring" && (
-          <div ref={sentinelRef} style={{
-            display: "flex", flexDirection: "column",
-            alignItems: "center", padding: "28px 0", gap: 8,
-          }}>
-            {loadingMore && (
-              <>
-                <Loader2 size={16} style={{ color: "rgba(255,255,255,0.25)", animation: "spin 1s linear infinite" }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.2)", letterSpacing: ".1em", textTransform: "uppercase" }}>
-                  Loading more…
-                </span>
-              </>
-            )}
-            {!loadingMore && !hasMore && !loading && displayList.length > 0 && (
-              <span style={{
-                fontSize: 10, fontWeight: 900, letterSpacing: ".2em",
-                textTransform: "uppercase", color: "rgba(255,255,255,0.14)",
-              }}>
-                All {totalElements} problems loaded
-              </span>
-            )}
-          </div>
-        )}
+        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+          <FilterTabs
+            label="Difficulty"
+            value={source === "spring" ? tagFilter : judgeDiffFilter}
+            onChange={v => source === "spring" ? setTagFilter(v) : setJudgeDiffFilter(v)}
+            options={diffOptions}
+          />
+          {source === "spring" && (
+            <FilterTabs label="Status" value={statusFilter} onChange={setStatusFilter} options={statusOptions} />
+          )}
+          {hasFilters && (
+            <Button variant="ghost" size="sm" onClick={clearAll} className="sm:ml-auto">
+              <RotateCcw aria-hidden="true" /> Reset filters
+            </Button>
+          )}
+        </div>
+      </section>
 
-        {source === "judge" && !loading && !error && (
-          <div style={{ textAlign: "center", padding: "20px 0" }}>
-            <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.14)" }}>
-              {displayList.length} problem{displayList.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-        )}
-
+      {/* ══ RESULTS ══ */}
+      <div id={RESULTS_ID}>
+        {results}
       </div>
 
-      {/* ══ DETAIL DIALOG ════════════════════════════════════════ */}
+      {/* ══ INFINITE SCROLL SENTINEL ══ */}
+      {source === "spring" && (
+        <div ref={sentinelRef} className="flex flex-col items-center gap-2 py-6">
+          {loadingMore && (
+            <div role="status" className="grid w-40 justify-items-center gap-2">
+              <Progress label="Loading more problems" />
+              <span className={cn(LABEL, "text-fg-muted")}>Loading more_</span>
+            </div>
+          )}
+          {!loadingMore && !hasMore && !loading && displayList.length > 0 && (
+            <span className={cn(LABEL, "tabular-nums text-fg-dim")}>All {totalElements} problems loaded</span>
+          )}
+        </div>
+      )}
+
+      {source === "judge" && !loading && !error && (
+        <p className="py-6 text-center font-mono text-small tabular-nums text-fg-dim">
+          {displayList.length} problem{displayList.length !== 1 ? "s" : ""}
+        </p>
+      )}
+
+      {/* ══ DETAIL DIALOG (used when no onRowClick is passed) ══ */}
       {fetchDetail && (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogContent style={{
-            maxWidth: 480, padding: 0, gap: 0, overflow: "hidden",
-            borderRadius: 20,
-            background: "#0d0d10",
-            border: "1px solid rgba(255,255,255,0.1)",
-            boxShadow: "0 40px 80px rgba(0,0,0,0.7)",
-          }}>
-            {/* Top accent */}
-            <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(237,255,102,0.4),transparent)" }} />
-
+          <DialogContent
+            title={detailLoading ? "Loading problem" : selected ? (selected.title || "Problem") : "Problem not found"}
+            description={!detailLoading && selected ? `Problem #${selected.pid ?? selected.id}` : undefined}
+          >
             {detailLoading ? (
-              <div style={{
-                height: 220, display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Loader2 size={20} style={{ color: "rgba(255,255,255,0.2)", animation: "spin 1s linear infinite" }} />
+              <div role="status" className="grid gap-3 py-2">
+                <span className="sr-only">Loading problem details</span>
+                <Skeleton className="h-3 w-1/3" />
+                <Skeleton className="h-3 w-2/3" />
+                <Skeleton className="h-3 w-1/2" />
               </div>
             ) : selected ? (
-              <div style={{ color: "#fff" }}>
-                {/* Header */}
-                <div style={{
-                  padding: "22px 24px 18px",
-                  borderBottom: "1px solid rgba(255,255,255,0.06)",
-                }}>
-                  <div style={{
-                    fontSize: 9, fontWeight: 900, letterSpacing: ".22em",
-                    textTransform: "uppercase", color: "rgba(255,255,255,0.22)", marginBottom: 8,
-                  }}>
-                    Problem #{selected.pid ?? selected.id}
-                  </div>
-                  <div style={{
-                    fontFamily: T.fontFamily, fontSize: 20, fontWeight: 900,
-                    letterSpacing: "-.01em", lineHeight: 1.15, color: "#fff",
-                  }}>
-                    {selected.title}
-                  </div>
-                </div>
+              <dl className="grid gap-4">
+                <DetailRow label="Difficulty">
+                  <DifficultyText value={selected.tag || selected.difficulty} />
+                </DetailRow>
 
-                {/* Body */}
-                <div style={{ padding: "20px 24px", display: "flex", flexDirection: "column", gap: 16, background: "rgba(0,0,0,0.25)" }}>
-                  <DetailRow label="Difficulty">
-                    {(() => {
-                      const s = DIFF[selected.tag || selected.difficulty] || {};
-                      return (
-                        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                          <div style={{ width: 6, height: 6, borderRadius: "50%", background: s.dot || "rgba(255,255,255,0.3)" }} />
-                          <span style={{ fontSize: 13, fontWeight: 700, color: s.color || "rgba(255,255,255,0.5)" }}>
-                            {s.label || selected.tag || selected.difficulty}
-                          </span>
-                        </div>
-                      );
-                    })()}
+                {selected.userStatus && (
+                  <DetailRow label="Status">
+                    <StatusIcon status={selected.userStatus} withLabel />
                   </DetailRow>
+                )}
 
-                  {selected.userStatus && (
-                    <DetailRow label="Status">
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <StatusDot status={selected.userStatus} />
-                        <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)" }}>
-                          {STATUS_CFG[selected.userStatus]?.label || selected.userStatus}
-                        </span>
-                      </div>
-                    </DetailRow>
-                  )}
+                {selected.stages?.length > 0 && (
+                  <DetailRow label="Stages">
+                    <div className="flex flex-wrap gap-2">
+                      {selected.stages.map(t => <Badge key={t}>{t}</Badge>)}
+                    </div>
+                  </DetailRow>
+                )}
 
-                  {selected.stages?.length > 0 && (
-                    <DetailRow label="Stages">
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {selected.stages.map(t => (
-                          <span key={t} style={{
-                            padding: "3px 10px", borderRadius: 7,
-                            border: "1px solid rgba(255,255,255,0.09)",
-                            background: "rgba(255,255,255,0.04)",
-                            fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.45)",
-                          }}>
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </DetailRow>
-                  )}
+                {selected.hasVisualizer !== undefined && (
+                  <DetailRow label="Visualizer">
+                    <span className={cn("font-mono text-body", selected.hasVisualizer ? "text-ok" : "text-fg-dim")}>
+                      {selected.hasVisualizer ? "Available" : "—"}
+                    </span>
+                  </DetailRow>
+                )}
 
-                  {selected.hasVisualizer !== undefined && (
-                    <DetailRow label="Visualizer">
-                      <span style={{ fontSize: 13, fontWeight: 600, color: selected.hasVisualizer ? "#34d399" : "rgba(255,255,255,0.2)" }}>
-                        {selected.hasVisualizer ? "Available" : "—"}
-                      </span>
-                    </DetailRow>
-                  )}
+                {selected.description && (
+                  <DetailRow label="Description">
+                    <p className="font-mono text-body text-fg-muted">{selected.description}</p>
+                  </DetailRow>
+                )}
 
-                  {selected.description && (
-                    <DetailRow label="Description">
-                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", lineHeight: 1.65 }}>
-                        {selected.description}
-                      </p>
-                    </DetailRow>
-                  )}
-
-                  {getLcSlug(selected) && (
-                    <DetailRow label="LeetCode">
-                      <a
-                        href={`${LC_BASE}/${getLcSlug(selected)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{
-                          display: "inline-flex", alignItems: "center", gap: 7,
-                          padding: "6px 14px", borderRadius: 9,
-                          border: "1px solid rgba(255,161,22,0.25)",
-                          background: "rgba(255,161,22,0.06)",
-                          fontSize: 12, fontWeight: 700, color: "#FFA116",
-                          textDecoration: "none",
-                          transition: "all .15s",
-                        }}
-                      >
-                        {getLcSlug(selected)}
-                        <ExternalLink size={11} />
+                {getLcSlug(selected) && (
+                  <DetailRow label="LeetCode">
+                    <Button asChild size="sm">
+                      <a href={`${LC_BASE}/${getLcSlug(selected)}`} target="_blank" rel="noopener noreferrer">
+                        {getLcSlug(selected)} <ExternalLink aria-hidden="true" />
                       </a>
-                    </DetailRow>
-                  )}
-                </div>
-              </div>
+                    </Button>
+                  </DetailRow>
+                )}
+              </dl>
             ) : (
-              <div style={{
-                height: 200, display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 13, color: "rgba(255,255,255,0.2)",
-              }}>
-                Problem not found.
-              </div>
+              <p className="py-6 text-center font-mono text-body text-fg-muted">
+                This problem could not be loaded.
+              </p>
             )}
           </DialogContent>
         </Dialog>
       )}
-
-      <style>{`
-        *, *::before, *::after { box-sizing: border-box; }
-        ::-webkit-scrollbar { width: 0; height: 0; }
-        input::placeholder { color: rgba(255,255,255,0.2); }
-        @keyframes vantage-pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-        @keyframes spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-        @media (max-width: 720px) {
-          div[style*="grid-template-columns: 1fr auto"] {
-            grid-template-columns: 1fr !important;
-          }
-          .pt-hero-grid {
-            gap: 16px !important;
-          }
-          .pt-hero-stats {
-            min-width: 0 !important;
-            width: 100% !important;
-          }
-        }
-      `}</style>
-    </div>
+    </PageShell>
   );
 }

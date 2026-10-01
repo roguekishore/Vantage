@@ -1,29 +1,41 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import { Group, Panel as SplitPanel, Separator } from "react-resizable-panels";
 import { fetchProblem, submitCode, runCode } from "../../services/judgeApi";
 import { getStoredUser } from "../../services/userApi";
 import { useTheme } from "../../components/common/ThemeProvider";
+import useThemeTokens from "../../hooks/useThemeTokens";
+import { defineVantageThemes, vantageThemeName } from "../../lib/monacoThemes";
 import useProgressStore, { getConquestIdByJudgeId } from "../../map/useProgressStore";
-import { ThemeToggle } from "../../components/common/ThemeToggle";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
-import { ScrollArea } from "../../components/ui/scroll-area";
 import {
-  ResizablePanelGroup, ResizablePanel, ResizableHandle,
-} from "../../components/ui/resizable";
-import {
-  Tooltip, TooltipTrigger, TooltipContent, TooltipProvider,
-} from "../../components/ui/tooltip";
-import {
-  DropdownMenu, DropdownMenuTrigger, DropdownMenuContent,
-  DropdownMenuItem, DropdownMenuSeparator, DropdownMenuLabel,
-} from "../../components/ui/dropdown-menu";
+  Badge,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  EmptyState,
+  ErrorState,
+  IconButton,
+  OfflineState,
+  Panel,
+  Progress,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+  ThemeToggle,
+  Tooltip,
+} from "@/components/ds";
 import {
   ArrowLeft, Play, CheckCircle2, XCircle, Clock, AlertTriangle,
-  Terminal, Loader2, SquareTerminal, FlaskConical, BookOpen,
-  ListChecks, RotateCcw, Copy, Check, Plus, X, ArrowUpRight,
-  ChevronDown, Code2, Zap, CircleDot, Hash, Braces, LogIn, Sparkles,
-  Workflow, Columns2,
+  Terminal, SquareTerminal, FlaskConical, BookOpen, ListChecks,
+  RotateCcw, Copy, Check, Plus, X, ArrowUpRight, ChevronDown,
+  FileQuestion, Braces, LogIn, Send, Workflow, Columns2,
 } from "lucide-react";
 import "./Judge.css";
 import VisualizerDrawer, { VisualizerToggleButton } from "./VisualizerDrawer";
@@ -37,32 +49,19 @@ const LANGUAGES = [
   { value: "java", label: "Java", monacoId: "java" },
 ];
 
-const DIFF_COLOR = {
-  Easy: { text: "text-emerald-400", dot: "bg-emerald-500" },
-  Medium: { text: "text-amber-400", dot: "bg-amber-500" },
-  Hard: { text: "text-rose-400", dot: "bg-rose-500" },
-};
+const DIFF_TONE = { Easy: "ok", Medium: "warn", Hard: "err" };
 
-const S = {
-  bg: "#09090b",
-  surface: "#0c0c0f",
-  border: "rgba(255,255,255,0.2)",
-  borderSub: "rgba(255,255,255,0.14)",
-  textPri: "#ffffff",
-  textSec: "rgba(255,255,255,0.34)",
-  textMeta: "rgba(255,255,255,0.2)",
-  acid: "#EDFF66",
-  red: "#f87171",
-  green: "#34d399",
-  amber: "#fbbf24",
-};
+const LABEL = "font-mono text-label uppercase";
+const MICRO = "font-mono text-micro uppercase";
+const PRE = "m-0 whitespace-pre-wrap break-words border border-border bg-bg px-3 py-2 font-mono text-small text-fg";
 
 /* ════════════════════════════════════════════
    MAIN COMPONENT
    ════════════════════════════════════════════ */
 export default function JudgePage() {
   const { problemId } = useParams();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  const themeTokens = useThemeTokens();
   const completeProblem = useProgressStore(s => s.completeProblem);
   const markProblemAttempted = useProgressStore(s => s.markProblemAttempted);
   const user = useMemo(() => getStoredUser(), []);
@@ -70,6 +69,10 @@ export default function JudgePage() {
 
   const [problem, setProblem] = useState(null);
   const [loading, setLoading] = useState(true);
+  // View-only: keeps the fetch error so the page can tell offline from
+  // not-found, and a counter so Retry re-runs the same fetch.
+  const [loadError, setLoadError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0);
   const [language, setLanguage] = useState("cpp");
   const [code, setCode] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -84,6 +87,7 @@ export default function JudgePage() {
   const [dryRunOpen, setDryRunOpen] = useState(false);
   const [testCases, setTestCases] = useState([]);
   const editorRef = useRef(null);
+  const monacoRef = useRef(null);
   const codeFlowRef = useRef(null);
   // Single shared flow trace + playback state consumed by BOTH the Flow bottom
   // tab (CodeFlowPanel) and the parallel dry-run window (DryRunPanel) so stepping
@@ -118,7 +122,7 @@ export default function JudgePage() {
     setActiveTestCase(prev => Math.min(prev, testCases.length - 2));
   };
 
-  const useFailedAsTestCase = (input, expected) => {
+  const loadFailedAsTestCase = (input, expected) => {
     setTestCases(prev => [...prev, { input, output: expected || "", isCustom: true }]);
     setActiveTestCase(testCases.length);
     setBottomTab("testcases");
@@ -133,15 +137,26 @@ export default function JudgePage() {
     return nums.length > 0 && nums.every(n => !isNaN(n)) ? nums : null;
   }, [testCases, activeTestCase]);
 
-  const editorTheme = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches)
-    ? "vs-dark" : "light";
+  // Monaco follows the app theme through the token-built vantage-* themes
+  //. Re-defined whenever the resolved tokens change.
+  const editorTheme = vantageThemeName(resolvedTheme);
+  const handleEditorBeforeMount = (monaco) => {
+    monacoRef.current = monaco;
+    defineVantageThemes(monaco, themeTokens);
+  };
+  useEffect(() => {
+    const monaco = monacoRef.current;
+    if (monaco?.editor) monaco.editor.setTheme(defineVantageThemes(monaco, themeTokens));
+  }, [themeTokens]);
 
   useEffect(() => {
     fetchProblem(problemId)
       .then(p => { setProblem(p); setCode(p.boilerplate?.cpp || ""); })
-      .catch(console.error)
+      .catch(err => { console.error(err); setLoadError(err); })
       .finally(() => setLoading(false));
-  }, [problemId]);
+  }, [problemId, reloadKey]);
+
+  const retryLoad = () => { setLoadError(null); setLoading(true); setReloadKey(k => k + 1); };
 
   const handleLanguageChange = useCallback((lang) => {
     setLanguage(lang);
@@ -193,515 +208,341 @@ export default function JudgePage() {
     flow.run({ language, code, input: customInput });
   };
 
-  /* ── Loading ── */
-  if (loading) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
-          <span className="text-sm text-zinc-500">Loading problem…</span>
+  /* ── Loading / error / not-found ── */
+  if (loading || !problem) {
+    let body;
+    if (loading) {
+      body = (
+        <div role="status" aria-live="polite" className="grid gap-4">
+          <Progress label="Loading problem" />
+          <p className={`${LABEL} text-fg-muted`}>Loading problem_</p>
         </div>
-      </div>
-    );
-  }
-
-  if (!problem) {
+      );
+    } else if (loadError instanceof TypeError) {
+      // fetch() rejects with a TypeError when the API is unreachable.
+      body = (
+        <>
+          <OfflineState onRetry={retryLoad} />
+          <div className="flex justify-center"><BackToProblems variant="ghost" /></div>
+        </>
+      );
+    } else if (loadError && !/^Failed to fetch problem/.test(loadError.message || "")) {
+      body = (
+        <ErrorState
+          description={loadError.message || "This problem couldn't be loaded."}
+          onRetry={retryLoad}
+          action={<BackToProblems variant="ghost" />}
+        />
+      );
+    } else {
+      body = (
+        <EmptyState
+          icon={FileQuestion}
+          title="Problem not found"
+          description={`No problem matches "${problemId}", or the server couldn't return it.`}
+          action={
+            <>
+              <Button variant="primary" asChild>
+                <Link to="/problems"><ArrowLeft aria-hidden="true" /> Back to problems</Link>
+              </Button>
+              {loadError ? <Button variant="secondary" onClick={retryLoad}>Retry</Button> : null}
+            </>
+          }
+        />
+      );
+    }
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950">
-        <div className="text-center space-y-3">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center mx-auto">
-            <Code2 className="w-5 h-5 text-zinc-600" />
-          </div>
-          <p className="text-sm font-semibold text-zinc-400">Problem not found</p>
-          <Link to="/problems" className="text-xs text-primary hover:underline flex items-center justify-center gap-1">
-            <ArrowLeft className="w-3 h-3" /> Back to problems
-          </Link>
-        </div>
+      <div className="judge-root flex min-h-screen flex-col bg-bg text-fg">
+        <JudgeTopBar title={problem?.title || problemId} />
+        <main id="main" className="w-full flex-1 px-[var(--gutter)] py-8">
+          <div className="mx-auto grid w-full max-w-[var(--container-narrow)] gap-4">{body}</div>
+        </main>
       </div>
     );
   }
 
   const currentLang = LANGUAGES.find(l => l.value === language);
-  const diffStyle = DIFF_COLOR[problem.difficulty] || { text: "text-zinc-400", dot: "bg-zinc-500" };
+  const busy = running || submitting;
+  const firstFailed = result?.results?.find(tc => !tc.passed);
+  const outputTone = (runResult || result)
+    ? (runResult?.status === "Success" || result?.status === "Accepted" ? "ok" : "err")
+    : null;
+  const resultsTone = result ? (result.status === "Accepted" ? "ok" : "err") : null;
 
   /* ════════════════════════════════════════════
      RENDER
      ════════════════════════════════════════════ */
   return (
-    <TooltipProvider delayDuration={300}>
-      <div className="flex h-screen flex-col bg-zinc-950 text-white overflow-hidden">
+    <div className="judge-root flex h-screen flex-col overflow-hidden bg-bg text-fg">
 
-        {/* ═══════════ HEADER ═══════════ */}
-        <header className="flex items-center justify-between h-11 px-3 flex-shrink-0 border-b border-zinc-800/80 bg-zinc-950 z-10">
-          {/* Left */}
-          <div className="flex items-center gap-2.5 min-w-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  to="/problems"
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all"
-                >
-                  <ArrowLeft className="h-3.5 w-3.5" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs bg-zinc-900 border-zinc-800">Back to Problems</TooltipContent>
-            </Tooltip>
+      {/* ═══════════ SLIM TOP BAR (global nav is hidden on this route) ═══════════ */}
+      <JudgeTopBar
+        title={problem.title}
+        meta={
+          <>
+            {problem.difficulty && <Badge tone={DIFF_TONE[problem.difficulty] || "neutral"}>{problem.difficulty}</Badge>}
+            {problem.topic && <Badge tone="neutral" className="hidden sm:inline-flex">{problem.topic}</Badge>}
+          </>
+        }
+        actions={<VisualizerToggleButton problemId={problemId} isOpen={vizOpen} onToggle={() => setVizOpen(v => !v)} />}
+      />
 
-            <div className="w-px h-4 bg-zinc-800" />
+      {/* ═══════════ VISUALIZER DRAWER ═══════════ */}
+      <VisualizerDrawer
+        problemId={problemId}
+        isOpen={vizOpen}
+        onToggle={() => setVizOpen(v => !v)}
+        testArray={testArray}
+      />
 
-            <div className="flex items-center gap-2 min-w-0">
-              <Code2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-              <span className="text-[13px] font-bold text-white tracking-tight truncate">{problem.title}</span>
-
-              {/* Difficulty - dot + text */}
-              <div className="flex items-center gap-1 shrink-0">
-                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${diffStyle.dot}`} />
-                <span className={`text-[11px] font-bold ${diffStyle.text}`}>{problem.difficulty}</span>
-              </div>
-
-              {problem.topic && (
-                <span className="hidden sm:inline-flex px-2 py-0.5 rounded-lg bg-zinc-800 border border-zinc-700/60 text-[10px] font-bold text-zinc-400 shrink-0">
-                  {problem.topic}
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* Right */}
-          <div className="flex items-center gap-1.5">
-            <VisualizerToggleButton problemId={problemId} isOpen={vizOpen} onToggle={() => setVizOpen(v => !v)} />
-            <div className="w-px h-4 bg-zinc-800 hidden sm:block mx-0.5" />
-            <ThemeToggle />
-          </div>
-        </header>
-
-        {/* ═══════════ VISUALIZER DRAWER ═══════════ */}
-        <VisualizerDrawer
-          problemId={problemId}
-          isOpen={vizOpen}
-          onToggle={() => setVizOpen(v => !v)}
-          testArray={testArray}
-        />
-
-        {/* ═══════════ WORKSPACE ═══════════ */}
-        <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0">
+      {/* ═══════════ WORKSPACE ═══════════ */}
+      <main id="main" className="flex min-h-0 flex-1 flex-col">
+        <Group orientation="horizontal" className="judge-workspace min-h-0 flex-1">
 
           {/* ─── LEFT PANEL: Description + Results ─── */}
-          <ResizablePanel id="left" defaultSize="40%" minSize="25%" maxSize="60%">
-            <div className="flex flex-col h-full bg-zinc-950 border-r border-zinc-800/80">
-              <Tabs value={leftTab} onValueChange={setLeftTab} className="flex flex-col h-full">
-                <div style={{ display: "flex", alignItems: "center", borderBottom: `1px solid ${S.border}`, padding: "0 4px", flexShrink: 0, background: S.bg }}>
-                  <TabsList style={{ background: "transparent", height: 38, padding: 0, display: "flex", gap: 0 }}>
-                    {[
-                      { value: "description", Icon: BookOpen, label: "Description" },
-                      { value: "results", Icon: ListChecks, label: "Results", dot: result ? (result.status === "Accepted" ? S.green : S.red) : null },
-                    ].map((tab) => (
-                      <TabsTrigger
-                        key={tab.value}
-                        value={tab.value}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 5,
-                          padding: "0 12px",
-                          height: 38,
-                          borderRadius: 0,
-                          border: "none",
-                          background: "transparent",
-                          fontSize: 11,
-                          fontWeight: 700,
-                          letterSpacing: "0.06em",
-                          color: leftTab === tab.value ? "#fff" : "rgba(255,255,255,0.28)",
-                          borderBottom: leftTab === tab.value ? `1px solid ${S.acid}` : "1px solid transparent",
-                          transition: "color 0.15s, border-color 0.15s",
-                          marginBottom: -1,
-                        }}
-                      >
-                        <tab.Icon size={12} />
-                        {tab.label}
-                        {tab.dot && <div style={{ width: 5, height: 5, borderRadius: "50%", background: tab.dot }} />}
-                      </TabsTrigger>
+          <SplitPanel id="left" defaultSize="40%" minSize="25%" maxSize="60%" className="judge-pane-left border-r border-border bg-bg">
+            <Tabs value={leftTab} onValueChange={setLeftTab} className="flex h-full flex-col">
+              <TabsList aria-label="Problem" className="shrink-0 gap-4 px-4">
+                <TabsTrigger value="description"><BookOpen aria-hidden="true" /> Description</TabsTrigger>
+                <TabsTrigger value="results">
+                  <ListChecks aria-hidden="true" /> Results
+                  {resultsTone && <ToneDot tone={resultsTone} />}
+                </TabsTrigger>
+              </TabsList>
+
+              {/* ── Description ── */}
+              <TabsContent value="description" className="min-h-0 flex-1 overflow-y-auto">
+                <div className="grid gap-6 p-4 sm:p-5">
+                  {problem.stageIntro && (
+                    <Panel variant="accent" label="Prologue">
+                      <p className="font-mono text-body text-fg-muted">{problem.stageIntro}</p>
+                    </Panel>
+                  )}
+
+                  {problem.storyBriefing && (
+                    <Panel label="Story">
+                      <p className="font-mono text-body text-fg-muted">{problem.storyBriefing}</p>
+                    </Panel>
+                  )}
+
+                  <div className="grid gap-2 font-mono text-body text-fg-muted">
+                    {problem.description.split("\n").map((line, i) => (
+                      <p key={i} className={line ? "" : "h-2"}>{line}</p>
                     ))}
-                  </TabsList>
-                </div>
+                  </div>
 
-                {/* ── Description ── */}
-                <TabsContent value="description" className="flex-1 overflow-hidden m-0">
-                  <ScrollArea className="h-full">
-                    <div className="p-5 space-y-6">
-
-                      {/* Stage intro */}
-                      {problem.stageIntro && (
-                        <div className="rounded-xl border border-primary/20 bg-primary/5 p-3.5 space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-primary">
-                            <Zap className="h-3 w-3" /> Prologue
+                  {problem.examples?.length > 0 && (
+                    <section className="grid gap-3" aria-labelledby="judge-examples">
+                      <h2 id="judge-examples" className={`${LABEL} text-fg-muted`}>Examples</h2>
+                      {problem.examples.map((ex, i) => (
+                        <Panel key={i} label={`Example ${i + 1}`} bodyClassName="grid gap-3">
+                          <div className="grid gap-1.5">
+                            <div className={`${MICRO} text-fg-dim`}>Input</div>
+                            <pre className={PRE}>{ex.input}</pre>
                           </div>
-                          <p className="text-[12px] leading-relaxed text-zinc-400 italic">{problem.stageIntro}</p>
-                        </div>
-                      )}
-
-                      {/* Story briefing */}
-                      {problem.storyBriefing && (
-                        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3.5 space-y-1.5">
-                          <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-amber-400">
-                            <Sparkles className="h-3 w-3" /> Story
+                          <div className="grid gap-1.5">
+                            <div className={`${MICRO} text-fg-dim`}>Output</div>
+                            <pre className={PRE}>{ex.output}</pre>
                           </div>
-                          <p className="text-[12px] leading-relaxed text-zinc-400 italic">{problem.storyBriefing}</p>
-                        </div>
-                      )}
-
-                      {/* Description body */}
-                      <div className="text-[13px] leading-relaxed text-zinc-400 space-y-2">
-                        {problem.description.split("\n").map((line, i) => (
-                          <p key={i} className={line ? "" : "h-2"}>{line}</p>
-                        ))}
-                      </div>
-
-                      {/* Examples */}
-                      {problem.examples?.length > 0 && (
-                        <div className="space-y-3">
-                          <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">Examples</h3>
-                          {problem.examples.map((ex, i) => (
-                            <div key={i} className="rounded-xl border border-zinc-800 overflow-hidden">
-                              <div className="px-3 py-2 border-b border-zinc-800 bg-zinc-900/60">
-                                <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1.5">
-                                  <Hash className="h-3 w-3" /> Example {i + 1}
-                                </span>
-                              </div>
-                              <div className="p-3.5 space-y-2.5 bg-zinc-950">
-                                <div>
-                                  <div className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-1.5">Input</div>
-                                  <code className="block text-[12px] font-mono bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-300 whitespace-pre-wrap">{ex.input}</code>
-                                </div>
-                                <div>
-                                  <div className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-1.5">Output</div>
-                                  <code className="block text-[12px] font-mono bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-300 whitespace-pre-wrap">{ex.output}</code>
-                                </div>
-                                {ex.explanation && (
-                                  <div className="pt-2.5 border-t border-zinc-800">
-                                    <div className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-1.5">Explanation</div>
-                                    <span className="text-xs text-zinc-500 leading-relaxed">{ex.explanation}</span>
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Constraints */}
-                      {problem.constraints?.length > 0 && (
-                        <div className="space-y-2.5">
-                          <h3 className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">Constraints</h3>
-                          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 space-y-1">
-                            {problem.constraints.map((c, i) => (
-                              <div key={i} className="flex items-start gap-2">
-                                <span className="w-1 h-1 rounded-full bg-zinc-600 mt-1.5 shrink-0" />
-                                <code className="text-xs font-mono text-zinc-400">{c}</code>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </ScrollArea>
-                </TabsContent>
-
-                {/* ── Results ── */}
-                <TabsContent value="results" className="flex-1 overflow-hidden m-0">
-                  <ScrollArea className="h-full">
-                    <div className="p-5">
-                      {!result && !runResult && (
-                        <div className="flex flex-col items-center justify-center py-16 gap-3 text-center">
-                          <div className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
-                            <Terminal className="h-4 w-4 text-zinc-600" />
-                          </div>
-                          <p className="text-sm font-semibold text-zinc-400">No results yet</p>
-                          <p className="text-xs text-zinc-600">Run or submit your code to see results</p>
-                        </div>
-                      )}
-
-                      {runResult && (
-                        <div className="space-y-4">
-                          <StatusBanner status={runResult.status} time={runResult.time} />
-                          {runResult.stdout && <CodeOutput label="Standard Output" icon={<SquareTerminal className="h-3 w-3" />}>{runResult.stdout}</CodeOutput>}
-                          {runResult.stderr && <CodeOutput label="Error Output" variant="error" icon={<AlertTriangle className="h-3 w-3" />}>{runResult.stderr}</CodeOutput>}
-                        </div>
-                      )}
-
-                      {result && (
-                        <div className="space-y-5">
-                          <StatusBanner status={result.status} time={result.time} />
-
-                          {result.error && <CodeOutput label="Compilation / Runtime Error" variant="error" icon={<AlertTriangle className="h-3 w-3" />}>{result.error}</CodeOutput>}
-
-                          {result.totalTests > 0 && (
-                            <div className="space-y-2">
-                              <div className="flex items-baseline justify-between">
-                                <span className="text-sm text-white">
-                                  <span className="font-black tabular-nums">{result.totalPassed}</span>
-                                  <span className="text-zinc-500"> / {result.totalTests} passed</span>
-                                </span>
-                                <span className={`text-xs font-black tabular-nums ${result.totalPassed === result.totalTests ? "text-emerald-400" : "text-rose-400"}`}>
-                                  {Math.round((result.totalPassed / result.totalTests) * 100)}%
-                                </span>
-                              </div>
-                              <div className="h-1 rounded-full bg-zinc-800 overflow-hidden">
-                                <div className="h-full rounded-full transition-all duration-700"
-                                  style={{
-                                    width: `${(result.totalPassed / result.totalTests) * 100}%`,
-                                    background: result.totalPassed === result.totalTests ? "#10b981" : "#f43f5e",
-                                  }} />
-                              </div>
+                          {ex.explanation && (
+                            <div className="grid gap-1.5 border-t border-border pt-3">
+                              <div className={`${MICRO} text-fg-dim`}>Explanation</div>
+                              <p className="font-mono text-small text-fg-muted">{ex.explanation}</p>
                             </div>
                           )}
+                        </Panel>
+                      ))}
+                    </section>
+                  )}
 
-                          {/* First failed test case */}
-                          {(() => {
-                            const ff = result.results?.find(tc => !tc.passed);
-                            if (!ff) return null;
-                            return (
-                              <div className="space-y-3">
-                                <h4 className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">First Failed Test</h4>
-                                <div className="rounded-xl border border-zinc-800 overflow-hidden">
-                                  <div className="flex items-center justify-between px-3.5 py-2.5 border-b border-zinc-800 bg-zinc-900/60">
-                                    <div className="flex items-center gap-2">
-                                      <XCircle className="h-3.5 w-3.5 text-rose-400" />
-                                      <span className="text-xs font-bold text-rose-400">Test Case {ff.testCase}</span>
-                                    </div>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <button
-                                          onClick={() => useFailedAsTestCase(ff.input, ff.expected)}
-                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[10px] font-bold bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                                        >
-                                          <ArrowUpRight className="h-3 w-3" /> Debug
-                                        </button>
-                                      </TooltipTrigger>
-                                      <TooltipContent side="left" className="text-xs bg-zinc-900 border-zinc-800">Load as custom test case</TooltipContent>
-                                    </Tooltip>
-                                  </div>
-                                  <div className="p-3.5 space-y-3 bg-zinc-950">
-                                    <div>
-                                      <div className="text-[9px] font-black uppercase tracking-widest text-zinc-600 mb-1.5">Input</div>
-                                      <pre className="text-[12px] font-mono bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2 text-zinc-300 whitespace-pre-wrap">{ff.input}</pre>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <div className="text-[9px] font-black uppercase tracking-widest text-emerald-600 mb-1.5">Expected</div>
-                                        <pre className="text-[12px] font-mono bg-zinc-900 border border-emerald-900/40 rounded-lg px-3 py-2 text-zinc-300 whitespace-pre-wrap">{ff.expected}</pre>
-                                      </div>
-                                      <div>
-                                        <div className="text-[9px] font-black uppercase tracking-widest text-rose-600 mb-1.5">Your Output</div>
-                                        <pre className="text-[12px] font-mono bg-zinc-900 border border-rose-900/40 rounded-lg px-3 py-2 text-zinc-300 whitespace-pre-wrap">{ff.actual}</pre>
-                                      </div>
-                                    </div>
-                                    {ff.error && (
-                                      <div>
-                                        <div className="text-[9px] font-black uppercase tracking-widest text-rose-600 mb-1.5">Runtime Error</div>
-                                        <pre className="text-[12px] font-mono bg-rose-950/30 border border-rose-900/40 rounded-lg px-3 py-2 text-rose-300 whitespace-pre-wrap">{ff.error}</pre>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          })()}
-                        </div>
+                  {problem.constraints?.length > 0 && (
+                    <section className="grid gap-3" aria-labelledby="judge-constraints">
+                      <h2 id="judge-constraints" className={`${LABEL} text-fg-muted`}>Constraints</h2>
+                      <Panel variant="inset">
+                        <ul className="grid gap-1.5">
+                          {problem.constraints.map((c, i) => (
+                            <li key={i} className="flex items-start gap-2">
+                              <span aria-hidden="true" className="mt-2 size-1 shrink-0 bg-fg-dim" />
+                              <code className="font-mono text-small text-fg">{c}</code>
+                            </li>
+                          ))}
+                        </ul>
+                      </Panel>
+                    </section>
+                  )}
+                </div>
+              </TabsContent>
+
+              {/* ── Results ── */}
+              <TabsContent value="results" className="min-h-0 flex-1 overflow-y-auto">
+                <div className="grid gap-5 p-4 sm:p-5">
+                  {!result && !runResult && (isLoggedIn ? (
+                    <EmptyState
+                      icon={Terminal}
+                      title="No results yet"
+                      description="Run or submit your code to see results here."
+                    />
+                  ) : (
+                    <EmptyState
+                      icon={LogIn}
+                      title="Sign in to submit"
+                      description="Run works without an account. Sign in to submit against every test case and save your progress."
+                      action={<SignInButton size="md" />}
+                    />
+                  ))}
+
+                  {runResult && (
+                    <div className="grid gap-4">
+                      <StatusBanner status={runResult.status} time={runResult.time} />
+                      {runResult.stdout && <CodeOutput label="Standard output" icon={SquareTerminal}>{runResult.stdout}</CodeOutput>}
+                      {runResult.stderr && <CodeOutput label="Error output" variant="error" icon={AlertTriangle}>{runResult.stderr}</CodeOutput>}
+                    </div>
+                  )}
+
+                  {result && (
+                    <div className="grid gap-5">
+                      <StatusBanner status={result.status} time={result.time} />
+
+                      {result.error && <CodeOutput label="Compilation / runtime error" variant="error" icon={AlertTriangle}>{result.error}</CodeOutput>}
+
+                      {result.totalTests > 0 && <PassRate passed={result.totalPassed} total={result.totalTests} />}
+
+                      {firstFailed && (
+                        <Panel
+                          label={
+                            <span className="flex items-center gap-2 text-err">
+                              <XCircle size={14} strokeWidth={1.5} aria-hidden="true" /> Test case {firstFailed.testCase} failed
+                            </span>
+                          }
+                          actions={
+                            <Tooltip content="Add this input as a custom test case" side="left">
+                              <Button variant="secondary" size="sm" onClick={() => loadFailedAsTestCase(firstFailed.input, firstFailed.expected)}>
+                                <ArrowUpRight aria-hidden="true" /> Load failing case
+                              </Button>
+                            </Tooltip>
+                          }
+                          className="border-err"
+                          bodyClassName="grid gap-3"
+                        >
+                          <div className="grid gap-1.5">
+                            <div className={`${MICRO} text-fg-dim`}>Input</div>
+                            <pre className={PRE}>{firstFailed.input}</pre>
+                          </div>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <div className="grid gap-1.5">
+                              <div className={`${MICRO} text-ok`}>Expected</div>
+                              <pre className={PRE}>{firstFailed.expected}</pre>
+                            </div>
+                            <div className="grid gap-1.5">
+                              <div className={`${MICRO} text-err`}>Your output</div>
+                              <pre className={PRE}>{firstFailed.actual}</pre>
+                            </div>
+                          </div>
+                          {firstFailed.error && (
+                            <CodeOutput label="Runtime error" variant="error">{firstFailed.error}</CodeOutput>
+                          )}
+                        </Panel>
                       )}
                     </div>
-                  </ScrollArea>
-                </TabsContent>
-              </Tabs>
-            </div>
-          </ResizablePanel>
+                  )}
+                </div>
+              </TabsContent>
+            </Tabs>
+          </SplitPanel>
 
-          <ResizableHandle orientation="horizontal" withHandle />
+          <Separator className="judge-resize-handle" aria-label="Resize description and editor" />
 
           {/* ─── RIGHT PANEL: Editor + Testcases ─── */}
-          <ResizablePanel id="right" defaultSize="60%" minSize="35%">
-            <ResizablePanelGroup orientation="vertical">
+          <SplitPanel id="right" defaultSize="60%" minSize="35%" className="judge-pane-right">
+            <Group orientation="vertical">
 
               {/* ── Editor ── */}
-              <ResizablePanel id="right-top" defaultSize="60%" minSize="25%">
-                <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 40, padding: "0 10px", flexShrink: 0, borderBottom: `1px solid ${S.border}`, background: S.bg }}>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger
-                        style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 8, border: `1px solid ${S.border}`, background: "transparent", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)", transition: "all 0.15s" }}
-                        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)"; e.currentTarget.style.color = "#fff"; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.borderColor = S.border; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; e.currentTarget.style.background = "transparent"; }}
-                      >
-                        <Braces size={11} color="rgba(255,255,255,0.4)" />
-                        {currentLang?.label}
-                        <ChevronDown size={11} color="rgba(255,255,255,0.32)" />
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start" style={{ background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 10, padding: 4, minWidth: 140 }}>
-                        <DropdownMenuLabel style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.22em", textTransform: "uppercase", color: S.textMeta, padding: "4px 8px" }}>Language</DropdownMenuLabel>
-                        <DropdownMenuSeparator style={{ background: S.border, margin: "4px 0" }} />
-                        {LANGUAGES.map((l) => (
-                          <DropdownMenuItem
-                            key={l.value}
-                            onClick={() => handleLanguageChange(l.value)}
-                            style={{ display: "flex", alignItems: "center", gap: 7, padding: "6px 8px", borderRadius: 7, fontSize: 12, fontWeight: 600, color: language === l.value ? S.acid : "rgba(255,255,255,0.55)", background: "transparent" }}
-                          >
-                            <Braces size={11} />
-                            {l.label}
-                            {language === l.value && <Check size={11} style={{ marginLeft: "auto" }} />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+              <SplitPanel id="right-top" defaultSize="60%" minSize="25%">
+                <div className="flex h-full flex-col bg-surface">
+                  <div className="flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-bg px-2 py-1.5">
+                    <div className="flex items-center gap-1">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="secondary" size="sm" aria-label={`Language: ${currentLang?.label}`}>
+                            <Braces aria-hidden="true" />
+                            {currentLang?.label}
+                            <ChevronDown aria-hidden="true" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="min-w-[9rem]">
+                          <DropdownMenuLabel>Language</DropdownMenuLabel>
+                          <DropdownMenuSeparator />
+                          {LANGUAGES.map((l) => (
+                            <DropdownMenuItem
+                              key={l.value}
+                              onClick={() => handleLanguageChange(l.value)}
+                              className={language === l.value ? "text-accent-ink" : undefined}
+                            >
+                              <Braces aria-hidden="true" />
+                              {l.label}
+                              {language === l.value && <Check aria-hidden="true" className="ml-auto" />}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
 
-                    <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={handleResetCode}
-                            style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
-                          >
-                            <RotateCcw size={13} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Reset to boilerplate</TooltipContent>
+                      <IconButton icon={RotateCcw} size="sm" aria-label="Reset to boilerplate" onClick={handleResetCode} />
+                      <IconButton
+                        icon={copied ? Check : Copy}
+                        size="sm"
+                        aria-label={copied ? "Copied" : "Copy code"}
+                        onClick={handleCopyCode}
+                        className={copied ? "text-ok" : undefined}
+                      />
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Tooltip content="Trace and visualize execution flow" side="bottom">
+                        <Button variant="secondary" size="sm" onClick={handleVisualizeFlow} disabled={busy}>
+                          <Workflow aria-hidden="true" />
+                          <span className="hidden sm:inline">Visualize flow</span>
+                          <span className="sm:hidden">Flow</span>
+                        </Button>
                       </Tooltip>
 
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={handleCopyCode}
-                            style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: copied ? S.green : "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; if (!copied) e.currentTarget.style.color = "#fff"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = copied ? S.green : "rgba(255,255,255,0.3)"; }}
-                          >
-                            {copied ? <Check size={13} /> : <Copy size={13} />}
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>
-                          {copied ? "Copied!" : "Copy code"}
-                        </TooltipContent>
-                      </Tooltip>
+                      <IconButton
+                        icon={Columns2}
+                        size="sm"
+                        variant="secondary"
+                        aria-label={dryRunOpen ? "Hide dry-run window" : "Show dry-run window beside editor"}
+                        aria-pressed={dryRunOpen}
+                        onClick={() => setDryRunOpen(v => !v)}
+                        className={dryRunOpen ? "border-accent-ink text-accent-ink" : undefined}
+                      />
 
-                      <div style={{ width: 1, height: 14, background: S.border, margin: "0 4px" }} />
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={handleVisualizeFlow}
-                            disabled={running || submitting}
-                            style={{ display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px", borderRadius: 7, border: `1px solid ${S.border}`, background: "transparent", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", opacity: running || submitting ? 0.4 : 1, transition: "all 0.15s" }}
-                            onMouseEnter={(e) => {
-                              if (!running && !submitting) {
-                                e.currentTarget.style.borderColor = "rgba(237,255,102,0.4)";
-                                e.currentTarget.style.color = S.acid;
-                                e.currentTarget.style.background = "rgba(237,255,102,0.06)";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor = S.border;
-                              e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-                              e.currentTarget.style.background = "transparent";
-                            }}
-                          >
-                            <Workflow size={12} />
-                            Visualize Flow
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Trace and visualize execution flow</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={() => setDryRunOpen(v => !v)}
-                            aria-pressed={dryRunOpen}
-                            style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 28, height: 28, borderRadius: 7, border: `1px solid ${dryRunOpen ? "rgba(237,255,102,0.4)" : S.border}`, background: dryRunOpen ? "rgba(237,255,102,0.06)" : "transparent", color: dryRunOpen ? S.acid : "rgba(255,255,255,0.45)", transition: "all 0.15s" }}
-                            onMouseEnter={(e) => {
-                              if (!dryRunOpen) {
-                                e.currentTarget.style.borderColor = "rgba(237,255,102,0.4)";
-                                e.currentTarget.style.color = S.acid;
-                                e.currentTarget.style.background = "rgba(237,255,102,0.06)";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!dryRunOpen) {
-                                e.currentTarget.style.borderColor = S.border;
-                                e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-                                e.currentTarget.style.background = "transparent";
-                              }
-                            }}
-                          >
-                            <Columns2 size={13} />
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>
-                          {dryRunOpen ? "Hide dry-run window" : "Show dry-run window beside editor"}
-                        </TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <button
-                            onClick={handleRun}
-                            disabled={running || submitting}
-                            style={{ display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px", borderRadius: 7, border: `1px solid ${S.border}`, background: "transparent", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)", opacity: running || submitting ? 0.4 : 1, transition: "all 0.15s" }}
-                            onMouseEnter={(e) => {
-                              if (!running && !submitting) {
-                                e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
-                                e.currentTarget.style.color = "#fff";
-                                e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                              }
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor = S.border;
-                              e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-                              e.currentTarget.style.background = "transparent";
-                            }}
-                          >
-                            {running ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Play size={12} />}
-                            Run
-                          </button>
-                        </TooltipTrigger>
-                        <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Run against active test case</TooltipContent>
+                      <Tooltip content="Run against active test case" side="bottom">
+                        <Button variant="secondary" size="sm" onClick={handleRun} disabled={busy && !running} loading={running}>
+                          <Play aria-hidden="true" /> Run
+                        </Button>
                       </Tooltip>
 
                       {isLoggedIn ? (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={handleSubmit}
-                              disabled={submitting || running}
-                              style={{ display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 14px", borderRadius: 7, border: "none", background: S.acid, color: "#09090b", fontSize: 11, fontWeight: 900, letterSpacing: "0.06em", opacity: submitting || running ? 0.45 : 1, marginLeft: 2, transition: "opacity 0.15s" }}
-                              onMouseEnter={(e) => { if (!submitting && !running) e.currentTarget.style.opacity = "0.82"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.opacity = (submitting || running) ? "0.45" : "1"; }}
-                            >
-                              {submitting ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Zap size={12} />}
-                              Submit
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Submit against all test cases</TooltipContent>
+                        <Tooltip content="Submit against all test cases" side="bottom">
+                          <Button variant="primary" size="sm" onClick={handleSubmit} disabled={busy && !submitting} loading={submitting}>
+                            <Send aria-hidden="true" /> Submit
+                          </Button>
                         </Tooltip>
                       ) : (
-                        <Link
-                          to="/login"
-                          style={{ display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px", borderRadius: 7, border: `1px solid ${S.borderSub}`, color: "rgba(255,255,255,0.62)", textDecoration: "none", fontSize: 11, fontWeight: 700, marginLeft: 2 }}
-                        >
-                          <LogIn size={12} /> Sign in
-                        </Link>
+                        <SignInButton />
                       )}
                     </div>
                   </div>
 
-                  <div style={{ flex: 1, minHeight: 0 }}>
+                  <div className="min-h-0 flex-1">
                     <Editor
                       height="100%"
                       language={currentLang?.monacoId || "cpp"}
-                      theme="vs-dark"
+                      theme={editorTheme}
                       value={code}
                       onChange={val => setCode(val || "")}
+                      beforeMount={handleEditorBeforeMount}
                       onMount={handleEditorMount}
+                      loading={<p className={`${LABEL} p-4 text-fg-muted`}>Loading editor_</p>}
                       options={{
                         fontSize: 13,
                         fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace",
@@ -723,207 +564,132 @@ export default function JudgePage() {
                     />
                   </div>
                 </div>
-              </ResizablePanel>
+              </SplitPanel>
 
-              <ResizableHandle orientation="vertical" />
+              <Separator className="judge-resize-handle judge-resize-handle--row" aria-label="Resize editor and console" />
 
-              {/* ── Bottom: Testcases / Output ── */}
-              <ResizablePanel id="right-bottom" defaultSize="40%" minSize="15%" maxSize="60%">
-                <div style={{ display: "flex", flexDirection: "column", height: "100%", background: S.bg }}>
-                  <Tabs value={bottomTab} onValueChange={setBottomTab} style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                    <div style={{ display: "flex", alignItems: "center", borderBottom: `1px solid ${S.border}`, padding: "0 4px", flexShrink: 0 }}>
-                      <TabsList style={{ background: "transparent", height: 36, padding: 0, display: "flex", gap: 0 }}>
-                        {[
-                          { value: "testcases", Icon: FlaskConical, label: "Testcases" },
-                          {
-                            value: "result",
-                            Icon: SquareTerminal,
-                            label: "Output",
-                            dot: (runResult || result)
-                              ? (runResult?.status === "Success" || result?.status === "Accepted" ? S.green : S.red)
-                              : null,
-                          },
-                          { value: "flow", Icon: Workflow, label: "Flow" },
-                        ].map((tab) => (
-                          <TabsTrigger
-                            key={tab.value}
-                            value={tab.value}
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: 5,
-                              padding: "0 12px",
-                              height: 36,
-                              borderRadius: 0,
-                              border: "none",
-                              background: "transparent",
-                              fontSize: 11,
-                              fontWeight: 700,
-                              letterSpacing: "0.06em",
-                              color: bottomTab === tab.value ? "#fff" : "rgba(255,255,255,0.28)",
-                              borderBottom: bottomTab === tab.value ? `1px solid ${S.acid}` : "1px solid transparent",
-                              transition: "color 0.15s, border-color 0.15s",
-                              marginBottom: -1,
-                            }}
-                          >
-                            <tab.Icon size={12} />
-                            {tab.label}
-                            {tab.dot && <div style={{ width: 5, height: 5, borderRadius: "50%", background: tab.dot }} />}
-                          </TabsTrigger>
-                        ))}
-                      </TabsList>
-                    </div>
+              {/* ── Bottom: Testcases / Output / Flow ── */}
+              <SplitPanel id="right-bottom" defaultSize="40%" minSize="15%" maxSize="60%">
+                <Tabs value={bottomTab} onValueChange={setBottomTab} className="flex h-full flex-col bg-bg">
+                  <TabsList aria-label="Console" className="shrink-0 gap-4 px-3">
+                    <TabsTrigger value="testcases"><FlaskConical aria-hidden="true" /> Testcases</TabsTrigger>
+                    <TabsTrigger value="result">
+                      <SquareTerminal aria-hidden="true" /> Output
+                      {outputTone && <ToneDot tone={outputTone} />}
+                    </TabsTrigger>
+                    <TabsTrigger value="flow"><Workflow aria-hidden="true" /> Flow</TabsTrigger>
+                  </TabsList>
 
-                    {/* Testcases */}
-                    <TabsContent value="testcases" style={{ flex: 1, overflow: "hidden", margin: 0 }}>
-                      <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "8px 12px", flexShrink: 0, flexWrap: "wrap" }}>
-                          {testCases.map((tc, idx) => (
-                            <div key={idx} style={{ position: "relative" }}>
-                              <button
-                                onClick={() => setActiveTestCase(idx)}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: 5,
-                                  padding: "4px 10px",
-                                  borderRadius: 7,
-                                  border: "none",
-                                  fontSize: 11,
-                                  fontWeight: 700,
-                                  transition: "all 0.15s",
-                                  background: activeTestCase === idx ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
-                                  outline: activeTestCase === idx ? (tc.isCustom ? "1px solid rgba(237,255,102,0.22)" : `1px solid ${S.border}`) : "1px solid rgba(255,255,255,0.04)",
-                                  color: activeTestCase === idx ? "#fff" : "rgba(255,255,255,0.4)",
+                  {/* Testcases */}
+                  <TabsContent value="testcases" className="min-h-0 flex-1 overflow-y-auto">
+                    <div className="flex flex-wrap items-center gap-1.5 px-3 py-2">
+                      {testCases.map((tc, idx) => {
+                        const active = activeTestCase === idx;
+                        const name = tc.isCustom ? `Custom ${idx - sampleCount + 1}` : `Case ${idx + 1}`;
+                        return (
+                          <div key={idx} className="flex items-stretch">
+                            <button
+                              type="button"
+                              onClick={() => setActiveTestCase(idx)}
+                              aria-pressed={active}
+                              className={[
+                                "h-7 border px-3 font-mono text-small tabular-nums transition-colors duration-[120ms] ease-out",
+                                "ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-2 ds-focus:outline-focus",
+                                active
+                                  ? "border-accent-ink bg-accent-soft text-fg"
+                                  : "border-border text-fg-muted ds-hover:border-border-strong ds-hover:text-fg",
+                              ].join(" ")}
+                            >
+                              {name}
+                            </button>
+                            {tc.isCustom && (
+                              <IconButton
+                                icon={X}
+                                size="sm"
+                                variant="ghost"
+                                aria-label={`Remove ${name}`}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  removeTestCase(idx);
                                 }}
-                              >
-                                <CircleDot size={9} />
-                                {tc.isCustom ? `Custom ${idx - sampleCount + 1}` : `Case ${idx + 1}`}
-                              </button>
-                              {tc.isCustom && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeTestCase(idx);
-                                  }}
-                                  style={{ position: "absolute", top: -3, right: -3, width: 13, height: 13, borderRadius: "50%", border: `1px solid ${S.border}`, background: "#0c0c0f", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.42)" }}
-                                >
-                                  <X size={8} />
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <button
-                                onClick={addCustomTestCase}
-                                style={{ width: 26, height: 26, borderRadius: 7, border: `1px solid ${S.border}`, background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.35)" }}
-                              >
-                                <Plus size={11} />
-                              </button>
-                            </TooltipTrigger>
-                            <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Add custom test case</TooltipContent>
-                          </Tooltip>
-                        </div>
-
-                        <ScrollArea style={{ flex: 1, padding: "0 12px 12px" }}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                            <div>
-                              <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: S.textMeta, marginBottom: 6 }}>Input</div>
-                              <textarea
-                                value={testCases[activeTestCase]?.input || ""}
-                                onChange={(e) => updateActiveInput(e.target.value)}
-                                placeholder="Enter test input…"
-                                spellCheck={false}
-                                style={{ width: "100%", minHeight: 80, borderRadius: 9, border: `1px solid ${S.border}`, background: S.surface, padding: "8px 12px", fontFamily: "'JetBrains Mono',monospace", fontSize: 12, color: "rgba(255,255,255,0.7)", outline: "none", resize: "vertical", lineHeight: 1.65 }}
+                                className="-ml-px border-border"
                               />
-                            </div>
-                            {testCases[activeTestCase]?.output && (
-                              <div>
-                                <div style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: S.textMeta, marginBottom: 6 }}>Expected Output</div>
-                                <pre style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: 12, background: S.surface, border: `1px solid ${S.border}`, borderRadius: 9, padding: "8px 12px", color: "rgba(255,255,255,0.7)", whiteSpace: "pre-wrap", lineHeight: 1.65, margin: 0 }}>
-                                  {testCases[activeTestCase].output}
-                                </pre>
-                              </div>
                             )}
                           </div>
-                        </ScrollArea>
-                      </div>
-                    </TabsContent>
-
-                    {/* Output */}
-                    <TabsContent value="result" style={{ flex: 1, overflow: "hidden", margin: 0 }}>
-                      <ScrollArea style={{ height: "100%", padding: "12px 14px" }}>
-                        {!runResult && !result && (
-                          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "32px 0", gap: 8, textAlign: "center" }}>
-                            <SquareTerminal size={16} color="rgba(255,255,255,0.2)" />
-                            <span style={{ fontSize: 12, color: S.textMeta }}>Run your code to see output</span>
-                          </div>
-                        )}
-
-                        {runResult && (
-                          <div style={{ padding: "12px 0", display: "flex", flexDirection: "column", gap: 10 }}>
-                            <StatusBanner status={runResult.status} time={runResult.time} compact />
-                            {runResult.stdout && <CodeOutput label="Stdout" icon={<SquareTerminal size={10} />}>{runResult.stdout}</CodeOutput>}
-                            {runResult.stderr && <CodeOutput label="Stderr" variant="error" icon={<AlertTriangle size={10} />}>{runResult.stderr}</CodeOutput>}
-                          </div>
-                        )}
-
-                        {result && !runResult && (
-                          <div style={{ padding: "12px 0", display: "flex", flexDirection: "column", gap: 10 }}>
-                            <StatusBanner status={result.status} time={result.time} compact />
-                            {result.totalTests > 0 && (
-                              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                <span style={{ fontSize: 12, color: S.textSec }}>
-                                  <span style={{ fontWeight: 800, color: "#fff" }}>{result.totalPassed}</span>/{result.totalTests} passed
-                                </span>
-                                <div style={{ flex: 1, height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                                  <div
-                                    style={{
-                                      height: "100%",
-                                      borderRadius: 3,
-                                      transition: "width 0.8s ease-out",
-                                      width: `${(result.totalPassed / result.totalTests) * 100}%`,
-                                      background: result.totalPassed === result.totalTests ? "#10b981" : "#f43f5e",
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            )}
-                            {result.error && <CodeOutput variant="error">{result.error}</CodeOutput>}
-                          </div>
-                        )}
-                      </ScrollArea>
-                    </TabsContent>
-
-                    {/* Flow — kept mounted (display-toggled) so the Visualize Flow
-                        affordance can trigger a trace before the tab is shown and so
-                        trace/playback state survives tab switches. */}
-                    <div
-                      style={{
-                        flex: bottomTab === "flow" ? 1 : "0 0 0",
-                        minHeight: 0,
-                        display: bottomTab === "flow" ? "flex" : "none",
-                        flexDirection: "column",
-                        overflow: "hidden",
-                      }}
-                    >
-                      <CodeFlowPanel
-                        ref={codeFlowRef}
-                        flow={flow}
-                        language={language}
-                        code={code}
-                        input={customInput}
-                        editorRef={editorRef}
-                        cursorResolverRef={cursorResolverRef}
-                        active={bottomTab === "flow" || dryRunOpen}
-                      />
+                        );
+                      })}
+                      <IconButton icon={Plus} size="sm" variant="secondary" aria-label="Add custom test case" onClick={addCustomTestCase} />
                     </div>
-                  </Tabs>
-                </div>
-              </ResizablePanel>
-            </ResizablePanelGroup>
-          </ResizablePanel>
+
+                    <div className="grid gap-3 px-3 pb-3">
+                      <Textarea
+                        label="Input"
+                        value={testCases[activeTestCase]?.input || ""}
+                        onChange={(e) => updateActiveInput(e.target.value)}
+                        placeholder="Enter test input"
+                        spellCheck={false}
+                        rows={4}
+                        className="min-h-20 resize-y font-mono text-small"
+                      />
+                      {testCases[activeTestCase]?.output && (
+                        <div className="grid gap-1.5">
+                          <div className={`${MICRO} text-fg-dim`}>Expected output</div>
+                          <pre className={PRE}>{testCases[activeTestCase].output}</pre>
+                        </div>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Output */}
+                  <TabsContent value="result" className="min-h-0 flex-1 overflow-y-auto">
+                    <div className="grid gap-3 px-3 py-3">
+                      {!runResult && !result && (
+                        <p className="flex items-center justify-center gap-2 py-8 font-mono text-small text-fg-dim">
+                          <SquareTerminal size={14} strokeWidth={1.5} aria-hidden="true" /> Run your code to see output
+                        </p>
+                      )}
+
+                      {runResult && (
+                        <>
+                          <StatusBanner status={runResult.status} time={runResult.time} compact />
+                          {runResult.stdout && <CodeOutput label="Stdout" icon={SquareTerminal}>{runResult.stdout}</CodeOutput>}
+                          {runResult.stderr && <CodeOutput label="Stderr" variant="error" icon={AlertTriangle}>{runResult.stderr}</CodeOutput>}
+                        </>
+                      )}
+
+                      {result && !runResult && (
+                        <>
+                          <StatusBanner status={result.status} time={result.time} compact />
+                          {result.totalTests > 0 && <PassRate passed={result.totalPassed} total={result.totalTests} compact />}
+                          {result.error && <CodeOutput variant="error">{result.error}</CodeOutput>}
+                        </>
+                      )}
+                    </div>
+                  </TabsContent>
+
+                  {/* Flow — kept mounted (forceMount; hidden when inactive) so the
+                      Visualize Flow affordance can trigger a trace before the tab is
+                      shown and so trace/playback state survives tab switches. */}
+                  <TabsContent
+                    value="flow"
+                    forceMount
+                    className={bottomTab === "flow" ? "flex min-h-0 flex-1 flex-col overflow-hidden" : undefined}
+                  >
+                    <CodeFlowPanel
+                      ref={codeFlowRef}
+                      flow={flow}
+                      language={language}
+                      code={code}
+                      input={customInput}
+                      editorRef={editorRef}
+                      cursorResolverRef={cursorResolverRef}
+                      active={bottomTab === "flow" || dryRunOpen}
+                    />
+                  </TabsContent>
+                </Tabs>
+              </SplitPanel>
+            </Group>
+          </SplitPanel>
 
           {/* ─── PARALLEL DRY-RUN WINDOW ───
               Rendered beside the editor only when toggled on, so the existing
@@ -932,29 +698,17 @@ export default function JudgePage() {
               editor exec-line highlight (shared editorRef) stays in sync. */}
           {dryRunOpen && (
             <>
-              <ResizableHandle orientation="horizontal" withHandle />
-              <ResizablePanel id="dryrun" defaultSize="32%" minSize="20%" maxSize="50%">
-                <div style={{ display: "flex", flexDirection: "column", height: "100%", background: S.bg, borderLeft: `1px solid ${S.border}` }}>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", height: 40, padding: "0 10px", flexShrink: 0, borderBottom: `1px solid ${S.border}`, background: S.bg }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: "rgba(255,255,255,0.65)" }}>
-                      <Columns2 size={12} color={S.acid} />
-                      Dry Run
-                    </div>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          onClick={() => setDryRunOpen(false)}
-                          style={{ width: 26, height: 26, borderRadius: 7, border: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.4)" }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff"; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.4)"; }}
-                        >
-                          <X size={13} />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent side="bottom" style={{ fontSize: 11, background: "#0d0d10", border: `1px solid ${S.border}`, borderRadius: 7 }}>Hide dry-run window</TooltipContent>
-                    </Tooltip>
+              <Separator className="judge-resize-handle" aria-label="Resize dry-run window" />
+              <SplitPanel id="dryrun" defaultSize="32%" minSize="20%" maxSize="50%" className="judge-pane-dryrun border-l border-border bg-bg">
+                <section className="flex h-full flex-col" aria-label="Dry run">
+                  <div className="flex h-10 shrink-0 items-center justify-between border-b border-border bg-bg px-3">
+                    <span className={`${LABEL} flex items-center gap-2 text-fg`}>
+                      <Columns2 size={14} strokeWidth={1.5} aria-hidden="true" className="text-accent-ink" />
+                      Dry run
+                    </span>
+                    <IconButton icon={X} size="sm" aria-label="Hide dry-run window" onClick={() => setDryRunOpen(false)} />
                   </div>
-                  <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+                  <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
                     <DryRunPanel
                       trace={flow.trace}
                       status={flow.status}
@@ -970,13 +724,13 @@ export default function JudgePage() {
                       onSpeedChange={flow.setSpeed}
                     />
                   </div>
-                </div>
-              </ResizablePanel>
+                </section>
+              </SplitPanel>
             </>
           )}
-        </ResizablePanelGroup>
-      </div>
-    </TooltipProvider>
+        </Group>
+      </main>
+    </div>
   );
 }
 
@@ -984,42 +738,114 @@ export default function JudgePage() {
    SUB-COMPONENTS
    ──────────────────────────────────────────── */
 
+/* Slim top bar: back to problems, the page's single <h1>, theme toggle. */
+function JudgeTopBar({ title, meta, actions }) {
+  return (
+    <header className="z-sticky flex h-12 shrink-0 items-center justify-between gap-2 border-b border-border bg-bg px-2 sm:px-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <BackToProblems variant="ghost" size="sm" compact />
+        <span aria-hidden="true" className="h-4 w-px shrink-0 bg-border" />
+        <h1 className="min-w-0 truncate font-mono text-h3 text-fg" title={title}>{title}</h1>
+        {meta ? <div className="flex shrink-0 items-center gap-1.5">{meta}</div> : null}
+      </div>
+      <div className="flex shrink-0 items-center gap-1.5">
+        {actions}
+        <ThemeToggle size="sm" />
+      </div>
+    </header>
+  );
+}
+
+function BackToProblems({ variant = "secondary", size = "md", compact = false }) {
+  return (
+    <Button variant={variant} size={size} asChild>
+      <Link to="/problems" aria-label={compact ? "Back to problems" : undefined}>
+        <ArrowLeft aria-hidden="true" />
+        {compact ? <span className="hidden sm:inline">Problems</span> : "Back to problems"}
+      </Link>
+    </Button>
+  );
+}
+
+function SignInButton({ size = "sm" }) {
+  return (
+    <Button variant="secondary" size={size} asChild>
+      <Link to="/login"><LogIn aria-hidden="true" /> Sign in to submit</Link>
+    </Button>
+  );
+}
+
+const TONE_BG = { ok: "bg-ok", err: "bg-err", warn: "bg-warn" };
+const TONE_TEXT = { ok: "text-ok", err: "text-err", warn: "text-warn" };
+const TONE_PANEL = { ok: "border-ok bg-ok-soft", err: "border-err bg-err-soft", warn: "border-warn bg-warn-soft" };
+
+function ToneDot({ tone }) {
+  return (
+    <>
+      <span aria-hidden="true" className={`size-1.5 shrink-0 ${TONE_BG[tone]}`} />
+      <span className="sr-only">{tone === "ok" ? "(passed)" : "(failed)"}</span>
+    </>
+  );
+}
+
 const STATUS_MAP = {
-  Accepted: { icon: CheckCircle2, color: S.green, bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.22)" },
-  Success: { icon: CheckCircle2, color: S.green, bg: "rgba(52,211,153,0.1)", border: "rgba(52,211,153,0.22)" },
-  "Wrong Answer": { icon: XCircle, color: S.red, bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
-  "Compilation Error": { icon: AlertTriangle, color: S.red, bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
-  "Runtime Error": { icon: AlertTriangle, color: S.amber, bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.22)" },
-  "Time Limit Exceeded": { icon: Clock, color: S.amber, bg: "rgba(251,191,36,0.1)", border: "rgba(251,191,36,0.22)" },
-  Error: { icon: AlertTriangle, color: S.red, bg: "rgba(248,113,113,0.1)", border: "rgba(248,113,113,0.2)" },
+  Accepted: { icon: CheckCircle2, tone: "ok" },
+  Success: { icon: CheckCircle2, tone: "ok" },
+  "Wrong Answer": { icon: XCircle, tone: "err" },
+  "Compilation Error": { icon: AlertTriangle, tone: "err" },
+  "Runtime Error": { icon: AlertTriangle, tone: "warn" },
+  "Time Limit Exceeded": { icon: Clock, tone: "warn" },
+  Error: { icon: AlertTriangle, tone: "err" },
 };
 
+/* Verdict banner: a status-coloured Panel. */
 function StatusBanner({ status, time, compact }) {
   const cfg = STATUS_MAP[status] || STATUS_MAP.Error;
   const Icon = cfg.icon;
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10, borderRadius: 10, border: `1px solid ${cfg.border}`, background: cfg.bg, padding: compact ? "7px 12px" : "9px 14px" }}>
-      <Icon size={compact ? 14 : 16} color={cfg.color} />
-      <span style={{ fontWeight: 900, fontSize: compact ? 13 : 14, color: cfg.color, flex: 1 }}>{status}</span>
+    <Panel
+      padded={false}
+      role="status"
+      aria-live="polite"
+      className={`flex items-center gap-3 ${compact ? "px-3 py-2" : "px-4 py-3"} ${TONE_PANEL[cfg.tone]}`}
+    >
+      <Icon size={compact ? 14 : 16} strokeWidth={1.5} aria-hidden="true" className={`shrink-0 ${TONE_TEXT[cfg.tone]}`} />
+      <span className={`flex-1 font-mono ${compact ? "text-small" : "text-body"} font-bold ${TONE_TEXT[cfg.tone]}`}>{status}</span>
       {time > 0 && (
-        <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", padding: "2px 7px", borderRadius: 6, fontFamily: "monospace" }}>
-          <Clock size={10} /> {time}ms
-        </span>
+        <Badge tone="neutral">
+          <Clock size={10} strokeWidth={1.5} aria-hidden="true" /> {time} ms
+        </Badge>
       )}
+    </Panel>
+  );
+}
+
+function PassRate({ passed, total, compact }) {
+  const pct = Math.round((passed / total) * 100);
+  const all = passed === total;
+  return (
+    <div className={compact ? "flex items-center gap-3" : "grid gap-2"}>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="font-mono text-small tabular-nums text-fg-muted">
+          <span className="font-bold text-fg">{passed}</span> / {total} passed
+        </span>
+        {!compact && <span className={`font-mono text-small font-bold tabular-nums ${all ? "text-ok" : "text-err"}`}>{pct}%</span>}
+      </div>
+      <Progress value={passed} max={total} label={`${passed} of ${total} tests passed`} className={compact ? "flex-1" : undefined} />
     </div>
   );
 }
 
-function CodeOutput({ label, variant, size = "md", icon, children }) {
+function CodeOutput({ label, variant, icon: Icon, children }) {
   const isError = variant === "error";
   return (
-    <div>
+    <div className="grid gap-1.5">
       {label && (
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 5, fontSize: 9, fontWeight: 900, letterSpacing: "0.2em", textTransform: "uppercase", color: isError ? S.red : S.textMeta }}>
-          {icon} {label}
+        <div className={`${MICRO} flex items-center gap-1.5 ${isError ? "text-err" : "text-fg-dim"}`}>
+          {Icon ? <Icon size={12} strokeWidth={1.5} aria-hidden="true" /> : null} {label}
         </div>
       )}
-      <pre style={{ fontFamily: "'JetBrains Mono',monospace", fontSize: size === "sm" ? 12 : 13, borderRadius: 9, border: `1px solid ${isError ? "rgba(248,113,113,0.2)" : S.borderSub}`, background: isError ? "rgba(127,29,29,0.2)" : S.surface, padding: "8px 12px", color: isError ? "#fca5a5" : "rgba(255,255,255,0.68)", whiteSpace: "pre-wrap", lineHeight: 1.65, margin: 0, overflowX: "auto" }}>
+      <pre className={`m-0 overflow-x-auto whitespace-pre-wrap break-words border px-3 py-2 font-mono text-small text-fg ${isError ? "border-err bg-err-soft" : "border-border bg-bg"}`}>
         {children}
       </pre>
     </div>

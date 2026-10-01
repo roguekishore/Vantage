@@ -1,0 +1,16 @@
+{
+  "name": "Vantage",
+  "short_name": "Vantage",
+  "description": "DSA visualizers, an online judge and real-time coding battles.",
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#09090B",
+  "background_color": "#09090B",
+  "icons": [
+    {
+      "src": "vantage.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

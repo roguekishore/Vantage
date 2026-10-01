@@ -2,21 +2,34 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import {
   Package, ShoppingBag, Swords, Flame, Zap, Palette,
-  Loader2, ArrowLeft,
+  ArrowLeft, Coins,
 } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
+import {
+  PageShell,
+  PageHeader,
+  Panel,
+  Badge,
+  Button,
+  Stat,
+  EmptyState,
+  ErrorState,
+  OfflineState,
+  PageLoader,
+} from "@/components/ds";
 import { getStoredUser } from "@/services/userApi";
 import { fetchInventory } from "@/services/storeApi";
+import useGamificationStore from "@/stores/useGamificationStore";
 
-/* ── Type color + label config ── */
+/* ── Type icon + label config (the API's iconUrl is an emoji; not rendered) ── */
 const TYPE_META = {
-  BATTLE_POWERUP: { color: "text-red-500", bg: "bg-red-500/10", border: "border-red-500/20", label: "Usable in battles (coming soon)" },
-  STREAK_POWERUP: { color: "text-orange-500", bg: "bg-orange-500/10", border: "border-orange-500/20", label: "Auto-activated when needed" },
-  BOOST: { color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/20", label: "Activate to boost rewards" },
-  COSMETIC: { color: "text-purple-500", bg: "bg-purple-500/10", border: "border-purple-500/20", label: "Visual customization" },
+  BATTLE_POWERUP: { icon: Swords,  label: "Usable in battles (coming soon)" },
+  STREAK_POWERUP: { icon: Flame,   label: "Auto-activated when needed" },
+  BOOST:          { icon: Zap,     label: "Activate to boost rewards" },
+  COSMETIC:       { icon: Palette, label: "Visual customization" },
 };
+
+/* fetch() rejects with a TypeError when the API is unreachable. */
+const isOffline = (err) => err instanceof TypeError;
 
 const InventoryPage = () => {
   const navigate = useNavigate();
@@ -24,6 +37,10 @@ const InventoryPage = () => {
 
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(null);
+
+  // Read-only: App.jsx loads the stats on sign-in; the balance shows once they exist.
+  const stats = useGamificationStore(s => s.stats);
 
   useEffect(() => {
     if (!user?.uid) {
@@ -35,110 +52,136 @@ const InventoryPage = () => {
 
   async function loadInventory() {
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await fetchInventory(user.uid);
       setInventory(data);
     } catch (err) {
       console.warn("Failed to load inventory:", err);
+      setLoadError(err);
     } finally {
       setLoading(false);
     }
   }
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-muted-foreground" size={32} />
-      </div>
-    );
+    return <PageLoader label="LOADING_INVENTORY_" />;
   }
 
-  return (
-    <div className="min-h-screen bg-background pt-24 md:pt-28 pb-12 px-4 sm:px-6">
-      <main className="max-w-5xl mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate(-1)} className="p-1.5 rounded-lg hover:bg-muted transition-colors">
-              <ArrowLeft size={18} />
-            </button>
-            <div>
-              <h1 className="text-xl font-semibold flex items-center gap-2">
-                Inventory
-              </h1>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Items you own - powerups, boosts, and more
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/store"
-            className="text-xs font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5"
-          >
-            <ShoppingBag size={14} />
-            Store
-          </Link>
-        </div>
-
-        {/* Empty state */}
-        {inventory.length === 0 ? (
-          <div className="text-center py-20 text-muted-foreground">
-            <Package size={48} className="mx-auto mb-3 opacity-30" />
-            <p className="mb-4">Your inventory is empty</p>
-            <Link
-              to="/store"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-foreground text-background text-sm font-medium hover:opacity-90 transition-opacity"
-            >
-              <ShoppingBag size={14} />
-              Browse Store
+  const header = (
+    <PageHeader
+      breadcrumb={
+        <Button variant="ghost" size="sm" className="justify-self-start" onClick={() => navigate(-1)}>
+          <ArrowLeft aria-hidden="true" />
+          Back
+        </Button>
+      }
+      title="Inventory"
+      description="Items you own: powerups, boosts and more."
+      actions={
+        <>
+          {stats && (
+            <Stat
+              label="Balance"
+              className="mr-4"
+              value={
+                <span className="inline-flex items-center gap-2">
+                  <Coins size={20} strokeWidth={1.5} aria-hidden="true" className="text-accent-ink" />
+                  {(stats.coins ?? 0).toLocaleString()}
+                  <span className="sr-only">coins</span>
+                </span>
+              }
+            />
+          )}
+          <Button variant="secondary" asChild>
+            <Link to="/store">
+              <ShoppingBag aria-hidden="true" />
+              Store
             </Link>
-          </div>
+          </Button>
+        </>
+      }
+    />
+  );
+
+  return (
+    <PageShell>
+      {header}
+
+      {loadError ? (
+        /* API failure */
+        isOffline(loadError) ? (
+          <OfflineState onRetry={loadInventory} />
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {inventory.map(item => {
-              const meta = TYPE_META[item.type] || TYPE_META.COSMETIC;
-              return (
-                <Card key={item.id} className={cn("relative overflow-hidden border-border/50")}>
-                  {/* Quantity badge */}
-                  <div className="absolute top-3 right-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-full grid place-items-center text-xs font-bold",
-                      meta.bg, meta.color
-                    )}>
-                      ×{item.quantity}
+          <ErrorState
+            title="Couldn't load your inventory"
+            description={loadError.message}
+            onRetry={loadInventory}
+          />
+        )
+      ) : inventory.length === 0 ? (
+        /* Empty state */
+        <EmptyState
+          icon={Package}
+          title="Your inventory is empty"
+          description="Items you buy in the store show up here."
+          action={
+            <Button variant="primary" asChild>
+              <Link to="/store">
+                <ShoppingBag aria-hidden="true" />
+                Browse store
+              </Link>
+            </Button>
+          }
+        />
+      ) : (
+        <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {inventory.map(item => {
+            const meta = TYPE_META[item.type] || TYPE_META.COSMETIC;
+            const Icon = TYPE_META[item.type]?.icon || Package;
+            return (
+              <li key={item.id} className="flex">
+                <Panel as="article" padded={false} className="flex w-full flex-col" aria-label={item.name}>
+                  {/* Card body */}
+                  <div className="flex flex-1 flex-col gap-4 p-4">
+                    {/* Top row: icon + quantity */}
+                    <div className="flex items-start justify-between gap-3">
+                      <span className="grid size-10 shrink-0 place-items-center border border-border bg-elevated text-fg">
+                        <Icon size={20} strokeWidth={1.5} aria-hidden="true" />
+                      </span>
+                      <Badge tone="outline">
+                        <span className="sr-only">Quantity </span>×{item.quantity}
+                      </Badge>
                     </div>
+
+                    {/* Name + type */}
+                    <div className="grid gap-1">
+                      <h3 className="font-mono text-h3 text-fg">{item.name}</h3>
+                      <span className="font-mono text-micro uppercase text-fg-muted">
+                        {item.type.replace(/_/g, " ")}
+                      </span>
+                    </div>
+
+                    {/* Description */}
+                    <p className="flex-1 font-mono text-small text-fg-muted">{item.description}</p>
                   </div>
 
-                  <CardHeader className="pb-2">
-                    <div className={cn("w-12 h-12 rounded-xl grid place-items-center text-2xl", meta.bg)}>
-                      {item.iconUrl || "📦"}
-                    </div>
-                    <CardTitle className="text-sm font-medium mt-2">{item.name}</CardTitle>
-                    <Badge variant="outline" className={cn("w-fit text-[10px]", meta.color)}>
-                      {item.type.replace(/_/g, " ")}
-                    </Badge>
-                  </CardHeader>
-
-                  <CardContent className="space-y-2">
-                    <p className="text-xs text-muted-foreground leading-relaxed">
-                      {item.description}
-                    </p>
-                    <p className={cn("text-[10px] font-medium", meta.color)}>
-                      {meta.label}
-                    </p>
+                  {/* Usage row - bottom docked */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-4 py-3">
+                    <span className="font-mono text-small text-fg">{meta.label}</span>
                     {item.lastUsedAt && (
-                      <p className="text-[10px] text-muted-foreground">
-                        Last used: {new Date(item.lastUsedAt).toLocaleDateString()}
-                      </p>
+                      <span className="font-mono text-micro uppercase tabular-nums text-fg-dim">
+                        Last used {new Date(item.lastUsedAt).toLocaleDateString()}
+                      </span>
                     )}
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
-        )}
-      </main>
-    </div>
+                  </div>
+                </Panel>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </PageShell>
   );
 };
 

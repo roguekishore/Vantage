@@ -1,5 +1,8 @@
 import React from "react";
-import { V, MONO } from "../../../../components/visualizer/theme";
+// V.accent stays on changed values only because the *.test.js files pin that
+// hex; Judge.css maps it to --accent-ink in the light theme.
+import { V } from "../../../../components/visualizer/theme";
+import { T, MONO } from "../cfTheme";
 
 /**
  * ListSetMapView — list / set / map renderer for the Code Flow dry-run window.
@@ -99,8 +102,8 @@ function MapRows({ data, changed }) {
               alignItems: "center",
               gap: 6,
               padding: "2px 4px",
-              borderRadius: 2,
-              background: isChanged ? V.accentDim : "transparent",
+              borderRadius: 0,
+              background: isChanged ? T.accentSoft : "transparent",
               transition: "background 0.15s ease",
             }}
           >
@@ -109,7 +112,7 @@ function MapRows({ data, changed }) {
               style={{
                 fontFamily: MONO,
                 fontSize: 12,
-                color: V.dim,
+                color: T.fgDim,
                 userSelect: "none",
               }}
             >
@@ -143,11 +146,11 @@ function Chip({ index, value, isChanged }) {
         fontFamily: MONO,
         fontSize: 12,
         fontWeight: isChanged ? 700 : 500,
-        color: isChanged ? V.accent : V.text,
-        background: isChanged ? V.accentDim : V.elevated,
-        border: `1px solid ${isChanged ? V.accentMid : V.border}`,
-        boxShadow: isChanged ? `0 0 8px ${V.accentDim}` : "none",
-        transition: "background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
+        color: isChanged ? V.accent : T.fg,
+        background: isChanged ? T.accentSoft : T.elevated,
+        border: `1px solid ${isChanged ? T.accentInk : T.border}`,
+        boxShadow: "none",
+        transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
       }}
       title={value}
     >
@@ -155,8 +158,8 @@ function Chip({ index, value, isChanged }) {
         <span
           style={{
             fontFamily: MONO,
-            fontSize: 9,
-            color: V.dim,
+            fontSize: 10,
+            color: T.fgDim,
             userSelect: "none",
           }}
         >
@@ -188,9 +191,9 @@ function KeyBox({ value, isChanged }) {
         fontFamily: MONO,
         fontSize: 12,
         fontWeight: 700,
-        color: isChanged ? V.accent : V.text,
-        background: V.elevated,
-        border: `1px solid ${isChanged ? V.accentMid : V.border}`,
+        color: isChanged ? V.accent : T.fg,
+        background: T.elevated,
+        border: `1px solid ${isChanged ? T.accentInk : T.border}`,
         transition: "color 0.15s ease, border 0.15s ease",
       }}
       title={value}
@@ -220,11 +223,11 @@ function ValueBox({ value, isChanged }) {
         fontFamily: MONO,
         fontSize: 12,
         fontWeight: isChanged ? 700 : 500,
-        color: isChanged ? V.accent : V.text,
-        background: isChanged ? V.accentDim : V.elevated,
-        border: `1px solid ${isChanged ? V.accentMid : V.border}`,
-        boxShadow: isChanged ? `0 0 8px ${V.accentDim}` : "none",
-        transition: "background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
+        color: isChanged ? V.accent : T.fg,
+        background: isChanged ? T.accentSoft : T.elevated,
+        border: `1px solid ${isChanged ? T.accentInk : T.border}`,
+        boxShadow: "none",
+        transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
       }}
       title={value}
     >
@@ -239,7 +242,7 @@ function EmptyPlaceholder() {
       style={{
         fontFamily: MONO,
         fontSize: 11,
-        color: V.dim,
+        color: T.fgDim,
         fontStyle: "italic",
       }}
     >

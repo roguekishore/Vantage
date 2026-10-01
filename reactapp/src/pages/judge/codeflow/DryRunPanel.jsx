@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { V, MONO, MONUMENT, LABEL_STYLE } from "../../../components/visualizer/theme";
+import { T, MONO, LABEL } from "./cfTheme";
 import { toValueModel } from "./valueModel";
 import DataStructureView from "./ds/DataStructureView";
 import InputRibbon from "./InputRibbon";
@@ -122,7 +122,7 @@ function DryRunWorksheet({
         flexDirection: "column",
         height: "100%",
         minHeight: 0,
-        background: V.bg,
+        background: T.bg,
       }}
     >
       <FlowControlBar
@@ -149,7 +149,7 @@ function DryRunWorksheet({
             style={{
               fontFamily: MONO,
               fontSize: 12,
-              color: V.dim,
+              color: T.fgDim,
               padding: "32px 0",
               textAlign: "center",
             }}
@@ -160,7 +160,7 @@ function DryRunWorksheet({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fill, minmax(min(240px, 100%), 1fr))",
               gap: 12,
               alignItems: "start",
             }}
@@ -200,11 +200,11 @@ function StepContextRibbon({ currentStep, step, totalSteps }) {
         gap: 8,
         flexWrap: "wrap",
         padding: "10px 12px",
-        background: V.surface,
-        borderBottom: `1px solid ${V.border}`,
+        background: T.surface,
+        borderBottom: `1px solid ${T.border}`,
       }}
     >
-      <span style={LABEL_STYLE}>dry run</span>
+      <span style={LABEL}>Dry run</span>
 
       <ContextChip label="step" value={`${totalSteps > 0 ? step + 1 : 0} / ${totalSteps}`} />
 
@@ -235,23 +235,23 @@ function ContextChip({ label, value, accent = false }) {
         fontFamily: MONO,
         fontSize: 11,
         padding: "3px 8px",
-        borderRadius: 2,
-        background: accent ? V.accentDim : V.elevated,
-        border: `1px solid ${accent ? V.accentMid : V.border}`,
+        background: accent ? T.accentSoft : T.elevated,
+        border: `1px solid ${accent ? T.accentInk : T.border}`,
+        fontVariantNumeric: "tabular-nums",
       }}
     >
       <span
         style={{
-          fontSize: 9,
-          fontWeight: 700,
-          letterSpacing: "0.12em",
+          fontSize: 10,
+          fontWeight: 500,
+          letterSpacing: "0.08em",
           textTransform: "uppercase",
-          color: V.dim,
+          color: T.fgDim,
         }}
       >
         {label}
       </span>
-      <span style={{ color: accent ? V.accent : V.textBright, fontWeight: 700 }}>
+      <span style={{ color: accent ? T.accentInk : T.fg, fontWeight: 700 }}>
         {value}
       </span>
     </span>
@@ -273,10 +273,9 @@ function WorksheetCell({ model }) {
         flexDirection: "column",
         gap: 8,
         padding: 10,
-        background: V.surface,
-        border: `1px solid ${model.changed ? V.accentMid : V.border}`,
-        borderRadius: 2,
-        transition: "border-color 0.15s ease",
+        background: T.surface,
+        border: `1px solid ${model.changed ? T.accentInk : T.border}`,
+        transition: "border-color 120ms ease-out",
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -286,7 +285,7 @@ function WorksheetCell({ model }) {
               fontFamily: MONO,
               fontSize: 10,
               fontWeight: 700,
-              color: V.cyan,
+              color: T.fgMuted,
               flexShrink: 0,
             }}
           >
@@ -296,11 +295,10 @@ function WorksheetCell({ model }) {
 
         <span
           style={{
-            fontFamily: MONUMENT,
+            fontFamily: MONO,
             fontSize: 13,
-            fontWeight: 900,
-            color: model.changed ? V.accent : V.textBright,
-            letterSpacing: "0.02em",
+            fontWeight: 700,
+            color: model.changed ? T.accentInk : T.fg,
           }}
         >
           {model.name || "(anonymous)"}
@@ -308,7 +306,7 @@ function WorksheetCell({ model }) {
 
         {model.scope && (
           <span
-            style={{ fontFamily: MONO, fontSize: 9, color: V.dim, marginLeft: "auto" }}
+            style={{ fontFamily: MONO, fontSize: 10, color: T.fgDim, marginLeft: "auto" }}
             title={`scope: ${model.scope}`}
           >
             {model.scope}

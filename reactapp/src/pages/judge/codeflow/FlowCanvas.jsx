@@ -1,5 +1,5 @@
 import React from "react";
-import { V, MONO } from "../../../components/visualizer/theme";
+import { T, MONO } from "./cfTheme";
 import FlowBlock from "./FlowBlock";
 
 /**
@@ -23,7 +23,7 @@ export default function FlowCanvas({ blockTree, activeBlockIds, currentStep = nu
         style={{
           fontFamily: MONO,
           fontSize: 12,
-          color: V.dim,
+          color: T.fgDim,
           padding: 16,
         }}
       >
@@ -37,7 +37,7 @@ export default function FlowCanvas({ blockTree, activeBlockIds, currentStep = nu
       style={{
         fontFamily: MONO,
         padding: 12,
-        background: V.bg,
+        background: T.bg,
         overflow: "auto",
       }}
     >

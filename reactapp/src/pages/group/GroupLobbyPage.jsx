@@ -1,28 +1,71 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import { getStoredUser } from "../../services/userApi";
 import useGroupBattleStore from "../../stores/useGroupBattleStore";
 import useFriendsStore from "../../stores/useFriendsStore";
+import { AlertTriangle, Check, ChevronRight, Copy, Crown, LogOut, MoreHorizontal, Play, UserPlus, Users, UserX } from "lucide-react";
 import {
-  Users, Crown, Zap, Copy, Check,
-  Play, UserX, LogOut, AlertTriangle, Loader2,
-  ChevronRight, Hash, Search, UserPlus,
-} from "lucide-react";
-import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
-
-const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
-const BATTLE_FONT_LETTER_SPACING = MONUMENT_TYPO.letterSpacing.monument;
+  Avatar,
+  Badge,
+  Breadcrumb,
+  Button,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+  ErrorState,
+  IconButton,
+  Input,
+  ListRow,
+  OfflineState,
+  PageHeader,
+  PageShell,
+  Panel,
+  SegmentedInput,
+  Select,
+  SelectItem,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ds";
 
 /* ── Constants ── */
 const DIFFICULTIES = [
-  { value: "EASY", label: "Easy", color: "text-emerald-400", dot: "bg-emerald-500" },
-  { value: "MEDIUM", label: "Medium", color: "text-amber-400", dot: "bg-amber-500" },
-  { value: "HARD", label: "Hard", color: "text-rose-400", dot: "bg-rose-500" },
+  { value: "EASY", label: "Easy", tone: "ok" },
+  { value: "MEDIUM", label: "Medium", tone: "warn" },
+  { value: "HARD", label: "Hard", tone: "err" },
 ];
 const PROBLEM_COUNTS = [1, 2, 3];
 const QUICK_DURATION_OPTIONS = [20, 30, 45, 60, 90, 120, 150, 180];
 const MAX_PLAYERS_OPTIONS = [3, 4, 5, 6, 7, 8];
+
+/* fetch() rejects with a TypeError ("Failed to fetch") when the API is unreachable. */
+const NETWORK_RE = /failed to fetch|networkerror|network error|load failed|err_connection|unreachable/i;
+const isNetworkMessage = (msg) => NETWORK_RE.test(String(msg || ""));
+
+const difficultyTone = (value) => DIFFICULTIES.find((d) => d.value === value)?.tone || "neutral";
+const difficultyLabel = (value) => DIFFICULTIES.find((d) => d.value === value)?.label || value;
+
+/* Read-only room code: the same six square cells as the join SegmentedInput. */
+function RoomCodeCells({ code = "" }) {
+  const chars = String(code).padEnd(6, " ").slice(0, 6).split("");
+  return (
+    <div role="img" aria-label={`Room code ${String(code).split("").join(" ")}`} className="flex gap-2">
+      {chars.map((ch, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          className="flex size-11 items-center justify-center border border-fg bg-elevated font-mono text-h3 uppercase text-fg"
+        >
+          {ch.trim()}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 /* ═══════════════════════════════════════ Main Component ═══ */
 export default function GroupLobbyPage() {
@@ -182,484 +225,318 @@ export default function GroupLobbyPage() {
     .filter((f) => !participantIds.has(f.uid) && f.uid !== userId)
     .filter((f) => !friendQuery.trim() || f.username?.toLowerCase().includes(friendQuery.trim().toLowerCase()));
 
+  const inRoom = Boolean(room && room.state !== "CANCELLED");
+  /* Retry re-runs the action that produced the error (view-only wiring). */
+  const retryLastAction = inRoom
+    ? () => lookupRoom(room.roomCode).catch(() => {})
+    : tab === "join"
+      ? handleJoin
+      : handleCreate;
+
   /* ════════════════════════════════════ RENDER ════════════════ */
   return (
-    <div className="group-battle-theme min-h-screen bg-zinc-950 pt-24 pb-16 px-4 sm:px-6">
-      <div className="max-w-3xl mx-auto space-y-4">
+    <PageShell narrow>
+      <PageHeader
+        breadcrumb={<Breadcrumb items={[{ label: "Battle", to: "/battle" }, { label: "Group" }]} />}
+        eyebrow="Group battle"
+        title={
+          <>
+            Group <em>lobby</em>
+          </>
+        }
+        description="Free-for-all for 3 to 8 players. Every accepted solve scores points: faster solves with fewer wrong submissions score more."
+      />
 
-        {/* ── Page Header ── */}
-        <div className="battle-fade-up">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.24em] text-zinc-500 mb-2">- Group Battle</p>
-              <h1 className="battle-monument text-3xl font-black tracking-tight text-white flex items-center gap-2">
-                <Users className="w-6 h-6 text-primary" />
-                Lobby
-              </h1>
-              <p className="text-sm text-zinc-500 mt-1.5">Free-For-All · 3–8 players · Points-based</p>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Room Cancelled Banner ── */}
+      <div className="grid gap-6">
+        {/* ── Room cancelled ── */}
         {room?.state === "CANCELLED" && (
-          <div className="rounded-xl border border-red-900/40 bg-red-950/30 px-4 py-3 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-            <span className="text-sm text-red-400">
-              {room?.cancelMessage || "Room was cancelled. Redirecting…"}
-            </span>
+          <div role="status" className="flex items-center gap-3 border border-warn bg-warn-soft px-4 py-3 font-mono text-small text-warn">
+            <AlertTriangle size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+            <span>{room?.cancelMessage || "This room was cancelled. Returning to Battle."}</span>
           </div>
         )}
 
-        {/* ── Error Banner ── */}
-        {error && (
-          <div className="rounded-xl border border-red-900/40 bg-red-950/30 px-4 py-3 mb-4 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-            <span className="text-sm text-red-400">{error}</span>
-          </div>
-        )}
+        {/* ── API error ── */}
+        {error &&
+          (isNetworkMessage(error) ? (
+            <OfflineState onRetry={retryLastAction} />
+          ) : (
+            <ErrorState title="That didn't work" description={error} onRetry={retryLastAction} className="py-8" />
+          ))}
 
-        {/* ═══════════════════════════════════════════════════════
-            LOBBY PANEL - show once in a room
-         ═══════════════════════════════════════════════════════ */}
-        {room && room.state !== "CANCELLED" ? (
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden battle-panel">
-            {/* Card header */}
-            <div className="px-5 py-4 border-b border-zinc-800 flex items-center justify-between bg-zinc-900">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center">
-                  <Users className="w-4 h-4 text-zinc-400" />
-                </div>
-                <div>
-                  <div className="text-sm font-bold text-white">Room Lobby</div>
-                  <div className="text-[11px] text-zinc-500">Waiting for players to join</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-5 space-y-5">
-              {/* Room Details Row */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-zinc-950 border border-zinc-800">
-                <div>
-                  <span className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block mb-1">Room Code</span>
-                  <div className="flex items-center gap-3">
-                    <span className="battle-monument text-3xl font-black tabular-nums tracking-[0.2em] text-white">
-                      {room.roomCode}
-                    </span>
-                    <button onClick={copyCode}
-                      className="p-1.5 rounded-lg hover:bg-zinc-800/40 transition-colors text-zinc-500 hover:text-white border border-zinc-800 hover:border-zinc-700">
-                      {copied
-                        ? <Check className="w-4 h-4 text-emerald-500" />
-                        : <Copy className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-                
-                <div className="flex sm:flex-col items-center sm:items-end gap-3 sm:gap-1.5 text-sm">
-                  <span className={cn(
-                    "text-[11px] font-bold flex items-center gap-1.5",
-                    room.difficulty === "EASY" ? "text-emerald-400" :
-                    room.difficulty === "MEDIUM" ? "text-amber-400" :
-                    "text-rose-400"
-                  )}>
-                    <span className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      room.difficulty === "EASY" ? "bg-emerald-500" :
-                      room.difficulty === "MEDIUM" ? "bg-amber-500" :
-                      "bg-rose-500"
-                    )} />
-                    {room.difficulty}
-                  </span>
-                  <span className="text-xs font-medium text-zinc-500">
-                    {room.problemCount} problem{room.problemCount !== 1 ? "s" : ""} · {room.durationMinutes} min
-                  </span>
-                </div>
-              </div>
-
-              {/* Players list */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm font-bold text-white">
-                    Players ({playerCount}/{room.maxPlayers})
-                  </span>
-                  {!canStart && isCreator && (
-                    <span className="text-xs text-zinc-500">Need at least 3 to start</span>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {room.participants.map((p) => (
-                    <div key={p.userId}
-                      className="flex items-center justify-between rounded-xl border border-zinc-800 bg-zinc-900 p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center text-sm font-bold text-zinc-300 uppercase">
-                          {p.username?.charAt(0)?.toUpperCase() || "?"}
-                        </div>
-                        <div>
-                          <div className="font-bold text-sm text-white flex items-center gap-1.5">
-                            {p.username}
-                            {p.userId === room.creatorId && <Crown className="w-3.5 h-3.5 text-amber-500" />}
-                            {p.userId === userId && <span className="text-[9px] px-1.5 py-0.5 rounded-lg bg-primary/20 text-primary font-black uppercase tracking-widest">YOU</span>}
-                          </div>
-                          <div className="text-[11px] text-zinc-500 mt-0.5">BR {p.battleRating}</div>
-                        </div>
-                      </div>
-
-                      {/* Kick button - creator only, not on self */}
-                      {isCreator && p.userId !== userId && (
-                        <button onClick={() => handleKick(p.userId)}
-                          className="p-1.5 rounded-lg text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 transition-colors"
-                          title="Kick player">
-                          <UserX className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
-                  ))}
-
-                  {/* Empty slots */}
-                  {Array.from({ length: Math.max(0, room.maxPlayers - playerCount) }).map((_, i) => (
-                    <div key={`empty-${i}`}
-                      className="flex items-center gap-3 rounded-xl border border-dashed border-zinc-800 bg-zinc-950 p-3 opacity-60">
-                      <div className="w-10 h-10 rounded-lg border border-dashed border-zinc-700 flex items-center justify-center">
-                        <Users className="w-4 h-4 text-zinc-600" />
-                      </div>
-                      <span className="text-sm font-medium text-zinc-500">Waiting...</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Share link (temporarily hidden) */}
-              {false && (
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 flex items-center gap-3">
-                  <div className="p-1.5 rounded-lg bg-zinc-800 border border-zinc-700/60">
-                    <Hash className="w-4 h-4 text-zinc-500" />
-                  </div>
-                  <span className="text-xs font-mono text-zinc-500 truncate flex-1">
-                    {window.location.origin}/group/{room.roomCode}
-                  </span>
-                  <button onClick={copyInviteLink}
-                    className="px-3 py-1.5 rounded-lg border border-zinc-800 hover:border-zinc-700 text-xs font-bold text-zinc-500 hover:text-white transition-colors shrink-0 flex items-center gap-1.5">
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                    {copied ? "Copied" : "Copy Link"}
-                  </button>
-                </div>
-              )}
-
-              {/* Invite online friends (temporarily hidden) */}
-              {false && isCreator && (
-                <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-3 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">
-                      Invite Online Friends
-                    </span>
-                    <span className="text-[11px] text-zinc-500">{onlineInvitableFriends.length} available</span>
-                  </div>
-
-                  <div className="relative">
-                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-600" />
-                    <input
-                      value={friendQuery}
-                      onChange={(e) => setFriendQuery(e.target.value)}
-                      placeholder="Search online friends…"
-                      className="w-full h-9 rounded-lg border border-zinc-800 bg-zinc-900 pl-8 pr-3 text-sm text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-zinc-700"
+        {inRoom ? (
+          /* ═══════════════ ROOM LOBBY ═══════════════ */
+          <>
+            <Panel
+              as="section"
+              label="Room"
+              actions={
+                <Badge tone="outline">
+                  {room.state === "WAITING" ? "Waiting for players" : String(room.state || "").toLowerCase()}
+                </Badge>
+              }
+            >
+              <div className="flex flex-wrap items-end justify-between gap-6">
+                <div className="grid gap-2">
+                  <span className="font-mono text-label uppercase text-fg-muted">Room code</span>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <RoomCodeCells code={room.roomCode} />
+                    <IconButton
+                      icon={copied ? Check : Copy}
+                      variant="secondary"
+                      onClick={copyCode}
+                      aria-label={copied ? "Room code copied" : "Copy room code"}
                     />
                   </div>
-
-                  {onlineInvitableFriends.length === 0 ? (
-                    <div className="text-xs text-zinc-500 px-1 py-1">
-                      No online friends available to invite.
-                    </div>
-                  ) : (
-                    <div className="space-y-2 max-h-44 overflow-auto pr-1">
-                      {onlineInvitableFriends.slice(0, 10).map((f) => {
-                        const busy = invitingFriendId === f.uid && friendActionLoading;
-                        return (
-                          <div key={f.uid} className="flex items-center justify-between rounded-lg border border-zinc-800 bg-zinc-900/60 px-2.5 py-2">
-                            <div className="min-w-0">
-                              <div className="text-sm font-semibold text-zinc-200 truncate">{f.username}</div>
-                              <div className="text-[11px] text-emerald-400">Online</div>
-                            </div>
-                            <button
-                              onClick={() => handleInviteFriend(f)}
-                              disabled={friendActionLoading}
-                              className="h-8 px-3 rounded-lg text-xs font-bold bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50 inline-flex items-center gap-1.5"
-                            >
-                              {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <UserPlus className="w-3.5 h-3.5" />}
-                              Invite
-                            </button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
+                  <span aria-live="polite" className="font-mono text-small text-fg-muted">
+                    {copied ? "Copied to clipboard." : "Share this code with the players you want in the room."}
+                  </span>
                 </div>
-              )}
+                <div className="flex flex-wrap gap-2">
+                  <Badge tone={difficultyTone(room.difficulty)}>{difficultyLabel(room.difficulty)}</Badge>
+                  <Badge>
+                    {room.problemCount} problem{room.problemCount !== 1 ? "s" : ""}
+                  </Badge>
+                  <Badge>{room.durationMinutes} min</Badge>
+                </div>
+              </div>
+            </Panel>
 
-              {/* Actions */}
-              <div className="flex gap-3 pt-2">
-                {isCreator && (
-                  <button 
-                    onClick={handleStart} 
-                    disabled={!canStart || loading}
-                    className={cn(
-                      "flex-1 h-11 rounded-xl font-bold text-sm transition-all",
-                      "flex items-center justify-center gap-2",
-                      canStart && !loading 
-                        ? "bg-primary text-primary-foreground hover:opacity-90" 
-                        : "bg-zinc-800 text-zinc-600 opacity-60 cursor-not-allowed"
-                    )}>
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
-                    Start Battle
-                  </button>
-                )}
-                <button 
-                  onClick={handleLeave}
-                  className={cn(
-                    "h-11 px-6 rounded-xl font-bold text-sm transition-all",
-                    "flex items-center justify-center gap-2",
-                    "border border-zinc-800 bg-zinc-950 text-zinc-500 hover:bg-rose-500/10 hover:text-rose-400 hover:border-zinc-700",
-                    !isCreator && "flex-1"
-                  )}>
-                  <LogOut className="w-4 h-4" /> Leave
-                </button>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* ═══════════════════════════════════════════════════════
-              CREATE / JOIN PANEL
-           ═══════════════════════════════════════════════════════ */
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl overflow-hidden battle-panel">
-            {/* Card header */}
-            <div className="px-5 py-4 border-b border-zinc-800 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-700/60 flex items-center justify-center">
-                <Users className="w-4 h-4 text-zinc-500" />
-              </div>
-              <div>
-                <div className="text-sm font-bold text-white">Room Setup</div>
-                <div className="text-[11px] text-zinc-500">Create or join a group battle</div>
-              </div>
-            </div>
+            {/* Players */}
+            <Panel
+              as="section"
+              label={`Players ${playerCount}/${room.maxPlayers}`}
+              actions={
+                !canStart && isCreator ? (
+                  <span className="font-mono text-small text-fg-muted">Needs at least 3 to start</span>
+                ) : null
+              }
+              padded={false}
+            >
+              <div className="[&>*:last-child]:border-b-0">
+                {room.participants.map((p) => {
+                  const isHost = p.userId === room.creatorId;
+                  const isMe = p.userId === userId;
+                  return (
+                    <ListRow
+                      key={p.userId}
+                      leading={<Avatar name={p.username || "?"} />}
+                      title={
+                        <span className="flex min-w-0 items-center gap-2">
+                          <span className="truncate">{p.username}</span>
+                          {isHost ? (
+                            <Badge tone="outline">
+                              <Crown size={10} strokeWidth={1.5} aria-hidden="true" />
+                              Host
+                            </Badge>
+                          ) : null}
+                          {isMe ? <Badge tone="accent">You</Badge> : null}
+                        </span>
+                      }
+                      meta={`BR ${p.battleRating ?? "-"}`}
+                      trailing={
+                        isCreator && !isMe ? (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <IconButton icon={MoreHorizontal} size="sm" aria-label={`Host controls for ${p.username}`} />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>{p.username}</DropdownMenuLabel>
+                              <DropdownMenuItem tone="danger" onSelect={() => handleKick(p.userId)}>
+                                <UserX aria-hidden="true" />
+                                Remove from room
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : null
+                      }
+                    />
+                  );
+                })}
 
-            <div className="p-5 space-y-5">
-              {/* Tabs */}
-              <div className="flex gap-1 mb-6 bg-zinc-950 rounded-xl p-1 border border-zinc-800">
-                {["create", "join"].map((t) => (
-                  <button key={t} onClick={() => setTab(t)}
-                    className={cn(
-                      "flex-1 py-2 rounded-lg text-sm font-bold transition-all",
-                      tab === t
-                        ? "bg-white text-zinc-950"
-                        : "text-zinc-500 hover:text-zinc-300"
-                    )}>
-                    {t === "create" ? "Create Room" : "Join Room"}
-                  </button>
+                {/* Open slots */}
+                {Array.from({ length: Math.max(0, room.maxPlayers - playerCount) }).map((_, i) => (
+                  <ListRow
+                    key={`empty-${i}`}
+                    leading={
+                      <span
+                        aria-hidden="true"
+                        className="flex size-9 items-center justify-center border border-dashed border-border-strong text-fg-dim"
+                      >
+                        <Users size={14} strokeWidth={1.5} />
+                      </span>
+                    }
+                    title={<span className="text-fg-dim">Open slot</span>}
+                  />
                 ))}
               </div>
+            </Panel>
 
-              {/* ── Create Room Form ── */}
-              {tab === "create" && (
-                <div className="space-y-6 battle-fade-up-delay-1">
-                  {/* Difficulty */}
-                  <div className="space-y-2.5">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
-                      Difficulty
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {DIFFICULTIES.map((d) => {
-                        const active = difficulty === d.value;
-                        return (
-                          <button key={d.value} onClick={() => setDifficulty(d.value)}
-                            className={cn(
-                              "py-2 rounded-xl border text-sm font-bold transition-all flex items-center justify-center gap-1.5",
-                              active
-                                ? "bg-zinc-800 border-zinc-600 text-white"
-                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-                            )}>
-                            <span className={cn("w-1.5 h-1.5 rounded-full", d.dot)} />
-                            <span className={cn(active ? "text-white" : d.color)}>{d.label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
+            {/* Share link (temporarily hidden) */}
+            {false && (
+              <Panel label="Invite link" actions={
+                <Button size="sm" onClick={copyInviteLink}>
+                  {copied ? <Check aria-hidden="true" /> : <Copy aria-hidden="true" />}
+                  {copied ? "Copied" : "Copy link"}
+                </Button>
+              }>
+                <span className="block truncate font-mono text-small text-fg-muted">
+                  {window.location.origin}/group/{room.roomCode}
+                </span>
+              </Panel>
+            )}
 
-                  {/* Problem Count */}
-                  <div className="space-y-2.5">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
-                      Problems
-                    </label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {PROBLEM_COUNTS.map((n) => {
-                        const active = problemCount === n;
-                        return (
-                          <button key={n} onClick={() => setProblemCount(n)}
-                            className={cn(
-                              "py-2 rounded-xl border text-sm font-bold transition-all",
-                              active
-                                ? "bg-white text-zinc-950 border-white"
-                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-                            )}>
-                            {n}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Time Limit */}
-                  <div className="space-y-2.5">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
-                      Time Limit
-                    </label>
-                    <div className="grid grid-cols-4 gap-2">
-                      {QUICK_DURATION_OPTIONS.map((m) => {
-                        const active = durationMinutes === m;
-                        return (
-                          <button key={m} onClick={() => setDurationMinutes(m)}
-                            className={cn(
-                              "py-2 rounded-xl border text-sm font-bold transition-all",
-                              active
-                                ? "bg-primary text-primary-foreground border-primary"
-                                : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:border-zinc-700 hover:text-zinc-300"
-                            )}>
-                            {m}m
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Max Players */}
-                  <div className="space-y-2.5">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
-                      Max Players
-                    </label>
-                    <div className="flex gap-2 flex-wrap">
-                      {MAX_PLAYERS_OPTIONS.map((n) => {
-                        const active = maxPlayers === n;
-                        return (
-                          <button key={n} onClick={() => setMaxPlayers(n)}
-                            className={cn(
-                              "w-10 h-10 rounded-lg border text-sm font-bold transition-all",
-                              active
-                                ? "bg-white text-zinc-950 border-white"
-                                : "bg-zinc-950 text-zinc-500 hover:text-zinc-300 border-zinc-800 hover:border-zinc-700"
-                            )}>
-                            {n}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Scoring note */}
-                  <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4 text-xs text-zinc-500 space-y-1.5 flex gap-3">
-                    <div className="mt-0.5">
-                      <Zap className="w-4 h-4 text-amber-500" />
-                    </div>
-                    <div>
-                      <p className="font-bold text-white">FFA Scoring System</p>
-                      <p className="leading-relaxed">Points = base × time_bonus × accuracy</p>
-                      <p className="leading-relaxed">Base points: Easy (100) · Medium (250) · Hard (500)</p>
-                      <p className="leading-relaxed">Faster solves and fewer wrong answers earn you more points.</p>
-                    </div>
-                  </div>
-
-                  <button 
-                    onClick={handleCreate} 
-                    disabled={loading} 
-                    className={cn(
-                      "w-full h-11 rounded-xl font-bold text-sm transition-all mt-4",
-                      "flex items-center justify-center gap-2",
-                      "bg-primary text-primary-foreground",
-                      "hover:opacity-90",
-                      "disabled:opacity-40 disabled:cursor-not-allowed",
-                      ""
-                    )}
-                  >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Users className="w-4 h-4" />}
-                    Create Room
-                  </button>
+            {/* Invite online friends (temporarily hidden) */}
+            {false && isCreator && (
+              <Panel
+                label="Invite online friends"
+                actions={<span className="font-mono text-small text-fg-muted">{onlineInvitableFriends.length} available</span>}
+                padded={false}
+              >
+                <div className="border-b border-border p-4">
+                  <Input
+                    aria-label="Search online friends"
+                    value={friendQuery}
+                    onChange={(e) => setFriendQuery(e.target.value)}
+                    placeholder="Search online friends"
+                  />
                 </div>
-              )}
-
-              {/* ── Join Room Form ── */}
-              {tab === "join" && (
-                <div className="space-y-6 battle-fade-up-delay-1">
-                  <div className="space-y-2.5">
-                    <label className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600 block">
-                      Room Code
-                    </label>
-                    <input
-                      value={joinCode}
-                      onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 6))}
-                      placeholder="ABC123"
-                      maxLength={6}
-                      className={cn(
-                        "w-full h-14 rounded-xl border border-zinc-800 bg-zinc-950 px-4",
-                        "battle-monument text-2xl font-black tracking-[0.4em] text-center text-white",
-                        "focus:outline-none focus:border-zinc-600 transition-colors uppercase",
-                        "placeholder:text-zinc-600"
-                      )}
-                    />
-                    <p className="text-xs text-zinc-500 mt-1 text-center">
-                      Enter the 6-character code shared by the room creator.
-                    </p>
+                {onlineInvitableFriends.length === 0 ? (
+                  <p className="px-4 py-3 font-mono text-small text-fg-muted">No online friends available to invite.</p>
+                ) : (
+                  <div className="max-h-44 overflow-auto">
+                    {onlineInvitableFriends.slice(0, 10).map((f) => {
+                      const busy = invitingFriendId === f.uid && friendActionLoading;
+                      return (
+                        <ListRow
+                          key={f.uid}
+                          title={f.username}
+                          meta={<span className="text-ok">Online</span>}
+                          trailing={
+                            <Button size="sm" variant="primary" loading={busy} disabled={friendActionLoading} onClick={() => handleInviteFriend(f)}>
+                              <UserPlus aria-hidden="true" />
+                              Invite
+                            </Button>
+                          }
+                        />
+                      );
+                    })}
                   </div>
+                )}
+              </Panel>
+            )}
 
-                  <button 
-                    onClick={handleJoin} 
-                    disabled={loading || joinCode.length !== 6} 
-                    className={cn(
-                      "w-full h-11 rounded-xl font-bold text-sm transition-all mt-4",
-                      "flex items-center justify-center gap-2",
-                      "bg-primary text-primary-foreground",
-                      "hover:opacity-90",
-                      "disabled:opacity-40 disabled:cursor-not-allowed",
-                      ""
-                    )}
-                  >
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ChevronRight className="w-4 h-4" />}
-                    Join Room
-                  </button>
-                </div>
+            {/* Actions */}
+            <div className="flex flex-wrap gap-3">
+              {isCreator && (
+                <Button
+                  variant="primary"
+                  size="lg"
+                  className="flex-1"
+                  onClick={handleStart}
+                  disabled={!canStart || loading}
+                  loading={loading}
+                >
+                  <Play aria-hidden="true" />
+                  Start battle
+                </Button>
               )}
+              <Button variant="secondary" size="lg" className={cn(!isCreator && "flex-1")} onClick={handleLeave}>
+                <LogOut aria-hidden="true" />
+                Leave room
+              </Button>
             </div>
-          </div>
+          </>
+        ) : (
+          /* ═══════════════ CREATE / JOIN ═══════════════ */
+          <Tabs value={tab} onValueChange={setTab} className="grid gap-6">
+            <TabsList aria-label="Room setup">
+              <TabsTrigger value="create">Create room</TabsTrigger>
+              <TabsTrigger value="join">Join room</TabsTrigger>
+            </TabsList>
+
+            {/* ── Create room ── */}
+            <TabsContent value="create" className="grid gap-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Select label="Difficulty" value={difficulty} onValueChange={setDifficulty}>
+                  {DIFFICULTIES.map((d) => (
+                    <SelectItem key={d.value} value={d.value}>
+                      {d.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select label="Problems" value={String(problemCount)} onValueChange={(v) => setProblemCount(Number(v))}>
+                  {PROBLEM_COUNTS.map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n} problem{n !== 1 ? "s" : ""}
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select label="Time limit" value={String(durationMinutes)} onValueChange={(v) => setDurationMinutes(Number(v))}>
+                  {QUICK_DURATION_OPTIONS.map((m) => (
+                    <SelectItem key={m} value={String(m)}>
+                      {m} min
+                    </SelectItem>
+                  ))}
+                </Select>
+                <Select label="Max players" value={String(maxPlayers)} onValueChange={(v) => setMaxPlayers(Number(v))}>
+                  {MAX_PLAYERS_OPTIONS.map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n} players
+                    </SelectItem>
+                  ))}
+                </Select>
+              </div>
+
+              {/* Scoring note */}
+              <Panel variant="inset" label="Scoring">
+                <dl className="grid gap-2 font-mono text-small tabular-nums text-fg-muted">
+                  <div className="flex flex-wrap gap-x-3">
+                    <dt className="text-fg">Points</dt>
+                    <dd>base × time bonus × accuracy</dd>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3">
+                    <dt className="text-fg">Base</dt>
+                    <dd>Easy 100 · Medium 250 · Hard 500</dd>
+                  </div>
+                  <div className="flex flex-wrap gap-x-3">
+                    <dt className="text-fg">Bonus</dt>
+                    <dd>Faster solves and fewer wrong submissions earn more.</dd>
+                  </div>
+                </dl>
+              </Panel>
+
+              <Button variant="primary" size="lg" className="w-full" onClick={handleCreate} disabled={loading} loading={loading}>
+                <Users aria-hidden="true" />
+                Create room
+              </Button>
+            </TabsContent>
+
+            {/* ── Join room ── */}
+            <TabsContent value="join" className="grid gap-6">
+              <SegmentedInput
+                label="Room code"
+                hint="Enter the 6-character code from the room host."
+                length={6}
+                value={joinCode}
+                onChange={(v) => setJoinCode(v.toUpperCase().slice(0, 6))}
+                autoFocus={!codeParam}
+              />
+              <Button
+                variant="primary"
+                size="lg"
+                className="w-full"
+                onClick={handleJoin}
+                disabled={loading || joinCode.length !== 6}
+                loading={loading}
+              >
+                Join room
+                <ChevronRight aria-hidden="true" />
+              </Button>
+            </TabsContent>
+          </Tabs>
         )}
       </div>
-      <style>{`
-        .group-battle-theme{position:relative;overflow-x:hidden}
-        .group-battle-theme::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.025;
-          background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-          background-size:200px;z-index:0}
-        .group-battle-theme::after{content:"";position:fixed;inset:0;pointer-events:none;opacity:.014;
-          background-image:linear-gradient(rgba(255,255,255,1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,1) 1px,transparent 1px);
-          background-size:64px 64px;z-index:0}
-        .group-battle-theme > div{position:relative;z-index:1}
-        .group-battle-theme .bg-zinc-900{background:#0d0d10!important}
-        .group-battle-theme .bg-zinc-950{background:#09090b!important}
-        .group-battle-theme .border-zinc-800{border-color:rgba(255,255,255,.06)!important}
-        .group-battle-theme .border-zinc-700{border-color:rgba(255,255,255,.12)!important}
-        .group-battle-theme .bg-primary{background:#EDFF66!important;color:#09090b!important}
-        .group-battle-theme .text-primary{color:#EDFF66!important}
-        .group-battle-theme .border-primary\/20{border-color:rgba(237,255,102,.22)!important}
-        .group-battle-theme .bg-primary\/10{background:rgba(237,255,102,.1)!important}
-        .group-battle-theme .text-primary-foreground{color:#09090b!important}
-        .group-battle-theme .text-zinc-500{color:rgba(255,255,255,.35)!important}
-        .group-battle-theme .text-zinc-600{color:rgba(255,255,255,.22)!important}
-        .group-battle-theme .rounded-2xl{border-radius:18px!important}
-        .group-battle-theme .rounded-xl{border-radius:12px!important}
-        .group-battle-theme .battle-panel{position:relative;box-shadow:0 0 0 1px rgba(255,255,255,.02) inset}
-        .group-battle-theme .battle-panel::before{content:"";position:absolute;left:0;right:0;top:0;height:2px;
-          background:linear-gradient(90deg,rgba(237,255,102,.65),rgba(237,255,102,0));pointer-events:none}
-        .group-battle-theme .battle-monument{font-family:${BATTLE_FONT_FAMILY};letter-spacing:${BATTLE_FONT_LETTER_SPACING}}
-        .group-battle-theme input.battle-monument::placeholder{letter-spacing:.08em;font-family:inherit}
-        .group-battle-theme .hover\:opacity-90:hover{opacity:.86!important}
-        .group-battle-theme .hover\:text-rose-400:hover{color:#f87171!important}
-      `}</style>
-    </div>
+    </PageShell>
   );
 }

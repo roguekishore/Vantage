@@ -1636,39 +1636,3 @@ html.light body.vantage-zinc-pages [style*="color: #ffffff"],
 html.light body.vantage-zinc-pages [style*="color:#ffffff"] {
   color: #1c1917 !important;
 }
-
-/* ============================================
-   MAP DARK LOCK (WorldMap always dark)
-   ============================================ */
-body.vantage-map-page .text-white,
-body.vantage-map-page .hover\:text-white:hover {
-  color: #ffffff !important;
-}
-
-body.vantage-map-page .bg-zinc-950 {
-  background-color: rgb(9 9 11 / var(--tw-bg-opacity, 1)) !important;
-}
-
-body.vantage-map-page .bg-zinc-900,
-body.vantage-map-page .bg-zinc-900\/80 {
-  background-color: rgb(24 24 27 / var(--tw-bg-opacity, 1)) !important;
-}
-
-body.vantage-map-page .bg-zinc-800,
-body.vantage-map-page .hover\:bg-zinc-800:hover,
-body.vantage-map-page .bg-zinc-800\/40,
-body.vantage-map-page .hover\:bg-zinc-800\/40:hover {
-  background-color: rgb(39 39 42 / var(--tw-bg-opacity, 1)) !important;
-}
-
-body.vantage-map-page .border-zinc-800,
-body.vantage-map-page .border-zinc-800\/80,
-body.vantage-map-page .border-zinc-800\/60 {
-  border-color: rgb(39 39 42 / var(--tw-border-opacity, 1)) !important;
-}
-
-body.vantage-map-page .border-zinc-700,
-body.vantage-map-page .border-zinc-700\/60,
-body.vantage-map-page .hover\:border-zinc-700:hover {
-  border-color: rgb(63 63 70 / var(--tw-border-opacity, 1)) !important;
-}

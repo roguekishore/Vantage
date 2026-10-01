@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import { Group as PanelGroup, Panel as ResizePanel, Separator as PanelSeparator } from "react-resizable-panels";
 import useGroupBattleStore from "../../stores/useGroupBattleStore";
 import { getStoredUser } from "../../services/userApi";
 import {
@@ -10,41 +11,30 @@ import {
 import { abandonGroupBattle } from "../../services/groupBattleApi";
 import { cn } from "../../lib/utils";
 import { resolveJudgeProblemId } from "../../lib/judgeProblemIdResolver";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
-import { ScrollArea } from "../../components/ui/scroll-area";
-import { Separator } from "../../components/ui/separator";
+import { defineVantageThemes, vantageThemeName } from "../../lib/monacoThemes";
+import useThemeTokens from "../../hooks/useThemeTokens";
 import {
-  ResizablePanelGroup,
-  ResizablePanel,
-  ResizableHandle,
-} from "../../components/ui/resizable";
+  Badge,
+  Button,
+  EmptyState,
+  IconButton,
+  ListRow,
+  PageLoader,
+  Panel,
+  Select,
+  SelectItem,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+  ThemeToggle,
+} from "@/components/ds";
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-  TooltipProvider,
-} from "../../components/ui/tooltip";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "../../components/ui/dropdown-menu";
-import {
-  Timer, AlertTriangle, CheckCircle2,
-  XCircle, Loader2, ChevronLeft, ChevronRight,
-  Play, Clock, Terminal, SquareTerminal, FlaskConical,
-  BookOpen, ListChecks, RotateCcw, Copy, Check, Plus, X,
-  ChevronDown, Braces, Code2, Zap, CircleDot, Hash,
-  Users, Trophy, Medal, ArrowUpRight, Flag,
+  AlertTriangle, ArrowUpRight, BookOpen, Check, CheckCircle2, ChevronLeft, ChevronRight,
+  Clock, Copy, Flag, FlaskConical, ListChecks, Play, Plus, RotateCcw, Send,
+  SquareTerminal, Terminal, Timer, Users, X, XCircle,
 } from "lucide-react";
-import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
-import "../judge/Judge.css";
-
-const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
-const BATTLE_FONT_LETTER_SPACING = MONUMENT_TYPO.letterSpacing.monument;
 
 /* -- Constants -- */
 const LANGUAGES = [
@@ -61,18 +51,39 @@ function fmtTime(ms) {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
-function RankBadge({ rank }) {
-  if (rank === 1) return <Trophy className="w-3.5 h-3.5 text-amber-400" />;
-  if (rank === 2) return <Medal className="w-3.5 h-3.5 text-slate-400" />;
-  if (rank === 3) return <Medal className="w-3.5 h-3.5 text-amber-700" />;
-  return <Hash className="w-3.5 h-3.5 text-zinc-500" />;
+/* View-only: below md the panels stack vertically instead of side by side. */
+const NARROW_QUERY = "(max-width: 767px)";
+function useIsNarrow() {
+  const read = () => (typeof window !== "undefined" && window.matchMedia ? window.matchMedia(NARROW_QUERY).matches : false);
+  const [narrow, setNarrow] = useState(read);
+  useEffect(() => {
+    if (!window.matchMedia) return undefined;
+    const mq = window.matchMedia(NARROW_QUERY);
+    const onChange = () => setNarrow(mq.matches);
+    onChange();
+    mq.addEventListener?.("change", onChange);
+    return () => mq.removeEventListener?.("change", onChange);
+  }, []);
+  return narrow;
+}
+
+/* Resize handle on tokens: 4px --border bar, --accent-ink on hover / drag. */
+function ResizeHandle({ vertical = false }) {
+  return (
+    <PanelSeparator
+      className={cn(
+        "shrink-0 bg-border transition-colors duration-[120ms] ease-out hover:bg-accent-ink",
+        "ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-0 ds-focus:outline-focus",
+        vertical ? "h-1 w-full cursor-row-resize" : "h-full w-1 cursor-col-resize"
+      )}
+    />
+  );
 }
 
 /* --------------------------------------------
    GROUP ARENA PAGE
-   Reuses BattleArenaPage judge layout with a
-   collapsible scoreboard sidebar instead of
-   opponent-progress / forfeit controls.
+   Judge layout with a standings sidebar and an
+   opponent status strip under the top bar.
    -------------------------------------------- */
 export default function GroupArenaPage() {
   const { battleId } = useParams();
@@ -336,815 +347,626 @@ export default function GroupArenaPage() {
     setBottomTab("testcases");
   };
 
+  /* -- View-only: Monaco on the vantage-* token themes, stacked panels on narrow screens -- */
+  const themeTokens = useThemeTokens();
+  const monacoRef = useRef(null);
+  const isNarrow = useIsNarrow();
+  useEffect(() => {
+    if (monacoRef.current) monacoRef.current.editor.setTheme(defineVantageThemes(monacoRef.current, themeTokens));
+  }, [themeTokens]);
+  const handleEditorBeforeMount = (monaco) => {
+    monacoRef.current = monaco;
+    defineVantageThemes(monaco, themeTokens);
+  };
+
   /* -- Loading -- */
   if (!groupState) {
-    return (
-      <div className="flex h-screen items-center justify-center bg-zinc-950 text-white">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-6 w-6 animate-spin text-zinc-600" />
-          <span className="text-sm text-zinc-500">Loading battle…</span>
-        </div>
-      </div>
-    );
+    return <PageLoader label="LOADING BATTLE_" />;
   }
+
+  const submitDisabled = submitting || running || currentProblem?.isSolved || myForfeited || myFinishedAllProblems;
+  const problemTitle = judgeDetail?.title || currentProblem?.title || `Problem ${currentProblemIdx + 1}`;
+  const resultOk = runResult ? runResult.status === "Success" : submitResult?.verdict === "ACCEPTED";
 
   /* --------------------------------------------
      RENDER
      -------------------------------------------- */
   return (
-    <TooltipProvider delayDuration={300}>
-      <div className="judge-root group-arena-theme flex h-screen flex-col bg-zinc-950 text-white overflow-hidden">
+    <main id="main" className="flex h-dvh flex-col overflow-hidden bg-bg text-fg">
 
-        {/* ----------- HEADER ----------- */}
-        <header className="judge-header flex items-center justify-between h-11 px-3 flex-shrink-0 z-10">
+      {/* ----------- TOP BAR ----------- */}
+      <header className="flex h-12 shrink-0 items-center justify-between gap-3 border-b border-border bg-surface px-3">
 
-          {/* Left: mode label + timer */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <Users className="w-3.5 h-3.5 text-[var(--color-accent-primary)]" />
-              <span className="group-arena-monument text-[10px] font-black uppercase tracking-widest text-zinc-600 hidden sm:inline">
-                Group FFA
-              </span>
-            </div>
-            <Separator orientation="vertical" className="h-4" />
-            <div className={cn(
-              "flex items-center gap-1.5 font-mono text-sm font-black tabular-nums",
-              timerUrgent ? "text-rose-400" : timerWarn ? "text-amber-400" : "text-white"
-            )}>
-              <Timer className="w-3.5 h-3.5" />
-              {fmtTime(timeRemaining)}
-              {timerUrgent && (
-                <div className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse ml-0.5" />
-              )}
-            </div>
+        {/* Left: mode + timer */}
+        <div className="flex min-w-0 items-center gap-3">
+          <h1 className="sr-only font-mono text-label uppercase text-fg-muted sm:not-sr-only">Group battle</h1>
+          <span aria-hidden="true" className="hidden h-4 w-px bg-border sm:block" />
+          <div
+            role="timer"
+            aria-label={`Time remaining ${fmtTime(timeRemaining)}`}
+            className={cn(
+              "flex items-center gap-2 font-mono text-h3 font-bold tabular-nums",
+              timerUrgent ? "text-err" : timerWarn ? "text-warn" : "text-fg"
+            )}
+          >
+            <Timer size={16} strokeWidth={1.5} aria-hidden="true" />
+            {fmtTime(timeRemaining)}
           </div>
+        </div>
 
-          {/* Center: problem tabs */}
-          <div className="flex items-center gap-1 p-0.5 rounded-xl bg-zinc-900 border border-zinc-800">
-            {groupState.problems?.map((p, i) => (
-              <button
+        {/* Centre: problem switcher */}
+        <nav aria-label="Problems" className="flex items-center gap-1">
+          {groupState.problems?.map((p, i) => {
+            const active = currentProblemIdx === i;
+            return (
+              <Button
                 key={i}
+                size="sm"
+                variant={active ? "primary" : "secondary"}
+                aria-current={active ? "true" : undefined}
+                aria-label={`Problem ${i + 1}${p.isSolved ? ", solved" : ""}`}
                 onClick={() => switchProblem(i)}
-                className={cn(
-                  "relative px-3.5 py-1 rounded-lg text-[11px] font-black transition-all",
-                  currentProblemIdx === i
-                    ? "bg-white text-zinc-950"
-                    : "text-zinc-500 hover:text-zinc-300"
-                )}
+                className="min-w-9 px-2 tabular-nums"
               >
                 {i + 1}
-                {p.isSolved && (
-                  <div className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-zinc-950" />
-                )}
-              </button>
-            ))}
-          </div>
+                {p.isSolved ? <Check aria-hidden="true" className={active ? undefined : "text-ok"} /> : null}
+              </Button>
+            );
+          })}
+        </nav>
 
-          {/* Right: mini top-3 + sidebar toggle */}
-          <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-3">
-              {scoreboard.slice(0, 3).map((entry, i) => (
-                <div key={entry.userId} className={cn(
-                  "flex items-center gap-1 text-[10px] font-bold",
-                  entry.userId === userId ? "text-white" : "text-zinc-500"
-                )}>
-                  <RankBadge rank={i + 1} />
-                  <span className="truncate max-w-[56px]">{entry.username}</span>
-                  {entry.forfeited && <span className="text-[9px] text-rose-400">FF</span>}
-                  <span className="font-bold text-[var(--group-acid)]">{entry.groupScore}</span>
-                </div>
-              ))}
-            </div>
-            <Separator orientation="vertical" className="h-4 hidden sm:block" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={handleForfeit}
-                  disabled={myForfeited || myFinishedAllProblems}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all"
-                >
-                  <Flag className="w-3 h-3" />
-                  <span className="hidden sm:inline">Forfeit</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">Surrender this group battle</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <button
-                  onClick={() => setScoreboardOpen((v) => !v)}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-zinc-500 hover:text-white hover:bg-zinc-800 transition-all"
-                >
-                  <Users className="w-3 h-3" />
-                  <span className="hidden sm:inline">Players</span>
-                </button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" className="text-xs">Toggle scoreboard</TooltipContent>
-            </Tooltip>
-          </div>
-        </header>
+        {/* Right: forfeit, standings toggle, theme */}
+        <div className="flex items-center gap-1">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleForfeit}
+            disabled={myForfeited || myFinishedAllProblems}
+            aria-label="Forfeit this group battle"
+            title="Forfeit this group battle"
+            className="text-err"
+          >
+            <Flag aria-hidden="true" />
+            <span className="hidden sm:inline">Forfeit</span>
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setScoreboardOpen((v) => !v)}
+            aria-pressed={scoreboardOpen}
+            aria-label="Toggle standings"
+            title="Toggle standings"
+            className="hidden md:inline-flex"
+          >
+            <Users aria-hidden="true" />
+            Standings
+          </Button>
+          <ThemeToggle size="sm" variant="ghost" />
+        </div>
+      </header>
 
-        {myForfeited && (
-          <div className="mx-3 mt-2 rounded-lg border border-amber-900/40 bg-amber-950/20 px-3 py-2 text-xs text-amber-300 flex items-center gap-2">
-            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
-            <span className="flex-1">You forfeited. You can spectate or leave the battle.</span>
-            <button
-              onClick={handleLeaveBattle}
-              className="shrink-0 px-3 py-1 rounded-md text-[11px] font-bold bg-amber-500/20 border border-amber-500/30 text-amber-300 hover:bg-amber-500/30 transition-colors"
-            >
-              Leave Battle
-            </button>
-          </div>
+      {/* ----------- OPPONENT STATUS STRIP (mobile, or when the sidebar is closed) ----------- */}
+      <div
+        role="list"
+        aria-label="Players"
+        className={cn(
+          "flex h-9 shrink-0 items-stretch overflow-x-auto border-b border-border bg-bg",
+          scoreboardOpen && "md:hidden"
         )}
-
-        {waitingForGroupResult && (
-          <div className="mx-3 mt-2 rounded-lg border border-emerald-900/40 bg-emerald-950/20 px-3 py-2 text-xs text-emerald-300 flex items-center gap-2">
-            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-            <span className="flex-1">You finished all problems. Wait for other players or timer end to see final results.</span>
-            <button
-              onClick={handleLeaveBattle}
-              className="shrink-0 px-3 py-1 rounded-md text-[11px] font-bold bg-emerald-500/20 border border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/30 transition-colors"
+      >
+        {scoreboard.map((entry, i) => {
+          const isMe = entry.userId === userId;
+          return (
+            <div
+              role="listitem"
+              key={entry.userId}
+              className={cn(
+                "flex shrink-0 items-center gap-2 border-r border-border px-3 font-mono text-small tabular-nums",
+                isMe ? "bg-accent-soft text-fg" : "text-fg-muted"
+              )}
             >
-              Leave Room
-            </button>
-          </div>
-        )}
-
-        {/* ----------- WORKSPACE ----------- */}
-        <div className="flex flex-1 min-h-0">
-
-          {/* -- Scoreboard Sidebar -- */}
-          {scoreboardOpen && (
-            <aside className="w-48 border-r border-zinc-800 flex flex-col shrink-0 bg-zinc-900/40">
-              <div className="judge-toolbar h-9 px-3 flex items-center gap-1.5 border-b border-zinc-800">
-                <Users className="w-3 h-3 text-zinc-500" />
-                <span className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">
-                  Players
+              <span className={i === 0 ? "text-accent-ink" : "text-fg-dim"}>#{i + 1}</span>
+              <span className="max-w-[12ch] truncate">{entry.username}</span>
+              {entry.forfeited ? (
+                <Badge tone="err">Forfeit</Badge>
+              ) : (
+                <span className="text-fg-dim">
+                  {entry.problemsSolved}/{totalProblems}
                 </span>
-              </div>
-              <ScrollArea className="flex-1">
-                <div className="p-2 space-y-1">
-                  {scoreboard.map((entry, i) => (
-                    <div
-                      key={entry.userId}
-                      className={cn(
-                        "rounded-md px-2 py-1.5 flex items-center gap-2",
-                        entry.userId === userId
-                          ? "bg-primary/10 border border-primary/20"
-                          : "hover:bg-zinc-800/40"
-                      )}
-                    >
-                      <RankBadge rank={i + 1} />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-bold text-white truncate">{entry.username}</p>
-                        <p className="text-[10px] text-zinc-500">{entry.forfeited ? "forfeited" : `${entry.problemsSolved} solved`}</p>
+              )}
+              <span className="font-bold text-fg">{entry.groupScore}</span>
+            </div>
+          );
+        })}
+      </div>
+
+      {myForfeited && (
+        <div role="status" className="flex shrink-0 flex-wrap items-center gap-3 border-b border-warn bg-warn-soft px-3 py-2 font-mono text-small text-warn">
+          <AlertTriangle size={14} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+          <span className="min-w-0 flex-1">You forfeited. You can keep watching or leave the battle.</span>
+          <Button size="sm" variant="secondary" onClick={handleLeaveBattle}>
+            Leave battle
+          </Button>
+        </div>
+      )}
+
+      {waitingForGroupResult && (
+        <div role="status" className="flex shrink-0 flex-wrap items-center gap-3 border-b border-ok bg-ok-soft px-3 py-2 font-mono text-small text-ok">
+          <CheckCircle2 size={14} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+          <span className="min-w-0 flex-1">
+            You solved every problem. Final results appear when the other players finish or the timer ends.
+          </span>
+          <Button size="sm" variant="secondary" onClick={handleLeaveBattle}>
+            Leave room
+          </Button>
+        </div>
+      )}
+
+      {/* ----------- WORKSPACE ----------- */}
+      <div className="flex min-h-0 flex-1">
+
+        {/* -- Standings sidebar (md+) -- */}
+        {scoreboardOpen && (
+          <aside aria-label="Standings" className="hidden w-56 shrink-0 flex-col border-r border-border bg-surface md:flex">
+            <div className="flex h-10 shrink-0 items-center border-b border-border px-3 font-mono text-label uppercase text-fg-muted">
+              Standings
+            </div>
+            <div className="min-h-0 flex-1 overflow-auto">
+              {scoreboard.map((entry, i) => {
+                const isMe = entry.userId === userId;
+                return (
+                  <ListRow
+                    key={entry.userId}
+                    className={cn("px-3", isMe && "bg-accent-soft")}
+                    leading={
+                      <span className={cn("w-6 font-mono text-small tabular-nums", i === 0 ? "text-accent-ink" : "text-fg-dim")}>
+                        #{i + 1}
+                      </span>
+                    }
+                    title={<span className="text-small">{entry.username}{isMe ? " (you)" : ""}</span>}
+                    meta={entry.forfeited ? <span className="text-err">Forfeited</span> : `${entry.problemsSolved}/${totalProblems} solved`}
+                    trailing={<span className="font-mono text-small font-bold tabular-nums text-fg">{entry.groupScore}</span>}
+                  />
+                );
+              })}
+            </div>
+          </aside>
+        )}
+
+        {/* -- Main panels -- */}
+        <PanelGroup
+          key={isNarrow ? "stack" : "split"}
+          orientation={isNarrow ? "vertical" : "horizontal"}
+          className="flex h-full min-h-0 w-full flex-1"
+        >
+
+          {/* --- LEFT: problem + results --- */}
+          <ResizePanel id="left" defaultSize="40%" minSize="25%" maxSize={isNarrow ? "70%" : "55%"}>
+            <section aria-label="Problem" className="flex h-full flex-col bg-surface">
+              <Tabs value={leftTab} onValueChange={setLeftTab} className="flex h-full min-h-0 flex-col">
+                <TabsList aria-label="Problem panel" className="shrink-0 px-3">
+                  <TabsTrigger value="description">
+                    <BookOpen aria-hidden="true" /> Description
+                  </TabsTrigger>
+                  <TabsTrigger value="results">
+                    <ListChecks aria-hidden="true" /> Results
+                    {submitResult && (
+                      <span
+                        aria-label={submitResult.verdict === "ACCEPTED" ? "accepted" : "failed"}
+                        role="img"
+                        className={cn("size-1.5", submitResult.verdict === "ACCEPTED" ? "bg-ok" : "bg-err")}
+                      />
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* -- Description -- */}
+                <TabsContent value="description" className="min-h-0 flex-1 overflow-auto">
+                  <div className="grid gap-6 p-5">
+                    <div className="grid gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-label uppercase text-fg-muted">
+                          Problem {currentProblemIdx + 1} of {totalProblems}
+                        </span>
+                        {currentProblem?.isSolved && (
+                          <Badge tone="ok">
+                            <CheckCircle2 size={10} strokeWidth={1.5} aria-hidden="true" /> Solved
+                          </Badge>
+                        )}
                       </div>
-                      <span className="text-[11px] font-bold text-primary shrink-0">{entry.groupScore}</span>
+                      <h2 className="font-mono text-h3 text-fg">{problemTitle}</h2>
                     </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </aside>
-          )}
 
-          {/* -- Main Panels -- */}
-          <ResizablePanelGroup orientation="horizontal" className="flex-1 min-h-0">
+                    <div className="grid gap-2 font-mono text-body text-fg-muted">
+                      {(judgeDetail?.description || currentProblem?.description || "Loading…")
+                        .split("\n")
+                        .map((line, i) => (
+                          <p key={i} className={line ? "" : "h-2"}>{line}</p>
+                        ))}
+                    </div>
 
-            {/* --- LEFT PANEL: Problem + Results --- */}
-            <ResizablePanel id="left" defaultSize="40%" minSize="25%" maxSize="55%">
-              <div className="flex flex-col h-full judge-panel">
-                <Tabs value={leftTab} onValueChange={setLeftTab} className="flex flex-col h-full">
-                  <div className="flex items-center border-b border-zinc-800/80 px-1 flex-shrink-0 bg-zinc-950">
-                    <TabsList className="bg-transparent h-10 p-0 gap-0">
-                      <TabsTrigger value="description" className="judge-tab-trigger">
-                        <BookOpen className="h-3.5 w-3.5" /> Description
+                    {judgeDetail?.examples?.length > 0 && (
+                      <section className="grid gap-3">
+                        <h3 className="font-mono text-label uppercase text-fg-muted">Examples</h3>
+                        {judgeDetail.examples.map((ex, i) => (
+                          <Panel key={i} variant="inset" label={`Example ${i + 1}`} bodyClassName="grid gap-3">
+                            <CodeBlock label="Input">{ex.input}</CodeBlock>
+                            <CodeBlock label="Output">{ex.output}</CodeBlock>
+                            {ex.explanation && (
+                              <div className="grid gap-1.5 border-t border-border pt-3">
+                                <div className="font-mono text-label uppercase text-fg-muted">Explanation</div>
+                                <p className="font-mono text-small text-fg-muted">{ex.explanation}</p>
+                              </div>
+                            )}
+                          </Panel>
+                        ))}
+                      </section>
+                    )}
+
+                    {judgeDetail?.constraints?.length > 0 && (
+                      <section className="grid gap-3">
+                        <h3 className="font-mono text-label uppercase text-fg-muted">Constraints</h3>
+                        <ul className="grid gap-1 border border-border bg-bg p-3">
+                          {judgeDetail.constraints.map((c, i) => (
+                            <li key={i} className="flex gap-2 font-mono text-small text-fg-muted">
+                              <span aria-hidden="true" className="text-fg-dim">-</span>
+                              <code>{c}</code>
+                            </li>
+                          ))}
+                        </ul>
+                      </section>
+                    )}
+
+                    {totalProblems > 1 && (
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={currentProblemIdx === 0}
+                          onClick={() => switchProblem(currentProblemIdx - 1)}
+                        >
+                          <ChevronLeft aria-hidden="true" /> Previous
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={currentProblemIdx >= totalProblems - 1}
+                          onClick={() => switchProblem(currentProblemIdx + 1)}
+                        >
+                          Next <ChevronRight aria-hidden="true" />
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+
+                {/* -- Results -- */}
+                <TabsContent value="results" className="min-h-0 flex-1 overflow-auto">
+                  <div className="grid gap-5 p-5">
+                    {!submitResult && !runResult && (
+                      <EmptyState
+                        icon={Terminal}
+                        title="No results yet"
+                        description="Run or submit your code to see results here."
+                      />
+                    )}
+                    {runResult && (
+                      <div className="grid gap-4">
+                        <StatusBanner status={runResult.status} time={runResult.time} />
+                        {runResult.stdout && <CodeBlock label="Standard output">{runResult.stdout}</CodeBlock>}
+                        {runResult.stderr && <CodeBlock label="Error output" tone="err">{runResult.stderr}</CodeBlock>}
+                      </div>
+                    )}
+                    {submitResult && !runResult && (
+                      <div className="grid gap-5">
+                        <VerdictBanner result={submitResult} />
+                        {submitResult.error && <CodeBlock label="Error" tone="err">{submitResult.error}</CodeBlock>}
+                        {/* First failed test case */}
+                        {submitResult.firstFailedInput != null && (
+                          <Panel
+                            label="Last executed test"
+                            actions={
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                onClick={() => useFailedAsTestCase(submitResult.firstFailedInput, submitResult.firstFailedExpected)}
+                                title="Load this input as a custom test case"
+                              >
+                                <ArrowUpRight aria-hidden="true" />
+                                Load failing case
+                              </Button>
+                            }
+                            bodyClassName="grid gap-3"
+                          >
+                            <div className="flex items-center gap-2 font-mono text-small text-err">
+                              <XCircle size={14} strokeWidth={1.5} aria-hidden="true" /> Wrong answer
+                            </div>
+                            <CodeBlock label="Input">{submitResult.firstFailedInput}</CodeBlock>
+                            <div className="grid gap-3 sm:grid-cols-2">
+                              <CodeBlock label="Expected" tone="ok">{submitResult.firstFailedExpected}</CodeBlock>
+                              <CodeBlock label="Your output" tone="err">{submitResult.firstFailedActual}</CodeBlock>
+                            </div>
+                            {submitResult.firstFailedError && (
+                              <CodeBlock label="Runtime error" tone="err">{submitResult.firstFailedError}</CodeBlock>
+                            )}
+                          </Panel>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </section>
+          </ResizePanel>
+
+          <ResizeHandle vertical={isNarrow} />
+
+          {/* --- RIGHT: editor + testcases --- */}
+          <ResizePanel id="right" defaultSize="60%" minSize="30%">
+            <PanelGroup orientation="vertical" className="flex h-full w-full">
+
+              {/* -- Code editor -- */}
+              <ResizePanel id="right-top" defaultSize="60%" minSize="25%">
+                <section aria-label="Code editor" className="flex h-full flex-col">
+                  <div className="flex h-10 shrink-0 items-center justify-between gap-2 border-b border-border bg-surface px-2">
+                    <Select size="sm" aria-label="Language" value={language} onValueChange={handleLanguageChange} className="w-28">
+                      {LANGUAGES.map((l) => (
+                        <SelectItem key={l.value} value={l.value}>
+                          {l.label}
+                        </SelectItem>
+                      ))}
+                    </Select>
+
+                    <div className="flex items-center gap-1">
+                      <IconButton icon={RotateCcw} size="sm" aria-label="Reset to boilerplate" onClick={handleResetCode} />
+                      <IconButton
+                        icon={copied ? Check : Copy}
+                        size="sm"
+                        aria-label={copied ? "Code copied" : "Copy code"}
+                        onClick={handleCopyCode}
+                      />
+                      <span aria-hidden="true" className="mx-1 h-4 w-px bg-border" />
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={handleRun}
+                        disabled={running || submitting}
+                        loading={running}
+                        title="Run against the active test case"
+                      >
+                        <Play aria-hidden="true" />
+                        Run
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="primary"
+                        onClick={handleSubmit}
+                        disabled={submitDisabled}
+                        loading={submitting}
+                        title="Submit for free-for-all scoring"
+                      >
+                        <Send aria-hidden="true" />
+                        Submit
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="min-h-0 flex-1">
+                    <Editor
+                      height="100%"
+                      language={currentLang?.monacoId || "cpp"}
+                      theme={vantageThemeName(themeTokens.theme)}
+                      beforeMount={handleEditorBeforeMount}
+                      value={code}
+                      onChange={(val) => setCode(val || "")}
+                      onMount={handleEditorMount}
+                      options={{
+                        fontSize: 13,
+                        fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace",
+                        minimap: { enabled: false },
+                        scrollBeyondLastLine: false,
+                        automaticLayout: true,
+                        tabSize: 4,
+                        wordWrap: "on",
+                        padding: { top: 12, bottom: 12 },
+                        suggestOnTriggerCharacters: true,
+                        quickSuggestions: true,
+                        lineNumbersMinChars: 3,
+                        renderLineHighlight: "line",
+                        cursorBlinking: "smooth",
+                        smoothScrolling: true,
+                        bracketPairColorization: { enabled: true },
+                        guides: { bracketPairs: true },
+                      }}
+                    />
+                  </div>
+                </section>
+              </ResizePanel>
+
+              <ResizeHandle vertical />
+
+              {/* -- Bottom: testcases / output -- */}
+              <ResizePanel id="right-bottom" defaultSize="40%" minSize="15%" maxSize="60%">
+                <section aria-label="Test cases and output" className="flex h-full flex-col bg-surface">
+                  <Tabs value={bottomTab} onValueChange={setBottomTab} className="flex h-full min-h-0 flex-col">
+                    <TabsList aria-label="Console" className="shrink-0 px-3">
+                      <TabsTrigger value="testcases">
+                        <FlaskConical aria-hidden="true" /> Testcases
                       </TabsTrigger>
-                      <TabsTrigger value="results" className="judge-tab-trigger">
-                        <ListChecks className="h-3.5 w-3.5" /> Results
-                        {submitResult && (
-                          <span className={`judge-result-dot ${submitResult.verdict === "ACCEPTED"
-                            ? "judge-result-dot--success"
-                            : "judge-result-dot--error"
-                            }`} />
+                      <TabsTrigger value="result">
+                        <SquareTerminal aria-hidden="true" /> Output
+                        {(runResult || submitResult) && (
+                          <span
+                            role="img"
+                            aria-label={resultOk ? "passed" : "failed"}
+                            className={cn("size-1.5", resultOk ? "bg-ok" : "bg-err")}
+                          />
                         )}
                       </TabsTrigger>
                     </TabsList>
-                  </div>
 
-                  {/* -- Description -- */}
-                  <TabsContent value="description" className="flex-1 overflow-hidden m-0">
-                    <ScrollArea className="h-full">
-                      <div className="p-5 space-y-6">
-                        <div>
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <Code2 className="h-3.5 w-3.5 text-[var(--color-accent-primary)]" />
-                            <span className="group-arena-monument text-[9px] font-black uppercase tracking-[0.2em] text-zinc-600">
-                              Problem {currentProblemIdx + 1} of {totalProblems}
-                            </span>
-                            {currentProblem?.isSolved && (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-[9px] font-black text-emerald-400 uppercase tracking-widest">
-                                <CheckCircle2 className="w-2.5 h-2.5" /> Solved
-                              </span>
-                            )}
-                          </div>
-                          <h2 className="text-base font-black text-white tracking-tight">
-                            {judgeDetail?.title || currentProblem?.title || `Problem ${currentProblemIdx + 1}`}
-                          </h2>
-                        </div>
-
-                        <div className="text-[13px] leading-relaxed text-zinc-400 space-y-2">
-                          {(judgeDetail?.description || currentProblem?.description || "Loading\u2026")
-                            .split("\n")
-                            .map((line, i) => (
-                              <p key={i} className={line ? "" : "h-2"}>{line}</p>
-                            ))}
-                        </div>
-
-                        {judgeDetail?.examples?.length > 0 && (
-                          <div className="space-y-3">
-                            <h3 className="judge-section-heading">Examples</h3>
-                            {judgeDetail.examples.map((ex, i) => (
-                              <div key={i} className="judge-example-card">
-                                <div className="judge-example-header">
-                                  <span className="text-[10px] font-bold text-zinc-500 flex items-center gap-1.5">
-                                    <Hash className="h-3 w-3" /> Example {i + 1}
-                                  </span>
-                                </div>
-                                <div className="judge-example-body space-y-2.5">
-                                  <div>
-                                    <div className="judge-label">Input</div>
-                                    <code className="judge-codeblock block text-[12px]">{ex.input}</code>
-                                  </div>
-                                  <div>
-                                    <div className="judge-label">Output</div>
-                                    <code className="judge-codeblock block text-[12px]">{ex.output}</code>
-                                  </div>
-                                  {ex.explanation && (
-                                    <div className="pt-2 border-t border-zinc-800">
-                                      <div className="judge-label">Explanation</div>
-                                      <span className="text-xs text-zinc-500 leading-relaxed">{ex.explanation}</span>
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {judgeDetail?.constraints?.length > 0 && (
-                          <div className="space-y-2.5">
-                            <h3 className="judge-section-heading">Constraints</h3>
-                            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-3 space-y-0.5">
-                              {judgeDetail.constraints.map((c, i) => (
-                                <div key={i} className="judge-constraint-item">
-                                  <span className="judge-constraint-dot" />
-                                  <code className="text-xs font-mono text-zinc-400">{c}</code>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {totalProblems > 1 && (
-                          <div className="flex gap-2 pt-2">
-                            <button
-                              disabled={currentProblemIdx === 0}
-                              onClick={() => switchProblem(currentProblemIdx - 1)}
-                              className={cn(
-                                "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                                currentProblemIdx === 0
-                                  ? "text-zinc-800 cursor-not-allowed"
-                                  : "text-zinc-500 hover:text-white hover:bg-zinc-800"
-                              )}
-                            >
-                              <ChevronLeft className="w-3.5 h-3.5" /> Prev
-                            </button>
-                            <button
-                              disabled={currentProblemIdx >= totalProblems - 1}
-                              onClick={() => switchProblem(currentProblemIdx + 1)}
-                              className={cn(
-                                "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold transition-all",
-                                currentProblemIdx >= totalProblems - 1
-                                  ? "text-zinc-800 cursor-not-allowed"
-                                  : "text-zinc-500 hover:text-white hover:bg-zinc-800"
-                              )}
-                            >
-                              Next <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-
-                  {/* -- Results -- */}
-                  <TabsContent value="results" className="flex-1 overflow-hidden m-0">
-                    <ScrollArea className="h-full">
-                      <div className="p-5">
-                        {!submitResult && !runResult && (
-                          <div className="judge-empty-state py-16">
-                            <Terminal className="judge-empty-state-icon" />
-                            <p className="text-sm font-medium">No results yet</p>
-                            <p className="text-xs text-zinc-500">Run or submit your code to see results here</p>
-                          </div>
-                        )}
-                        {runResult && (
-                          <div className="space-y-4">
-                            <StatusBanner status={runResult.status} time={runResult.time} />
-                            {runResult.stdout && (
-                              <CodeOutput label="Standard Output" icon={<SquareTerminal className="h-3 w-3" />}>{runResult.stdout}</CodeOutput>
-                            )}
-                            {runResult.stderr && (
-                              <CodeOutput label="Error Output" variant="error" icon={<AlertTriangle className="h-3 w-3" />}>{runResult.stderr}</CodeOutput>
-                            )}
-                          </div>
-                        )}
-                        {submitResult && !runResult && (
-                          <div className="space-y-5">
-                            <VerdictBanner result={submitResult} />
-                            {submitResult.error && (
-                              <CodeOutput label="Error" variant="error" icon={<AlertTriangle className="h-3 w-3" />}>{submitResult.error}</CodeOutput>
-                            )}
-                            {/* First failed test case - LeetCode-style */}
-                            {submitResult.firstFailedInput != null && (
-                              <div className="space-y-3">
-                                <h4 className="judge-section-heading">Last Executed Test</h4>
-                                <div className="judge-failed-card">
-                                  <div className="judge-failed-card-header">
-                                    <div className="flex items-center gap-2">
-                                      <XCircle className="h-3.5 w-3.5 text-[var(--color-danger)]" />
-                                      <span className="text-xs font-semibold text-[var(--color-danger)]">Wrong Answer</span>
-                                    </div>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <button
-                                          onClick={() => useFailedAsTestCase(submitResult.firstFailedInput, submitResult.firstFailedExpected)}
-                                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-medium bg-[var(--color-accent-primary-light)] text-[var(--color-accent-primary)] hover:bg-[var(--color-accent-primary)] hover:text-white transition-colors"
-                                        >
-                                          <ArrowUpRight className="h-3 w-3" />
-                                          Debug
-                                        </button>
-                                      </TooltipTrigger>
-                                      <TooltipContent side="left" className="text-xs">Load this input as a custom test case</TooltipContent>
-                                    </Tooltip>
-                                  </div>
-                                  <div className="p-3.5 space-y-3">
-                                    <div>
-                                      <div className="judge-label">Input</div>
-                                      <pre className="judge-codeblock text-[12px]">{submitResult.firstFailedInput}</pre>
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-3">
-                                      <div>
-                                        <div className="judge-label" style={{ color: 'var(--color-success)' }}>Expected</div>
-                                        <pre className="judge-codeblock text-[12px]" style={{ borderColor: 'rgba(34,197,94,0.2)' }}>{submitResult.firstFailedExpected}</pre>
-                                      </div>
-                                      <div>
-                                        <div className="judge-label" style={{ color: 'var(--color-danger)' }}>Your Output</div>
-                                        <pre className="judge-codeblock text-[12px]" style={{ borderColor: 'rgba(239,68,68,0.2)' }}>{submitResult.firstFailedActual}</pre>
-                                      </div>
-                                    </div>
-                                    {submitResult.firstFailedError && (
-                                      <div>
-                                        <div className="judge-label" style={{ color: 'var(--color-danger)' }}>Runtime Error</div>
-                                        <pre className="judge-codeblock judge-codeblock--error text-[12px]">{submitResult.firstFailedError}</pre>
-                                      </div>
-                                    )}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    </ScrollArea>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </ResizablePanel>
-
-            <ResizableHandle orientation="horizontal" withHandle />
-
-            {/* --- RIGHT PANEL: Editor + Testcases --- */}
-            <ResizablePanel id="right" defaultSize="60%" minSize="35%">
-              <ResizablePanelGroup orientation="vertical">
-
-                {/* -- Code Editor -- */}
-                <ResizablePanel id="right-top" defaultSize="60%" minSize="25%">
-                  <div className="flex flex-col h-full">
-                    <div style={{
-                      display: "flex", alignItems: "center", justifyContent: "space-between",
-                      height: 40, padding: "0 10px", flexShrink: 0,
-                      borderBottom: "1px solid rgba(255,255,255,0.2)", background: "#09090b"
-                    }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger style={{
-                            display: "flex", alignItems: "center", gap: 6,
-                            padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)",
-                            background: "transparent",
-                            fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)",
-                            transition: "all 0.15s"
-                          }}
-                            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.28)"; e.currentTarget.style.color = "#fff"; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; }}
-                          >
-                            <Braces className="h-3 w-3" color="rgba(255,255,255,0.4)" />
-                            {currentLang?.label}
-                            <ChevronDown className="h-3 w-3" color="rgba(255,255,255,0.3)" />
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="start" style={{
-                            background: "#0d0d10", border: "1px solid rgba(255,255,255,0.2)",
-                            borderRadius: 10, padding: 4, minWidth: 140
-                          }}>
-                            <DropdownMenuLabel style={{
-                              fontSize: 9, fontWeight: 900, letterSpacing: "0.22em",
-                              textTransform: "uppercase", color: "rgba(255,255,255,0.18)", padding: "4px 8px"
-                            }}>Language</DropdownMenuLabel>
-                            <DropdownMenuSeparator style={{ background: "rgba(255,255,255,0.2)", margin: "4px 0" }} />
-                            {LANGUAGES.map((l) => (
-                              <DropdownMenuItem
-                                key={l.value}
-                                onClick={() => handleLanguageChange(l.value)}
-                                style={{
-                                  display: "flex", alignItems: "center", gap: 7, padding: "6px 8px",
-                                  borderRadius: 7, fontSize: 12, fontWeight: 600,
-                                  color: language === l.value ? "#EDFF66" : "rgba(255,255,255,0.5)",
-                                  background: "transparent", transition: "background 0.1s"
-                                }}
-                                onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                                onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
-                              >
-                                <Braces className="h-3 w-3 mr-1.5" />
-                                {l.label}
-                                {language === l.value && <Check className="h-3 w-3 ml-auto" />}
-                              </DropdownMenuItem>
-                            ))}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-
-                      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button onClick={handleResetCode}
-                              style={{
-                                width: 28, height: 28, borderRadius: 7, border: "none",
-                                background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
-                                color: "rgba(255,255,255,0.3)", transition: "all 0.15s"
-                              }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
-                            >
-                              <RotateCcw className="h-3.5 w-3.5" />
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Reset to boilerplate</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button onClick={handleCopyCode}
-                              style={{
-                                width: 28, height: 28, borderRadius: 7, border: "none",
-                                background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
-                                color: copied ? "#34d399" : "rgba(255,255,255,0.3)", transition: "all 0.15s"
-                              }}
-                              onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; if (!copied) e.currentTarget.style.color = "#fff"; }}
-                              onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = copied ? "#34d399" : "rgba(255,255,255,0.3)"; }}
-                            >
-                              {copied
-                                ? <Check className="h-3.5 w-3.5 text-[var(--color-success)]" />
-                                : <Copy className="h-3.5 w-3.5" />}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">{copied ? "Copied!" : "Copy code"}</TooltipContent>
-                        </Tooltip>
-
-                        <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.2)", margin: "0 4px" }} />
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button onClick={handleRun} disabled={running || submitting}
-                              style={{
-                                display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px",
-                                borderRadius: 7, border: "1px solid rgba(255,255,255,0.2)", background: "transparent",
-                                fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)",
-                                opacity: (running || submitting) ? 0.4 : 1, transition: "all 0.15s"
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!running && !submitting) {
-                                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.14)";
-                                  e.currentTarget.style.color = "#fff";
-                                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
-                                e.currentTarget.style.color = "rgba(255,255,255,0.45)";
-                                e.currentTarget.style.background = "transparent";
-                              }}>
-                              {running
-                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                : <Play className="h-3.5 w-3.5" />}
-                              Run
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Run against active test case</TooltipContent>
-                        </Tooltip>
-
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              onClick={handleSubmit}
-                              disabled={submitting || running || currentProblem?.isSolved || myForfeited || myFinishedAllProblems}
-                              style={{
-                                display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 14px",
-                                borderRadius: 7, border: "none",
-                                background: "#EDFF66", color: "#09090b",
-                                fontSize: 11, fontWeight: 900, letterSpacing: "0.06em",
-                                opacity: (submitting || running || currentProblem?.isSolved || myForfeited || myFinishedAllProblems) ? 0.45 : 1,
-                                transition: "opacity 0.15s", marginLeft: 2
-                              }}
-                              onMouseEnter={(e) => {
-                                if (!submitting && !running && !currentProblem?.isSolved && !myForfeited && !myFinishedAllProblems) {
-                                  e.currentTarget.style.opacity = "0.82";
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.opacity = (submitting || running || currentProblem?.isSolved || myForfeited || myFinishedAllProblems) ? "0.45" : "1";
-                              }}
-                            >
-                              {submitting
-                                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                : <Zap className="h-3.5 w-3.5" />}
-                              Submit
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="text-xs">Submit for FFA scoring</TooltipContent>
-                        </Tooltip>
-                      </div>
-                    </div>
-
-                    <div className="flex-1 min-h-0">
-                      <Editor
-                        height="100%"
-                        language={currentLang?.monacoId || "cpp"}
-                        theme="vs-dark"
-                        value={code}
-                        onChange={(val) => setCode(val || "")}
-                        onMount={handleEditorMount}
-                        options={{
-                          fontSize: 13,
-                          fontFamily: "'JetBrains Mono','Fira Code','Cascadia Code',Consolas,monospace",
-                          minimap: { enabled: false },
-                          scrollBeyondLastLine: false,
-                          automaticLayout: true,
-                          tabSize: 4,
-                          wordWrap: "on",
-                          padding: { top: 12, bottom: 12 },
-                          suggestOnTriggerCharacters: true,
-                          quickSuggestions: true,
-                          lineNumbersMinChars: 3,
-                          renderLineHighlight: "line",
-                          cursorBlinking: "smooth",
-                          smoothScrolling: true,
-                          bracketPairColorization: { enabled: true },
-                          guides: { bracketPairs: true },
-                        }}
-                      />
-                    </div>
-                  </div>
-                </ResizablePanel>
-
-                <ResizableHandle orientation="vertical" />
-
-                {/* -- Bottom: Testcases / Output -- */}
-                <ResizablePanel id="right-bottom" defaultSize="40%" minSize="15%" maxSize="60%">
-                  <div className="flex flex-col h-full judge-panel">
-                    <Tabs value={bottomTab} onValueChange={setBottomTab} className="flex flex-col h-full">
-                      <div className="flex items-center border-b border-zinc-800/80 px-1 flex-shrink-0 bg-zinc-950">
-                        <TabsList className="bg-transparent h-9 p-0 gap-0">
-                          <TabsTrigger value="testcases" className="judge-tab-trigger h-9">
-                            <FlaskConical className="h-3.5 w-3.5" /> Testcases
-                          </TabsTrigger>
-                          <TabsTrigger value="result" className="judge-tab-trigger h-9">
-                            <SquareTerminal className="h-3.5 w-3.5" /> Output
-                            {(runResult || submitResult) && (
-                              <span className={`judge-result-dot ${runResult?.status === "Success" || submitResult?.verdict === "ACCEPTED"
-                                ? "judge-result-dot--success"
-                                : "judge-result-dot--error"
-                                }`} />
-                            )}
-                          </TabsTrigger>
-                        </TabsList>
-                      </div>
-
-                      {/* Testcases */}
-                      <TabsContent value="testcases" className="flex-1 overflow-hidden m-0">
-                        <div className="flex flex-col h-full">
-                          <div className="flex items-center gap-1.5 px-3 pt-3 pb-2 flex-shrink-0 flex-wrap">
-                            {testCases.map((tc, idx) => (
-                              <div key={idx} className="relative group">
-                                <button
-                                  className={`judge-tc-pill ${tc.isCustom ? "judge-tc-pill-custom" : ""}`}
-                                  data-active={activeTestCase === idx}
+                    {/* Testcases */}
+                    <TabsContent value="testcases" className="min-h-0 flex-1 overflow-auto">
+                      <div className="grid gap-3 p-3">
+                        <div role="group" aria-label="Test cases" className="flex flex-wrap items-center gap-1.5">
+                          {testCases.map((tc, idx) => {
+                            const label = tc.isCustom ? `Custom ${idx - sampleCount + 1}` : `Case ${idx + 1}`;
+                            const active = activeTestCase === idx;
+                            return (
+                              <div key={idx} className="flex items-center">
+                                <Button
+                                  size="sm"
+                                  variant={active ? "primary" : "secondary"}
+                                  aria-pressed={active}
                                   onClick={() => setActiveTestCase(idx)}
                                 >
-                                  <CircleDot className="h-2.5 w-2.5" />
-                                  {tc.isCustom ? `Custom ${idx - sampleCount + 1}` : `Case ${idx + 1}`}
-                                </button>
+                                  {label}
+                                </Button>
                                 {tc.isCustom && (
-                                  <button
+                                  <IconButton
+                                    icon={X}
+                                    size="sm"
+                                    variant="secondary"
+                                    className="-ml-px"
+                                    aria-label={`Remove ${label}`}
                                     onClick={(e) => { e.stopPropagation(); removeTestCase(idx); }}
-                                    className="absolute -right-0.5 -top-0.5 h-3.5 w-3.5 flex items-center justify-center rounded-full bg-zinc-900 border border-zinc-800 text-zinc-600 hover:text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/30 transition-colors opacity-0 group-hover:opacity-100"
-                                  >
-                                    <X className="h-2 w-2" />
-                                  </button>
+                                  />
                                 )}
                               </div>
-                            ))}
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button onClick={addCustomTestCase} className="judge-tc-pill judge-tc-pill-add">
-                                  <Plus className="h-3 w-3" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="bottom" className="text-xs">Add custom test case</TooltipContent>
-                            </Tooltip>
-                          </div>
-
-                          <ScrollArea className="flex-1 px-3 pb-3">
-                            <div className="space-y-3">
-                              <div>
-                                <div className="judge-label">Input</div>
-                                <textarea
-                                  className="judge-input"
-                                  value={testCases[activeTestCase]?.input || ""}
-                                  onChange={(e) => updateActiveInput(e.target.value)}
-                                  placeholder="Enter test input\u2026"
-                                  spellCheck={false}
-                                />
-                              </div>
-                              {testCases[activeTestCase]?.output && (
-                                <div>
-                                  <div className="judge-label">Expected Output</div>
-                                  <pre className="judge-codeblock text-[12px]">{testCases[activeTestCase].output}</pre>
-                                </div>
-                              )}
-                            </div>
-                          </ScrollArea>
+                            );
+                          })}
+                          <IconButton icon={Plus} size="sm" variant="ghost" aria-label="Add custom test case" onClick={addCustomTestCase} />
                         </div>
-                      </TabsContent>
 
-                      {/* Output */}
-                      <TabsContent value="result" className="flex-1 overflow-hidden m-0">
-                        <ScrollArea className="h-full p-3">
-                          {!runResult && !submitResult && (
-                            <div className="judge-empty-state py-8">
-                              <SquareTerminal className="judge-empty-state-icon" />
-                              <p className="text-xs font-medium">Run your code to see output</p>
-                            </div>
-                          )}
-                          {runResult && (
-                            <div className="space-y-3">
-                              <StatusBanner status={runResult.status} time={runResult.time} compact />
-                              {runResult.stdout && (
-                                <CodeOutput label="Stdout" size="sm" icon={<SquareTerminal className="h-3 w-3" />}>{runResult.stdout}</CodeOutput>
-                              )}
-                              {runResult.stderr && (
-                                <CodeOutput label="Stderr" variant="error" size="sm" icon={<AlertTriangle className="h-3 w-3" />}>{runResult.stderr}</CodeOutput>
-                              )}
-                            </div>
-                          )}
-                          {submitResult && !runResult && (
-                            <div className="space-y-3">
-                              <VerdictBanner result={submitResult} compact />
-                              {submitResult.error && (
-                                <CodeOutput variant="error" size="sm">{submitResult.error}</CodeOutput>
-                              )}
-                            </div>
-                          )}
-                        </ScrollArea>
-                      </TabsContent>
-                    </Tabs>
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
-            </ResizablePanel>
-          </ResizablePanelGroup>
-        </div>
-        <style>{`
-          .group-arena-theme{
-            position:relative;
-            --group-acid:#EDFF66;
-            --color-accent-primary:#EDFF66;
-            --color-accent-primary-hover:#d9ea55;
-            --color-accent-primary-light:rgba(237,255,102,.1);
-            --color-success:#34d399;
-            --color-success-hover:#10b981;
-            --color-success-light:rgba(52,211,153,.2);
-            --color-danger:#f87171;
-            --color-danger-hover:#ef4444;
-            --color-danger-light:rgba(248,113,113,.1);
-            --color-warning:#fbbf24;
-            --color-orange:#f59e0b;
-            --judge-panel-bg:#0c0c0f;
-            --judge-surface:#09090b;
-            --judge-surface-elevated:#111115;
-            --judge-border:rgba(255,255,255,.2);
-            --muted-foreground:rgba(255,255,255,.32);
-          }
-          .group-arena-theme::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.022;
-            background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-            background-size:200px;z-index:0}
-          .group-arena-theme > *{position:relative;z-index:1}
-          .group-arena-theme .judge-header{background:#09090b;border-bottom:1px solid rgba(255,255,255,.12)}
-          .group-arena-theme .judge-toolbar{background:#09090b;border-color:rgba(255,255,255,.12)}
-          .group-arena-theme .judge-panel{background:#0c0c0f}
-          .group-arena-theme .judge-btn-run{background:transparent;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.45)}
-          .group-arena-theme .judge-btn-run:hover:not(:disabled){background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.28);color:#fff}
-          .group-arena-theme .judge-btn-submit{background:var(--group-acid)!important;color:#09090b!important}
-          .group-arena-theme .judge-btn-submit:hover:not(:disabled){background:#d9ea55!important;box-shadow:0 0 0 0 rgba(0,0,0,0)!important;transform:none!important}
-          .group-arena-theme .judge-lang-trigger{background:transparent;border-color:rgba(255,255,255,.2);color:rgba(255,255,255,.55)}
-          .group-arena-theme .judge-lang-trigger:hover{border-color:rgba(255,255,255,.28);color:#fff;background:rgba(255,255,255,.03)}
-          .group-arena-theme .judge-icon-btn{color:rgba(255,255,255,.3)}
-          .group-arena-theme .judge-icon-btn:hover{background:rgba(255,255,255,.05);color:#fff}
-          .group-arena-theme .group-arena-monument{font-family:${BATTLE_FONT_FAMILY};letter-spacing:${BATTLE_FONT_LETTER_SPACING}}
-        `}</style>
+                        <Textarea
+                          label="Input"
+                          value={testCases[activeTestCase]?.input || ""}
+                          onChange={(e) => updateActiveInput(e.target.value)}
+                          placeholder="Enter test input"
+                          spellCheck={false}
+                          className="font-mono text-small"
+                        />
+                        {testCases[activeTestCase]?.output && (
+                          <CodeBlock label="Expected output">{testCases[activeTestCase].output}</CodeBlock>
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    {/* Output */}
+                    <TabsContent value="result" className="min-h-0 flex-1 overflow-auto">
+                      <div className="grid gap-3 p-3">
+                        {!runResult && !submitResult && (
+                          <p className="flex items-center gap-2 font-mono text-small text-fg-muted">
+                            <SquareTerminal size={14} strokeWidth={1.5} aria-hidden="true" />
+                            Run your code to see output.
+                          </p>
+                        )}
+                        {runResult && (
+                          <>
+                            <StatusBanner status={runResult.status} time={runResult.time} compact />
+                            {runResult.stdout && <CodeBlock label="Stdout">{runResult.stdout}</CodeBlock>}
+                            {runResult.stderr && <CodeBlock label="Stderr" tone="err">{runResult.stderr}</CodeBlock>}
+                          </>
+                        )}
+                        {submitResult && !runResult && (
+                          <>
+                            <VerdictBanner result={submitResult} compact />
+                            {submitResult.error && <CodeBlock tone="err">{submitResult.error}</CodeBlock>}
+                          </>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </section>
+              </ResizePanel>
+            </PanelGroup>
+          </ResizePanel>
+        </PanelGroup>
       </div>
-    </TooltipProvider>
+    </main>
   );
 }
 
 /* --------------------------------------------
-   SUB-COMPONENTS (identical to BattleArenaPage)
+   SUB-COMPONENTS
    -------------------------------------------- */
 
+const TONE_CLASSES = {
+  ok: "border-ok bg-ok-soft text-ok",
+  err: "border-err bg-err-soft text-err",
+  warn: "border-warn bg-warn-soft text-warn",
+};
+
+function ResultBanner({ tone, icon: Icon, label, sub, timeMs, compact }) {
+  return (
+    <div
+      role="status"
+      className={cn("flex items-center gap-3 border", compact ? "px-3 py-2" : "px-4 py-3", TONE_CLASSES[tone] || TONE_CLASSES.err)}
+    >
+      <Icon size={compact ? 16 : 20} strokeWidth={1.5} aria-hidden="true" className="shrink-0" />
+      <div className="grid min-w-0">
+        <span className={cn("font-mono font-bold", compact ? "text-small" : "text-body")}>{label}</span>
+        {sub ? <span className="font-mono text-small text-fg-muted">{sub}</span> : null}
+      </div>
+      {timeMs > 0 && (
+        <Badge tone="outline" className="ml-auto">
+          <Clock size={10} strokeWidth={1.5} aria-hidden="true" /> {timeMs} ms
+        </Badge>
+      )}
+    </div>
+  );
+}
+
 const RUN_STATUS_MAP = {
-  Success: { icon: CheckCircle2, color: "var(--color-success)", variant: "accepted" },
-  Error: { icon: AlertTriangle, color: "var(--color-danger)", variant: "failed" },
-  "Runtime Error": { icon: AlertTriangle, color: "var(--color-orange)", variant: "warning" },
+  Success: { icon: CheckCircle2, tone: "ok" },
+  Error: { icon: AlertTriangle, tone: "err" },
+  "Runtime Error": { icon: AlertTriangle, tone: "warn" },
 };
 
 function StatusBanner({ status, time, compact }) {
   const cfg = RUN_STATUS_MAP[status] || RUN_STATUS_MAP.Error;
-  const Icon = cfg.icon;
-  return (
-    <div className={`judge-status-banner judge-status-banner--${cfg.variant} ${compact ? "!py-2 !px-3" : ""}`}>
-      <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} style={{ color: cfg.color }} />
-      <span className={`${compact ? "text-sm" : "text-base"} font-bold leading-tight`} style={{ color: cfg.color }}>
-        {status}
-      </span>
-      {time > 0 && (
-        <span className="ml-auto flex items-center gap-1.5 text-[11px] text-zinc-500 tabular-nums bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800">
-          <Clock className="h-3 w-3" /> {time}ms
-        </span>
-      )}
-    </div>
-  );
+  return <ResultBanner tone={cfg.tone} icon={cfg.icon} label={status} timeMs={time} compact={compact} />;
 }
 
 const VERDICT_MAP = {
-  ACCEPTED: { icon: CheckCircle2, color: "var(--color-success)", variant: "accepted", label: "Accepted" },
-  WRONG_ANSWER: { icon: XCircle, color: "var(--color-danger)", variant: "failed", label: "Wrong Answer" },
-  TIME_LIMIT: { icon: Clock, color: "var(--color-warning)", variant: "warning", label: "Time Limit Exceeded" },
-  COMPILE_ERROR: { icon: AlertTriangle, color: "var(--color-danger)", variant: "failed", label: "Compilation Error" },
-  RUNTIME_ERROR: { icon: AlertTriangle, color: "var(--color-orange)", variant: "warning", label: "Runtime Error" },
-  ERROR: { icon: AlertTriangle, color: "var(--color-danger)", variant: "failed", label: "Error" },
+  ACCEPTED: { icon: CheckCircle2, tone: "ok", label: "Accepted" },
+  WRONG_ANSWER: { icon: XCircle, tone: "err", label: "Wrong answer" },
+  TIME_LIMIT: { icon: Clock, tone: "warn", label: "Time limit exceeded" },
+  COMPILE_ERROR: { icon: AlertTriangle, tone: "err", label: "Compilation error" },
+  RUNTIME_ERROR: { icon: AlertTriangle, tone: "warn", label: "Runtime error" },
+  ERROR: { icon: AlertTriangle, tone: "err", label: "Error" },
 };
 
 function VerdictBanner({ result, compact }) {
   const cfg = VERDICT_MAP[result.verdict] || VERDICT_MAP.ERROR;
-  const Icon = cfg.icon;
   return (
-    <div className={`judge-status-banner judge-status-banner--${cfg.variant} ${compact ? "!py-2 !px-3" : ""}`}>
-      <Icon className={compact ? "h-4 w-4" : "h-5 w-5"} style={{ color: cfg.color }} />
-      <div className="flex flex-col">
-        <span className={`${compact ? "text-sm" : "text-base"} font-bold leading-tight`} style={{ color: cfg.color }}>
-          {cfg.label}
-        </span>
-        {!compact && result.executionTimeMs > 0 && (
-          <span className="text-[10px] text-zinc-500 mt-0.5">Executed in {result.executionTimeMs}ms</span>
-        )}
-      </div>
-      {result.executionTimeMs > 0 && (
-        <span className="ml-auto flex items-center gap-1.5 text-[11px] text-zinc-500 tabular-nums bg-zinc-900 px-2 py-0.5 rounded-md border border-zinc-800">
-          <Clock className="h-3 w-3" /> {result.executionTimeMs}ms
-        </span>
-      )}
-    </div>
+    <ResultBanner
+      tone={cfg.tone}
+      icon={cfg.icon}
+      label={cfg.label}
+      sub={!compact && result.executionTimeMs > 0 ? `Executed in ${result.executionTimeMs} ms` : undefined}
+      timeMs={result.executionTimeMs}
+      compact={compact}
+    />
   );
 }
 
-function CodeOutput({ label, variant, size = "md", icon, children }) {
-  const isError = variant === "error";
+const CODE_TONE = {
+  ok: { label: "text-ok", border: "border-ok" },
+  err: { label: "text-err", border: "border-err" },
+};
+
+function CodeBlock({ label, tone, children }) {
+  const t = CODE_TONE[tone];
   return (
-    <div>
-      {label && (
-        <div className="judge-label flex items-center gap-1.5" style={isError ? { color: "var(--color-danger)" } : undefined}>
-          {icon} {label}
-        </div>
-      )}
-      <pre className={`judge-codeblock ${size === "sm" ? "text-[12px]" : "text-[13px]"} ${isError ? "judge-codeblock--error" : ""}`}>
+    <div className="grid gap-1.5">
+      {label ? <div className={cn("font-mono text-label uppercase", t ? t.label : "text-fg-muted")}>{label}</div> : null}
+      <pre
+        className={cn(
+          "overflow-x-auto whitespace-pre-wrap break-words border bg-bg p-3 font-mono text-small text-fg",
+          t ? t.border : "border-border"
+        )}
+      >
         {children}
       </pre>
     </div>

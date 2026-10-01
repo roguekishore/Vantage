@@ -1,32 +1,29 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { Breadcrumb } from "@/components/ds/Page";
 import "../home/HomePage.css";
 
 /**
- * VisualizerPage - A wrapper component for algorithm visualizers.
- * Uses navigate(-1) so the back button returns to wherever the user came from.
+ * VisualizerPage: the wrapper every visualizer route renders inside.
+ * A slim row under the fixed nav holds the breadcrumb
+ * VISUALIZERS / <TOPIC> / <NAME>, linking to real parent routes.
+ *
+ * `topic` is the topicConfig entry (src/routes/config.js) for this route.
  */
-const VisualizerPage = ({
-  children,
-  title,
-  icon: Icon
-}) => {
-  const navigate = useNavigate();
+const topicLabel = (topic) => (topic?.title || topic?.key || "").replace(/ Algorithms$/, "");
+
+const VisualizerPage = ({ children, title, topic }) => {
+  const items = [{ label: "Visualizers", to: "/visualizers" }];
+  if (topic?.path) items.push({ label: topicLabel(topic), to: topic.path });
+  items.push({ label: title });
 
   return (
-    <div className="visualizer-shell">
-      <nav className="visualizer-nav">
-        <button onClick={() => navigate(-1)} className="visualizer-nav__back">
-          <ArrowLeft size={16} />
-          Back
-        </button>
-        <div className="visualizer-nav__title">
-          {Icon && <Icon size={20} />}
-          <span>{title}</span>
+    <div className="min-h-screen bg-bg pt-[var(--nav-h)] text-fg">
+      <div className="border-b border-border px-[var(--gutter)] py-3">
+        <div className="mx-auto w-full max-w-[1280px]">
+          <Breadcrumb items={items} />
         </div>
-      </nav>
-      <div className="visualizer-content">
+      </div>
+      <div className="mx-auto w-full max-w-[1280px] px-[var(--gutter)] py-6">
         {children}
       </div>
     </div>
