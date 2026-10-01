@@ -1,0 +1,3946 @@
+{
+    "generated":  "2026-09-30",
+    "approach":  "defineVisualizer rebuild (see VISUALIZER_MIGRATION_PROMPT.md)",
+    "tracks":  {
+                   "A":  "lift existing step generator + write config (cheap model; pilots by strong)",
+                   "B":  "no step history: strong model authors generate() then config",
+                   "C":  "custom stage (view.render escape hatch), strong model",
+                   "D":  "delete (unrouted duplicate / unused)",
+                   "alias":  "one-line re-export of another visualizer"
+               },
+    "waves":  {
+                  "0":  "delete",
+                  "1":  "pilots, strong model, one per stage kind",
+                  "2":  "Sorting (clone BubbleSort pilot)",
+                  "3":  "array / vars / bars / bits stages",
+                  "4":  "matrix stage",
+                  "5":  "list + tree stages",
+                  "6":  "graph + remaining",
+                  "7":  "track B",
+                  "8":  "track C",
+                  "9":  "aliases"
+              },
+    "status":  "todo|in_progress|done|escalated",
+    "files":  [
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/4Sum.jsx",
+                      "category":  "Arrays",
+                      "name":  "4Sum",
+                      "track":  "D",
+                      "wave":  0,
+                      "model":  "none",
+                      "stage":  null,
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "UNROUTED duplicate of Arrays/4-sum - delete"
+                                ],
+                      "metrics":  {
+                                      "kb":  30,
+                                      "lines":  862,
+                                      "classNames":  95,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/VizualiserPointer.tsx",
+                      "category":  "Arrays",
+                      "name":  "VizualiserPointer",
+                      "track":  "D",
+                      "wave":  0,
+                      "model":  "none",
+                      "stage":  null,
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "UNUSED helper - delete"
+                                ],
+                      "metrics":  {
+                                      "kb":  0,
+                                      "lines":  15,
+                                      "classNames":  2,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/validBST.jsx",
+                      "category":  "Trees",
+                      "name":  "validBST",
+                      "track":  "D",
+                      "wave":  0,
+                      "model":  "none",
+                      "stage":  null,
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "UNROUTED duplicate of Trees/ValidateBST - delete"
+                                ],
+                      "metrics":  {
+                                      "kb":  20,
+                                      "lines":  393,
+                                      "classNames":  68,
+                                      "hexLiterals":  2,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/MergeIntervals.jsx",
+                      "category":  "Arrays",
+                      "name":  "MergeIntervals",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "intervals",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  14,
+                                      "lines":  333,
+                                      "classNames":  58,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/TrappingRainWater.jsx",
+                      "category":  "Arrays",
+                      "name":  "TrappingRainWater",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "bars",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  28,
+                                      "lines":  868,
+                                      "classNames":  70,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BitManipulation/SingleNumber.jsx",
+                      "category":  "BitManipulation",
+                      "name":  "SingleNumber",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "bits",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  38,
+                                      "lines":  844,
+                                      "classNames":  186,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Design/LRUCache.jsx",
+                      "category":  "Design",
+                      "name":  "LRUCache",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "list",
+                      "aux":  [
+                                  "table",
+                                  "ops"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+                                    "snapshots have no line field: add line to each snapshot push (allowed enrichment)"
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  463,
+                                      "classNames":  106,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/EditDistance.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "EditDistance",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+                                    "multi-language tabs share C++ line numbers: keep C++ only"
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  471,
+                                      "classNames":  70,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Graphs/Dijkstra.jsx",
+                      "category":  "Graphs",
+                      "name":  "Dijkstra",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "graph",
+                      "aux":  [
+                                  "queue"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "generator closes over component state: lift into generate(input); parseGraphInput already pure"
+                                ],
+                      "metrics":  {
+                                      "kb":  35,
+                                      "lines":  869,
+                                      "classNames":  105,
+                                      "hexLiterals":  13,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/LinkedList/ReverseLinkedList.jsx",
+                      "category":  "LinkedList",
+                      "name":  "ReverseLinkedList",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "list",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+                                    "snapshots bake x/y layout: ignore it, ListStage lays out"
+                                ],
+                      "metrics":  {
+                                      "kb":  23,
+                                      "lines":  688,
+                                      "classNames":  61,
+                                      "hexLiterals":  3,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/BubbleSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "BubbleSort",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  12,
+                                      "lines":  251,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Stack/NextGreaterElement.jsx",
+                      "category":  "Stack",
+                      "name":  "NextGreaterElement",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+                                    "optimal-mode step.line values off by one vs listing: fix line values only"
+                                ],
+                      "metrics":  {
+                                      "kb":  17,
+                                      "lines":  341,
+                                      "classNames":  69,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/ValidateBST.jsx",
+                      "category":  "Trees",
+                      "name":  "ValidateBST",
+                      "track":  "A",
+                      "wave":  1,
+                      "model":  "strong",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "generateHistory reads component state and calls alert: lift the pure isValidBST/buildTreeFromLevelOrder"
+                                ],
+                      "metrics":  {
+                                      "kb":  39,
+                                      "lines":  1146,
+                                      "classNames":  136,
+                                      "hexLiterals":  15,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/BucketSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "BucketSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  9,
+                                      "lines":  208,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/CombSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "CombSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  8,
+                                      "lines":  179,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/CountingSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "CountingSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  11,
+                                      "lines":  228,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/HeapSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "HeapSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  11,
+                                      "lines":  226,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/InsertionSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "InsertionSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  10,
+                                      "lines":  225,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/MergeSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "MergeSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  12,
+                                      "lines":  235,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/PancakeSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "PancakeSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  8,
+                                      "lines":  178,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/QuickSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "QuickSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  12,
+                                      "lines":  244,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/RadixSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "RadixSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  9,
+                                      "lines":  183,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/SelectionSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "SelectionSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  10,
+                                      "lines":  223,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Sorting/ShellSort.jsx",
+                      "category":  "Sorting",
+                      "name":  "ShellSort",
+                      "track":  "A",
+                      "wave":  2,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "already on design system; needs Phase-0 cleanup only"
+                                ],
+                      "metrics":  {
+                                      "kb":  9,
+                                      "lines":  190,
+                                      "classNames":  0,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/4-sum.jsx",
+                      "category":  "Arrays",
+                      "name":  "4-sum",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  36,
+                                      "lines":  1044,
+                                      "classNames":  67,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/BestTimeToBuyAndSellStock.jsx",
+                      "category":  "Arrays",
+                      "name":  "BestTimeToBuyAndSellStock",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  22,
+                                      "lines":  453,
+                                      "classNames":  85,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/ContainerWithMostWater.jsx",
+                      "category":  "Arrays",
+                      "name":  "ContainerWithMostWater",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "bars",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  23,
+                                      "lines":  678,
+                                      "classNames":  61,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/MaxConsecutiveOnesIII.jsx",
+                      "category":  "Arrays",
+                      "name":  "MaxConsecutiveOnesIII",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  21,
+                                      "lines":  518,
+                                      "classNames":  64,
+                                      "hexLiterals":  2,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/MaximumGap.jsx",
+                      "category":  "Arrays",
+                      "name":  "MaximumGap",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  387,
+                                      "classNames":  58,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/MaximumSubarray.jsx",
+                      "category":  "Arrays",
+                      "name":  "MaximumSubarray",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "step.line uses 1-6 but listing has 1-11: renumber lines to the new code listing (allowed: line values only)"
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  321,
+                                      "classNames":  58,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/ProductOfArrayExceptSelf.jsx",
+                      "category":  "Arrays",
+                      "name":  "ProductOfArrayExceptSelf",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  293,
+                                      "classNames":  52,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/RotateArray.jsx",
+                      "category":  "Arrays",
+                      "name":  "RotateArray",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  14,
+                                      "lines":  338,
+                                      "classNames":  63,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/SubarrayRanges.jsx",
+                      "category":  "Arrays",
+                      "name":  "SubarrayRanges",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+                                    "also routed as Stack/SubarrayRanges: that file becomes a one-line re-export"
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  738,
+                                      "classNames":  83,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Backtracking/Permutations.jsx",
+                      "category":  "Backtracking",
+                      "name":  "Permutations",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  660,
+                                      "classNames":  91,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/BinarySearchBasic.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "BinarySearchBasic",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "generation inlined in load(): extract into generate(input); it silently sorts input - make sorting an explicit validation error"
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  503,
+                                      "classNames":  58,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/FindFirstAndLastPosition.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "FindFirstAndLastPosition",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  21,
+                                      "lines":  603,
+                                      "classNames":  67,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/FindMinimumInRotatedSortedArray.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "FindMinimumInRotatedSortedArray",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  16,
+                                      "lines":  447,
+                                      "classNames":  57,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/FindPeakElement.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "FindPeakElement",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  343,
+                                      "classNames":  57,
+                                      "hexLiterals":  1,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/MedianOfTwoSortedArrays.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "MedianOfTwoSortedArrays",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  455,
+                                      "classNames":  80,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/MinSpeedToArriveOnTime.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "MinSpeedToArriveOnTime",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  22,
+                                      "lines":  332,
+                                      "classNames":  74,
+                                      "hexLiterals":  3,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/PeakIndexInMountainArray.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "PeakIndexInMountainArray",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  23,
+                                      "lines":  610,
+                                      "classNames":  74,
+                                      "hexLiterals":  5,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/SearchInRotatedSortedArray.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "SearchInRotatedSortedArray",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  17,
+                                      "lines":  436,
+                                      "classNames":  58,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BitManipulation/CountingBits.jsx",
+                      "category":  "BitManipulation",
+                      "name":  "CountingBits",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "bits",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  37,
+                                      "lines":  840,
+                                      "classNames":  191,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BitManipulation/NumberOf1Bits.jsx",
+                      "category":  "BitManipulation",
+                      "name":  "NumberOf1Bits",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "bits",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  32,
+                                      "lines":  766,
+                                      "classNames":  163,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BitManipulation/PowerOfTwo.jsx",
+                      "category":  "BitManipulation",
+                      "name":  "PowerOfTwo",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "bits",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  30,
+                                      "lines":  735,
+                                      "classNames":  142,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BitManipulation/ReverseBits.jsx",
+                      "category":  "BitManipulation",
+                      "name":  "ReverseBits",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "bits",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  29,
+                                      "lines":  698,
+                                      "classNames":  135,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Design/DesignHashMap.jsx",
+                      "category":  "Design",
+                      "name":  "DesignHashMap",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table",
+                                  "ops"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  25,
+                                      "lines":  542,
+                                      "classNames":  100,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/CoinChange.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "CoinChange",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  482,
+                                      "classNames":  71,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/LISubsequence.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "LISubsequence",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  479,
+                                      "classNames":  75,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/GreedyAlgorithms/AssignCookies.jsx",
+                      "category":  "GreedyAlgorithms",
+                      "name":  "AssignCookies",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  17,
+                                      "lines":  406,
+                                      "classNames":  56,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/GreedyAlgorithms/BestTimeStockII.jsx",
+                      "category":  "GreedyAlgorithms",
+                      "name":  "BestTimeStockII",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  729,
+                                      "classNames":  105,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/GreedyAlgorithms/TwoCityScheduling.jsx",
+                      "category":  "GreedyAlgorithms",
+                      "name":  "TwoCityScheduling",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  29,
+                                      "lines":  812,
+                                      "classNames":  125,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Hashing/LongestConsecutiveSequence.jsx",
+                      "category":  "Hashing",
+                      "name":  "LongestConsecutiveSequence",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  720,
+                                      "classNames":  80,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Hashing/SubarraySumEqualsK.jsx",
+                      "category":  "Hashing",
+                      "name":  "SubarraySumEqualsK",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  736,
+                                      "classNames":  84,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Hashing/ValidAnagram.jsx",
+                      "category":  "Hashing",
+                      "name":  "ValidAnagram",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "multi-language tabs share C++ line numbers: keep C++ only"
+                                ],
+                      "metrics":  {
+                                      "kb":  23,
+                                      "lines":  656,
+                                      "classNames":  71,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Heaps/TaskScheduler.jsx",
+                      "category":  "Heaps",
+                      "name":  "TaskScheduler",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "queue",
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  47,
+                                      "lines":  998,
+                                      "classNames":  154,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/MathematicalMiscellaneous/CountPrimes.jsx",
+                      "category":  "MathematicalMiscellaneous",
+                      "name":  "CountPrimes",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  42,
+                                      "lines":  1037,
+                                      "classNames":  145,
+                                      "hexLiterals":  5,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/MathematicalMiscellaneous/ExcelSheetColumnTitle.jsx",
+                      "category":  "MathematicalMiscellaneous",
+                      "name":  "ExcelSheetColumnTitle",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "vars",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  29,
+                                      "lines":  716,
+                                      "classNames":  121,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/MathematicalMiscellaneous/FactorialZeroes.jsx",
+                      "category":  "MathematicalMiscellaneous",
+                      "name":  "FactorialZeroes",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "vars",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  35,
+                                      "lines":  815,
+                                      "classNames":  172,
+                                      "hexLiterals":  1,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/MathematicalMiscellaneous/Power.jsx",
+                      "category":  "MathematicalMiscellaneous",
+                      "name":  "Power",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  45,
+                                      "lines":  1078,
+                                      "classNames":  173,
+                                      "hexLiterals":  5,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/MathematicalMiscellaneous/PrimePalindrome.jsx",
+                      "category":  "MathematicalMiscellaneous",
+                      "name":  "PrimePalindrome",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "vars",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  37,
+                                      "lines":  902,
+                                      "classNames":  145,
+                                      "hexLiterals":  6,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Recursion/BinarySearchRecursive.jsx",
+                      "category":  "Recursion",
+                      "name":  "BinarySearchRecursive",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  436,
+                                      "classNames":  82,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Recursion/SubsetSum.jsx",
+                      "category":  "Recursion",
+                      "name":  "SubsetSum",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  20,
+                                      "lines":  418,
+                                      "classNames":  63,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Searching/ExponentialSearch.jsx",
+                      "category":  "Searching",
+                      "name":  "ExponentialSearch",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  46,
+                                      "lines":  1030,
+                                      "classNames":  201,
+                                      "hexLiterals":  5,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Searching/KthMissingNumber.jsx",
+                      "category":  "Searching",
+                      "name":  "KthMissingNumber",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  560,
+                                      "classNames":  68,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Searching/LinearSearch.jsx",
+                      "category":  "Searching",
+                      "name":  "LinearSearch",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  38,
+                                      "lines":  857,
+                                      "classNames":  188,
+                                      "hexLiterals":  4,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Searching/SmallestLetter.jsx",
+                      "category":  "Searching",
+                      "name":  "SmallestLetter",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  44,
+                                      "lines":  981,
+                                      "classNames":  219,
+                                      "hexLiterals":  5,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Searching/specialArray.jsx",
+                      "category":  "Searching",
+                      "name":  "specialArray",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  17,
+                                      "lines":  487,
+                                      "classNames":  55,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Searching/UnknownSizeSearch.jsx",
+                      "category":  "Searching",
+                      "name":  "UnknownSizeSearch",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  37,
+                                      "lines":  911,
+                                      "classNames":  127,
+                                      "hexLiterals":  6,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/SlidingWindows/FruitsIntoBaskets.jsx",
+                      "category":  "SlidingWindows",
+                      "name":  "FruitsIntoBaskets",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  49,
+                                      "lines":  955,
+                                      "classNames":  132,
+                                      "hexLiterals":  4,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/SlidingWindows/LongestSubstring.jsx",
+                      "category":  "SlidingWindows",
+                      "name":  "LongestSubstring",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  43,
+                                      "lines":  1074,
+                                      "classNames":  113,
+                                      "hexLiterals":  4,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/SlidingWindows/MaxConsecutiveOnesIII.jsx",
+                      "category":  "SlidingWindows",
+                      "name":  "MaxConsecutiveOnesIII",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  29,
+                                      "lines":  728,
+                                      "classNames":  111,
+                                      "hexLiterals":  2,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/SlidingWindows/MinimumWindow.jsx",
+                      "category":  "SlidingWindows",
+                      "name":  "MinimumWindow",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  37,
+                                      "lines":  940,
+                                      "classNames":  129,
+                                      "hexLiterals":  3,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/SlidingWindows/SlidingWindowMaximum.jsx",
+                      "category":  "SlidingWindows",
+                      "name":  "SlidingWindowMaximum",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "queue"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  39,
+                                      "lines":  1014,
+                                      "classNames":  113,
+                                      "hexLiterals":  4,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Stack/LargestRectangleHistogram.jsx",
+                      "category":  "Stack",
+                      "name":  "LargestRectangleHistogram",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "bars",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  34,
+                                      "lines":  1025,
+                                      "classNames":  81,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Stack/Permutation.jsx",
+                      "category":  "Stack",
+                      "name":  "Permutation",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  16,
+                                      "lines":  426,
+                                      "classNames":  35,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Stack/RemoveKDigits.jsx",
+                      "category":  "Stack",
+                      "name":  "RemoveKDigits",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  22,
+                                      "lines":  751,
+                                      "classNames":  55,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/LongestCP.jsx",
+                      "category":  "Strings",
+                      "name":  "LongestCP",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  16,
+                                      "lines":  439,
+                                      "classNames":  57,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/ReverseWords.jsx",
+                      "category":  "Strings",
+                      "name":  "ReverseWords",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  15,
+                                      "lines":  412,
+                                      "classNames":  65,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/StringCompression.jsx",
+                      "category":  "Strings",
+                      "name":  "StringCompression",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  483,
+                                      "classNames":  65,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/ValidAnagram.jsx",
+                      "category":  "Strings",
+                      "name":  "ValidAnagram",
+                      "track":  "A",
+                      "wave":  3,
+                      "model":  "cheap",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  475,
+                                      "classNames":  70,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Backtracking/SudokuSolver.jsx",
+                      "category":  "Backtracking",
+                      "name":  "SudokuSolver",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  410,
+                                      "classNames":  59,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Backtracking/WordSearch.jsx",
+                      "category":  "Backtracking",
+                      "name":  "WordSearch",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  30,
+                                      "lines":  789,
+                                      "classNames":  107,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/BinarySearch/Search2DMatrix.jsx",
+                      "category":  "BinarySearch",
+                      "name":  "Search2DMatrix",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  25,
+                                      "lines":  724,
+                                      "classNames":  75,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/BurstBallonsTopDown.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "BurstBallonsTopDown",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  37,
+                                      "lines":  947,
+                                      "classNames":  102,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/BurstBalloons.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "BurstBalloons",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  654,
+                                      "classNames":  82,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/KnapSack.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "KnapSack",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  25,
+                                      "lines":  626,
+                                      "classNames":  83,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/LongestCommonSubsequence.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "LongestCommonSubsequence",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  466,
+                                      "classNames":  69,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/SellStockIVVisualizer.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "SellStockIVVisualizer",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  663,
+                                      "classNames":  77,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/DynamicProgramming/UniquePaths.jsx",
+                      "category":  "DynamicProgramming",
+                      "name":  "UniquePaths",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  24,
+                                      "lines":  624,
+                                      "classNames":  76,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Hashing/EqualRowsColumnPair.jsx",
+                      "category":  "Hashing",
+                      "name":  "EqualRowsColumnPair",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  720,
+                                      "classNames":  85,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Pathfinding/ColorIslands.jsx",
+                      "category":  "Pathfinding",
+                      "name":  "ColorIslands",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  556,
+                                      "classNames":  46,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Pathfinding/FloodFill.jsx",
+                      "category":  "Pathfinding",
+                      "name":  "FloodFill",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  17,
+                                      "lines":  478,
+                                      "classNames":  46,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Pathfinding/RatInMaze.jsx",
+                      "category":  "Pathfinding",
+                      "name":  "RatInMaze",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  29,
+                                      "lines":  883,
+                                      "classNames":  68,
+                                      "hexLiterals":  5,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Recursion/NQueens.jsx",
+                      "category":  "Recursion",
+                      "name":  "NQueens",
+                      "track":  "A",
+                      "wave":  4,
+                      "model":  "cheap",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  31,
+                                      "lines":  601,
+                                      "classNames":  0,
+                                      "hexLiterals":  14,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Design/DesignLinkedList.jsx",
+                      "category":  "Design",
+                      "name":  "DesignLinkedList",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "list",
+                      "aux":  [
+                                  "ops"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  47,
+                                      "lines":  1192,
+                                      "classNames":  109,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Design/ImplementTrie.jsx",
+                      "category":  "Design",
+                      "name":  "ImplementTrie",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  11,
+                                      "lines":  289,
+                                      "classNames":  58,
+                                      "hexLiterals":  1,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Design/LFUCache.jsx",
+                      "category":  "Design",
+                      "name":  "LFUCache",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "list",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  29,
+                                      "lines":  526,
+                                      "classNames":  111,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Heaps/Heapify.jsx",
+                      "category":  "Heaps",
+                      "name":  "Heapify",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  23,
+                                      "lines":  566,
+                                      "classNames":  85,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Heaps/TopKFrequentVisualizer.jsx",
+                      "category":  "Heaps",
+                      "name":  "TopKFrequentVisualizer",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  35,
+                                      "lines":  883,
+                                      "classNames":  123,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/LinkedList/LinkedListCycle.jsx",
+                      "category":  "LinkedList",
+                      "name":  "LinkedListCycle",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "list",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  32,
+                                      "lines":  900,
+                                      "classNames":  77,
+                                      "hexLiterals":  6,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/LinkedList/MergeTwoSortedLists.jsx",
+                      "category":  "LinkedList",
+                      "name":  "MergeTwoSortedLists",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "list",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  26,
+                                      "lines":  703,
+                                      "classNames":  81,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/LinkedList/SortList.jsx",
+                      "category":  "LinkedList",
+                      "name":  "SortList",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "list",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  51,
+                                      "lines":  1204,
+                                      "classNames":  68,
+                                      "hexLiterals":  3,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/LinkedList/SwapPairs.jsx",
+                      "category":  "LinkedList",
+                      "name":  "SwapPairs",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "list",
+                      "aux":  [
+
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  30,
+                                      "lines":  658,
+                                      "classNames":  57,
+                                      "hexLiterals":  3,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Recursion/Fibonacci.jsx",
+                      "category":  "Recursion",
+                      "name":  "Fibonacci",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  16,
+                                      "lines":  415,
+                                      "classNames":  68,
+                                      "hexLiterals":  8,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/AVLTree.jsx",
+                      "category":  "Trees",
+                      "name":  "AVLTree",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  43,
+                                      "lines":  1178,
+                                      "classNames":  141,
+                                      "hexLiterals":  17,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/BinaryTreeRightSideView.jsx",
+                      "category":  "Trees",
+                      "name":  "BinaryTreeRightSideView",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+                                  "queue"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  33,
+                                      "lines":  963,
+                                      "classNames":  100,
+                                      "hexLiterals":  14,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/ConstructBinaryTree.jsx",
+                      "category":  "Trees",
+                      "name":  "ConstructBinaryTree",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  40,
+                                      "lines":  1104,
+                                      "classNames":  126,
+                                      "hexLiterals":  11,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/FlattenBinaryTree.jsx",
+                      "category":  "Trees",
+                      "name":  "FlattenBinaryTree",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  37,
+                                      "lines":  973,
+                                      "classNames":  109,
+                                      "hexLiterals":  13,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/LCAofDeepestLeaves.jsx",
+                      "category":  "Trees",
+                      "name":  "LCAofDeepestLeaves",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  35,
+                                      "lines":  976,
+                                      "classNames":  128,
+                                      "hexLiterals":  15,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/MorrisTraversal.jsx",
+                      "category":  "Trees",
+                      "name":  "MorrisTraversal",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  34,
+                                      "lines":  1019,
+                                      "classNames":  80,
+                                      "hexLiterals":  11,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/PrintBinaryTree.jsx",
+                      "category":  "Trees",
+                      "name":  "PrintBinaryTree",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  33,
+                                      "lines":  919,
+                                      "classNames":  76,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Trees/SymmetricTreeVisualizer.jsx",
+                      "category":  "Trees",
+                      "name":  "SymmetricTreeVisualizer",
+                      "track":  "A",
+                      "wave":  5,
+                      "model":  "cheap",
+                      "stage":  "tree",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  35,
+                                      "lines":  987,
+                                      "classNames":  86,
+                                      "hexLiterals":  19,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Design/MinStack.jsx",
+                      "category":  "Design",
+                      "name":  "MinStack",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "stack",
+                      "aux":  [
+                                  "ops"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  12,
+                                      "lines":  290,
+                                      "classNames":  54,
+                                      "hexLiterals":  1,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Graphs/BFS.jsx",
+                      "category":  "Graphs",
+                      "name":  "BFS",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "graph",
+                      "aux":  [
+                                  "queue"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  668,
+                                      "classNames":  87,
+                                      "hexLiterals":  10,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Graphs/DFS.jsx",
+                      "category":  "Graphs",
+                      "name":  "DFS",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "graph",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  686,
+                                      "classNames":  87,
+                                      "hexLiterals":  10,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Graphs/Kruskal.jsx",
+                      "category":  "Graphs",
+                      "name":  "Kruskal",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "graph",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  33,
+                                      "lines":  829,
+                                      "classNames":  112,
+                                      "hexLiterals":  14,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/GreedyAlgorithms/JobScheduling.jsx",
+                      "category":  "GreedyAlgorithms",
+                      "name":  "JobScheduling",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "intervals",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  519,
+                                      "classNames":  94,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Queue/BasicQueue.jsx",
+                      "category":  "Queue",
+                      "name":  "BasicQueue",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "queue",
+                      "aux":  [
+                                  "ops"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  18,
+                                      "lines":  459,
+                                      "classNames":  72,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Queue/CircularQueue.jsx",
+                      "category":  "Queue",
+                      "name":  "CircularQueue",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "queue",
+                      "aux":  [
+                                  "ops"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  21,
+                                      "lines":  531,
+                                      "classNames":  80,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Queue/QueueUsingStacks.jsx",
+                      "category":  "Queue",
+                      "name":  "QueueUsingStacks",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "stack",
+                      "aux":  [
+                                  "ops"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  25,
+                                      "lines":  803,
+                                      "classNames":  57,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Recursion/Factorial.jsx",
+                      "category":  "Recursion",
+                      "name":  "Factorial",
+                      "track":  "A",
+                      "wave":  6,
+                      "model":  "cheap",
+                      "stage":  "callstack",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  305,
+                                      "classNames":  65,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/3Sum.jsx",
+                      "category":  "Arrays",
+                      "name":  "3Sum",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no snapshot history; imperative timers"
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  503,
+                                      "classNames":  92,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/ArraySum.jsx",
+                      "category":  "Arrays",
+                      "name":  "ArraySum",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no snapshot history; imperative timers"
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  292,
+                                      "classNames":  94,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/CountZeros.jsx",
+                      "category":  "Arrays",
+                      "name":  "CountZeros",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no snapshot history; imperative timers"
+                                ],
+                      "metrics":  {
+                                      "kb":  11,
+                                      "lines":  256,
+                                      "classNames":  74,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/FindMaxElement.jsx",
+                      "category":  "Arrays",
+                      "name":  "FindMaxElement",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no history; judge drawer contract (embedded, externalArray)",
+                                    "judge drawer embed: must set embed.fromExternalArray"
+                                ],
+                      "metrics":  {
+                                      "kb":  20,
+                                      "lines":  427,
+                                      "classNames":  112,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/FindMinElement.jsx",
+                      "category":  "Arrays",
+                      "name":  "FindMinElement",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no history; judge drawer contract (embedded, externalArray)",
+                                    "judge drawer embed: must set embed.fromExternalArray"
+                                ],
+                      "metrics":  {
+                                      "kb":  16,
+                                      "lines":  356,
+                                      "classNames":  91,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/MoveZeros.jsx",
+                      "category":  "Arrays",
+                      "name":  "MoveZeros",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no snapshot history; imperative timers"
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  280,
+                                      "classNames":  81,
+                                      "hexLiterals":  1,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/ReverseArray.jsx",
+                      "category":  "Arrays",
+                      "name":  "ReverseArray",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no snapshot history; imperative timers"
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  300,
+                                      "classNames":  83,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/SplitArrayLargestSum.jsx",
+                      "category":  "Arrays",
+                      "name":  "SplitArrayLargestSum",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "await sleep loop"
+                                ],
+                      "metrics":  {
+                                      "kb":  10,
+                                      "lines":  244,
+                                      "classNames":  65,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/SquaresOfSortedArray.tsx",
+                      "category":  "Arrays",
+                      "name":  "SquaresOfSortedArray",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "TypeScript file in JS app; imperative timer; convert to .jsx"
+                                ],
+                      "metrics":  {
+                                      "kb":  14,
+                                      "lines":  292,
+                                      "classNames":  91,
+                                      "hexLiterals":  1,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Arrays/TwoSum.jsx",
+                      "category":  "Arrays",
+                      "name":  "TwoSum",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+                                  "table"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "side effects inside setState updater; no history"
+                                ],
+                      "metrics":  {
+                                      "kb":  14,
+                                      "lines":  307,
+                                      "classNames":  91,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Backtracking/ExpressionAddOperators.jsx",
+                      "category":  "Backtracking",
+                      "name":  "ExpressionAddOperators",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+                                  "callstack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no history; setTimeout; framer-motion"
+                                ],
+                      "metrics":  {
+                                      "kb":  13,
+                                      "lines":  410,
+                                      "classNames":  38,
+                                      "hexLiterals":  2,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Backtracking/KnightsTour.jsx",
+                      "category":  "Backtracking",
+                      "name":  "KnightsTour",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "matrix",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no history; setTimeout; framer-motion"
+                                ],
+                      "metrics":  {
+                                      "kb":  10,
+                                      "lines":  321,
+                                      "classNames":  28,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  true,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Graphs/TopologicalSort.jsx",
+                      "category":  "Graphs",
+                      "name":  "TopologicalSort",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "graph",
+                      "aux":  [
+                                  "queue"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "async stub; black SVG strokes; rewrite"
+                                ],
+                      "metrics":  {
+                                      "kb":  6,
+                                      "lines":  164,
+                                      "classNames":  21,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Stack/StackOperstion.jsx",
+                      "category":  "Stack",
+                      "name":  "StackOperstion",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "stack",
+                      "aux":  [
+                                  "ops"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no history; operation-driven"
+                                ],
+                      "metrics":  {
+                                      "kb":  11,
+                                      "lines":  306,
+                                      "classNames":  39,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  true,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/CountVowels.jsx",
+                      "category":  "Strings",
+                      "name":  "CountVowels",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "imperative (inferred)"
+                                ],
+                      "metrics":  {
+                                      "kb":  21,
+                                      "lines":  507,
+                                      "classNames":  89,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/IsSubSequence.jsx",
+                      "category":  "Strings",
+                      "name":  "IsSubSequence",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "imperative (inferred)"
+                                ],
+                      "metrics":  {
+                                      "kb":  16,
+                                      "lines":  357,
+                                      "classNames":  99,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/PalindromeCheck.jsx",
+                      "category":  "Strings",
+                      "name":  "PalindromeCheck",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "imperative (inferred)"
+                                ],
+                      "metrics":  {
+                                      "kb":  19,
+                                      "lines":  411,
+                                      "classNames":  120,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Strings/ReverseString.jsx",
+                      "category":  "Strings",
+                      "name":  "ReverseString",
+                      "track":  "B",
+                      "wave":  7,
+                      "model":  "strong",
+                      "stage":  "array",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "imperative (inferred)"
+                                ],
+                      "metrics":  {
+                                      "kb":  20,
+                                      "lines":  428,
+                                      "classNames":  135,
+                                      "hexLiterals":  1,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  true
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Graphs/NetworkFlow.jsx",
+                      "category":  "Graphs",
+                      "name":  "NetworkFlow",
+                      "track":  "C",
+                      "wave":  8,
+                      "model":  "strong",
+                      "stage":  "custom",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "no history; imperative"
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  630,
+                                      "classNames":  83,
+                                      "hexLiterals":  8,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Pathfinding/AStar.jsx",
+                      "category":  "Pathfinding",
+                      "name":  "AStar",
+                      "track":  "C",
+                      "wave":  8,
+                      "model":  "strong",
+                      "stage":  "custom",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "typed-event replay mutating grid; mouse painting; modal"
+                                ],
+                      "metrics":  {
+                                      "kb":  39,
+                                      "lines":  975,
+                                      "classNames":  150,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Pathfinding/BFS.jsx",
+                      "category":  "Pathfinding",
+                      "name":  "BFS",
+                      "track":  "C",
+                      "wave":  8,
+                      "model":  "strong",
+                      "stage":  "custom",
+                      "aux":  [
+
+                              ],
+                      "modes":  false,
+                      "notes":  [
+                                    "per-node setTimeouts; in-place mutation; grid-cols-50 invalid"
+                                ],
+                      "metrics":  {
+                                      "kb":  9,
+                                      "lines":  303,
+                                      "classNames":  15,
+                                      "hexLiterals":  0,
+                                      "keydown":  false,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Recursion/TowerOfHanoi.jsx",
+                      "category":  "Recursion",
+                      "name":  "TowerOfHanoi",
+                      "track":  "C",
+                      "wave":  8,
+                      "model":  "strong",
+                      "stage":  "custom",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  false,
+                      "notes":  [
+
+                                ],
+                      "metrics":  {
+                                      "kb":  15,
+                                      "lines":  355,
+                                      "classNames":  67,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  },
+                  {
+                      "file":  "reactapp/src/pages/algorithms/Stack/SubarrayRanges.jsx",
+                      "category":  "Stack",
+                      "name":  "SubarrayRanges",
+                      "track":  "alias",
+                      "wave":  9,
+                      "model":  "none",
+                      "stage":  "array",
+                      "aux":  [
+                                  "stack"
+                              ],
+                      "modes":  true,
+                      "notes":  [
+                                    "export default from ../SubarrayRanges"
+                                ],
+                      "metrics":  {
+                                      "kb":  27,
+                                      "lines":  738,
+                                      "classNames":  83,
+                                      "hexLiterals":  0,
+                                      "keydown":  true,
+                                      "declaresNavigateProp":  false,
+                                      "callsNavigate":  false,
+                                      "titleInvisibleInProd":  false
+                                  },
+                      "status":  "todo"
+                  }
+              ]
+}
