@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
-import { getToken } from "@/services/api";
-import { getSockJsUrl, getStompBrokerUrl } from "@/services/realtimeUrls";
+import stompClient from "../services/stompClient";
+import useUserStore from "./useUserStore";
 import {
   acceptFriendChallenge,
   acceptFriendRequest,
@@ -22,8 +20,10 @@ import {
   sendFriendRequest,
 } from "@/services/friendsApi";
 
-const SOCKJS_URL = getSockJsUrl();
-const STOMP_BROKER_URL = getStompBrokerUrl();
+const FRIENDS_DESTS = (userId) => [
+  `/topic/friends/${userId}/requests`,
+  `/topic/friends/${userId}/challenges`,
+];
 
 const useFriendsStore = create((set, get) => ({
   friends: [],
@@ -50,8 +50,8 @@ const useFriendsStore = create((set, get) => ({
   error: null,
   lastNotification: null,
 
-  _stompClient: null,
-  _stompSubscriptions: [],
+  _stompSubscriptions: [],   // destinations this store owns
+  _stompStatusOff: null,
   _wsConnected: false,
   _searchRequestSeq: 0,
   _presenceInterval: null,
@@ -420,31 +420,25 @@ const useFriendsStore = create((set, get) => ({
 
   connectNotifications: async (userId) => {
     get()._startPresenceHeartbeat();
-    const existing = get()._stompClient;
-    if (existing?.connected) return true;
 
-    return new Promise((resolve) => {
-      const token = getToken();
-      const sockJsUrl = token
-        ? `${SOCKJS_URL}${SOCKJS_URL.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`
-        : SOCKJS_URL;
+    // Mirror connection state; on every (re)connect refresh what may have been
+    // missed while the socket was down.
+    if (!get()._stompStatusOff) {
+      const off = stompClient.onStatus((connected) => {
+        const was = get()._wsConnected;
+        set({ _wsConnected: connected });
+        if (connected && !was) {
+          get().loadIncomingChallenges();
+          get().loadChallengeMuteStatus();
+        }
+      });
+      set({ _stompStatusOff: off });
+    }
 
-      const client = new Client({
-        brokerURL: STOMP_BROKER_URL,
-        webSocketFactory: () => new SockJS(sockJsUrl),
-        connectHeaders: token ? { Authorization: `Bearer ${token}` } : {},
-        reconnectDelay: 5000,
-        heartbeatIncoming: 10000,
-        heartbeatOutgoing: 10000,
-        debug: () => {},
-        onConnect: () => {
-          const subRequests = client.subscribe(`/topic/friends/${userId}/requests`, (message) => {
-            let data = {};
-            try {
-              data = JSON.parse(message.body);
-            } catch {
-              data = { message: "New friend activity" };
-            }
+    // Idempotent per destination, applied in onConnect and after reconnects.
+    const [reqDest, chDest] = FRIENDS_DESTS(userId);
+    stompClient.subscribe(reqDest, (payload) => {
+            const data = payload && typeof payload === "object" ? payload : { message: "New friend activity" };
             const msg = data?.message || "You have a new friend request";
             set((state) => ({
               lastNotification: msg,
@@ -452,14 +446,8 @@ const useFriendsStore = create((set, get) => ({
             }));
             get().loadOverview();
           });
-
-          const subChallenges = client.subscribe(`/topic/friends/${userId}/challenges`, (message) => {
-            let data = {};
-            try {
-              data = JSON.parse(message.body);
-            } catch {
-              data = { message: "Challenge update received" };
-            }
+    stompClient.subscribe(chDest, (payload) => {
+            const data = payload && typeof payload === "object" ? payload : { message: "Challenge update received" };
 
             const type = data?.type;
             const challenge = data?.challenge || null;
@@ -542,56 +530,25 @@ const useFriendsStore = create((set, get) => ({
 
             set({ lastNotification: msg });
           });
+    set({ _stompSubscriptions: [reqDest, chDest] });
 
-          set({
-            _stompClient: client,
-            _stompSubscriptions: [subRequests, subChallenges],
-            _wsConnected: true,
-          });
-
-          get().loadIncomingChallenges();
-          get().loadChallengeMuteStatus();
-          get()._startPresenceHeartbeat();
-          resolve(true);
-        },
-        onStompError: () => {
-          set({ _wsConnected: false });
-          resolve(false);
-        },
-        onWebSocketClose: () => {
-          set({ _wsConnected: false });
-        },
-      });
-
-      try {
-        client.activate();
-      } catch {
-        set({ _wsConnected: false });
-        resolve(false);
-      }
-
-      setTimeout(() => {
-        if (!client.connected) {
-          set({ _wsConnected: false });
-          resolve(false);
-        }
-      }, 4000);
-    });
+    const ok = await stompClient.connect();
+    set({ _wsConnected: ok });
+    if (ok) {
+      get().loadIncomingChallenges();
+      get().loadChallengeMuteStatus();
+    }
+    return ok;
   },
 
   disconnectNotifications: () => {
     get()._stopPresenceHeartbeat();
-    const subs = get()._stompSubscriptions || [];
-    subs.forEach((sub) => {
-      try { sub.unsubscribe(); } catch { /* no-op */ }
-    });
-    const client = get()._stompClient;
-    if (client) {
-      try { client.deactivate(); } catch { /* no-op */ }
-    }
+    (get()._stompSubscriptions || []).forEach((dest) => stompClient.unsubscribe(dest));
+    const off = get()._stompStatusOff;
+    if (off) off();
     set({
       _stompSubscriptions: [],
-      _stompClient: null,
+      _stompStatusOff: null,
       _wsConnected: false,
     });
   },
@@ -623,5 +580,13 @@ const useFriendsStore = create((set, get) => ({
     });
   },
 }));
+
+// Logout: reset this store and close the shared STOMP connection.
+useUserStore.subscribe((state, prev) => {
+  if (prev.user && !state.user) {
+    useFriendsStore.getState().reset();
+    stompClient.deactivate();
+  }
+});
 
 export default useFriendsStore;

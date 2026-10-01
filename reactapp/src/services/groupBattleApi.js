@@ -1,4 +1,5 @@
 import { authFetch } from "./api";
+import { submitIdempotent } from "./idempotentSubmit";
 
 const API_BASE = (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api/battle";
 
@@ -120,17 +121,8 @@ export async function fetchGroupBattleState(battleId, userId) {
  * @param {number} battleId
  * @param {{ userId, problemIndex, language, code }} opts
  */
-export async function submitGroupBattleCode(battleId, opts) {
-  const res = await authFetch(`${API_BASE}/${battleId}/submit`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(opts),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || err.error || "Submission failed");
-  }
-  return res.json();
+export async function submitGroupBattleCode(battleId, submitOpts, opts) {
+  return submitIdempotent(API_BASE, battleId, submitOpts, opts);
 }
 
 /**

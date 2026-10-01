@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
-import { getToken } from "../services/api";
-import { getSockJsUrl, getStompBrokerUrl } from "../services/realtimeUrls";
+import stompClient from "../services/stompClient";
+import useUserStore from "./useUserStore";
 import {
   joinQueue as apiJoinQueue,
   fetchQueueStatus,
@@ -17,8 +15,6 @@ import {
   checkActiveBattle as apiCheckActiveBattle,
 } from "../services/battleApi";
 
-const SOCKJS_URL = getSockJsUrl();
-const STOMP_BROKER_URL = getStompBrokerUrl();
 const POLL_INTERVAL = 3000;
 
 /**
@@ -44,8 +40,8 @@ const useBattleStore = create((set, get) => ({
   /* ── Internal refs (not rendered) ── */
   _queueInterval: null,
   _battleInterval: null,
-  _stompClient: null,
-  _stompSubscriptions: [],   // active STOMP subscriptions to unsubscribe on cleanup
+  _stompSubscriptions: [],   // destinations this store owns (deduped)
+  _stompStatusOff: null,
   _wsConnected: false,
 
   /* ═══════════════════════════════════════════════════════════
@@ -53,89 +49,44 @@ const useBattleStore = create((set, get) => ({
    * ═══════════════════════════════════════════════════════════ */
 
   /**
-   * Create & activate a STOMP client. Resolves once connected.
-   * If connection fails, sets _wsConnected = false so callers know
-   * to start polling fallback.
+   * Connect the shared tab-wide STOMP client. Resolves true once connected,
+   * false if it is not up within a few seconds (callers then rely on polling).
    */
-  _connectStomp: () =>
-    new Promise((resolve) => {
-      const existing = get()._stompClient;
-      if (existing?.connected) {
-        set({ _wsConnected: true });
-        resolve(true);
-        return;
-      }
-
-      const client = new Client({
-        brokerURL: STOMP_BROKER_URL,
-        webSocketFactory: () => new SockJS(SOCKJS_URL),
-        connectHeaders: { Authorization: `Bearer ${getToken() || ""}` },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 10000,
-        heartbeatOutgoing: 10000,
-        debug: () => { },          // silence debug logs
-        onConnect: () => {
-          set({ _stompClient: client, _wsConnected: true });
-          resolve(true);
-        },
-        onStompError: () => {
-          set({ _wsConnected: false });
-          resolve(false);
-        },
-        onWebSocketClose: () => {
-          set({ _wsConnected: false });
-        },
-      });
-
-      // If SockJS fails to even open, catch it
-      try {
-        client.activate();
-      } catch {
-        set({ _wsConnected: false });
-        resolve(false);
-      }
-
-      // Timeout - if not connected in 4s, fall back
-      setTimeout(() => {
-        if (!client.connected) {
-          set({ _wsConnected: false });
-          resolve(false);
-        }
-      }, 4000);
-    }),
-
-  /** Subscribe to a STOMP destination. Returns the subscription object. */
-  _subscribe: (destination, callback) => {
-    const client = get()._stompClient;
-    if (!client?.connected) return null;
-    const sub = client.subscribe(destination, (message) => {
-      try {
-        callback(JSON.parse(message.body));
-      } catch {
-        callback(message.body);
-      }
-    });
-    set({ _stompSubscriptions: [...get()._stompSubscriptions, sub] });
-    return sub;
+  _connectStomp: async () => {
+    if (!get()._stompStatusOff) {
+      const off = stompClient.onStatus((connected) => set({ _wsConnected: connected }));
+      set({ _stompStatusOff: off });
+    }
+    const ok = await stompClient.connect();
+    set({ _wsConnected: ok });
+    return ok;
   },
 
-  /** Unsubscribe all active STOMP subscriptions. */
+  /**
+   * Subscribe to a destination on the shared client. Idempotent per
+   * destination (a repeat call only swaps the handler) and re-applied
+   * automatically after a reconnect.
+   */
+  _subscribe: (destination, callback) => {
+    const off = stompClient.subscribe(destination, callback);
+    if (!get()._stompSubscriptions.includes(destination)) {
+      set({ _stompSubscriptions: [...get()._stompSubscriptions, destination] });
+    }
+    return off;
+  },
+
+  /** Drop every destination this store subscribed to. */
   _unsubscribeAll: () => {
-    const subs = get()._stompSubscriptions;
-    subs.forEach((s) => {
-      try { s.unsubscribe(); } catch { /* already closed */ }
-    });
+    get()._stompSubscriptions.forEach((dest) => stompClient.unsubscribe(dest));
     set({ _stompSubscriptions: [] });
   },
 
-  /** Deactivate the STOMP client entirely. */
+  /** Release this store's subscriptions; the shared client stays up for other stores. */
   _disconnectStomp: () => {
     get()._unsubscribeAll();
-    const client = get()._stompClient;
-    if (client) {
-      try { client.deactivate(); } catch { /* ignore */ }
-    }
-    set({ _stompClient: null, _wsConnected: false });
+    const off = get()._stompStatusOff;
+    if (off) off();
+    set({ _stompStatusOff: null, _wsConnected: false });
   },
 
   /* ═══════════════════════════════════════════════════════════
@@ -419,5 +370,13 @@ const useBattleStore = create((set, get) => ({
     }
   },
 }));
+
+// Logout: reset this store and close the shared STOMP connection.
+useUserStore.subscribe((state, prev) => {
+  if (prev.user && !state.user) {
+    useBattleStore.getState().reset();
+    stompClient.deactivate();
+  }
+});
 
 export default useBattleStore;

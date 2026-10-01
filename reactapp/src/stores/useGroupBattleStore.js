@@ -1,8 +1,6 @@
 import { create } from "zustand";
-import { Client } from "@stomp/stompjs";
-import SockJS from "sockjs-client";
-import { getToken } from "../services/api";
-import { getSockJsUrl, getStompBrokerUrl } from "../services/realtimeUrls";
+import stompClient from "../services/stompClient";
+import useUserStore from "./useUserStore";
 import {
   createRoom as apiCreateRoom,
   fetchRoomByCode,
@@ -16,8 +14,6 @@ import {
   fetchGroupBattleResult,
 } from "../services/groupBattleApi";
 
-const SOCKJS_URL = getSockJsUrl();
-const STOMP_BROKER_URL = getStompBrokerUrl();
 const POLL_INTERVAL = 3000;
 
 /**
@@ -38,49 +34,39 @@ const useGroupBattleStore = create((set, get) => ({
 
   /* ── Internal refs ── */
   _pollInterval: null,
-  _stompClient: null,
-  _stompSubscriptions: [],
+  _stompSubscriptions: [],   // destinations this store owns (deduped)
+  _stompStatusOff: null,
   _wsConnected: false,
 
   /* ═══════════════════════════════════════════════════════════
    * STOMP HELPERS
    * ═══════════════════════════════════════════════════════════ */
 
-  _connectStomp: () =>
-    new Promise((resolve) => {
-      const existing = get()._stompClient;
-      if (existing?.connected) {
-        set({ _wsConnected: true });
-        resolve(true);
-        return;
-      }
+  /** Connect the shared tab-wide STOMP client; true once connected. */
+  _connectStomp: async () => {
+    if (!get()._stompStatusOff) {
+      const off = stompClient.onStatus((connected) => set({ _wsConnected: connected }));
+      set({ _stompStatusOff: off });
+    }
+    const ok = await stompClient.connect();
+    set({ _wsConnected: ok });
+    return ok;
+  },
 
-      const client = new Client({
-        brokerURL: STOMP_BROKER_URL,
-        webSocketFactory: () => new SockJS(SOCKJS_URL),
-        connectHeaders: { Authorization: `Bearer ${getToken() || ""}` },
-        reconnectDelay: 5000,
-        heartbeatIncoming: 10000,
-        heartbeatOutgoing: 10000,
-        debug: () => {},
-        onConnect: () => {
-          set({ _stompClient: client, _wsConnected: true });
-          resolve(true);
-        },
-        onStompError: () => {
-          set({ _wsConnected: false });
-          resolve(false);
-        },
-        onWebSocketClose: () => set({ _wsConnected: false }),
-      });
-      client.activate();
-    }),
+  /** Idempotent per destination; re-applied automatically after reconnect. */
+  _subscribe: (destination, handler) => {
+    stompClient.subscribe(destination, handler);
+    if (!get()._stompSubscriptions.includes(destination)) {
+      set({ _stompSubscriptions: [...get()._stompSubscriptions, destination] });
+    }
+  },
 
+  /** Release this store's destinations; the shared client stays up for other stores. */
   _disconnectStomp: () => {
-    const { _stompClient, _stompSubscriptions } = get();
-    _stompSubscriptions.forEach((sub) => { try { sub.unsubscribe(); } catch (_) {} });
-    if (_stompClient?.active) { try { _stompClient.deactivate(); } catch (_) {} }
-    set({ _stompClient: null, _stompSubscriptions: [], _wsConnected: false });
+    get()._stompSubscriptions.forEach((dest) => stompClient.unsubscribe(dest));
+    const off = get()._stompStatusOff;
+    if (off) off();
+    set({ _stompSubscriptions: [], _stompStatusOff: null, _wsConnected: false });
   },
 
   _stopPoll: () => {
@@ -225,35 +211,29 @@ const useGroupBattleStore = create((set, get) => ({
    * @param {number} userId
    */
   subscribeGroupState: async (battleId, userId) => {
-    const connected = await get()._connectStomp();
-    if (!connected) return;
-    const client = get()._stompClient;
-    const subs = [];
+    // Subscribe even if not yet connected: the shared client applies it on connect.
+    await get()._connectStomp();
 
     // Live scoreboard
-    subs.push(client.subscribe(
+    get()._subscribe(
       `/topic/battle/${battleId}/group-state/${userId}`,
-      (msg) => {
-        const state = JSON.parse(msg.body);
+      (state) => {
         set({ groupState: state });
-        if (state.state === "COMPLETED") {
+        if (state?.state === "COMPLETED") {
           fetchGroupBattleResult(battleId, userId)
             .then((result) => set({ result }))
             .catch(() => {});
         }
       }
-    ));
+    );
 
     // Final result
-    subs.push(client.subscribe(
+    get()._subscribe(
       `/topic/battle/${battleId}/group-result/${userId}`,
-      (msg) => {
-        const result = JSON.parse(msg.body);
+      (result) => {
         set({ result });
       }
-    ));
-
-    set({ _stompSubscriptions: [...get()._stompSubscriptions, ...subs] });
+    );
   },
 
   /**
@@ -294,14 +274,11 @@ const useGroupBattleStore = create((set, get) => ({
    * ═══════════════════════════════════════════════════════════ */
 
   _subscribeToRoom: async (battleId, userId) => {
-    const connected = await get()._connectStomp();
-    if (!connected) return;
-    const client = get()._stompClient;
-    const subs = [];
+    // Subscribe even if not yet connected: the shared client applies it on connect.
+    await get()._connectStomp();
 
     // Room lobby updates (player join/leave/kick)
-    subs.push(client.subscribe(`/topic/battle/${battleId}/room`, (msg) => {
-      const payload = JSON.parse(msg.body);
+    get()._subscribe(`/topic/battle/${battleId}/room`, (payload) => {
       if (payload.state === "CANCELLED") {
         set({
           room: {
@@ -313,20 +290,17 @@ const useGroupBattleStore = create((set, get) => ({
       } else {
         set({ room: payload });
       }
-    }));
+    });
 
     // Battle started - transition from lobby to arena
-    subs.push(client.subscribe(`/topic/battle/${battleId}/started`, (msg) => {
-      const payload = JSON.parse(msg.body);
+    get()._subscribe(`/topic/battle/${battleId}/started`, () => {
       set({ room: { ...get().room, state: "ACTIVE" } });
-    }));
+    });
 
     // Kicked notification for this specific user
-    subs.push(client.subscribe(`/topic/battle/${battleId}/kicked/${userId}`, (msg) => {
+    get()._subscribe(`/topic/battle/${battleId}/kicked/${userId}`, () => {
       set({ kicked: true });
-    }));
-
-    set({ _stompSubscriptions: [...get()._stompSubscriptions, ...subs] });
+    });
   },
 
   /* ═══════════════════════════════════════════════════════════
@@ -343,5 +317,13 @@ const useGroupBattleStore = create((set, get) => ({
     });
   },
 }));
+
+// Logout: reset this store and close the shared STOMP connection.
+useUserStore.subscribe((state, prev) => {
+  if (prev.user && !state.user) {
+    useGroupBattleStore.getState().reset();
+    stompClient.deactivate();
+  }
+});
 
 export default useGroupBattleStore;
