@@ -21,8 +21,8 @@
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-%2306B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-%232496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js_Judge-%23339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-%234169E1?style=for-the-badge&logo=postgresql&logoColor=white)
-![Redis](https://img.shields.io/badge/Redis-%23DC382D?style=for-the-badge&logo=redis&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-%234479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis_(optional)-%23DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![WebSocket](https://img.shields.io/badge/WebSocket-Realtime-%23EDFF66?style=for-the-badge&logoColor=09090b)
 
 <br/>
@@ -71,7 +71,7 @@
 
 **Built With**
 - **Frontend:** React 19 · Zustand · GSAP · Three.js · Monaco
-- **Backend:** Spring Boot 4 · PostgreSQL · Redis · WebSocket
+- **Backend:** Spring Boot 4 · MySQL · WebSocket · optional Redis realtime bridge
 - **Judge:** Node.js · Docker sandboxed execution
 - **Extension:** Chrome MV3 · Auto-sync + Bulk import
 - **Styling:** Tailwind CSS · shadcn/ui
@@ -321,8 +321,8 @@ Everything is mapped and searchable, with links to both the visualizer and the o
 - **Spring Boot 4** — Java REST API framework
 - **Spring Security** — Authentication & JWT tokens
 - **Spring WebSocket** — Real-time bidirectional communication
-- **PostgreSQL** — Relational database
-- **Redis** — Session caching and real-time state
+- **MySQL** — Relational database
+- **Redis** — Optional pub/sub bridge for realtime fan-out across instances (off by default)
 - **JPA/Hibernate** — ORM for database operations
 - **Maven** — Dependency management and build automation
 
@@ -377,8 +377,8 @@ Everything is mapped and searchable, with links to both the visualizer and the o
 │  │             │   │             │   │             │  │          │  │
 │  │ Zustand     │   │ REST API    │   │ Docker      │  │ MV3      │  │
 │  │ Three.js    │   │ WebSocket   │   │ C++ / Java  │  │ Auto-sync│  │
-│  │ GSAP        │   │ PostgreSQL  │   │ Worker Pool │  │ Bulk sync│  │
-│  │ Monaco      │   │ Redis       │   │ Sandbox     │  │          │  │
+│  │ GSAP        │   │ MySQL       │   │ Worker Pool │  │ Bulk sync│  │
+│  │ Monaco      │   │ Redis (opt) │   │ Sandbox     │  │          │  │
 │  └─────────────┘   └─────────────┘   └─────────────┘  └──────────┘  │
 │         └──────────────────┴──────────────────┘                     │
 │                             │                                        │
@@ -394,8 +394,8 @@ Everything is mapped and searchable, with links to both the visualizer and the o
 | **React App** | `3000` | Frontend SPA — visualizers, battle UI, conquest map |
 | **Spring Boot** | `8080` | REST API, auth, gamification engine, battle orchestration |
 | **Judge Service** | `4000` | Code execution with Docker sandboxes |
-| **PostgreSQL** | `5432` | Primary database |
-| **Redis** | `6379` | Session caching and real-time state |
+| **MySQL** | `3306` | Primary database |
+| **Redis** | `6379` | Optional realtime pub/sub bridge (disabled by default) |
 
 ---
 
@@ -469,7 +469,7 @@ docker-compose up -d
 ```bash
 docker-compose -f docker-compose.yml up -d
 
-# Starts: PostgreSQL · Redis · Spring Boot · Judge + workers · React (prod build)
+# Starts: MySQL · Spring Boot · Judge + workers · React (prod build)
 ```
 
 </details>

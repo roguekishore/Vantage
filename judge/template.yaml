@@ -29,6 +29,19 @@ Parameters:
     Default: 5
     Description: Warm ping interval. 5 min = 8,640 invocations/month, ~1% of the free request tier.
 
+  ReservedConcurrency:
+    Type: Number
+    Default: 0
+    MinValue: 0
+    Description: >-
+      Reserved concurrent executions for the function. 0 (default) omits the
+      property entirely. READ THE ACCOUNT-LIMIT TRAP in the function's
+      comments before setting this above 0.
+
+Conditions:
+
+  HasReservedConcurrency: !Not [!Equals [!Ref ReservedConcurrency, 0]]
+
 Resources:
 
   JudgeFunction:
@@ -42,12 +55,14 @@ Resources:
       # 2 GB buys ~1.2 vCPU, which matters: g++ -O2 and a JVM start per test case
       # are both CPU-bound, and Lambda scales CPU with memory.
       MemorySize: 2048
-      # ReservedConcurrentExecutions intentionally omitted. This account's TOTAL
-      # concurrency limit is 10 (the default for newer accounts), and AWS requires
-      # at least 10 to remain UNreserved — so any reservation here fails the stack
-      # with "decreases account's UnreservedConcurrentExecution below its minimum
-      # value of [10]". Raise the account quota (Service Quotas → Lambda →
-      # "Concurrent executions") before reintroducing a reservation.
+      # ACCOUNT-LIMIT TRAP: this account's TOTAL concurrency limit is 10 (the
+      # default for newer accounts), and AWS requires at least 10 to remain
+      # UNreserved - so ANY reservation fails the stack with "decreases account's
+      # UnreservedConcurrentExecution below its minimum value of [10]". It would
+      # also starve every other function in the account. Hence the default of 0
+      # omits the property. Raise the account quota (Service Quotas -> Lambda ->
+      # "Concurrent executions") BEFORE passing ReservedConcurrency > 0.
+      ReservedConcurrentExecutions: !If [HasReservedConcurrency, !Ref ReservedConcurrency, !Ref 'AWS::NoValue']
       # Worst realistic case: 30 s compile + 13 test cases x 5 s TIME_LIMIT = ~95 s.
       # NOTE: the Spring caller's RestTemplate read timeout (WebConfig.java) is 30 s
       # and is the real ceiling - raise it there too or this headroom is unused.

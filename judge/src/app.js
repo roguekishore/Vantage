@@ -58,6 +58,12 @@ function createApp() {
     res.json(pool.getPoolStatus());
   });
 
+  // JSON 404 catch-all. Without it an unmatched route falls through to the
+  // framework default and surfaces as a 500 under serverless-express.
+  app.use((_req, res) => {
+    res.status(404).json({ error: "Not found" });
+  });
+
   return app;
 }
 
