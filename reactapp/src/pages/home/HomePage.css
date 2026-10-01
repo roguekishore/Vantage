@@ -190,7 +190,7 @@
 
 .search-result:hover,
 .search-result:focus-visible {
-  background: var(--accent);
+  background: var(--elevated);
 }
 
 .search-result__badge {
@@ -372,7 +372,7 @@
 }
 
 .category-nav__back:hover {
-  background: var(--accent);
+  background: var(--elevated);
   border-color: var(--muted-foreground);
 }
 
@@ -467,7 +467,7 @@
 }
 
 .visualizer-nav__back:hover {
-  background: var(--accent);
+  background: var(--elevated);
   border-color: var(--muted-foreground);
 }
 

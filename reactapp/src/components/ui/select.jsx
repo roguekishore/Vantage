@@ -79,8 +79,8 @@ const SelectItem = React.forwardRef(({ className, value, _value, _onValueChange,
       ref={ref}
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors hover:bg-accent hover:text-accent-foreground",
-        isSelected && "bg-accent text-accent-foreground font-medium",
+        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors hover:bg-elevated hover:text-fg",
+        isSelected && "bg-elevated text-fg font-medium",
         className
       )}
       onClick={() => {
