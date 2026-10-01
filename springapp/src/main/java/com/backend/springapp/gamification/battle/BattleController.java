@@ -19,19 +19,22 @@ import java.util.Map;
 public class BattleController {
 
     private final BattleService battleService;
+    private final MatchmakingService matchmakingService;
+    private final BattleJudgingService judgingService;
+    private final BattleLifecycleService lifecycleService;
 
     /* ── Matchmaking Queue ── */
 
     @PostMapping("/queue")
     public ResponseEntity<?> joinQueue(@Valid @RequestBody JoinQueueRequest req) {
-        Map<String, Object> result = battleService.joinQueue(
+        Map<String, Object> result = matchmakingService.joinQueue(
                 req.userId(), req.mode(), req.difficulty(), req.problemCount(), req.durationMinutes());
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/queue/status")
     public ResponseEntity<QueueStatusResponse> getQueueStatus(@RequestParam Long userId) {
-        return ResponseEntity.ok(battleService.getQueueStatus(userId));
+        return ResponseEntity.ok(matchmakingService.getQueueStatus(userId));
     }
 
     @GetMapping("/feature-flags")
@@ -41,7 +44,7 @@ public class BattleController {
 
     @DeleteMapping("/queue")
     public ResponseEntity<Void> leaveQueue(@RequestParam Long userId) {
-        battleService.leaveQueue(userId);
+        matchmakingService.leaveQueue(userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -70,7 +73,7 @@ public class BattleController {
     @PostMapping("/{id}/submit")
     public ResponseEntity<SubmitResultDTO> submitCode(@PathVariable Long id,
                                                        @RequestBody SubmitCodeRequest req) {
-        return ResponseEntity.ok(battleService.submitCode(
+        return ResponseEntity.ok(judgingService.submitCode(
                 id, req.userId(), req.problemIndex(), req.language(), req.code()));
     }
 
@@ -86,7 +89,7 @@ public class BattleController {
 
     @PostMapping("/{id}/forfeit")
     public ResponseEntity<Void> forfeit(@PathVariable Long id, @RequestParam Long userId) {
-        battleService.forfeit(id, userId);
+        lifecycleService.forfeit(id, userId);
         return ResponseEntity.noContent().build();
     }
 
@@ -94,7 +97,7 @@ public class BattleController {
 
     @PostMapping("/{id}/abandon")
     public ResponseEntity<Void> abandonBattle(@PathVariable Long id, @RequestParam Long userId) {
-        battleService.abandonBattle(id, userId);
+        lifecycleService.abandonBattle(id, userId);
         return ResponseEntity.noContent().build();
     }
 

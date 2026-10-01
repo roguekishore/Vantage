@@ -13,12 +13,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class QueueTimeoutJob {
 
-    private final BattleService battleService;
+    private final MatchmakingService matchmakingService;
 
     @Scheduled(fixedRate = 30000)
     public void run() {
         try {
-            battleService.cleanupStaleQueue();
+            matchmakingService.cleanupStaleQueue();
         } catch (Exception e) {
             log.error("Queue timeout job error: {}", e.getMessage(), e);
         }

@@ -12,7 +12,7 @@ import com.backend.springapp.user.User;
 import com.backend.springapp.user.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.backend.springapp.realtime.RealtimePublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,7 +36,7 @@ public class FriendChallengeService {
     private final FriendshipRepository friendshipRepository;
     private final BattleRepository battleRepository;
     private final BattleService battleService;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final RealtimePublisher realtimePublisher;
 
     @Transactional
     public FriendChallengeCreateResponseDTO createChallenge(Long challengerId, FriendChallengeCreateDTO req) {
@@ -373,7 +373,7 @@ public class FriendChallengeService {
 
     private void broadcast(String destination, Object payload) {
         try {
-            messagingTemplate.convertAndSend(destination, payload);
+            realtimePublisher.toTopic(destination, payload);
         } catch (Exception ignored) {
             // no-op
         }

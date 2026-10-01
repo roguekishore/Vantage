@@ -9,7 +9,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
+import com.backend.springapp.realtime.RealtimePublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,7 +24,7 @@ public class FriendService {
     private final UserRepository userRepository;
     private final FriendRequestRepository friendRequestRepository;
     private final FriendshipRepository friendshipRepository;
-    private final SimpMessagingTemplate messagingTemplate;
+    private final RealtimePublisher realtimePublisher;
 
     @Transactional(readOnly = true)
     public Page<FriendSearchResultDTO> searchUsers(Long currentUserId, String query, int page, int size) {
@@ -249,7 +249,7 @@ public class FriendService {
 
     private void broadcastSafe(String destination, Object payload) {
         try {
-            messagingTemplate.convertAndSend(destination, payload);
+            realtimePublisher.toTopic(destination, payload);
         } catch (Exception ignored) {
             // Notification failure should not break request flow.
         }

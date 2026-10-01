@@ -99,7 +99,7 @@ public class ProgressEventService {
      * the frontend calls GET /api/me/stats immediately upon receiving the event
      * but the DB read sees pre-commit (stale) data.
      */
-    public void publish(Long userId, ProgressEvent event) {
+    public void deliverLocal(Long userId, ProgressEvent event) {
         if (TransactionSynchronizationManager.isActualTransactionActive()) {
             // Capture values for use in the lambda (must be effectively final)
             TransactionSynchronizationManager.registerSynchronization(

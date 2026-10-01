@@ -22,7 +22,7 @@
   {"name":"com.backend.springapp.gamification.battle.BattleResultDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.gamification.battle.BattleResultDTO$ResultStats","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.gamification.battle.BattleService$JudgeProblemSummary","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
-  {"name":"com.backend.springapp.gamification.battle.BattleService$JudgeResult","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
+  {"name":"com.backend.springapp.gamification.battle.BattleJudgingService$JudgeResult","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.gamification.battle.BattleStateDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.gamification.battle.BattleStateDTO$ProblemInfo","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.gamification.battle.BattleStateDTO$ProgressInfo","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},

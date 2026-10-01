@@ -14,13 +14,14 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class BattleTimerJob {
 
-    private final BattleService battleService;
+    private final BattleLifecycleService lifecycleService;
+    private final MatchmakingService matchmakingService;
 
     @Scheduled(fixedRate = 5000)
     public void run() {
         try {
-            battleService.checkExpiredBattles();
-            battleService.cancelExpiredLobbies();
+            lifecycleService.checkExpiredBattles();
+            lifecycleService.cancelExpiredLobbies();
         } catch (Exception e) {
             log.error("Battle timer job error: {}", e.getMessage(), e);
         }
@@ -30,7 +31,7 @@ public class BattleTimerJob {
     @Scheduled(fixedRate = 30000)
     public void cleanupQueue() {
         try {
-            battleService.cleanupStaleQueue();
+            matchmakingService.cleanupStaleQueue();
         } catch (Exception e) {
             log.error("Queue cleanup job error: {}", e.getMessage(), e);
         }

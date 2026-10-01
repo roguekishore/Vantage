@@ -6,7 +6,7 @@ import com.backend.springapp.problem.Problem;
 import com.backend.springapp.problem.ProblemRepository;
 import com.backend.springapp.problem.Tag;
 import com.backend.springapp.sse.ProgressEvent;
-import com.backend.springapp.sse.ProgressEventService;
+import com.backend.springapp.realtime.RealtimePublisher;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +29,7 @@ public class UserProgressService {
     private final UserProgressRepository progressRepository;
     private final ProblemRepository problemRepository;
     private final UserRepository userRepository;
-    private final ProgressEventService progressEventService;
+    private final RealtimePublisher realtimePublisher;
     private final GamificationService gamificationService;
     private final AchievementService achievementService;
 
@@ -87,7 +87,7 @@ public class UserProgressService {
         UserProgress saved = progressRepository.save(progress);
 
         // Push live update to any open React tabs
-        progressEventService.publish(uid, new ProgressEvent(
+        realtimePublisher.toUserSse(uid, new ProgressEvent(
                 pid, saved.getStatus().name(),
                 problem.getLcslug(), saved.getAttemptCount()));
 
@@ -149,7 +149,7 @@ public class UserProgressService {
         }
 
         // Push live update to any open React tabs
-        progressEventService.publish(uid, new ProgressEvent(
+        realtimePublisher.toUserSse(uid, new ProgressEvent(
                 pid, "SOLVED", problem.getLcslug(),
                 saved.getAttemptCount() != null ? saved.getAttemptCount() : 1));
 

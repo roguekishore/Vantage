@@ -5,7 +5,7 @@ import com.backend.springapp.gamification.achievement.AchievementService;
 import com.backend.springapp.problem.Problem;
 import com.backend.springapp.problem.ProblemRepository;
 import com.backend.springapp.sse.ProgressEvent;
-import com.backend.springapp.sse.ProgressEventService;
+import com.backend.springapp.realtime.RealtimePublisher;
 import com.backend.springapp.user.*;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class SyncService {
     private final UserRepository userRepository;
     private final UserProgressRepository progressRepository;
     private final ProblemRepository problemRepository;
-    private final ProgressEventService progressEventService;
+    private final RealtimePublisher realtimePublisher;
     private final GamificationService gamificationService;
     private final AchievementService achievementService;
 
@@ -102,7 +102,7 @@ public class SyncService {
             userRepository.addRating(uid, points);
 
             // Push live update to any open React tabs
-            progressEventService.publish(uid, new ProgressEvent(
+            realtimePublisher.toUserSse(uid, new ProgressEvent(
                     pid, "SOLVED", slug,
                     progress.getAttemptCount() != null ? progress.getAttemptCount() : 1));
 
@@ -181,7 +181,7 @@ public class SyncService {
         progressRepository.save(progress);
 
         // Push live update to any open React tabs
-        progressEventService.publish(uid, new ProgressEvent(
+        realtimePublisher.toUserSse(uid, new ProgressEvent(
                 pid, "ATTEMPTED", lcslug, progress.getAttemptCount()));
 
         log.info("Attempt recorded: user={} slug={} attempts={}", lcusername, lcslug, progress.getAttemptCount());

@@ -13,12 +13,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MatchmakingJob {
 
-    private final BattleService battleService;
+    private final MatchmakingService matchmakingService;
 
     @Scheduled(fixedRate = 5000)
     public void run() {
         try {
-            battleService.processMatchmaking();
+            matchmakingService.processMatchmaking();
         } catch (Exception e) {
             log.error("Matchmaking job error: {}", e.getMessage(), e);
         }
