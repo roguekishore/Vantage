@@ -5,6 +5,45 @@ import { observeElementResize } from "../../lib/observeResize";
 import { rgba, cssVar } from "../../lib/canvasTheme";
 import { prefersReducedMotion } from "../../hooks/useReducedMotion";
 
+// Fit text to maxW with an ellipsis (uses the current ctx.font).
+function fitText(ctx, text, maxW) {
+  text = String(text);
+  if (maxW <= 0) return "";
+  if (ctx.measureText(text).width <= maxW) return text;
+  let lo = 0, hi = text.length;
+  while (lo < hi) {
+    const mid = (lo + hi + 1) >> 1;
+    if (ctx.measureText(text.slice(0, mid) + "\u2026").width <= maxW) lo = mid; else hi = mid - 1;
+  }
+  return lo > 0 ? text.slice(0, lo) + "\u2026" : "";
+}
+
+// HUD row: right label measured first (capped to 60% of the row), left label
+// truncated to the remaining width minus a 10px gap. Caller sets fillStyle
+// before each call via the style callbacks; fonts are the shared 10px mono.
+function drawHudRow(ctx, W, y, left, right, leftStyle, rightStyle, leftGlow, leftNoGlow) {
+  const pad = 8, gap = 10, avail = Math.max(0, W - pad * 2);
+  ctx.textBaseline = "alphabetic";
+  ctx.font = "600 10px 'JetBrains Mono', monospace";
+  const r = fitText(ctx, right, avail * 0.6);
+  const rw = r ? ctx.measureText(r).width : 0;
+  ctx.font = "700 10px 'JetBrains Mono', monospace";
+  const l = fitText(ctx, left, avail - rw - (rw ? gap : 0));
+  if (l) {
+    if (leftGlow) leftGlow();
+    ctx.fillStyle = leftStyle;
+    ctx.textAlign = "left";
+    ctx.fillText(l, pad, y);
+    if (leftNoGlow) leftNoGlow();
+  }
+  if (r) {
+    ctx.font = "600 10px 'JetBrains Mono', monospace";
+    ctx.fillStyle = rightStyle;
+    ctx.textAlign = "right";
+    ctx.fillText(r, W - pad, y);
+  }
+}
+
 // Theme + motion helpers.
 // tok("accent-ink") -> the current theme's hex for that token (hex/rgba pass
 // through), re-read every frame so a theme toggle applies without a remount.
@@ -517,20 +556,11 @@ export function NQueensCanvas({ size = 8, color: colorToken = "accent-ink" }) {
 
       // HUD
       ctx.save();
-      if (state.kind === "solution") glow(10);
-      ctx.fillStyle = state.kind === "solution" ? color : rgba(color, 0.85);
-      ctx.font = "700 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(`${status}: ${msg}`, 8, H() - 14);
-      noGlow();
-
-      const hudLeftW = ctx.measureText(`${status}: ${msg}`).width;
-      ctx.fillStyle = rgba(color, 0.6);
-      ctx.font = "600 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "right";
-      const hudRight = `Q=${qCount()}/${size}  •  ${stepIdx}/${steps.length}`;
-      if (hudLeftW + ctx.measureText(hudRight).width + 32 < W()) ctx.fillText(hudRight, W() - 8, H() - 14);
+      drawHudRow(
+        ctx, W(), H() - 14, `${status}: ${msg}`, `Q=${qCount()}/${size}  •  ${stepIdx}/${steps.length}`,
+        state.kind === "solution" ? color : rgba(color, 0.85), rgba(color, 0.6),
+        state.kind === "solution" ? () => glow(10) : null, noGlow,
+      );
 
       const p = steps.length ? stepIdx / steps.length : 0;
       ctx.fillStyle = rgba("fg", 0.08);
@@ -841,18 +871,11 @@ export function SudokuCanvas({ color: colorToken = "accent-ink" }) {
             : "initializing";
 
       ctx.save();
-      if (state.kind === "solution") glow(10);
-      ctx.fillStyle = state.kind === "solution" ? color : rgba(color, 0.86);
-      ctx.font = "700 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(`${status}: ${msg}`, 8, H() - 12);
-      noGlow();
-
-      ctx.fillStyle = rgba(color, 0.5);
-      ctx.font = "600 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(`filled ${filledCount()}/81  •  ${stepIdx}/${steps.length}`, W() - 8, H() - 12);
+      drawHudRow(
+        ctx, W(), H() - 12, `${status}: ${msg}`, `filled ${filledCount()}/81  •  ${stepIdx}/${steps.length}`,
+        state.kind === "solution" ? color : rgba(color, 0.86), rgba(color, 0.5),
+        state.kind === "solution" ? () => glow(10) : null, noGlow,
+      );
 
       const p = steps.length ? stepIdx / steps.length : 0;
       ctx.fillStyle = rgba("fg", 0.08);
@@ -1122,15 +1145,10 @@ export function SnakesLaddersCanvas({ color: colorToken = "accent-ink" }) {
           ? `SNAKE ${event.from}→${event.to}`
           : `ROLL ${event.dice || 0}`;
       ctx.save();
-      ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(`${label}`, 8, H() - 12);
-      ctx.fillStyle = rgba(color, 0.5);
-      ctx.font = "600 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(`POS ${currentPos}  •  TURN ${event.turn || 0}`, W() - 8, H() - 12);
+      drawHudRow(
+        ctx, W(), H() - 12, `${label}`, `POS ${currentPos}  •  TURN ${event.turn || 0}`,
+        rgba(color, 0.88), rgba(color, 0.5),
+      );
 
       const p = events.length ? eventIdx / events.length : 0;
       ctx.fillStyle = rgba("fg", 0.08);
@@ -1365,18 +1383,13 @@ export function KnightsTourCanvas({ color: colorToken = "accent-ink", size = 8 }
 
       // HUD
       ctx.save();
-      if (completed) glow(10);
-      ctx.fillStyle = completed ? color : rgba(color, 0.85);
-      ctx.font = "700 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "left";
-      ctx.textBaseline = "alphabetic";
-      ctx.fillText(completed ? "SOLUTION: Full tour complete" : "TRY: exploring legal knight moves", 8, H() - 12);
-      noGlow();
-
-      ctx.fillStyle = rgba(color, 0.45);
-      ctx.font = "600 10px 'JetBrains Mono', monospace";
-      ctx.textAlign = "right";
-      ctx.fillText(`STEP ${Math.min(currentStep + 1, total)}/${total}`, W() - 8, H() - 12);
+      drawHudRow(
+        ctx, W(), H() - 12,
+        completed ? "SOLUTION: Full tour complete" : "TRY: exploring legal knight moves",
+        `STEP ${Math.min(currentStep + 1, total)}/${total}`,
+        completed ? color : rgba(color, 0.85), rgba(color, 0.45),
+        completed ? () => glow(10) : null, noGlow,
+      );
 
       const prog = total > 0 ? (currentStep + (moving ? 0.5 : 0)) / total : 0;
       ctx.fillStyle = rgba("fg", 0.08);

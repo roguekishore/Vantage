@@ -3,6 +3,20 @@ import { observeElementResize } from "../../lib/observeResize";
 import { rgba, toRgb, cssVar } from "../../lib/canvasTheme";
 import { prefersReducedMotion } from "../../hooks/useReducedMotion";
 
+
+// Fit a status label into maxW, truncating with an ellipsis (uses the current ctx.font).
+const fitText = (ctx, text, maxW) => {
+  const s = String(text);
+  if (maxW <= 0) return "";
+  if (ctx.measureText(s).width <= maxW) return s;
+  let n = s.length;
+  while (n > 1 && ctx.measureText(s.slice(0, n) + "\u2026").width > maxW) n -= 1;
+  return s.slice(0, n) + "\u2026";
+};
+// Left label that never collides with the right label sharing its row.
+const fitLeft = (ctx, left, right, w) =>
+  fitText(ctx, left, w - 16 - 10 - ctx.measureText(String(right)).width);
+
 // Theme + motion helpers.
 // tok("accent-ink") -> the current theme's hex for that token (hex/rgba pass
 // through), re-read every frame so a theme toggle applies without a remount.
@@ -332,7 +346,7 @@ function makeDrawHelpers(ctx, col, glowScale = 1) {
     noGlow();
     // label
     ctx.fillStyle = labelColor;
-    ctx.font = `700 ${r > 10 ? 9 : 8}px 'JetBrains Mono', 'Fira Code', monospace`;
+    ctx.font = `700 ${r > 10 ? 10 : 10}px 'JetBrains Mono', 'Fira Code', monospace`;
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(label, x, y + 0.5);
@@ -409,7 +423,7 @@ function makeDrawHelpers(ctx, col, glowScale = 1) {
     ctx.roundRect(mx - 7, my - 6, 14, 12, 3);
     ctx.fill();
     ctx.fillStyle = fg;
-    ctx.font = "600 7px 'JetBrains Mono', monospace";
+    ctx.font = "600 10px 'JetBrains Mono', monospace";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(weight, mx, my);
@@ -661,7 +675,7 @@ export function AlgoCanvas({ algo }) {
             if (orderIdx >= 0 && orderIdx < stepIdx) {
               ctx.save();
               ctx.fillStyle = rgba(col, 0.55);
-              ctx.font = "700 5.5px 'JetBrains Mono', monospace";
+              ctx.font = "700 10px 'JetBrains Mono', monospace";
               ctx.textAlign = "center";
               ctx.fillText(`#${orderIdx + 1}`, x, y + r + 8);
               ctx.restore();
@@ -676,7 +690,7 @@ export function AlgoCanvas({ algo }) {
           const boxW = 18, gap = 3, startX = 8, startY = H() - 22;
           ctx.save();
           ctx.fillStyle = rgba(col, 0.25);
-          ctx.font = "500 6px 'JetBrains Mono', monospace";
+          ctx.font = "500 10px 'JetBrains Mono', monospace";
           ctx.textAlign = "left";
           ctx.fillText(qLabel, startX, startY - 2);
           qItems.forEach((nid, qi) => {
@@ -689,7 +703,7 @@ export function AlgoCanvas({ algo }) {
             ctx.fill();
             ctx.stroke();
             ctx.fillStyle = qi === 0 ? rgba("bg", 1) : rgba("fg", 0.6);
-            ctx.font = "700 7px 'JetBrains Mono', monospace";
+            ctx.font = "700 10px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[nid]?.label || "", bx + boxW / 2, startY + 7);
           });
@@ -702,7 +716,7 @@ export function AlgoCanvas({ algo }) {
           const sLabel = "STACK";
           ctx.save();
           ctx.fillStyle = rgba(col, 0.25);
-          ctx.font = "500 6px 'JetBrains Mono', monospace";
+          ctx.font = "500 10px 'JetBrains Mono', monospace";
           ctx.textAlign = "left";
           ctx.fillText(sLabel, 8, H() - 28);
           stackItems.forEach((nid, si) => {
@@ -714,7 +728,7 @@ export function AlgoCanvas({ algo }) {
             ctx.roundRect(bx, H() - 20, 18, 14, 3);
             ctx.fill(); ctx.stroke();
             ctx.fillStyle = si === 0 ? rgba("bg", 1) : rgba("fg", 0.6);
-            ctx.font = "700 7px monospace";
+            ctx.font = "700 10px monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[nid]?.label || "", bx + 9, H() - 13);
           });
@@ -724,7 +738,7 @@ export function AlgoCanvas({ algo }) {
         // visited counter
         ctx.save();
         ctx.fillStyle = rgba(col, 0.5);
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "right";
         ctx.fillText(`${visited.size}/${algo.nodes.length}`, W() - 8, H() - 8);
         ctx.restore();
@@ -924,7 +938,7 @@ export function AlgoCanvas({ algo }) {
           if (isVisited) {
             ctx.save();
             ctx.fillStyle = rgba(col, 0.9);
-            ctx.font = "700 5.5px monospace";
+            ctx.font = "700 10px monospace";
             ctx.textAlign = "center";
             ctx.fillText(`#${orderIdx + 1}`, x, y - 13);
             ctx.restore();
@@ -939,7 +953,7 @@ export function AlgoCanvas({ algo }) {
           const rowY = H() - 22;
           ctx.save();
           ctx.fillStyle = rgba(col, 0.3);
-          ctx.font = "500 6px monospace";
+          ctx.font = "500 10px monospace";
           ctx.textAlign = "center";
           ctx.fillText("SORTED OUTPUT", W() / 2, rowY - 5);
           sortedRow.forEach((lbl, i) => {
@@ -952,7 +966,7 @@ export function AlgoCanvas({ algo }) {
             ctx.roundRect(bx, rowY, bw, 14, 3);
             ctx.fill(); ctx.stroke();
             ctx.fillStyle = rgba(col, 0.7 + entryT * 0.3);
-            ctx.font = "700 7px 'JetBrains Mono', monospace";
+            ctx.font = "700 10px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.fillText(lbl, bx + bw / 2, rowY + 7);
           });
@@ -1075,7 +1089,7 @@ export function AlgoCanvas({ algo }) {
           ctx.globalAlpha = d?.vis ?? 0;
           const badgeColor = isVisited ? col : rgba("fg", 0.4);
           ctx.fillStyle = badgeColor;
-          ctx.font = `700 ${dStr.length > 2 ? 6 : 7}px 'JetBrains Mono', monospace`;
+          ctx.font = `700 ${dStr.length > 2 ? 10 : 10}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           if (isVisited) { ctx.shadowColor = col; ctx.shadowBlur = 0; }
           ctx.fillText(dStr, x, y - 14);
@@ -1085,9 +1099,9 @@ export function AlgoCanvas({ algo }) {
         // Source label
         ctx.save();
         ctx.fillStyle = rgba(col, 0.4);
-        ctx.font = "600 6px 'JetBrains Mono', monospace";
+        ctx.font = "600 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`SOURCE: ${algo.nodes[0].label}`, 8, H() - 8);
+        ctx.fillText(fitText(ctx, `SOURCE: ${algo.nodes[0].label}`, W() - 16), 8, H() - 8);
         ctx.restore();
       };
     };
@@ -1164,7 +1178,7 @@ export function AlgoCanvas({ algo }) {
           if (isVisited) {
             ctx.save();
             ctx.fillStyle = rgba(col, 0.6);
-            ctx.font = "600 5.5px monospace";
+            ctx.font = "600 10px monospace";
             ctx.textAlign = "center";
             ctx.fillText(`${orderIdx + 1}`, x, y - 13);
             ctx.restore();
@@ -1178,7 +1192,7 @@ export function AlgoCanvas({ algo }) {
           const startX = (W() - totalW) / 2;
           ctx.save();
           ctx.fillStyle = rgba(col, 0.25);
-          ctx.font = "500 5.5px monospace";
+          ctx.font = "500 10px monospace";
           ctx.textAlign = "center";
           ctx.fillText("ORDER", W() / 2, rowY - 4);
           visitOrder.forEach((id, i) => {
@@ -1189,7 +1203,7 @@ export function AlgoCanvas({ algo }) {
             ctx.lineWidth = 0.8;
             ctx.beginPath(); ctx.roundRect(bx, rowY, bw, 13, 3); ctx.fill(); ctx.stroke();
             ctx.fillStyle = rgba(col, Math.max(0.5, et));
-            ctx.font = "700 7px monospace";
+            ctx.font = "700 10px monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[id].label, bx + bw / 2, rowY + 6.5);
           });
@@ -1305,12 +1319,12 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         helpers.glow(col, 8);
         ctx.fillStyle = col;
-        ctx.font = "700 9px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`COST: ${Math.round(displayCost)}`, 8, H() - 8);
+        ctx.fillText(fitLeft(ctx, `COST: ${Math.round(displayCost)}`, `${mstNodes.size}/${n} nodes`, W()), 8, H() - 8);
         helpers.noGlow();
         ctx.fillStyle = rgba(col, 0.4);
-        ctx.font = "500 7px monospace";
+        ctx.font = "500 10px monospace";
         ctx.textAlign = "right";
         ctx.fillText(`${mstNodes.size}/${n} nodes`, W() - 8, H() - 8);
         ctx.restore();
@@ -1429,14 +1443,14 @@ export function AlgoCanvas({ algo }) {
             : isMid ? rgba("fg", 1)
               : eliminated ? rgba("fg", 0.1)
                 : rgba("fg", 0.75);
-          ctx.font = `700 ${boxW > 30 ? 10 : 9}px 'JetBrains Mono', monospace`;
+          ctx.font = `700 ${boxW > 30 ? 10 : 10}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(v, x + boxW / 2, baseY + boxH / 2);
 
           // index
           ctx.fillStyle = rgba("fg", 0.12);
-          ctx.font = "500 6px monospace";
+          ctx.font = "500 10px monospace";
           ctx.textBaseline = "alphabetic";
           ctx.fillText(i, x + boxW / 2, baseY + boxH + 10);
           ctx.restore();
@@ -1448,7 +1462,7 @@ export function AlgoCanvas({ algo }) {
           ctx.save();
           helpers.glow(col, 10);
           ctx.fillStyle = col;
-          ctx.font = "700 7px 'JetBrains Mono', monospace";
+          ctx.font = "700 10px 'JetBrains Mono', monospace";
           ctx.textAlign = "center";
           ctx.fillText("MID", mx, baseY - 14);
           // connector line
@@ -1464,7 +1478,7 @@ export function AlgoCanvas({ algo }) {
         const hiX = startX + hiV * (boxW + 4) + boxW / 2;
         ctx.save();
         ctx.fillStyle = rgba(col, 0.5);
-        ctx.font = "600 6.5px 'JetBrains Mono', monospace";
+        ctx.font = "600 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         if (lo <= hi) {
           ctx.fillText("LO", loX, baseY + boxH + 20);
@@ -1476,9 +1490,9 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         helpers.glow(col, foundIdx >= 0 ? 10 : 0);
         ctx.fillStyle = foundIdx >= 0 ? col : rgba(col, 0.7);
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(foundIdx >= 0 ? `✓ FOUND: ${algo.target}` : `TARGET: ${algo.target}`, 8, H() - 8);
+        ctx.fillText(fitLeft(ctx, foundIdx >= 0 ? `✓ FOUND: ${algo.target}` : `TARGET: ${algo.target}`, `STEP ${phase}`, W()), 8, H() - 8);
         helpers.noGlow();
         ctx.fillStyle = rgba("fg", 0.2);
         ctx.textAlign = "right";
@@ -1613,7 +1627,7 @@ export function AlgoCanvas({ algo }) {
 
           // value label above bar
           ctx.fillStyle = inWin ? rgba("fg", 1) : rgba("fg", 0.3);
-          ctx.font = "600 7px monospace";
+          ctx.font = "600 10px monospace";
           ctx.textAlign = "center";
           ctx.fillText(v, x + bw / 2, by - 4);
           ctx.restore();
@@ -1623,9 +1637,9 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         helpers.glow(col, 8);
         ctx.fillStyle = col;
-        ctx.font = "700 9px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`SUM: ${Math.round(curSumV)}`, 8, H() - 10);
+        ctx.fillText(fitLeft(ctx, `SUM: ${Math.round(curSumV)}`, `BEST: ${bestSum > -Infinity ? bestSum : "—"}`, W()), 8, H() - 10);
         helpers.noGlow();
         ctx.fillStyle = rgba(col, 0.5);
         ctx.textAlign = "right";
@@ -1714,7 +1728,7 @@ export function AlgoCanvas({ algo }) {
           ctx.save();
           if (isFound) helpers.glow(col, 12);
           ctx.fillStyle = isFound ? col : rgba(col, 0.85);
-          ctx.font = `700 ${isFound ? 9 : 8}px 'JetBrains Mono', monospace`;
+          ctx.font = `700 ${isFound ? 10 : 10}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
           ctx.fillText(
@@ -1727,7 +1741,7 @@ export function AlgoCanvas({ algo }) {
             const sumVal2 = vals[L] + vals[R];
             if (sumVal2 !== algo.target) {
               ctx.fillStyle = rgba(col, 0.5);
-              ctx.font = "600 6.5px 'JetBrains Mono', monospace";
+              ctx.font = "600 10px 'JetBrains Mono', monospace";
               ctx.textAlign = "center";
               ctx.textBaseline = "top";
               ctx.fillText(
@@ -1759,7 +1773,7 @@ export function AlgoCanvas({ algo }) {
           helpers.noGlow();
           // label
           ctx.fillStyle = rgba(col, 0.9);
-          ctx.font = "700 7px 'JetBrains Mono', monospace";
+          ctx.font = "700 10px 'JetBrains Mono', monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "bottom";
           ctx.fillText(label, cx, boxY - 21);
@@ -1795,7 +1809,7 @@ export function AlgoCanvas({ algo }) {
             : (isL || isR) ? rgba("fg", 1)
               : eliminated ? rgba("fg", 0.1)
                 : rgba("fg", 0.65);
-          ctx.font = `700 ${bw > 26 ? 10 : 9}px 'JetBrains Mono', monospace`;
+          ctx.font = `700 ${bw > 26 ? 10 : 10}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(v, bx + bw / 2, boxY + boxH / 2);
@@ -1805,10 +1819,10 @@ export function AlgoCanvas({ algo }) {
         // bottom status
         ctx.save();
         ctx.fillStyle = isFound ? col : rgba(col, 0.45);
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
         if (isFound) helpers.glow(col, 8);
-        ctx.fillText(`TARGET: ${algo.target}`, 8, H() - 8);
+        ctx.fillText(fitText(ctx, `TARGET: ${algo.target}`, W() - 16), 8, H() - 8);
         helpers.noGlow();
         ctx.restore();
       };
@@ -1897,7 +1911,7 @@ export function AlgoCanvas({ algo }) {
         ctx.beginPath(); ctx.moveTo(startX - 6, baseY); ctx.lineTo(startX + totalW + 6, baseY); ctx.stroke();
         // zero label
         ctx.fillStyle = rgba("fg", 0.2);
-        ctx.font = "500 6px monospace";
+        ctx.font = "500 10px monospace";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.fillText("0", startX - 8, baseY);
@@ -1937,7 +1951,7 @@ export function AlgoCanvas({ algo }) {
 
           // value label just outside the bar tip
           ctx.fillStyle = isActive ? rgba("fg", 1) : rgba("fg", 0.35);
-          ctx.font = "600 6px monospace";
+          ctx.font = "600 10px monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(v, x + bw / 2, isPos ? rectY - 6 : rectY + barH + 6);
@@ -1960,10 +1974,10 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         helpers.glow(col, 8);
         ctx.fillStyle = col;
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
-        ctx.fillText(`BEST: ${bestSum > -Infinity ? bestSum : "—"}`, 8, H() - 8);
+        ctx.fillText(fitLeft(ctx, `BEST: ${bestSum > -Infinity ? bestSum : "—"}`, `CUR: ${idx > 0 ? curSum : "—"}`, W()), 8, H() - 8);
         helpers.noGlow();
         ctx.fillStyle = rgba("fg", 0.3);
         ctx.textAlign = "right";
@@ -2091,7 +2105,7 @@ export function AlgoCanvas({ algo }) {
             ctx.save();
             const labelCol = isAcc ? col : isRej ? rgba("err", 0.7) : rgba("fg", 0.22);
             ctx.fillStyle = isAcc ? rgba(col, 0.9) : labelCol;
-            ctx.font = "600 7px 'JetBrains Mono', monospace";
+            ctx.font = "600 10px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(ew.w, mx, my - 5);
@@ -2117,10 +2131,10 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         helpers.glow(col, 6);
         ctx.fillStyle = col;
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
         ctx.textBaseline = "alphabetic";
-        ctx.fillText(`COST: ${Math.round(costV)}`, 8, H() - 8);
+        ctx.fillText(fitLeft(ctx, `COST: ${Math.round(costV)}`, `${accepted.size}/${n - 1} edges`, W()), 8, H() - 8);
         helpers.noGlow();
         ctx.fillStyle = rgba(col, 0.45);
         ctx.textAlign = "right";
@@ -2136,12 +2150,12 @@ export function AlgoCanvas({ algo }) {
           ctx.textBaseline = "top";
           if (curStep.take) {
             ctx.fillStyle = rgba(col, 0.8);
-            ctx.font = "700 7px 'JetBrains Mono', monospace";
-            ctx.fillText(`${nA.label}-${nB.label} (w=${curStep.w}) \u2713 ACCEPTED`, W() / 2, 6);
+            ctx.font = "700 10px 'JetBrains Mono', monospace";
+            ctx.fillText(fitText(ctx, `${nA.label}-${nB.label} (w=${curStep.w}) \u2713 ACCEPTED`, W() - 16), W() / 2, 6);
           } else {
             ctx.fillStyle = rgba("err", 0.7);
-            ctx.font = "700 7px 'JetBrains Mono', monospace";
-            ctx.fillText(`${nA.label}-${nB.label} (w=${curStep.w}) \u2717 CYCLE`, W() / 2, 6);
+            ctx.font = "700 10px 'JetBrains Mono', monospace";
+            ctx.fillText(fitText(ctx, `${nA.label}-${nB.label} (w=${curStep.w}) \u2717 CYCLE`, W() - 16), W() / 2, 6);
           }
           ctx.restore();
         }
@@ -2245,7 +2259,7 @@ export function AlgoCanvas({ algo }) {
           helpers.noGlow();
           if (ew) {
             ctx.fillStyle = hot ? col : rgba("fg", 0.3);
-            ctx.font = "600 7px 'JetBrains Mono', monospace";
+            ctx.font = "600 10px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
             ctx.fillText(ew.w, mx - 6, my - 4);
@@ -2316,7 +2330,7 @@ export function AlgoCanvas({ algo }) {
         // matrix title
         ctx.save();
         ctx.fillStyle = rgba(col, 0.5);
-        ctx.font = "600 6.5px 'JetBrains Mono', monospace";
+        ctx.font = "600 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "alphabetic";
         ctx.fillText("DIST[][]", matX + matW / 2, matOffY - 4);
@@ -2330,7 +2344,7 @@ export function AlgoCanvas({ algo }) {
           const isKCol = focus && focus.k === i;
           ctx.save();
           ctx.fillStyle = isKCol ? rgba("fg", 0.9) : rgba("fg", 0.35);
-          ctx.font = `${isKCol ? "700" : "500"} 7px 'JetBrains Mono', monospace`;
+          ctx.font = `${isKCol ? "700" : "500"} 10px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText(nodeLabels[i], cx, matOffY + cellSz / 2); // col header
           ctx.fillText(nodeLabels[i], matOffX + cellSz / 2, ry); // row header
@@ -2372,7 +2386,7 @@ export function AlgoCanvas({ algo }) {
                 : val >= INF ? rgba("fg", 0.2)
                   : i === j ? rgba("fg", 0.25)
                     : rgba("fg", 0.7);
-            ctx.font = `${flash > 0 ? "700" : "500"} ${cellSz > 18 ? 8 : 7}px 'JetBrains Mono', monospace`;
+            ctx.font = `${flash > 0 ? "700" : "500"} ${cellSz > 18 ? 10 : 10}px 'JetBrains Mono', monospace`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(dispVal, cx + cellSz / 2, cy + cellSz / 2);
             ctx.restore();
@@ -2390,7 +2404,7 @@ export function AlgoCanvas({ algo }) {
         helpers.noGlow();
         if (focus) {
           ctx.fillStyle = rgba(col, 0.5);
-          ctx.font = "500 6px 'JetBrains Mono', monospace";
+          ctx.font = "500 10px 'JetBrains Mono', monospace";
           ctx.textAlign = "left";
           ctx.textBaseline = "alphabetic";
           ctx.fillText(`k=${focus.k}`, 8, H() - 16);
@@ -2510,9 +2524,9 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         helpers.glow(col, 6);
         ctx.fillStyle = rgba(col, 0.7);
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "left";
-        ctx.fillText(`SORTED: ${count - heapSz}/${count}`, 8, H() - 2);
+        ctx.fillText(fitText(ctx, `SORTED: ${count - heapSz}/${count}`, W() - 16), 8, H() - 2);
         helpers.noGlow();
         ctx.restore();
       };
@@ -2792,10 +2806,10 @@ export function MergeSortCanvas() {
       // labels
       ctx.save();
       ctx.fillStyle = rgba(COLOR, 0.6);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText("MERGE SORT", startX, H() - 4);
+      ctx.fillText(fitLeft(ctx, "MERGE SORT", `${stepIdx}/${steps.length}`, W()), startX, H() - 4);
       ctx.fillStyle = rgba(COLOR, 0.28);
       ctx.textAlign = "right";
       ctx.fillText(`${stepIdx}/${steps.length}`, W() - startX, H() - 4);

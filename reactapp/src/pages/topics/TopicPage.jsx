@@ -5,12 +5,13 @@
  * (text + 2px left bar). Data: search/catalog filtered by `topicKey`.
  */
 
-import React from "react";
+import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { ChevronRight, Hash } from "lucide-react";
+import { ChevronRight, Hash, Search } from "lucide-react";
 import { problems as PROBLEM_CATALOG } from "../../search/catalog";
-import { Badge, Breadcrumb, Button, EmptyState, ListRow, PageHeader, PageShell, Panel } from "@/components/ds";
+import { Badge, Breadcrumb, Button, EmptyState, Input, ListRow, PageHeader, PageShell, Panel, Tabs, TabsList, TabsTrigger } from "@/components/ds";
 import { cn } from "@/lib/utils";
+import TopicHeroCanvas from "./TopicHeroCanvas";
 
 const DIFF = {
   Easy: { text: "text-ok", edge: "border-ok" },
@@ -111,44 +112,94 @@ function AlgorithmRow({ algo, basePath, fallbackIcon }) {
 }
 
 const TopicPage = ({ topicKey, title, eyebrow, description, icon: Icon, basePath }) => {
-  const algorithms = PROBLEM_CATALOG.filter((p) => p.topic === topicKey);
-  const easy = algorithms.filter((a) => a.difficulty === "Easy").length;
-  const medium = algorithms.filter((a) => a.difficulty === "Medium").length;
-  const hard = algorithms.filter((a) => a.difficulty === "Hard").length;
-  const visualizerCount = algorithms.filter((a) => a.subpage).length;
+  const [difficulty, setDifficulty] = useState("All");
+  const [term, setTerm] = useState("");
+  const all = useMemo(() => PROBLEM_CATALOG.filter((p) => p.topic === topicKey), [topicKey]);
+  const algorithms = useMemo(() => {
+    const q = term.trim().toLowerCase();
+    return all.filter(
+      (a) =>
+        (difficulty === "All" || a.difficulty === difficulty) &&
+        (!q || [a.label, a.technique, ...(a.tags || [])].filter(Boolean).join(" ").toLowerCase().includes(q))
+    );
+  }, [all, difficulty, term]);
+  const easy = all.filter((a) => a.difficulty === "Easy").length;
+  const medium = all.filter((a) => a.difficulty === "Medium").length;
+  const hard = all.filter((a) => a.difficulty === "Hard").length;
+  const visualizerCount = all.filter((a) => a.subpage).length;
 
   return (
     <PageShell>
-      <PageHeader
-        breadcrumb={<Breadcrumb items={[{ label: "Visualizers", to: "/visualizers" }, { label: title }]} />}
-        eyebrow={eyebrow}
-        title={title}
-        description={description}
-        actions={
-          algorithms.length > 0 ? (
-            <ul aria-label="Difficulty mix" className="flex flex-wrap items-center gap-4">
-              <li className="font-mono text-small tabular-nums text-fg-muted">
-                {visualizerCount} {visualizerCount === 1 ? "visualizer" : "visualizers"}
-              </li>
-              {[
-                ["Easy", easy],
-                ["Medium", medium],
-                ["Hard", hard],
-              ].map(([label, n]) =>
-                n > 0 ? (
-                  <li key={label}>
-                    <Difficulty value={label}>
-                      {n} {label}
-                    </Difficulty>
-                  </li>
-                ) : null
-              )}
-            </ul>
-          ) : null
-        }
-      />
+      <div className="mb-8 grid gap-6 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_320px] lg:items-stretch">
+        <PageHeader
+          className="mb-0 border-b-0 pb-0"
+          breadcrumb={<Breadcrumb items={[{ label: "Visualizers", to: "/visualizers" }, { label: title }]} />}
+          eyebrow={eyebrow}
+          title={title}
+          description={description}
+          actions={
+            all.length > 0 ? (
+              <ul aria-label="Difficulty mix" className="flex flex-wrap items-center gap-4">
+                <li className="font-mono text-small tabular-nums text-fg-muted">
+                  {visualizerCount} {visualizerCount === 1 ? "visualizer" : "visualizers"}
+                </li>
+                {[
+                  ["Easy", easy],
+                  ["Medium", medium],
+                  ["Hard", hard],
+                ].map(([label, n]) =>
+                  n > 0 ? (
+                    <li key={label}>
+                      <Difficulty value={label}>
+                        {n} {label}
+                      </Difficulty>
+                    </li>
+                  ) : null
+                )}
+              </ul>
+            ) : null
+          }
+        />
+        <div className="relative hidden min-h-[160px] border border-border bg-surface lg:block">
+          <TopicHeroCanvas
+            variant="scan"
+            seed={topicKey}
+            className="block h-full w-full"
+            label={`Animation of a scan across bars for ${title}`}
+          />
+          {Icon ? (
+            <span className="pointer-events-none absolute left-4 top-4 border border-border-strong bg-surface p-2 text-fg">
+              <Icon size={32} strokeWidth={1.25} aria-hidden="true" />
+            </span>
+          ) : null}
+        </div>
+      </div>
 
-      {algorithms.length === 0 ? (
+      {all.length > 0 ? (
+        <div className="mb-6 flex flex-wrap items-center gap-3">
+          <Tabs variant="segmented" value={difficulty} onValueChange={setDifficulty}>
+            <TabsList aria-label="Filter by difficulty">
+              {["All", "Easy", "Medium", "Hard"].map((d) => (
+                <TabsTrigger key={d} value={d}>
+                  {d}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          <div className="relative min-w-0 flex-1 sm:max-w-sm">
+            <Search size={16} strokeWidth={1.5} aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-fg-dim" />
+            <Input
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="Filter by name or pattern"
+              aria-label={`Filter ${title} algorithms`}
+              className="pl-9"
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {all.length === 0 ? (
         <EmptyState
           icon={Icon || undefined}
           title="No visualizers yet"
@@ -159,8 +210,24 @@ const TopicPage = ({ topicKey, title, eyebrow, description, icon: Icon, basePath
             </Button>
           }
         />
+      ) : algorithms.length === 0 ? (
+        <EmptyState
+          title="No matches"
+          description="No algorithms match this filter."
+          action={
+            <Button
+              variant="secondary"
+              onClick={() => {
+                setDifficulty("All");
+                setTerm("");
+              }}
+            >
+              Clear filters
+            </Button>
+          }
+        />
       ) : (
-        <Panel as="section" label={`Algorithms · ${algorithms.length}`} padded={false}>
+        <Panel as="section" label={`Algorithms · ${algorithms.length}${algorithms.length !== all.length ? ` of ${all.length}` : ""}`} padded={false}>
           <div
             aria-hidden="true"
             className="flex h-9 items-center gap-3 border-b border-border bg-surface px-4 font-mono text-micro uppercase text-fg-dim"

@@ -4,8 +4,9 @@ import { Search, X } from "lucide-react";
 import topics from "../../data/topics";
 import { problems as PROBLEM_CATALOG } from "../../search/catalog";
 import { getTopicByKey } from "../../routes/config";
-import { Badge, IconButton, Input, Kbd, PageHeader, PageShell, Panel } from "@/components/ds";
+import { Badge, IconButton, Input, Kbd, PageHeader, PageShell, Panel, Stat } from "@/components/ds";
 import { cn } from "@/lib/utils";
+import TopicHeroCanvas from "./TopicHeroCanvas";
 
 /*
  * Visualizers hub: PageHeader, full-width search with a
@@ -56,13 +57,13 @@ function TopicTile({ topic }) {
   const routePath = config?.path || `/${topic.page.toLowerCase()}`;
   const name = displayName(topic.name);
 
-  const { total, counts } = useMemo(() => {
+  const { total, counts, sample } = useMemo(() => {
     const list = PROBLEM_CATALOG.filter((p) => p.topic === topic.page && p.subpage);
     const c = { Easy: 0, Medium: 0, Hard: 0 };
     list.forEach((p) => {
       if (c[p.difficulty] !== undefined) c[p.difficulty] += 1;
     });
-    return { total: list.length, counts: c };
+    return { total: list.length, counts: c, sample: list.slice(0, 3).map((p) => p.label) };
   }, [topic.page]);
 
   return (
@@ -80,6 +81,19 @@ function TopicTile({ topic }) {
             <p className="line-clamp-2 font-mono text-small text-fg-muted">{topic.description}</p>
           ) : null}
         </div>
+        {sample.length > 0 ? (
+          <ul aria-label="Example algorithms" className="grid gap-1 border-t border-border pt-3 font-mono text-small text-fg-muted">
+            {sample.map((label) => (
+              <li key={label} className="truncate">
+                <span aria-hidden="true" className="mr-2 text-fg-dim">/</span>
+                {label}
+              </li>
+            ))}
+            {total > sample.length ? (
+              <li className="text-micro uppercase text-fg-dim">+{total - sample.length} more</li>
+            ) : null}
+          </ul>
+        ) : null}
         <div className="mt-auto">
           <DifficultyMix counts={counts} total={total} />
         </div>
@@ -218,6 +232,14 @@ const TopicsPage = () => {
     []
   );
 
+  const overview = useMemo(() => {
+    const c = { Easy: 0, Medium: 0, Hard: 0 };
+    PROBLEM_CATALOG.forEach((p) => {
+      if (p.topic && p.subpage && c[p.difficulty] !== undefined) c[p.difficulty] += 1;
+    });
+    return c;
+  }, []);
+
   const searchIndex = useMemo(() => {
     const topicItems = topics.map((topic) => {
       const config = getTopicByKey(topic.page);
@@ -296,11 +318,30 @@ const TopicsPage = () => {
 
   return (
     <PageShell>
-      <PageHeader
-        eyebrow="Learn"
-        title="Visualizers"
-        description={`${totalProblems} step-by-step algorithm visualizers across ${topics.length} topics. Pick a topic, or search by algorithm name or keyword.`}
-      />
+      <div className="mb-8 grid gap-6 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-stretch">
+        <PageHeader
+          className="mb-0 border-b-0 pb-0"
+          eyebrow="Learn"
+          title="Visualizers"
+          description={`${totalProblems} step-by-step algorithm visualizers across ${topics.length} topics. Pick a topic, or search by algorithm name or keyword.`}
+        />
+        <div className="hidden min-h-[220px] border border-border bg-surface lg:block">
+          <TopicHeroCanvas
+            variant="tree"
+            className="block h-full w-full"
+            label="Animation of a breadth-first walk over a binary tree"
+          />
+        </div>
+      </div>
+
+      <Panel as="section" aria-label="Catalog overview" className="mb-6">
+        <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
+          <Stat label="Topics" value={topics.length} />
+          <Stat label="Easy" value={overview.Easy} />
+          <Stat label="Medium" value={overview.Medium} />
+          <Stat label="Hard" value={overview.Hard} />
+        </div>
+      </Panel>
 
       <section aria-label="Search" className="mb-8">
         <SearchBar

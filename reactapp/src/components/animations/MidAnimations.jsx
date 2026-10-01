@@ -5,6 +5,20 @@ import { observeElementResize } from "../../lib/observeResize";
 import { rgba, cssVar } from "../../lib/canvasTheme";
 import { prefersReducedMotion } from "../../hooks/useReducedMotion";
 
+
+// Fit a status label into maxW, truncating with an ellipsis (uses the current ctx.font).
+const fitText = (ctx, text, maxW) => {
+  const s = String(text);
+  if (maxW <= 0) return "";
+  if (ctx.measureText(s).width <= maxW) return s;
+  let n = s.length;
+  while (n > 1 && ctx.measureText(s.slice(0, n) + "\u2026").width > maxW) n -= 1;
+  return s.slice(0, n) + "\u2026";
+};
+// Left label that never collides with the right label sharing its row.
+const fitLeft = (ctx, left, right, w) =>
+  fitText(ctx, left, w - 16 - 10 - ctx.measureText(String(right)).width);
+
 // Theme + motion helpers.
 // tok("accent-ink") -> the current theme's hex for that token (hex/rgba pass
 // through), re-read every frame so a theme toggle applies without a remount.
@@ -579,14 +593,14 @@ export function MidAnimatonsCanvas({ color: colorToken = "accent-ink" }) {
 
       ctx.save();
       ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       const modeText = state.kind === "path" ? "PATH RECONSTRUCTION" : "A* SEARCH";
-      ctx.fillText(modeText, 8, H() - 12);
+      ctx.fillText(fitLeft(ctx, modeText, `STEP ${Math.min(stepIdx, steps.length)}/${steps.length}${pathList.length ? ` • PATH ${pathList.length}` : ""}`, W()), 8, H() - 12);
 
       ctx.fillStyle = rgba(color, 0.5);
-      ctx.font = "600 7px 'JetBrains Mono', monospace";
+      ctx.font = "600 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "right";
       const pathLen = pathList.length ? ` • PATH ${pathList.length}` : "";
       ctx.fillText(`STEP ${Math.min(stepIdx, steps.length)}/${steps.length}${pathLen}`, W() - 8, H() - 12);
@@ -714,7 +728,7 @@ export function UnionFindCanvas({ color: colorToken = "accent-ink" }) {
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.fillStyle = rgba("bg", 1);
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(String(i), pos[i].x, pos[i].y + 0.5);
@@ -723,9 +737,9 @@ export function UnionFindCanvas({ color: colorToken = "accent-ink" }) {
 
       ctx.save();
       ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(state.label, 8, H - 12);
+      ctx.fillText(fitLeft(ctx, state.label, `STEP ${Math.min(idx, steps.length)}/${steps.length}`, W), 8, H - 12);
       ctx.fillStyle = rgba(color, 0.45);
       ctx.textAlign = "right";
       ctx.fillText(`STEP ${Math.min(idx, steps.length)}/${steps.length}`, W - 8, H - 12);
@@ -823,7 +837,7 @@ export function KmpCanvas({ color: colorToken = "accent-ink" }) {
         ctx.fillStyle = i === state.i ? rgba(color, 0.8) : rgba("fg", 0.08);
         ctx.fillRect(x, ty, cell - 1, cell - 1);
         ctx.fillStyle = rgba("fg", 0.9);
-        ctx.font = "700 9px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(text[i], x + (cell - 1) / 2, ty + (cell - 1) / 2 + 0.5);
@@ -837,7 +851,7 @@ export function KmpCanvas({ color: colorToken = "accent-ink" }) {
         ctx.fillStyle = j === state.j ? rgba(color, 0.85) : rgba(color, 0.22);
         ctx.fillRect(x, py, cell - 1, cell - 1);
         ctx.fillStyle = rgba("fg", 0.95);
-        ctx.font = "700 9px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(pattern[j], x + (cell - 1) / 2, py + (cell - 1) / 2 + 0.5);
@@ -846,7 +860,7 @@ export function KmpCanvas({ color: colorToken = "accent-ink" }) {
       // LPS strip
       const ly = py + cell + 10;
       ctx.fillStyle = rgba("fg", 0.2);
-      ctx.font = "600 7px 'JetBrains Mono', monospace";
+      ctx.font = "600 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.fillText("LPS:", tx, ly + 8);
       for (let j = 0; j < lps.length; j++) {
@@ -861,16 +875,16 @@ export function KmpCanvas({ color: colorToken = "accent-ink" }) {
 
       if (state.kind === "found" || foundFlash > 0) {
         ctx.fillStyle = rgba("ok", 0.75 * Math.max(foundFlash, 0.4));
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.fillText(`MATCH @ ${state.foundAt ?? "?"}`, W / 2, ly + 28);
       }
 
       const kindLabel = state.kind === "jump" ? `jump j -> ${state.to}` : state.kind;
       ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`KMP ${kindLabel}`, 8, H - 12);
+      ctx.fillText(fitLeft(ctx, `KMP ${kindLabel}`, `STEP ${Math.min(idx, events.length)}/${events.length}`, W), 8, H - 12);
       ctx.fillStyle = rgba(color, 0.45);
       ctx.textAlign = "right";
       ctx.fillText(`STEP ${Math.min(idx, events.length)}/${events.length}`, W - 8, H - 12);
@@ -999,7 +1013,7 @@ export function SegmentTreeCanvas({ color: colorToken = "accent-ink" }) {
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.fillStyle = isActive ? rgba("bg", 1) : rgba("fg", 0.85);
-        ctx.font = "700 7px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(String(state.values[n.id]), x, y + 0.5);
@@ -1016,16 +1030,16 @@ export function SegmentTreeCanvas({ color: colorToken = "accent-ink" }) {
         ctx.fillStyle = rgba("fg", 0.1);
         ctx.fillRect(x, sy, bw, 18);
         ctx.fillStyle = rgba("fg", 0.9);
-        ctx.font = "700 8px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(String(arr[i]), x + bw / 2, sy + 9.5);
       }
 
       ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(state.label, 8, H - 12);
+      ctx.fillText(fitLeft(ctx, state.label, `STEP ${Math.min(idx, events.length)}/${events.length}`, W), 8, H - 12);
       ctx.fillStyle = rgba(color, 0.45);
       ctx.textAlign = "right";
       ctx.fillText(`STEP ${Math.min(idx, events.length)}/${events.length}`, W - 8, H - 12);
@@ -1135,7 +1149,7 @@ export function PalindromeCanvas({ color: colorToken = "accent-ink" }) {
         ctx.shadowBlur = 0;
 
         ctx.fillStyle = rgba("fg", 0.95);
-        ctx.font = "700 9px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(str[i], x + (cell - 1) / 2, y + 10.5);
@@ -1152,16 +1166,16 @@ export function PalindromeCanvas({ color: colorToken = "accent-ink" }) {
         ctx.lineTo(cx, y - 2);
         ctx.stroke();
         ctx.fillStyle = rgba(color, 0.85);
-        ctx.font = "700 7px 'JetBrains Mono', monospace";
+        ctx.font = "700 10px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.fillText("C", cx, y - 15);
       }
 
       const best = str.slice(state.bestL, state.bestR + 1);
       ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
-      ctx.fillText(`BEST: \"${best}\"`, 8, H - 12);
+      ctx.fillText(fitLeft(ctx, `BEST: \"${best}\"`, `STEP ${Math.min(idx, events.length)}/${events.length}`, W), 8, H - 12);
 
       ctx.fillStyle = rgba(color, 0.45);
       ctx.textAlign = "right";

@@ -36,7 +36,7 @@ function getProblemsForTopic(topicKey) {
 }
 
 /**
- * Topics Data â€” Algorithm browsing groups for /visualizers
+ * Topics data: algorithm browsing groups for /visualizers
  * 
  * Each topic contains:
  * - name: Display name

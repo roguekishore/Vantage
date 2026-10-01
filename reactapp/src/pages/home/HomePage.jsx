@@ -2,8 +2,8 @@ import React, { Suspense, lazy, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { useGSAP } from "@gsap/react";
-import { ArrowRight, ArrowUpRight, Download, Swords } from "lucide-react";
-import { Avatar, Badge, Button, Panel, PageShell, Progress, Skeleton, Stat, buttonClasses } from "@/components/ds";
+import { ArrowRight, ArrowUpRight, BookOpen, Code2, Download, GitBranch, Map as MapIcon, Swords, Trophy, Users } from "lucide-react";
+import { Avatar, Badge, Button, Panel, Progress, Skeleton, Stat, buttonClasses } from "@/components/ds";
 import { cn } from "@/lib/utils";
 import { rgba } from "@/lib/canvasTheme";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
@@ -338,7 +338,8 @@ function SectionHead({ id, eyebrow, title, description, action }) {
 ------------------------------------------------------- */
 function Hero() {
   return (
-    <section aria-labelledby="home-title" className="grid gap-8 border-b border-border pb-12 lg:grid-cols-2 lg:items-end lg:gap-12">
+    <section aria-labelledby="home-title" className="home-hero-field border-b border-border">
+     <div className="mx-auto grid w-full max-w-[1440px] gap-8 px-[var(--gutter)] pb-16 pt-[calc(var(--nav-h)+48px)] lg:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] lg:items-end lg:gap-12">
       <div className="home-enter grid min-w-0 gap-6">
         <p className={eyebrowClass}>&gt; vantage</p>
         <h1 id="home-title" className="font-display text-display uppercase text-fg" style={DISPLAY_STYLE}>
@@ -362,7 +363,7 @@ function Hero() {
         <div className="grid grid-cols-3 gap-4 border-t border-border pt-6">
           <Stat label="Visualizers" value={VISUALIZER_COUNT} />
           <Stat label="Topics" value={TOPIC_COUNT} />
-          <Stat label="Languages" value="C++ / Java" />
+          <Stat label="Languages" value="C++/Java" />
         </div>
       </div>
 
@@ -376,6 +377,114 @@ function Hero() {
           <RaceCanvas />
         </div>
       </Panel>
+     </div>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------
+   BAND: full-bleed section wrapper, content on the container
+------------------------------------------------------- */
+function Band({ children, tone = "bg", className }) {
+  return (
+    <div className={cn("border-b border-border", tone === "surface" ? "bg-surface" : "bg-bg")}>
+      <div className={cn("mx-auto w-full max-w-[1440px] px-[var(--gutter)] py-16", className)}>{children}</div>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------
+   FEATURES + HOW IT WORKS (restored from the old page, no fake stats)
+------------------------------------------------------- */
+const FEATURES = [
+  { icon: Code2, tag: "Execute", title: "Online judge", desc: "Write real C++ or Java, run it against hidden test cases and get a verdict with a trace.", to: "/problems" },
+  { icon: Swords, tag: "Compete", title: "1v1 battles", desc: "Real-time coding duels, ranked or casual. The first accepted solution wins.", to: "/battle" },
+  { icon: MapIcon, tag: "Explore", title: "World conquest", desc: "An interactive world map. Every country is a problem: solve it, claim the territory.", to: "/map" },
+  { icon: Trophy, tag: "Grind", title: "Ranks and achievements", desc: "Badges, coins, XP and streaks reward every session and show on your profile.", to: "/achievements" },
+  { icon: Users, tag: "Dominate", title: "Group battles", desc: "Rooms of 3 to 8 players. Host one, share the code and race your friends.", to: "/battle" },
+  { icon: GitBranch, tag: "Learn", title: "Learning paths", desc: "Topic-by-topic paths from arrays to advanced DP, so you know what to study next.", to: "/visualizers" },
+];
+
+function Features() {
+  return (
+    <section aria-labelledby="home-features">
+      <SectionHead id="home-features" eyebrow="> platform" title="One place for the whole loop" description="Everything you need to learn an algorithm, prove it and compete with it." />
+      <ul className="grid border-l border-t border-border sm:grid-cols-2 lg:grid-cols-3">
+        {FEATURES.map((f) => (
+          <li key={f.title} className="min-w-0 border-b border-r border-border">
+            <Link to={f.to} className="group grid h-full content-start gap-3 p-6 transition-colors duration-150 ds-hover:bg-elevated focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+              <div className="flex items-center justify-between">
+                <f.icon aria-hidden="true" className="size-5 text-accent-ink" />
+                <span className="font-mono text-micro uppercase text-fg-dim">{f.tag}</span>
+              </div>
+              <h3 className="font-mono text-h3 text-fg">{f.title}</h3>
+              <p className="font-mono text-small text-fg-muted">{f.desc}</p>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+const LOOP_STEPS = [
+  { n: "01", icon: BookOpen, title: "Learn visually", desc: "Pick any algorithm and watch it run step by step. Understand the why, not just the what." },
+  { n: "02", icon: Code2, title: "Practice", desc: "Write real code, submit it and iterate against hidden tests until it passes." },
+  { n: "03", icon: Swords, title: "Battle", desc: "Go live 1v1 or in a group. The first accepted solution wins, and pressure builds speed." },
+  { n: "04", icon: MapIcon, title: "Conquer", desc: "Every solved problem is territory on the shared world map." },
+];
+
+function HowItWorks() {
+  return (
+    <section aria-labelledby="home-loop">
+      <SectionHead id="home-loop" eyebrow="> the loop" title="How Vantage works" />
+      <ol className="grid border-t border-border sm:grid-cols-2 lg:grid-cols-4">
+        {LOOP_STEPS.map((s, i) => (
+          <li key={s.n} className={cn("grid content-start gap-3 py-6 sm:px-6 lg:first:pl-0", i > 0 && "lg:border-l lg:border-border", i % 2 === 1 && "sm:border-l sm:border-border lg:border-l")}>
+            <div className="flex items-center gap-3">
+              <s.icon aria-hidden="true" className="size-5 text-accent-ink" />
+              <span className="font-mono text-label tabular-nums text-fg-dim">{s.n}</span>
+            </div>
+            <h3 className="font-mono text-h3 text-fg">{s.title}</h3>
+            <p className="font-mono text-small text-fg-muted">{s.desc}</p>
+          </li>
+        ))}
+      </ol>
+    </section>
+  );
+}
+
+/* -------------------------------------------------------
+   TOPICS: every topic hub, from the route config
+------------------------------------------------------- */
+function Topics() {
+  const topics = Object.values(topicConfig);
+  return (
+    <section aria-labelledby="home-topics">
+      <SectionHead
+        id="home-topics"
+        eyebrow="> explore"
+        title="Topics"
+        description="Pick a topic hub and work through its visualizers."
+        action={
+          <Button asChild variant="link">
+            <Link to="/visualizers">All topics <ArrowRight aria-hidden="true" /></Link>
+          </Button>
+        }
+      />
+      <ul className="grid border-l border-t border-border sm:grid-cols-2 lg:grid-cols-4">
+        {topics.map((t) => {
+          const Icon = t.icon;
+          return (
+            <li key={t.path} className="min-w-0 border-b border-r border-border">
+              <Link to={t.path} className="flex h-full items-center gap-3 p-4 transition-colors duration-150 ds-hover:bg-elevated focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-focus">
+                {Icon ? <Icon aria-hidden="true" className="size-4 shrink-0 text-accent-ink" /> : null}
+                <span className="min-w-0 truncate font-mono text-small text-fg">{t.title}</span>
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }
@@ -403,7 +512,7 @@ function VizCanvas({ card }) {
 
 function VizShowcase() {
   return (
-    <section aria-labelledby="home-viz" className="pt-16">
+    <section aria-labelledby="home-viz">
       <SectionHead
         id="home-viz"
         eyebrow="> visualize"
@@ -417,11 +526,11 @@ function VizShowcase() {
           </Button>
         }
       />
-      <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {VIZ_CARDS.map((card) => (
           <li key={card.key} className="min-w-0">
             <Panel as={Link} to={card.to} variant="interactive" padded={false} className="flex h-full flex-col">
-              <div className="relative h-44 border-b border-border bg-bg" aria-hidden="true">
+              <div className="relative h-56 border-b border-border bg-bg" aria-hidden="true">
                 <VizCanvas card={card} />
               </div>
               <div className="grid flex-1 content-start gap-2 p-4">
@@ -468,7 +577,7 @@ const TRACE = [
 
 function JudgeSection() {
   return (
-    <section aria-labelledby="home-judge" className="pt-16">
+    <section aria-labelledby="home-judge">
       <SectionHead
         id="home-judge"
         eyebrow="> practice"
@@ -610,7 +719,7 @@ function BattleSection() {
   const opponent = finding ? searchPreview : found;
 
   return (
-    <section aria-labelledby="home-battle" className="pt-16">
+    <section aria-labelledby="home-battle">
       <SectionHead
         id="home-battle"
         eyebrow="> compete"
@@ -696,7 +805,7 @@ function BattleSection() {
 ------------------------------------------------------- */
 function MapPreview() {
   return (
-    <section aria-labelledby="home-map" className="pt-16">
+    <section aria-labelledby="home-map">
       <SectionHead
         id="home-map"
         eyebrow="> conquer"
@@ -733,7 +842,7 @@ const EXTENSION_STEPS = [
 
 function ExtensionInstallGuide() {
   return (
-    <section id="extension-setup" aria-labelledby="home-extension" className="scroll-mt-[calc(var(--nav-h)+16px)] pt-16">
+    <section id="extension-setup" aria-labelledby="home-extension" className="scroll-mt-[calc(var(--nav-h)+16px)]">
       <SectionHead
         id="home-extension"
         eyebrow="> sync"
@@ -772,8 +881,8 @@ function ExtensionInstallGuide() {
 ------------------------------------------------------- */
 function FinalCTA() {
   return (
-    <section aria-labelledby="home-cta" className="pt-16">
-      <div className="grid gap-6 border border-accent-edge bg-accent p-8 text-on-accent md:p-12">
+    <section aria-labelledby="home-cta" className="bg-accent text-on-accent">
+      <div className="mx-auto grid w-full max-w-[1440px] gap-6 px-[var(--gutter)] py-16 md:py-24">
         <p className="font-mono text-label">&gt; start</p>
         <h2 id="home-cta" className="font-display text-h1 uppercase" style={DISPLAY_STYLE}>
           Start with a visualizer
@@ -830,16 +939,17 @@ export default function HomePage() {
   }, { scope: scopeRef, dependencies: [reducedMotion] });
 
   return (
-    <PageShell>
-      <div ref={scopeRef}>
-        <Hero />
-        <VizShowcase />
-        <JudgeSection />
-        <BattleSection />
-        <MapPreview />
-        <ExtensionInstallGuide />
-        <FinalCTA />
-      </div>
-    </PageShell>
+    <main id="main" ref={scopeRef} className="w-full">
+      <Hero />
+      <Band><VizShowcase /></Band>
+      <Band tone="surface"><Features /></Band>
+      <Band><JudgeSection /></Band>
+      <Band tone="surface"><BattleSection /></Band>
+      <Band><MapPreview /></Band>
+      <Band tone="surface"><HowItWorks /></Band>
+      <Band><Topics /></Band>
+      <Band tone="surface"><ExtensionInstallGuide /></Band>
+      <FinalCTA />
+    </main>
   );
 }

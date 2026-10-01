@@ -269,6 +269,7 @@ const WorldMap = () => {
       if (!problem) { path.classList.add('country-placeholder'); return; }
       const state = getProblemState(problem.id);
       path.classList.add(`country-${state}`);
+      path.style.setProperty('--topic-color', STAGES[problem.stage]?.color || 'var(--wm-stage-3)');
     });
   }, [getCountryId, getProblemState, completedProblems]);
 
@@ -592,7 +593,7 @@ const WorldMap = () => {
         </div>
 
         {!hudCollapsed && (
-          <div id="wm-hud-body" className="grid max-h-[calc(100vh-96px)] gap-4 overflow-y-auto p-4 max-md:max-h-[55vh]">
+          <div id="wm-hud-body" className="grid min-w-0 grid-cols-[minmax(0,1fr)] max-h-[calc(100vh-96px)] gap-4 overflow-y-auto p-4 max-md:max-h-[55vh]">
             {syncError === 'offline' && (
               <OfflineState
                 onRetry={retrySync}
@@ -609,7 +610,7 @@ const WorldMap = () => {
               />
             )}
 
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <Stat label="Progress" value={`${pct}%`} hint={`${totalProgress.completed} of ${totalProgress.total} solved`} />
               <Progress value={isLoading ? undefined : pct} label={isLoading ? 'Loading progress' : 'Map progress'} />
             </div>
@@ -621,7 +622,7 @@ const WorldMap = () => {
                 variant="interactive"
                 padded={false}
                 onClick={jumpToCurrentProblem}
-                className="flex w-full items-center gap-3 px-3 py-2"
+                className="flex w-full min-w-0 items-center gap-3 px-3 py-2"
               >
                 <MapPin size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-accent-ink" />
                 <span className="grid min-w-0 flex-1 gap-1">
@@ -632,20 +633,21 @@ const WorldMap = () => {
               </Panel>
             )}
 
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <p className={cn(LABEL, 'text-fg-muted')}>Stages</p>
-              <ul className="grid gap-2">
+              <ul className="grid min-w-0 gap-2">
                 {stagesSummary.map(({ key, stage, prog }) => (
-                  <li key={key} className="flex items-center gap-3">
+                  <li key={key} className="flex min-w-0 items-center gap-3">
+                    <span aria-hidden="true" className="wm-stage-dot shrink-0" style={{ '--topic-color': stage.color }} />
                     <span className="min-w-0 flex-1 truncate text-small text-fg-muted">{stage.name}</span>
-                    <Progress value={prog.percentage} label={`${stage.name} progress`} className="w-16 shrink-0" />
+                    <Progress value={prog.percentage} label={`${stage.name} progress`} className="w-12 shrink-0" />
                     <span className={cn(MICRO, 'w-10 shrink-0 text-right text-fg-dim')}>{prog.completed}/{prog.total}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid min-w-0 gap-2">
               <p className={cn(LABEL, 'text-fg-muted')}>Legend</p>
               <ul className="grid grid-cols-2 gap-2">
                 {LEGEND.map(({ state, label }) => (
@@ -689,6 +691,7 @@ const WorldMap = () => {
                     className={cn('grid w-full gap-2 px-3 py-2', prog.isComplete && 'border-accent-ink')}
                   >
                     <span className="flex items-center gap-2">
+                      <span aria-hidden="true" className="wm-stage-dot" style={{ '--topic-color': stage.color }} />
                       <span className={cn('min-w-0 flex-1 truncate text-small', prog.isComplete ? 'text-fg' : 'text-fg-muted')}>
                         {stage.name}
                       </span>
@@ -725,6 +728,7 @@ const WorldMap = () => {
             }}
           >
             <div className="flex items-center gap-2 border-b border-border py-1 pl-4 pr-1">
+              <span aria-hidden="true" className="wm-stage-dot" style={{ '--topic-color': stageInfo?.color }} />
               <span className={cn(LABEL, 'min-w-0 flex-1 truncate text-fg-muted')}>{stageInfo?.name}</span>
               <StatusBadge state={selectedProblem.state} className="shrink-0" />
               <IconButton icon={X} size="md" aria-label="Close" onClick={closePopup} />

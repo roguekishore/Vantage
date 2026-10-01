@@ -12,15 +12,15 @@
   --wm-land-stroke:      var(--border);
   --wm-locked:           var(--elevated);
   --wm-locked-stroke:    var(--border);
-  --wm-available:        rgb(var(--fg-rgb) / 0.16);
+  --wm-available:        rgb(var(--fg-rgb) / 0.12);
   --wm-available-hover:  rgb(var(--fg-rgb) / 0.26);
   --wm-available-stroke: var(--border-strong);
   --wm-current-fill:     var(--accent);
   --wm-current-stroke:   var(--fg);
-  /* Stage colours fail 3:1 against the land in at least one theme, so the
-     completed stroke uses the accent ink instead. */
-  --wm-completed:        var(--accent-soft);
-  --wm-completed-stroke: var(--accent-ink);
+  /* Each stage keeps its own colour via --topic-color (set per path in
+     WorldMap.jsx from STAGES[*].color = var(--wm-stage-<key>)). */
+  --topic-color:         var(--wm-stage-3);
+  --wm-completed-stroke: var(--bg);
   --wm-selected-stroke:  var(--fg);
   --wm-grid:             rgb(var(--fg-rgb) / 0.05);
 
@@ -80,19 +80,19 @@
   cursor:       not-allowed;
 }
 
-/* Available */
+/* Available: neutral land, stage-coloured outline */
 .skill-tree-wrapper .world-svg path.country-available {
   fill:         var(--wm-available);
-  stroke:       var(--wm-available-stroke);
-  stroke-width: 1;
+  stroke:       var(--topic-color, var(--wm-available-stroke));
+  stroke-width: 1.4;
   cursor:       pointer;
 }
 .skill-tree-wrapper .world-svg path.country-available:hover {
   fill:   var(--wm-available-hover);
-  stroke: var(--fg);
+  stroke: var(--topic-color, var(--fg));
 }
 
-/* Current */
+/* Current: accent fill, fg stroke */
 .skill-tree-wrapper .world-svg path.country-current {
   fill:         var(--wm-current-fill);
   stroke:       var(--wm-current-stroke);
@@ -100,11 +100,11 @@
   cursor:       pointer;
 }
 
-/* Completed: accent-soft fill, 2-unit accent-ink stroke */
+/* Completed: filled with the stage colour */
 .skill-tree-wrapper .world-svg path.country-completed {
-  fill:         var(--wm-completed);
+  fill:         var(--topic-color, var(--wm-stage-3));
   stroke:       var(--wm-completed-stroke);
-  stroke-width: 2;
+  stroke-width: 0.8;
   cursor:       pointer;
 }
 .skill-tree-wrapper .world-svg path.country-completed:hover {
@@ -141,8 +141,19 @@
   border-color: var(--wm-current-stroke);
 }
 .skill-tree-wrapper .wm-swatch--completed {
-  background:   var(--wm-completed);
-  border:       2px solid var(--wm-completed-stroke);
+  background:   var(--wm-stage-2);
+  border-color: var(--wm-stage-2);
+}
+
+/* Stage colour key in the HUD, dialog and popup */
+.skill-tree-wrapper .wm-stage-dot,
+.wm-popup .wm-stage-dot,
+[role="dialog"] .wm-stage-dot {
+  display:     inline-block;
+  width:       8px;
+  height:      8px;
+  flex-shrink: 0;
+  background:  var(--topic-color, var(--wm-stage-3));
 }
 
 /* ═══════════════════════════════════════

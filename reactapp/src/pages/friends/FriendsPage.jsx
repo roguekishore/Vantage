@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Search, Swords, UserPlus, Users, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import useFriendsStore from "@/stores/useFriendsStore";
@@ -26,6 +26,9 @@ import {
   TabsTrigger,
 } from "@/components/ds";
 import { ChallengeComposeDialog } from "./FriendChallengeModal";
+
+// cobe stays out of the main bundle: the globe loads with this page.
+const Globe = lazy(() => import("@/components/ui/globe"));
 
 /*
  * Friends: two columns from lg (friends list | requests and
@@ -384,11 +387,32 @@ export default function FriendsPage() {
   );
 
   return (
-    <PageShell>
+    <PageShell className="relative z-[var(--z-raised)]">
+      {/* Page-corner globe: same placement and size as before, behind content */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none fixed bottom-0 right-0 z-[var(--z-base)] aspect-square w-[clamp(460px,56vw,780px)] translate-x-1/4 translate-y-1/4 opacity-[var(--globe-opacity)]"
+      >
+        <div className="relative size-full">
+          <Suspense fallback={null}>
+            <Globe />
+          </Suspense>
+        </div>
+      </div>
+
+      <div className="relative z-[1]">
       <PageHeader
         eyebrow="Social"
-        title="Friends"
+        title={<>Your <em>circle</em></>}
         description="Build your coding circle. See who is online and send live challenges."
+        actions={
+          <>
+            {onlineFriends.length > 0 && <Badge tone="ok">{onlineFriends.length} online</Badge>}
+            <Button variant="secondary" onClick={() => navigate("/battle")}>
+              <Swords aria-hidden="true" /> Battle arena
+            </Button>
+          </>
+        }
       />
 
       <div className="grid gap-6">
@@ -426,6 +450,7 @@ export default function FriendsPage() {
             <TabsContent value="find">{searchPanel}</TabsContent>
           </Tabs>
         )}
+      </div>
       </div>
 
       {challengeTarget && (
