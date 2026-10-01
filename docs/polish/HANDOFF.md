@@ -70,7 +70,8 @@ Viewport only, at most 1280×800 (mobile 390×844), device scale factor 1, never
 ## Git
 
 - Work only on `polish` in the main working tree. Before the first unit, confirm `git branch --show-current` prints `polish`.
-- Push only `polish` to `origin`, never force, and only if your launch prompt allows it (a cloned run does: push after every phase is accepted and at stop). Never switch to, commit on or push `main`. Never `reset --hard`, `clean -f`, force anything, amend after a hook failure or use `--no-verify`.
+- **`main` is off-limits, absolutely.** Never check out, commit on, push to, merge into, rebase onto, reset or delete `main`. Never merge or rebase `main` into `polish` either. Never open, approve or merge a pull request (`gh pr create`, `gh pr merge` or the GitHub API). Merging `polish` is the owner's job, done by hand after review.
+- Push only `polish` to `origin`, never force, and only if your launch prompt allows it (a cloned run does: push after every phase is accepted and at stop). The launch prompt installs a `pre-push` hook that rejects any other ref; never remove or bypass it. Never `reset --hard`, `clean -f`, force anything, amend after a hook failure or use `--no-verify`.
 - Only you commit (subagents don't, except a serial implementer you explicitly allow). Stage specific paths, never `git add -A`.
 - One commit per approved unit (or per Phase 3 batch), conventional commits, e.g. `feat(ds): add Button, IconButton and Panel primitives`, `refactor(viz): migrate Sorting/BubbleSort to defineVisualizer`.
 
