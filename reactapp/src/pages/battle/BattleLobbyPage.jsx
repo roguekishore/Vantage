@@ -528,11 +528,18 @@ export default function BattleLobbyPage() {
     </div>
   );
 
+  const rules = [
+    "Both players get the same problems on the same clock.",
+    "Most problems solved wins. Ties go to solve time, then fewer submissions.",
+    "Ranked matches move your ELO rating. Casual matches never do.",
+    "Forfeiting counts as a loss.",
+  ];
+
   return (
-    <PageShell narrow>
+    <PageShell>
       <PageHeader
         eyebrow="1v1 duel"
-        title="Battle"
+        title={<>Battle <em>arena</em></>}
         description="Real-time coding duels on the same problems and the same clock. Ranked matches move your ELO rating."
         actions={
           <Button variant="secondary" onClick={() => navigate("/group")}>
@@ -548,86 +555,118 @@ export default function BattleLobbyPage() {
         </div>
       )}
 
-      {stats && (
-        <Panel className="mb-6">
-          <div className="grid grid-cols-2 gap-6 sm:grid-cols-4">
-            <Stat label="ELO rating" value={stats.battleRating} />
-            <Stat label="Wins" value={wins} />
-            <Stat label="Losses" value={losses} />
-            <Stat label="Win rate" value={`${winRate}%`} />
-          </div>
-        </Panel>
-      )}
+      <div className="mb-6 grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_22rem]">
+        <div className="grid min-w-0 gap-6">
+          <Panel as="section" label="New match">
+            <Tabs value={mode} onValueChange={setMode}>
+              <TabsList aria-label="Mode">
+                {MODES.map((m) => (
+                  <TabsTrigger key={m.value} value={m.value}>{m.label}</TabsTrigger>
+                ))}
+              </TabsList>
+              {MODES.map((m) => (
+                <TabsContent key={m.value} value={m.value}>
+                  <p className="pt-4 font-mono text-small text-fg-muted">{m.desc}</p>
+                  {config}
+                </TabsContent>
+              ))}
+            </Tabs>
+          </Panel>
 
-      <Panel as="section" label="New match" className="mb-6">
-        <Tabs value={mode} onValueChange={setMode}>
-          <TabsList aria-label="Mode">
-            {MODES.map((m) => (
-              <TabsTrigger key={m.value} value={m.value}>{m.label}</TabsTrigger>
-            ))}
-          </TabsList>
-          {MODES.map((m) => (
-            <TabsContent key={m.value} value={m.value}>
-              <p className="pt-4 font-mono text-small text-fg-muted">{m.desc}</p>
-              {config}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </Panel>
-
-      <Panel
-        as="section"
-        label="Challenge a friend"
-        actions={<span className="font-mono text-small tabular-nums text-fg-muted">{onlineFriends.length} online</span>}
-        padded={false}
-        className="mb-6"
-      >
-        <div className="border-b border-border p-4">
-          <Input
-            aria-label="Search online friends"
-            placeholder="Search online friends"
-            value={friendQuery}
-            onChange={e => setFriendQuery(e.target.value)}
-          />
+          <Panel
+            as="section"
+            label="Challenge a friend"
+            actions={<span className="font-mono text-small tabular-nums text-fg-muted">{onlineFriends.length} online</span>}
+            padded={false}
+          >
+            <div className="border-b border-border p-4">
+              <Input
+                aria-label="Search online friends"
+                placeholder="Search online friends"
+                value={friendQuery}
+                onChange={e => setFriendQuery(e.target.value)}
+              />
+            </div>
+            {filteredFriends.length === 0 ? (
+              <p className="px-4 py-6 text-center font-mono text-small text-fg-muted">
+                {onlineFriends.length === 0 ? "No friends online right now." : "No online friends match that name."}
+              </p>
+            ) : (
+              <div className="max-h-72 overflow-y-auto">
+                {filteredFriends.slice(0, 8).map(f => {
+                  const busy = sendingFriendId === f.uid && friendActionLoading;
+                  return (
+                    <ListRow
+                      key={f.uid}
+                      leading={<Avatar name={f.username} size="sm" />}
+                      title={f.username}
+                      meta={
+                        <span className="inline-flex items-center gap-2 text-ok">
+                          <span aria-hidden="true" className="size-1.5 bg-ok" /> Online
+                        </span>
+                      }
+                      trailing={
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleChallengeFriend(f)}
+                          disabled={friendActionLoading && !busy}
+                          loading={busy}
+                        >
+                          <Swords aria-hidden="true" /> Challenge
+                        </Button>
+                      }
+                    />
+                  );
+                })}
+              </div>
+            )}
+            <p className="px-4 py-3 font-mono text-small text-fg-dim">
+              Challenges use the mode, difficulty, problem count and time limit above.
+            </p>
+          </Panel>
         </div>
-        {filteredFriends.length === 0 ? (
-          <p className="px-4 py-6 text-center font-mono text-small text-fg-muted">
-            {onlineFriends.length === 0 ? "No friends online right now." : "No online friends match that name."}
-          </p>
-        ) : (
-          <div className="max-h-72 overflow-y-auto">
-            {filteredFriends.slice(0, 8).map(f => {
-              const busy = sendingFriendId === f.uid && friendActionLoading;
-              return (
-                <ListRow
-                  key={f.uid}
-                  leading={<Avatar name={f.username} size="sm" />}
-                  title={f.username}
-                  meta={
-                    <span className="inline-flex items-center gap-2 text-ok">
-                      <span aria-hidden="true" className="size-1.5 bg-ok" /> Online
-                    </span>
-                  }
-                  trailing={
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      onClick={() => handleChallengeFriend(f)}
-                      disabled={friendActionLoading && !busy}
-                      loading={busy}
-                    >
-                      <Swords aria-hidden="true" /> Challenge
-                    </Button>
-                  }
-                />
-              );
-            })}
-          </div>
-        )}
-        <p className="px-4 py-3 font-mono text-small text-fg-dim">
-          Challenges use the mode, difficulty, problem count and time limit above.
-        </p>
-      </Panel>
+
+        <aside aria-label="Your record and rules" className="grid min-w-0 gap-6">
+          <Panel as="section" label="Your record">
+            {stats ? (
+              <div className="grid grid-cols-2 gap-6">
+                <Stat label="ELO rating" value={stats.battleRating} />
+                <Stat label="Win rate" value={`${winRate}%`} />
+                <Stat label="Wins" value={wins} />
+                <Stat label="Losses" value={losses} />
+              </div>
+            ) : (
+              <p className="font-mono text-small text-fg-muted">Your rating and record appear here once loaded.</p>
+            )}
+            {stats && played > 0 && (
+              <p className="mt-4 border-t border-border pt-3 font-mono text-small text-fg-dim">
+                Across your last {plural(played, "match", "matches")}.
+              </p>
+            )}
+          </Panel>
+
+          <Panel as="section" label="Your next match">
+            <div className="grid gap-4">
+              <MatchBadges mode={mode} difficulty={difficulty} problemCount={problemCount} durationMinutes={durationMinutes} />
+              <p className="font-mono text-small text-fg-muted">
+                Languages: {LANGUAGES.map((l) => l.label).join(" or ")}.
+              </p>
+            </div>
+          </Panel>
+
+          <Panel as="section" label="How it works">
+            <ol className="grid gap-3">
+              {rules.map((r, i) => (
+                <li key={r} className="grid grid-cols-[1.5rem_minmax(0,1fr)] gap-2 font-mono text-small text-fg-muted">
+                  <span className="tabular-nums text-accent-ink">{String(i + 1).padStart(2, "0")}</span>
+                  <span>{r}</span>
+                </li>
+              ))}
+            </ol>
+          </Panel>
+        </aside>
+      </div>
 
       <Panel
         as="section"

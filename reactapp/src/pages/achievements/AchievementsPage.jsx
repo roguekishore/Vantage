@@ -203,6 +203,8 @@ export default function AchievementsPage() {
   const locked     = useMemo(() => filtered.filter(b => !b.earned && b.progress === 0), [filtered]);
   const overallPct = badges.length > 0 ? Math.round((earnedCount / badges.length) * 100) : 0;
   const inProgCt   = useMemo(() => badges.filter(b => !b.earned && b.progress > 0).length, [badges]);
+  const nextUp     = useMemo(() => badges.filter(b => !b.earned && !b.isHidden && b.progress > 0 && b.target > 0).sort((a,b) => (b.progress/b.target) - (a.progress/a.target)).slice(0, 3), [badges]);
+  const rewardTotals = useMemo(() => badges.filter(b => b.earned).reduce((t, b) => ({ coins: t.coins + (b.coinReward || 0), xp: t.xp + (b.xpReward || 0) }), { coins: 0, xp: 0 }), [badges]);
 
   const header = (
     <PageHeader
@@ -282,6 +284,33 @@ export default function AchievementsPage() {
             <Stat label="Completion" value={pending ? "—" : `${overallPct}%`} hint={pending ? undefined : `${earnedCount} of ${badges.length}`} />
           </div>
           <Progress value={pending ? 0 : overallPct} label="Overall completion" className="mt-6" />
+          {!pending && (rewardTotals.coins > 0 || rewardTotals.xp > 0) ? (
+            <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-border pt-4 font-mono text-small text-fg-muted">
+              <span>Earned from badges</span>
+              {rewardTotals.coins > 0 ? <Badge tone="outline"><Coins size={12} strokeWidth={1.5} aria-hidden="true" /> {rewardTotals.coins.toLocaleString()}</Badge> : null}
+              {rewardTotals.xp > 0 ? <Badge tone="outline"><Sparkles size={12} strokeWidth={1.5} aria-hidden="true" /> {rewardTotals.xp.toLocaleString()} XP</Badge> : null}
+            </div>
+          ) : null}
+        </Panel>
+      ) : null}
+
+      {!failed && !pending && nextUp.length > 0 ? (
+        <Panel as="section" label="Next up" className="mb-8">
+          <ul className="grid gap-4 sm:grid-cols-3">
+            {nextUp.map(b => {
+              const pct = Math.min(100, Math.round((b.progress / b.target) * 100));
+              return (
+                <li key={b.id} className="grid min-w-0 gap-2">
+                  <div className="flex items-center gap-2">
+                    <BadgeIcon badge={b} size={16} className="text-fg-muted" />
+                    <span className="truncate font-mono text-body text-fg" title={b.name}>{b.name}</span>
+                  </div>
+                  <Progress value={pct} label={`${b.name} progress`} />
+                  <span className="font-mono text-small tabular-nums text-fg-muted">{b.progress} / {b.target} ({pct}%)</span>
+                </li>
+              );
+            })}
+          </ul>
         </Panel>
       ) : null}
 

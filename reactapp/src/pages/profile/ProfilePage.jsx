@@ -57,6 +57,12 @@ const sentence = (s = "") => {
   return t ? t[0].toUpperCase() + t.slice(1) : t;
 };
 
+// Decorative hero backdrop (a visual): hairline grid plus an accent wash, token colours only.
+const HERO_BG = {
+  backgroundImage: "linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px), linear-gradient(115deg, transparent 55%, color-mix(in srgb, var(--accent) 14%, transparent))", // ui-allow: visual
+  backgroundSize: "32px 32px, 32px 32px, 100% 100%",
+};
+
 const fmt = (n) => (typeof n === "number" ? n.toLocaleString() : n);
 
 const DIFF_TONE = {
@@ -221,6 +227,8 @@ const ProfilePage = () => {
 
   return (
     <PageShell>
+      <div className="relative isolate mb-6 overflow-hidden border border-border bg-surface px-4 pt-2 md:px-6">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 opacity-60" style={HERO_BG} />
       <PageHeader
         eyebrow="Profile"
         title={
@@ -245,6 +253,7 @@ const ProfilePage = () => {
           </Button>
         }
       />
+      </div>
 
       <div className="grid gap-6">
         {/* Stat grid */}

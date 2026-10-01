@@ -76,6 +76,22 @@ function PlayerRow({ stats, isYou, isWinner, problemCount }) {
   );
 }
 
+function ScoreSide({ stats, isYou, isWinner, problemCount, align = "start" }) {
+  return (
+    <div className={cn("grid min-w-0 gap-3", align === "end" ? "justify-items-end text-right" : "justify-items-start")}>
+      <Avatar name={stats.username} size="lg" />
+      <span className="max-w-full truncate font-mono text-h3 text-fg">
+        {stats.username}{isYou ? " (you)" : ""}
+      </span>
+      <span className="font-display text-h1 tabular-nums text-fg" style={{ fontSynthesis: "none" }}>
+        {stats.problemsSolved}<span className="text-fg-dim">/{problemCount}</span>
+      </span>
+      <span className="font-mono text-label uppercase text-fg-muted">Solved</span>
+      {isWinner ? <Badge tone="accent">Winner</Badge> : null}
+    </div>
+  );
+}
+
 /* Page */
 export default function BattleResultPage() {
   const { battleId } = useParams();
@@ -191,6 +207,15 @@ export default function BattleResultPage() {
           </>
         }
       />
+
+      {/* Scoreboard */}
+      <Panel as="section" label="Final score" className="mb-6">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-4">
+          <ScoreSide stats={result.you} isYou isWinner={result.winnerId === result.you.userId} problemCount={problemCount} />
+          <span className="font-mono text-label uppercase text-fg-dim">vs</span>
+          <ScoreSide stats={result.opponent} isWinner={result.winnerId === result.opponent.userId} problemCount={problemCount} align="end" />
+        </div>
+      </Panel>
 
       {/* Stat deltas */}
       <Panel as="section" label="Rewards" className="mb-6">
