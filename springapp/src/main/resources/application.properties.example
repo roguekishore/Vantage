@@ -1,0 +1,20 @@
+# Copy to application.properties (gitignored) and fill in real values. Never commit real values.
+# New scale-out defaults (queue, redis, matchmaking, experiments) live in vantage-scale.properties.
+spring.datasource.url=jdbc:mysql://localhost:3306/vantage
+spring.datasource.username=changeme
+spring.datasource.password=changeme
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=false
+jwt.secret=changeme
+jwt.expiration-ms=86400000
+auth.cookie.max-age-seconds=86400
+auth.cookie.same-site=Lax
+auth.cookie.secure=false
+auth.extension-token.expiration-ms=21600000
+cors.allowed-origins=http://localhost:3000
+judge.base-url=changeme
+judge.token=changeme
+catalog.base-url=changeme
+battle.continueAfterFirstFinisher.enabled=true
+battle.customTimer1v1.enabled=true
