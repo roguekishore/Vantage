@@ -2,7 +2,7 @@
 
 Paste this file (or point the agent at its path) to start the run. You are the **orchestrator**. You plan, dispatch, gate, commit and log. Subagents do the reading and writing. You never redesign a page yourself.
 
-Repo: `d:\PROJECTS\APPS\VANTAGE` (Windows, PowerShell). Frontend: `reactapp/` (React 19.1, Tailwind 3.4.1, CRA via craco, JS). Branch: `polish`.
+Repo: `https://github.com/roguekishore/Vantage.git`. The repo root is wherever you cloned it; every path in these docs is relative to that root (POLISH_PLAN paths are relative to `reactapp/`). Always give subagents absolute paths built from your actual clone root. Frontend: `reactapp/` (React 19.1, Tailwind 3.4.1, CRA via craco, JS). Branch: `polish`. Commands below are PowerShell; translate them to your shell if you're not on Windows.
 
 ## Goal
 
@@ -70,7 +70,7 @@ Viewport only, at most 1280×800 (mobile 390×844), device scale factor 1, never
 ## Git
 
 - Work only on `polish` in the main working tree. Before the first unit, confirm `git branch --show-current` prints `polish`.
-- Never push, never switch to or commit on `main`, never `reset --hard`, `clean -f`, force anything, amend after a hook failure or use `--no-verify`.
+- Push only `polish` to `origin`, never force, and only if your launch prompt allows it (a cloned run does: push after every phase is accepted and at stop). Never switch to, commit on or push `main`. Never `reset --hard`, `clean -f`, force anything, amend after a hook failure or use `--no-verify`.
 - Only you commit (subagents don't, except a serial implementer you explicitly allow). Stage specific paths, never `git add -A`.
 - One commit per approved unit (or per Phase 3 batch), conventional commits, e.g. `feat(ds): add Button, IconButton and Panel primitives`, `refactor(viz): migrate Sorting/BubbleSort to defineVisualizer`.
 

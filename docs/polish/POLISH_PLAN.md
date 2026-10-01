@@ -24,7 +24,7 @@ Priority, set by the owner: the UI is what gets judged in a 15-minute interview.
    - Tests: `npm test -- --watchAll=false` must pass. `src/pages/judge/codeflow/**` and `src/services/judgeApi.test.js` already have unit and fast-check property tests; the Judge restyle must not break them.
    - Phase 1 adds `scripts/check-ui.mjs`, the route smoke script and (Phase 2) `scripts/check-visualizer.mjs`. Each becomes a gate as soon as it exists.
 4. The frontend build points at the production API unless `REACT_APP_API_URL` is overridden. For screenshots, build with `REACT_APP_API_URL=http://localhost:1` so pages show their offline states instead of hitting prod.
-5. Git: all work happens on branch `polish` in the main working tree (no worktree). Commit per unit using conventional commits. Never push, never switch to or commit on `main`, never rewrite history, never skip hooks. `docs/polish/` and `CLAUDE.md` are committed on `polish`.
+5. Git: all work happens on branch `polish` in the main working tree (no worktree). Commit per unit using conventional commits. Push only `polish`, never force, and only as `HANDOFF.md` allows. Never switch to or commit on `main`, never rewrite history, never skip hooks. `docs/polish/` and `CLAUDE.md` are committed on `polish`.
 6. Scope: only `reactapp/` and `docs/polish/` change. `springapp/`, `judge/`, `extension/` and deployment files are out of scope (Appendix A).
 
 ---
