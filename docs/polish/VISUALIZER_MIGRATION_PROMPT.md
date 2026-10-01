@@ -2,6 +2,8 @@
 
 Part of `POLISH_PLAN.md` (§2 decision, §5 shell spec, Phases 2/3/5). One job = one manifest entry in `visualizer-manifest.json`.
 
+**Execution note (2026-10-02):** every job now runs on an Opus subagent (see `HANDOFF.md`). Read "cheap model" and "strong model" below as "implementer subagent" and "reviewer subagent". The prompt, the forbidden list and the acceptance checks are unchanged. If temperature can't be set for a subagent, ignore that line; the harness still enforces determinism.
+
 **Status: DRAFT API.** Phase 2 (strong model) implements the shell and the 10 wave-1 pilots, then **replaces §2–§3 with the shipped types** before any cheap job runs. Cheap jobs never see a draft API.
 
 Approach in one line: **keep the algorithm (step generator), delete the view.** A visualizer file becomes a pure config object; the shell renders everything. Consistency, dual theme and zero radius come from the shell, not from per-file styling.

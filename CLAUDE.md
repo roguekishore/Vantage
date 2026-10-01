@@ -29,10 +29,14 @@ Catalog compose: no heap flag needed (Node). Requires `JUDGE_TOKEN` env var — 
 - WebSocket/SockJS: handled via `SockJsRuntimeHints.java`, wired with `@ImportRuntimeHints` on `SpringappApplication`. `@ImportRuntimeHints` is in `org.springframework.context.annotation`, not `org.springframework.aot.hint.annotation`.
 - All `@ManyToOne`/`@OneToOne` are EAGER.
 
+## Frontend redesign
+
+Branch `polish` carries the full UI redesign. Start at `docs/polish/HANDOFF.md`, then `docs/polish/POLISH_PLAN.md`. Once Phase 1 lands, `docs/polish/DESIGN_SYSTEM.md` is the frozen source of truth for every UI change.
+
 ## Judge architecture
 
-Production runs the **unmerged worktree** at `.claude/worktrees/judge-lambda`, NOT main-tree `judge/`.
-See judge README in that worktree before touching submission logic.
+Main-tree `judge/` is the Lambda judge (the old `.claude/worktrees/judge-lambda` worktree was merged; `.claude/worktrees/` is empty).
+See `judge/README.md` before touching submission logic.
 Full test cases only via token-guarded `GET /api/internal/problems/:id`.
 Never grade against `sampleTestCases` — wrong solutions that pass 2 samples get marked Accepted.
 

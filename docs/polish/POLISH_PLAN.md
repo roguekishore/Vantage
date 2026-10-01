@@ -1,7 +1,9 @@
 # VANTAGE Polish Plan: UI first
 
-Audience: the implementing agent (Opus-class, "strong") and per-file workers (Gemini Flash-class, "cheap").
+Audience: an Opus orchestrator that dispatches Opus subagents, one per unit of work. Read `HANDOFF.md` first: it defines how the run is executed. Where this plan says "strong" or "cheap", both now mean an Opus subagent. The harness gates and the job prompt still apply unchanged.
+Revision 2026-10-02: owner confirmed terminal-brutalist, full redesign of every surface, no cutline, work on branch `polish`. This revision fixes the light-mode accent, the Phase 4/5 ordering contradiction and the radius-reset fallout, adds a test gate, and moves route smoke and demo data into Phase 1.
 Companion files:
+- `HANDOFF.md`: orchestrator instructions, unit definitions, gates, git rules and stop conditions.
 - `VISUALIZER_MIGRATION_PROMPT.md`: the `defineVisualizer` contract plus the per-file job prompt and acceptance checks.
 - `visualizer-manifest.json`: all 145 visualizer files, each with track, wave, model, stage kind, aux panels, modes, notes and status.
 - `evidence/probe-*.md`: raw evidence (file:line) behind every claim below. Look things up there before re-investigating.
@@ -17,9 +19,13 @@ Priority, set by the owner: the UI is what gets judged in a 15-minute interview.
 
 1. UI work must not change algorithm behaviour, API calls or store logic. When a UI change needs a logic change, note it in Appendix A and move on.
 2. Screenshots: viewport only, at most 1280×800 (mobile 390×844), device scale factor 1, never full-page. Budget about 10 per session. The harness has to follow these rules too.
-3. Build gate: `npm run build` (craco, `CI=false`) must pass at the end of every batch. There is no lint or test gate today. Phase 1 adds `scripts/check-ui.mjs`, and it becomes a gate once it exists.
+3. Gates, run from `reactapp/` at the end of every unit:
+   - Build: `npm run build` (craco, `CI=false`) must pass.
+   - Tests: `npm test -- --watchAll=false` must pass. `src/pages/judge/codeflow/**` and `src/services/judgeApi.test.js` already have unit and fast-check property tests; the Judge restyle must not break them.
+   - Phase 1 adds `scripts/check-ui.mjs`, the route smoke script and (Phase 2) `scripts/check-visualizer.mjs`. Each becomes a gate as soon as it exists.
 4. The frontend build points at the production API unless `REACT_APP_API_URL` is overridden. For screenshots, build with `REACT_APP_API_URL=http://localhost:1` so pages show their offline states instead of hitting prod.
-5. Commit per concern using conventional commits. `docs/polish/` and root `CLAUDE.md` are untracked. Commit them only if the owner asks.
+5. Git: all work happens on branch `polish` in the main working tree (no worktree). Commit per unit using conventional commits. Never push, never switch to or commit on `main`, never rewrite history, never skip hooks. `docs/polish/` and `CLAUDE.md` are committed on `polish`.
+6. Scope: only `reactapp/` and `docs/polish/` change. `springapp/`, `judge/`, `extension/` and deployment files are out of scope (Appendix A).
 
 ---
 
@@ -101,6 +107,7 @@ Everything reads tokens. The shadcn variables alias them. The visualizer `V` obj
 | `--fg-dim` | `rgba(255,255,255,.52)` | `rgba(10,10,11,.54)` | labels (must still pass 4.5:1; measure) |
 | `--accent` | `#EDFF66` | `#EDFF66` | **fills only** in light: buttons, active cell, selection |
 | `--on-accent` | `#09090B` | `#09090B` | text on accent fills |
+| `--accent-edge` | `#EDFF66` | `#0A0A0B` | 1px border drawn on **every** accent fill |
 | `--accent-ink` | `#EDFF66` | `#5C6B00` (≈5.3:1 on `--bg`; verify) | accent-coloured **text, borders and icons** |
 | `--accent-soft` | `rgba(237,255,102,.12)` | `rgba(92,107,0,.10)` | tinted backgrounds |
 | `--focus` | `#EDFF66` | `#0A0A0B` | focus outline |
@@ -109,6 +116,7 @@ Everything reads tokens. The shadcn variables alias them. The visualizer `V` obj
 | `--nav-h` | `56px` | same | layout |
 
 Rules:
+- **Light-mode accent fills need an edge.** `#EDFF66` and the light `--bg` `#F4F4F0` have almost the same relative luminance (≈0.90 each, contrast ≈1.0:1), so a bare accent fill disappears in light mode. Every accent fill (primary button, active nav item, active visualizer cell, selection, final CTA slab) also draws a 1px `--accent-edge` border. In dark mode the edge matches the fill and is invisible. This black-on-yellow edge is on-brand for brutalist; don't replace it with a darker fill.
 - Retire `#5542FF` purple, the Clerk palette, the legacy `--color-*` aliases once they're unused, and the per-topic spotlight colours.
 - Status colours carry meaning only (verdicts, difficulty, success and error). They are never decoration.
 - Difficulty uses Easy `--ok`, Medium `--warn` and Hard `--err`, shown as text plus a 2px left bar. No gradients.
@@ -134,6 +142,7 @@ Pointers are coloured by role, not by variable name: P1 (i, L, curr, slow) uses 
 - **Fonts:** self-host JetBrains Mono (400/500/700, woff2, `font-display: swap`) and Monument Extended.
   - Monument needs a **real heavy weight**. Obtain `MonumentExtended-Ultrabold` (Pangram Pangram; check the licence for a public site).
   - If a heavy weight can't be licensed, use the Regular at weight 400 with `font-synthesis: none`. Never request 900 from a single-weight face.
+  - **Decision for the agent run: use the Regular fallback.** An unattended agent can't obtain a licence. Route every display weight through one token (`--display-weight`, currently 400) so the owner can drop in Ultrabold later with one `@font-face` and one token change.
   - Delete Inter, Syne, zentry, general, circular and robert (files, `@font-face` rules, Google imports, and the injected `<style>` in HomePage/Profile/Navbar).
 - **Scale.** No text below 10px. Add Tailwind `fontSize` tokens and matching TS constants for inline use.
 
@@ -170,6 +179,10 @@ Everything else is square and needs no exception:
 
 Monaco internals and native select popups are accepted as-is.
 
+Reset exclusions, so the global rule doesn't cause damage during migration:
+- Exclude `.monaco-editor` and its descendants from the reset (Monaco's own widgets, suggest box and scrollbars rely on their radii and layout).
+- Exclude legacy visualizers until they're migrated. `VisualizerPage` wraps any visualizer whose manifest `status` isn't `done` in `data-legacy-viz`, and the reset skips `[data-legacy-viz] *`. Otherwise the 13 tree, 5 graph and 8 list visualizers turn their circular nodes into squares before the new stages exist, which breaks the node-vs-cell meaning. The wrapper disappears when the last visualizer is migrated (end of Phase 5).
+
 ### 3.5 Space, layout, elevation
 
 - **Spacing scale:** 4 / 8 / 12 / 16 / 24 / 32 / 48 / 64. Off-grid values (3, 5, 7, 9, 11, 13, 14, 22) are banned in new code.
@@ -194,6 +207,13 @@ Monaco internals and native select popups are accepted as-is.
 Lucide only, at 14, 16 or 20px with stroke 1.5. Remove `@mui/*` + `@emotion/*` (used for one icon), `react-icons`, both tabler packages and `@radix-ui/react-icons`. Icon-only buttons need an `aria-label` and a tooltip.
 
 ### 3.8 Primitives: `src/components/ds/*`, wrapping shadcn where one exists
+
+Decision: **adopt shadcn for behaviour, own the look in `ds/`.** shadcn (Radix underneath) supplies focus traps, keyboard navigation and ARIA for Dialog, Sheet, Select, Tabs, Tooltip, Popover and DropdownMenu. Don't hand-roll these. The 17 existing files in `src/components/ui/` are restyled onto tokens (radius 0, no shadows); `ds/*` wraps them with the variants below. Pages import from `ds/` only, never from `ui/` directly.
+
+Setup facts and constraints:
+- Stack: React 19.1, Tailwind 3.4.1, CRA via craco, JS (no TS). Stay on Tailwind 3.4. shadcn states existing Tailwind v3 projects keep working and new components install in v3 style (https://v3.shadcn.com/docs/tailwind-v4). A Tailwind v4 migration under CRA is out of scope.
+- Delete the duplicate root `components.json`; keep `reactapp/components.json`.
+- Remove the `registries` block from `reactapp/components.json` (aceternity, magic-ui, react-bits, cult-ui, kokonutui, shadcnblocks, v0, jolly-ui, origin-ui). These are effect libraries (glow, tilt, spotlight) and conflict with §3. Only add components from the default shadcn registry.
 
 | Primitive | Variants / notes |
 |---|---|
@@ -221,7 +241,7 @@ Lucide only, at 14, 16 or 20px with stroke 1.5. Remove `@mui/*` + `@emotion/*` (
 - In `public/index.html`, add an inline pre-paint script that sets the `html` class from localStorage or `prefers-color-scheme` before React loads. Remove `class="bg-gray-900"` from `<body>`, and add `<meta name="theme-color">` for both schemes.
 - `useThemeTokens()` returns the resolved token values and re-renders on theme change. Canvas modules (Home animations, PixelCard, BattleResult canvas, radar), the cobe globe and Monaco use it. For Monaco, define `vantage-dark` and `vantage-light` themes from tokens.
 - Canvas colour helpers (`HomePageAnimations ~L18-28`, `ComplexAnimations L5`, `MidAnimations L4`) switch to `canvasTheme.js`. Store tokens as `r,g,b` triplets (`--fg-rgb`, `--bg-rgb`, `--accent-rgb`) and read them inside the draw loop so a theme toggle applies without a remount. Replace `"rgba(255,255,255,"` literals with the fg triplet. Collapse per-algorithm rainbow palettes to accent + fg + one status colour.
-- Then delete the remap layer (`index.css:1396-1713`), `ZINC_LIGHT_SCOPE_PATHS` and `MAP_DARK_LOCK_PATHS` (`App.jsx:45-62`, ~191-205), and the `.battle-page` purple variables (`index.css:872-883`).
+- At the end of Phase 5 (not earlier; legacy visualizers depend on it until then), delete the remap layer (`index.css:1396-1713`), `ZINC_LIGHT_SCOPE_PATHS` and `MAP_DARK_LOCK_PATHS` (`App.jsx:45-62`, ~191-205), and the `.battle-page` purple variables (`index.css:872-883`).
 
 ### 3.10 Enforcement: `scripts/check-ui.mjs`, run in CI and before every batch
 
@@ -365,6 +385,10 @@ Each phase ends with a passing build, `check-ui.mjs` counts recorded, and at mos
 - App shell: Navbar, mobile Sheet, PageShell, PageHeader, Footer, PageLoader, OfflineState, overlays, `index.html`.
 - Remove CustomCursor, MUI, framer-motion/motion and the unused deps (`three`, `@react-three/fiber`, `pixi*`, `lenis`, tabler, radix icons, `@langchain/google-genai`, `shadcn-ui`, `react-markdown`, `react-syntax-highlighter`). Lazy-load every route in `App.jsx`: main bundle is 524 kB gzip today, target under 250 kB.
 - `scripts/check-ui.mjs` in warning mode.
+- `scripts/route-smoke.mjs` (headless Playwright, no screenshots). It visits every route in both themes, asserting no page errors, a visible `<h1>` with non-zero width, and (for visualizer routes) that a stage or the legacy root exists. Phase 1's global changes touch all 142 visualizer routes, so this runs from here on, not from Phase 3.
+- Demo-data mode: `REACT_APP_DEMO=1` serves fixtures for stats, leaderboard, map progress, problems and a fake signed-in user, so protected pages (Profile, Battle, Friends, Store, Inventory) can be built and verified with the backend down. Fixtures live in `src/demo/`; the switch sits in one place in the API layer and must not change behaviour when the flag is off.
+- `components.json` cleanup (§3.8).
+- Write `docs/polish/DESIGN_SYSTEM.md`: the frozen, as-shipped reference (tokens, type scale, every `ds/*` primitive with its props and variants, layout rules, do/don't). Every later unit reads this file instead of re-deriving the system from §3.
 
 Accept:
 - `/__ds` screenshots pass in both themes.
@@ -372,6 +396,9 @@ Accept:
 - No faux bold: the computed `font-weight` on Monument elements matches a loaded face.
 - `rg "@mui|framer-motion|motion/react|CustomCursor" src` is empty.
 - The main bundle size is recorded.
+- Route smoke passes on every route in both themes, with and without `REACT_APP_DEMO=1`.
+- The light-mode accent edge is visible on primary buttons and the active nav item (`/__ds` screenshot).
+- `DESIGN_SYSTEM.md` exists and matches the code. After this phase the design system is **frozen**: later units may add a primitive only through a dedicated design-system unit, never inline in a page.
 
 ### Phase 2: Visualizer shell + stages + pilots (strong)
 
@@ -385,20 +412,21 @@ Accept:
 - Screenshots in both themes at 1280 and 390 for 3 of the pilots.
 - Step, scrub, play, keyboard and embedded mode all verified by hand in the browser.
 - No pilot needs `view.render`.
+- The parity harness's legacy-extraction success rate on the 10 pilots is recorded in the manifest. If extraction fails on more than 3 of the 10, improve the extractor before Phase 3 starts, since every failure there becomes a manual review.
 
-### Phase 3: Bulk visualizers (cheap, strong reviews)
+### Phase 3: Bulk visualizers (Opus subagents, independent review)
 
-- Waves 2→6 of track A (109 files) in manifest order, one file per job at temperature 0.
+- Waves 2→6 of track A (109 files) in manifest order, one file per job, using the job prompt in `VISUALIZER_MIGRATION_PROMPT.md` §4.
 - Harness gate. On failure, one retry with the failure output. On a second failure, mark it `escalated`.
-- The strong model reviews every escalation and the first 3 files of each new stage kind, then spot-checks 1 in 5 (no more than 6 screenshots per review session).
+- A separate reviewer subagent reviews every escalation and the first 3 files of each new stage kind, then spot-checks 1 in 5 (no more than 6 screenshots per review session). Resolve escalations in the same phase.
 - Wave 0 deletions, wave 9 alias.
 
 Accept:
 - The manifest shows track A as `done` or `escalated`, and escalations are resolved.
 - `rg -l "className=" src/pages/algorithms` is empty.
-- A route smoke script (headless, no screenshots) visits all 142 routes in both themes. It asserts no page errors, a visible h1 with non-zero width, and that the stage exists.
+- Route smoke (from Phase 1) passes on all 142 visualizer routes in both themes, and every migrated route renders the new stage.
 
-### Phase 4: App pages (strong for Home/Judge/Map/Battle; cheap for the rest after the first template)
+### Phase 4: App pages (one Opus subagent per page, template pages first)
 
 Order:
 1. Home
@@ -411,10 +439,10 @@ Order:
 8. Store / Inventory
 9. Auth
 
-For the cheap pages, the job prompt gives the page file, the relevant section of §6, the primitives list and one finished page as reference. Afterwards, delete the remap layer and path lists (§3.9).
+Each page job gets the page file, the relevant row of §6, `DESIGN_SYSTEM.md` and one finished page as reference (Home for marketing-style pages, Problems for list/table pages, Battle lobby for the Group pages). Do **not** delete the remap layer here; it moves to the end of Phase 5 (§3.9).
 
 Accept:
-- `check-ui.mjs` reports 0 violations in `src/pages` and `src/components`, and it is switched to error mode.
+- `check-ui.mjs` reports 0 violations in `src/pages` and `src/components`, **excluding** `src/pages/algorithms/**` files whose manifest status isn't `done` (the script reads the exclusion list from the manifest). It switches to error mode for everything else.
 - Every page renders an OfflineState with the API unreachable.
 - Every icon-only button has an aria-label.
 - Visible focus on every interactive element (keyboard pass on Home, Problems, one visualizer, Judge).
@@ -427,30 +455,28 @@ Accept:
 - 4 custom stages: AStar, Pathfinding/BFS, NetworkFlow, TowerOfHanoi.
 - `SquaresOfSortedArray.tsx` → `.jsx`.
 
-Accept: the same as Phase 3, plus back-stepping works on every former imperative page.
+- Then, with every visualizer migrated: delete the remap layer and path lists (§3.9), remove the `data-legacy-viz` wrapper and its reset exclusion (§3.4), and switch `check-ui.mjs` to error mode for `src/pages/algorithms/**` as well.
+
+Accept: the same as Phase 3, plus back-stepping works on every former imperative page, the manifest shows every entry `done`, `check-ui.mjs` reports 0 violations across `src/**` in error mode, and route smoke passes in light mode on every route after the remap layer is gone.
 
 ### Phase 6: Demo polish (strong)
 
-- A 15-minute demo path: Home → Visualizers → Dijkstra → Problems → Judge (run + code-flow) → Map → Battle lobby → Leaderboard. It must work with the backend down, using a **demo-data mode**: `REACT_APP_DEMO=1` serves fixtures for stats, leaderboard, map progress and a fake signed-in user, so protected pages render.
+- A 15-minute demo path: Home → Visualizers → Dijkstra → Problems → Judge (run + code-flow) → Map → Battle lobby → Leaderboard. It must work with the backend down, using the demo-data mode built in Phase 1 (`REACT_APP_DEMO=1`). Extend the fixtures wherever the demo path still shows an empty state.
 - Copy pass: sentence case, no hype, real counts.
 - Re-shoot the README screenshots and GIFs in both themes (update the README image references only; the README rewrite is Appendix A).
 - Lighthouse accessibility at least 90 on Home, Problems, one visualizer and Judge, in both themes.
 
 Accept: the demo path runs end to end with no console errors, twice in a row, in both themes.
 
-### Model routing
+### Execution model
 
-| Work | Model |
-|---|---|
-| Tokens, Tailwind config, fonts, theme mechanics, primitives, shell, stage kinds, harnesses, pilots, Home, Judge, Map, Battle templates, track B/C, demo mode | strong |
-| Track A visualizers (109), simple app pages after their template exists (Store, Inventory, Achievements, Leaderboard, Friends, Group ×3, Auth, Topic), copy fixes, catalog entries | cheap (confirm the current Gemini Flash model ID at https://ai.google.dev/gemini-api/docs/models; Gemini 3.5 Flash is current as of this audit) |
-
-Cheap-job rules:
-- one file per request, temperature 0
-- fixed prompt + reference + frozen API
-- output is the whole file or `ESCALATE: <reason>`
-- the harness decides pass or fail, not the model's self-report
-- update the manifest `status` after each job
+Every unit runs on an Opus subagent dispatched by an Opus orchestrator (`HANDOFF.md`). The Gemini Flash routing in the original audit is dropped. What stays from it:
+- one unit per subagent: one visualizer file, one page, or one foundation concern
+- a fixed brief: the job prompt or page row, `DESIGN_SYSTEM.md`, one reference file and the frozen API
+- visualizer jobs output the whole file or `ESCALATE: <reason>`
+- the gates decide pass or fail, not the subagent's self-report
+- a separate reviewer subagent renders the final verdict on each unit
+- the manifest `status` and `PROGRESS.md` are updated after each unit
 
 ---
 
@@ -539,4 +565,4 @@ Kept from the turn-1 audit. IDs are stable. The full tables with file:line, fix 
 - TLS / Cloudflare.
 - Keep the legacy Docker judge?
 - Media history rewrite.
-- Monument heavy-weight licence (**this one is needed for Phase 1**; the fallback is defined in §3.3).
+- Monument heavy-weight licence. Resolved for the agent run: use the Regular fallback behind `--display-weight` (§3.3). The owner can swap in Ultrabold later.
