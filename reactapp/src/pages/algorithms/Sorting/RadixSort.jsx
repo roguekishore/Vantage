@@ -7,7 +7,6 @@ import {
   StatBlock, Legend, ComplexityFooter,
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 const CODE_LINES = [
   { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "radixSort(arr) {", k: "" }] },
@@ -121,8 +120,7 @@ const RadixSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
       <VisualizerHeader title="RADIX" subtitle="SORT." category="Sorting" icon={Shuffle}
         right={
           <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}

@@ -1,4 +1,6 @@
 import * as React from "react"
+// Legacy shadcn copy restyled onto design tokens (radius 0, no shadows).
+// New code imports from "@/components/ds" instead.
 import { cn } from "../../lib/utils"
 
 const Separator = React.forwardRef(

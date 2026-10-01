@@ -7,7 +7,6 @@ import {
   StatBlock, Legend, ComplexityFooter,
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 /* ─── Helpers ─── */
 function deepClone(arr) { return JSON.parse(JSON.stringify(arr)); }
@@ -146,8 +145,7 @@ const BucketSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
       <VisualizerHeader title="BUCKET" subtitle="SORT." category="Sorting" icon={PackageOpen}
         right={
           <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}

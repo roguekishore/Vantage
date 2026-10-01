@@ -8,7 +8,6 @@ import {
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
 import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 const CODE_LINES = [
   { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "shellSort(arr) {", k: "" }] },
@@ -116,8 +115,7 @@ const ShellSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
       <VisualizerHeader title="SHELL" subtitle="SORT." category="Sorting" icon={Layers}
         right={
           <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}

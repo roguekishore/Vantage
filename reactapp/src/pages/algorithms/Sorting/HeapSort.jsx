@@ -8,7 +8,6 @@ import {
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
 import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 /* ─────────────────────────────────────────────────────────────
    CODE LINES
@@ -154,8 +153,7 @@ const HeapSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
 
       <VisualizerHeader title="HEAP" subtitle="SORT." category="Sorting"
         right={

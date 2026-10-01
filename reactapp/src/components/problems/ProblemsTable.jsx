@@ -13,12 +13,10 @@ import {
   ExternalLink, X, Loader2, Filter, RotateCcw,
   Check, BookOpen, ChevronRight, Zap,
 } from "lucide-react";
-import { SiLeetcode } from "react-icons/si";
 import { Dialog, DialogContent } from "../ui/dialog";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui/select";
 import { fetchProgressStats } from "../../services/problemApi";
 import { ALGO_CONFIGS, AlgoCanvas, MergeSortCanvas } from "@/components/animations/HomePageAnimations";
-import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -151,7 +149,7 @@ function SortHeader({ label, field, current, onSort }) {
         fontSize: 9, fontWeight: 900, letterSpacing: ".2em",
         textTransform: "uppercase",
         color: active ? "#EDFF66" : "rgba(255,255,255,0.28)",
-        background: "none", border: "none", cursor: "none",
+        background: "none", border: "none",
         transition: "color .15s",
         padding: 0,
       }}
@@ -272,7 +270,6 @@ function ProblemRow({ problem, index, showStage, showLeetCode, source, onClick, 
         height: 52,
         borderBottom: "1px solid rgba(255,255,255,0.04)",
         background: hov ? "rgba(255,255,255,0.025)" : "transparent",
-        cursor: "none",
         transition: "background 0.14s",
         position: "relative",
       }}
@@ -361,7 +358,6 @@ function ProblemRow({ problem, index, showStage, showLeetCode, source, onClick, 
                 color: "rgba(255,255,255,0.22)",
                 border: "1px solid rgba(255,255,255,0.07)",
                 transition: "all .15s",
-                cursor: "none",
               }}
               onMouseEnter={e => {
                 e.currentTarget.style.color = "#FFA116";
@@ -374,7 +370,7 @@ function ProblemRow({ problem, index, showStage, showLeetCode, source, onClick, 
                 e.currentTarget.style.background = "transparent";
               }}
             >
-              <SiLeetcode size={13} />
+              <ExternalLink size={13} />
             </a>
           ) : null}
         </div>
@@ -407,7 +403,7 @@ function FilterPill({ children, active, onClick, color }) {
       onMouseLeave={() => setHov(false)}
       data-cursor="FILTER"
       style={{
-        height: 32, padding: "0 14px", borderRadius: 8, cursor: "none",
+        height: 32, padding: "0 14px", borderRadius: 8,
         flexShrink: 0,
         border: active
           ? `1px solid ${color || "rgba(237,255,102,0.35)"}`
@@ -698,10 +694,8 @@ export default function ProblemsTable({
         overflowX: "hidden",
         paddingTop: 56,
         paddingBottom: 80,
-        cursor: "none",
       }}
     >
-      <CustomCursor />
       {/* <BgCanvas /> */}
 
       {/* Masked algorithm animation background
@@ -939,7 +933,6 @@ export default function ProblemsTable({
                 paddingLeft: 36, paddingRight: 36,
                 fontSize: 13, color: "#fff", outline: "none",
                 transition: "border-color .15s",
-                cursor: "none",
               }}
               onFocus={e => e.currentTarget.style.borderColor = "rgba(237,255,102,0.3)"}
               onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
@@ -950,7 +943,7 @@ export default function ProblemsTable({
                 data-cursor="CLEAR"
                 style={{
                   position: "absolute", right: 10, top: "50%",
-                  transform: "translateY(-50%)", cursor: "none",
+                  transform: "translateY(-50%)",
                   background: "none", border: "none",
                   color: "rgba(255,255,255,0.28)",
                   display: "flex", alignItems: "center", justifyContent: "center",
@@ -1031,7 +1024,7 @@ export default function ProblemsTable({
                 <div style={{ position: "relative", zIndex: 50 }}>
                   <Select value={stageFilter || "__all__"} onValueChange={v => setStageFilter(v === "__all__" ? "" : v)}>
                     <SelectTrigger style={{
-                      height: 32, width: 160, borderRadius: 8, cursor: "none",
+                      height: 32, width: 160, borderRadius: 8,
                       flexShrink: 0,
                       background: stageFilter ? "rgba(237,255,102,0.07)" : "rgba(255,255,255,0.02)",
                       border: stageFilter ? "1px solid rgba(237,255,102,0.3)" : "1px solid rgba(255,255,255,0.07)",
@@ -1075,7 +1068,7 @@ export default function ProblemsTable({
                   onClick={clearAll}
                   data-cursor="RESET"
                   style={{
-                    height: 32, padding: "0 12px", borderRadius: 8, cursor: "none",
+                    height: 32, padding: "0 12px", borderRadius: 8,
                     border: "1px solid rgba(248,113,113,0.25)",
                     background: "rgba(248,113,113,0.06)",
                     color: "#f87171", fontSize: 11, fontWeight: 800,
@@ -1103,7 +1096,7 @@ export default function ProblemsTable({
               onClick={retryLoad}
               data-cursor="RETRY"
               style={{
-                height: 30, padding: "0 12px", borderRadius: 8, cursor: "none",
+                height: 30, padding: "0 12px", borderRadius: 8,
                 border: "1px solid rgba(248,113,113,0.3)", background: "transparent",
                 color: "#f87171", fontSize: 11, fontWeight: 800,
                 display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
@@ -1194,7 +1187,7 @@ export default function ProblemsTable({
                   onClick={clearAll}
                   data-cursor="RESET"
                   style={{
-                    height: 32, padding: "0 16px", borderRadius: 8, cursor: "none",
+                    height: 32, padding: "0 16px", borderRadius: 8,
                     border: "1px solid rgba(255,255,255,0.1)",
                     background: "rgba(255,255,255,0.03)",
                     color: "rgba(255,255,255,0.45)", fontSize: 11, fontWeight: 800,
@@ -1395,7 +1388,7 @@ export default function ProblemsTable({
                           border: "1px solid rgba(255,161,22,0.25)",
                           background: "rgba(255,161,22,0.06)",
                           fontSize: 12, fontWeight: 700, color: "#FFA116",
-                          textDecoration: "none", cursor: "none",
+                          textDecoration: "none",
                           transition: "all .15s",
                         }}
                       >

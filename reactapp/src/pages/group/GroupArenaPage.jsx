@@ -40,7 +40,6 @@ import {
   ChevronDown, Braces, Code2, Zap, CircleDot, Hash,
   Users, Trophy, Medal, ArrowUpRight, Flag,
 } from "lucide-react";
-import CustomCursor from "../../components/common/CustomCursor";
 import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
 import "../judge/Judge.css";
 
@@ -354,8 +353,7 @@ export default function GroupArenaPage() {
      -------------------------------------------- */
   return (
     <TooltipProvider delayDuration={300}>
-      <div className="judge-root group-arena-theme flex h-screen flex-col bg-zinc-950 text-white overflow-hidden" style={{ cursor: "none" }}>
-        <CustomCursor />
+      <div className="judge-root group-arena-theme flex h-screen flex-col bg-zinc-950 text-white overflow-hidden">
 
         {/* ----------- HEADER ----------- */}
         <header className="judge-header flex items-center justify-between h-11 px-3 flex-shrink-0 z-10">
@@ -743,7 +741,7 @@ export default function GroupArenaPage() {
                           <DropdownMenuTrigger style={{
                             display: "flex", alignItems: "center", gap: 6,
                             padding: "4px 10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.2)",
-                            background: "transparent", cursor: "none",
+                            background: "transparent",
                             fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)",
                             transition: "all 0.15s"
                           }}
@@ -769,7 +767,7 @@ export default function GroupArenaPage() {
                                 onClick={() => handleLanguageChange(l.value)}
                                 style={{
                                   display: "flex", alignItems: "center", gap: 7, padding: "6px 8px",
-                                  borderRadius: 7, cursor: "none", fontSize: 12, fontWeight: 600,
+                                  borderRadius: 7, fontSize: 12, fontWeight: 600,
                                   color: language === l.value ? "#EDFF66" : "rgba(255,255,255,0.5)",
                                   background: "transparent", transition: "background 0.1s"
                                 }}
@@ -790,7 +788,7 @@ export default function GroupArenaPage() {
                           <TooltipTrigger asChild>
                             <button onClick={handleResetCode}
                               style={{
-                                width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none",
+                                width: 28, height: 28, borderRadius: 7, border: "none",
                                 background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
                                 color: "rgba(255,255,255,0.3)", transition: "all 0.15s"
                               }}
@@ -806,7 +804,7 @@ export default function GroupArenaPage() {
                           <TooltipTrigger asChild>
                             <button onClick={handleCopyCode}
                               style={{
-                                width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none",
+                                width: 28, height: 28, borderRadius: 7, border: "none",
                                 background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
                                 color: copied ? "#34d399" : "rgba(255,255,255,0.3)", transition: "all 0.15s"
                               }}
@@ -828,7 +826,7 @@ export default function GroupArenaPage() {
                             <button onClick={handleRun} disabled={running || submitting}
                               style={{
                                 display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px",
-                                borderRadius: 7, cursor: "none", border: "1px solid rgba(255,255,255,0.2)", background: "transparent",
+                                borderRadius: 7, border: "1px solid rgba(255,255,255,0.2)", background: "transparent",
                                 fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)",
                                 opacity: (running || submitting) ? 0.4 : 1, transition: "all 0.15s"
                               }}
@@ -860,7 +858,7 @@ export default function GroupArenaPage() {
                               disabled={submitting || running || currentProblem?.isSolved || myForfeited || myFinishedAllProblems}
                               style={{
                                 display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 14px",
-                                borderRadius: 7, cursor: "none", border: "none",
+                                borderRadius: 7, border: "none",
                                 background: "#EDFF66", color: "#09090b",
                                 fontSize: 11, fontWeight: 900, letterSpacing: "0.06em",
                                 opacity: (submitting || running || currentProblem?.isSolved || myForfeited || myFinishedAllProblems) ? 0.45 : 1,
@@ -1035,7 +1033,6 @@ export default function GroupArenaPage() {
           </ResizablePanelGroup>
         </div>
         <style>{`
-          .judge-root button{cursor:none!important}
           .group-arena-theme{
             position:relative;
             --group-acid:#EDFF66;

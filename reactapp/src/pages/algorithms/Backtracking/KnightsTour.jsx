@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Play, Pause, RotateCcw, Zap } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 /*
   KnightsTourVisualizer.jsx
@@ -19,15 +18,11 @@ const Node = ({ text, status }) => {
       : "bg-theme-tertiary/40 border-theme-primary";
 
   return (
-    <motion.div
-      layout
-      initial={{ scale: 0.95, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
       className={`p-3 rounded-lg border ${bg} text-sm font-mono text-theme-primary`}
     >
       {text}
-    </motion.div>
+    </div>
   );
 };
 
@@ -210,13 +205,10 @@ const KnightsTour = ({ navigate }) => {
           <h3 className="text-lg font-semibold mb-3 text-theme-secondary">
             Step Viewer
           </h3>
-          <AnimatePresence initial={false}>
+          <>
             {current && (
-              <motion.div
+              <div
                 key={current.id || "none"}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
               >
                 <Node
                   text={current.note}
@@ -230,9 +222,9 @@ const KnightsTour = ({ navigate }) => {
                       : "normal"
                   }
                 />
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </>
           <div className="mt-4 text-sm text-theme-tertiary">
             <div>Move: {current.movei ?? "-"}</div>
             <div>
@@ -260,9 +252,8 @@ const KnightsTour = ({ navigate }) => {
                   current.y === j &&
                   current.type !== "backtrack";
                 return (
-                  <motion.div
+                  <div
                     key={`${i}-${j}`}
-                    layout
                     className={`w-8 h-8 rounded-md flex items-center justify-center border text-xs font-mono
                     ${
                       active
@@ -273,7 +264,7 @@ const KnightsTour = ({ navigate }) => {
                     }`}
                   >
                     {visited ? visited.movei % 10 : ""}
-                  </motion.div>
+                  </div>
                 );
               })
             )}

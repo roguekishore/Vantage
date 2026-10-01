@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react"
 import createGlobe from "cobe";
-import { useMotionValue, useSpring } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -44,12 +43,9 @@ export function Globe({
   const pointerInteracting = useRef(null)
   const pointerInteractionMovement = useRef(0)
 
-  const r = useMotionValue(0)
-  const rs = useSpring(r, {
-    mass: 1,
-    damping: 30,
-    stiffness: 100,
-  })
+  // Drag rotation target (r) and its eased value (rs), stepped once per globe frame
+  const r = useRef(0)
+  const rs = useRef(0)
 
   const updatePointerInteraction = (value) => {
     pointerInteracting.current = value
@@ -62,7 +58,7 @@ export function Globe({
     if (pointerInteracting.current !== null) {
       const delta = clientX - pointerInteracting.current
       pointerInteractionMovement.current = delta
-      r.set(r.get() + delta / MOVEMENT_DAMPING)
+      r.current = r.current + delta / MOVEMENT_DAMPING
     }
   }
 
@@ -82,7 +78,8 @@ export function Globe({
       height: widthRef.current * 2,
       onRender: (state) => {
         if (!pointerInteracting.current) phiRef.current += 0.005
-        state.phi = phiRef.current + rs.get()
+        rs.current += (r.current - rs.current) * 0.12
+        state.phi = phiRef.current + rs.current
         state.width = widthRef.current * 2
         state.height = widthRef.current * 2
       },
@@ -93,7 +90,7 @@ export function Globe({
       globe.destroy()
       window.removeEventListener("resize", onResize)
     };
-  }, [rs, config])
+  }, [config])
 
   return (
     <div

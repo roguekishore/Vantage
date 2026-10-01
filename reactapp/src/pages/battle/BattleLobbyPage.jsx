@@ -12,7 +12,6 @@ import {
   Clock, ArrowUp, ArrowDown, Minus, ChevronRight,
   History, AlertTriangle, Users, Search, RotateCcw,
 } from "lucide-react";
-import CustomCursor from "../../components/common/CustomCursor";
 import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
 
 const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
@@ -86,7 +85,6 @@ function CenteredCard({ children }) {
       minHeight: "100vh", background: "#09090b", display: "flex",
       alignItems: "center", justifyContent: "center", padding: 24
     }}>
-      <CustomCursor />
       <div style={{
         background: "#0d0d10", border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: 18, padding: 40, width: "100%", maxWidth: 380,
@@ -196,9 +194,8 @@ function QueueScreen({ mode, difficulty, problemCount, durationMinutes, onCancel
   return (
     <div style={{
       minHeight: "100vh", background: "#09090b", display: "flex",
-      alignItems: "center", justifyContent: "center", padding: 24, cursor: "none"
+      alignItems: "center", justifyContent: "center", padding: 24
     }}>
-      <CustomCursor />
 
       {/* Grain */}
       <div style={{
@@ -260,7 +257,7 @@ function QueueScreen({ mode, difficulty, problemCount, durationMinutes, onCancel
         </div>
 
         <button onClick={onCancel} style={{
-          background: "none", border: "none", cursor: "none",
+          background: "none", border: "none",
           fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
           color: "rgba(255,255,255,0.28)", transition: "color 0.15s"
         }}
@@ -287,9 +284,8 @@ function LobbyWaitScreen({ lobby, language, onReady, onLeave, loading }) {
     <div ref={ref} style={{
       minHeight: "100vh", background: "#09090b",
       display: "flex", alignItems: "center", justifyContent: "center",
-      padding: 24, position: "relative", overflow: "hidden", cursor: "none"
+      padding: 24, position: "relative", overflow: "hidden"
     }}>
-      <CustomCursor />
 
       {/* Diagonal stripes */}
       <div style={{ position: "fixed", inset: 0, zIndex: 0, overflow: "hidden", pointerEvents: "none" }}>
@@ -471,7 +467,7 @@ function LobbyWaitScreen({ lobby, language, onReady, onLeave, loading }) {
               <div style={{ display: "flex", gap: 10 }}>
                 <button onClick={onReady} disabled={lobby.you.isReady || loading}
                   style={{
-                    height: 46, padding: "0 28px", borderRadius: 11, border: "none", cursor: "none",
+                    height: 46, padding: "0 28px", borderRadius: 11, border: "none",
                     background: lobby.you.isReady ? "rgba(52,211,153,0.1)" : "#EDFF66",
                     color: lobby.you.isReady ? "#34d399" : "#09090b",
                     fontSize: 12, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase",
@@ -490,7 +486,7 @@ function LobbyWaitScreen({ lobby, language, onReady, onLeave, loading }) {
                 </button>
                 <button onClick={onLeave}
                   style={{
-                    height: 46, padding: "0 22px", borderRadius: 11, cursor: "none",
+                    height: 46, padding: "0 22px", borderRadius: 11,
                     background: "transparent", border: "1px solid rgba(255,255,255,0.08)",
                     fontSize: 12, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
                     color: "rgba(255,255,255,0.35)", transition: "all 0.15s"
@@ -528,7 +524,7 @@ function HistoryRow({ b, navigate }) {
       disabled={!isCompleted}
       style={{
         width: "100%", display: "flex", alignItems: "center", gap: 14,
-        padding: "12px 20px", background: "transparent", border: "none", cursor: "none",
+        padding: "12px 20px", background: "transparent", border: "none",
         borderBottom: "1px solid rgba(255,255,255,0.04)", textAlign: "left",
         transition: "background 0.15s", opacity: isCompleted ? 1 : 0.4
       }}
@@ -708,7 +704,7 @@ export default function BattleLobbyPage() {
         </div>
         <button onClick={() => navigate("/login")} style={{
           width: "100%", height: 46, borderRadius: 11,
-          border: "none", cursor: "none", background: "#EDFF66", color: "#09090b",
+          border: "none", background: "#EDFF66", color: "#09090b",
           fontSize: 12, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase"
         }}>
           Log In
@@ -760,7 +756,7 @@ export default function BattleLobbyPage() {
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
           <button onClick={handleRejoin} style={{
-            height: 46, borderRadius: 11, border: "none", cursor: "none",
+            height: 46, borderRadius: 11, border: "none",
             background: "#EDFF66", color: "#09090b", fontSize: 12, fontWeight: 900,
             letterSpacing: "0.1em", textTransform: "uppercase",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8
@@ -768,7 +764,7 @@ export default function BattleLobbyPage() {
             <Swords size={14} /> {activeBattleState === "ACTIVE" ? "Rejoin Battle" : "Rejoin Lobby"}
           </button>
           <button onClick={handleAbandon} style={{
-            height: 42, borderRadius: 11, border: "none", cursor: "none",
+            height: 42, borderRadius: 11, border: "none",
             background: "transparent", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.3)",
             transition: "color 0.15s"
           }}
@@ -793,9 +789,8 @@ export default function BattleLobbyPage() {
   return (
     <div ref={pageRef} style={{
       minHeight: "100vh", background: "#09090b",
-      paddingTop: 56, paddingBottom: 80, cursor: "none"
+      paddingTop: 56, paddingBottom: 80
     }}>
-      <CustomCursor />
 
       {/* Fixed background */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
@@ -933,7 +928,7 @@ export default function BattleLobbyPage() {
         {/* Group battle banner */}
         <button className="lp-in" onClick={() => navigate("/group")} style={{
           width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "16px 20px", marginBottom: 20, marginTop: 24, borderRadius: 14, cursor: "none",
+          padding: "16px 20px", marginBottom: 20, marginTop: 24, borderRadius: 14,
           background: "#0d0d10", border: "1px solid rgba(255,255,255,0.06)", transition: "border-color 0.2s, background 0.2s"
         }}
           onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(237,255,102,0.2)"; e.currentTarget.style.background = "rgba(237,255,102,0.02)"; }}
@@ -999,7 +994,7 @@ export default function BattleLobbyPage() {
                     const accentCol = m.value === "RANKED_1V1" ? "#EDFF66" : "#c4b5fd";
                     return (
                       <button key={m.value} onClick={() => setMode(m.value)} style={{
-                        padding: "14px 14px", borderRadius: 12, border: "none", cursor: "none", textAlign: "left",
+                        padding: "14px 14px", borderRadius: 12, border: "none", textAlign: "left",
                         background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
                         outline: active ? `1px solid ${accentCol}25` : "1px solid rgba(255,255,255,0.06)",
                         transition: "all 0.15s", position: "relative"
@@ -1031,7 +1026,7 @@ export default function BattleLobbyPage() {
                     const active = difficulty === d.value;
                     return (
                       <button key={d.value} onClick={() => setDifficulty(d.value)} style={{
-                        padding: "10px 0", borderRadius: 11, border: "none", cursor: "none",
+                        padding: "10px 0", borderRadius: 11, border: "none",
                         background: active ? "rgba(255,255,255,0.06)" : "rgba(255,255,255,0.02)",
                         outline: active ? `1px solid ${d.color}30` : "1px solid rgba(255,255,255,0.06)",
                         display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
@@ -1060,7 +1055,7 @@ export default function BattleLobbyPage() {
                     const active = problemCount === c;
                     return (
                       <button key={c} onClick={() => setProblemCount(c)} style={{
-                        padding: "10px 0", borderRadius: 11, border: "none", cursor: "none",
+                        padding: "10px 0", borderRadius: 11, border: "none",
                         background: active ? "#EDFF66" : "rgba(255,255,255,0.02)",
                         outline: active ? "none" : "1px solid rgba(255,255,255,0.06)",
                         fontSize: 13, fontWeight: 900, letterSpacing: "-0.01em",
@@ -1086,7 +1081,7 @@ export default function BattleLobbyPage() {
                     const active = durationMinutes === m;
                     return (
                       <button key={m} onClick={() => setDurationMinutes(m)} style={{
-                        padding: "10px 0", borderRadius: 11, border: "none", cursor: "none",
+                        padding: "10px 0", borderRadius: 11, border: "none",
                         background: active ? "rgba(237,255,102,0.14)" : "rgba(255,255,255,0.02)",
                         outline: active ? "1px solid rgba(237,255,102,0.25)" : "1px solid rgba(255,255,255,0.06)",
                         fontSize: 11, fontWeight: 900, letterSpacing: "0.08em",
@@ -1103,7 +1098,7 @@ export default function BattleLobbyPage() {
               {/* Find Battle */}
               <button onClick={handleFindBattle} disabled={loading}
                 style={{
-                  height: 48, borderRadius: 12, border: "none", cursor: "none",
+                  height: 48, borderRadius: 12, border: "none",
                   background: "#EDFF66", color: "#09090b",
                   fontSize: 12, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -1170,7 +1165,7 @@ export default function BattleLobbyPage() {
                         </div>
                         <button onClick={() => handleChallengeFriend(f)} disabled={friendActionLoading}
                           style={{
-                            height: 30, padding: "0 12px", borderRadius: 8, border: "none", cursor: "none",
+                            height: 30, padding: "0 12px", borderRadius: 8, border: "none",
                             background: "#EDFF66", color: "#09090b", fontSize: 10, fontWeight: 900,
                             letterSpacing: "0.08em", textTransform: "uppercase",
                             display: "flex", alignItems: "center", gap: 5, flexShrink: 0,

@@ -24,7 +24,6 @@ import {
   RotateCcw, Copy, Check, Plus, X, ChevronDown, Braces,
   Code2, Zap, CircleDot, Hash, ArrowUpRight,
 } from "lucide-react";
-import CustomCursor from "../../components/common/CustomCursor";
 import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
 import "../judge/Judge.css";
 
@@ -273,9 +272,8 @@ export default function BattleArenaPage() {
     <TooltipProvider delayDuration={300}>
       <div className="cursor-visible-scope battle-heading-font" style={{
         display: "flex", flexDirection: "column", height: "100vh",
-        background: S.bg, color: S.textPri, overflow: "hidden", cursor: "none"
+        background: S.bg, color: S.textPri, overflow: "hidden"
       }}>
-        <CustomCursor />
 
         {/* ══════════ HEADER ══════════ */}
         <header style={{
@@ -317,7 +315,7 @@ export default function BattleArenaPage() {
           }}>
             {battleState.problems?.map((p, i) => (
               <button key={i} onClick={() => switchProblem(i)} style={{
-                position: "relative", padding: "5px 14px", borderRadius: 8, border: "none", cursor: "none",
+                position: "relative", padding: "5px 14px", borderRadius: 8, border: "none",
                 fontSize: 11, fontWeight: 900, letterSpacing: "0.06em", textTransform: "uppercase",
                 background: currentProblemIdx === i ? "rgba(255,255,255,0.1)" : "transparent",
                 color: currentProblemIdx === i ? "#fff" : "rgba(255,255,255,0.32)",
@@ -393,7 +391,7 @@ export default function BattleArenaPage() {
             <div style={{ width: 1, height: 12, background: S.border }} />
             <button onClick={handleForfeit} style={{
               display: "flex", alignItems: "center", gap: 5, padding: "5px 10px",
-              borderRadius: 8, border: "none", cursor: "none", background: "transparent",
+              borderRadius: 8, border: "none", background: "transparent",
               fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", color: "rgba(255,255,255,0.28)",
               transition: "all 0.15s",
             }}
@@ -433,7 +431,7 @@ export default function BattleArenaPage() {
                         style={{
                           display: "flex", alignItems: "center", gap: 5,
                           padding: "0 12px", height: 38, borderRadius: 0, border: "none",
-                          background: "transparent", cursor: "none",
+                          background: "transparent",
                           fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
                           color: leftTab === tab.value ? "#fff" : "rgba(255,255,255,0.28)",
                           borderBottom: leftTab === tab.value ? `1px solid ${S.acid}` : "1px solid transparent",
@@ -569,7 +567,7 @@ export default function BattleArenaPage() {
                           <button disabled={currentProblemIdx === 0} onClick={() => switchProblem(currentProblemIdx - 1)}
                             style={{
                               display: "flex", alignItems: "center", gap: 5, padding: "6px 12px",
-                              borderRadius: 8, border: "none", cursor: "none", background: "transparent",
+                              borderRadius: 8, border: "none", background: "transparent",
                               fontSize: 11, fontWeight: 700, transition: "all 0.15s",
                               color: currentProblemIdx === 0 ? "rgba(255,255,255,0.1)" : S.textSec
                             }}>
@@ -578,7 +576,7 @@ export default function BattleArenaPage() {
                           <button disabled={currentProblemIdx >= totalProblems - 1} onClick={() => switchProblem(currentProblemIdx + 1)}
                             style={{
                               display: "flex", alignItems: "center", gap: 5, padding: "6px 12px",
-                              borderRadius: 8, border: "none", cursor: "none", background: "transparent",
+                              borderRadius: 8, border: "none", background: "transparent",
                               fontSize: 11, fontWeight: 700, transition: "all 0.15s",
                               color: currentProblemIdx >= totalProblems - 1 ? "rgba(255,255,255,0.1)" : S.textSec
                             }}>
@@ -661,7 +659,7 @@ export default function BattleArenaPage() {
                                   <button onClick={() => useFailedAsTestCase(submitResult.firstFailedInput, submitResult.firstFailedExpected)}
                                     style={{
                                       display: "flex", alignItems: "center", gap: 5, padding: "4px 10px",
-                                      borderRadius: 7, border: "none", cursor: "none",
+                                      borderRadius: 7, border: "none",
                                       background: "rgba(237,255,102,0.08)", border: "1px solid rgba(237,255,102,0.15)",
                                       fontSize: 10, fontWeight: 800, color: S.acid, transition: "opacity 0.15s"
                                     }}
@@ -715,7 +713,7 @@ export default function BattleArenaPage() {
                       <DropdownMenuTrigger style={{
                         display: "flex", alignItems: "center", gap: 6,
                         padding: "4px 10px", borderRadius: 8, border: `1px solid ${S.border}`,
-                        background: "transparent", cursor: "none",
+                        background: "transparent",
                         fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.55)",
                         transition: "all 0.15s"
                       }}
@@ -739,7 +737,7 @@ export default function BattleArenaPage() {
                           <DropdownMenuItem key={l.value} onClick={() => handleLanguageChange(l.value)}
                             style={{
                               display: "flex", alignItems: "center", gap: 7, padding: "6px 8px",
-                              borderRadius: 7, cursor: "none", fontSize: 12, fontWeight: 600,
+                              borderRadius: 7, fontSize: 12, fontWeight: 600,
                               color: language === l.value ? S.acid : "rgba(255,255,255,0.5)",
                               background: "transparent", transition: "background 0.1s"
                             }}
@@ -761,7 +759,7 @@ export default function BattleArenaPage() {
                         <TooltipTrigger asChild>
                           <button onClick={handleResetCode}
                             style={{
-                              width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none",
+                              width: 28, height: 28, borderRadius: 7, border: "none",
                               background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
                               color: "rgba(255,255,255,0.3)", transition: "all 0.15s"
                             }}
@@ -777,7 +775,7 @@ export default function BattleArenaPage() {
                         <TooltipTrigger asChild>
                           <button onClick={handleCopyCode}
                             style={{
-                              width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none",
+                              width: 28, height: 28, borderRadius: 7, border: "none",
                               background: "transparent", display: "flex", alignItems: "center", justifyContent: "center",
                               color: copied ? S.green : "rgba(255,255,255,0.3)", transition: "all 0.15s"
                             }}
@@ -798,7 +796,7 @@ export default function BattleArenaPage() {
                           <button onClick={handleRun} disabled={running || submitting}
                             style={{
                               display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 12px",
-                              borderRadius: 7, cursor: "none", border: `1px solid ${S.border}`, background: "transparent",
+                              borderRadius: 7, border: `1px solid ${S.border}`, background: "transparent",
                               fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.45)",
                               opacity: (running || submitting) ? 0.4 : 1, transition: "all 0.15s"
                             }}
@@ -818,7 +816,7 @@ export default function BattleArenaPage() {
                           <button onClick={handleSubmit} disabled={submitting || running || currentProblem?.isSolved}
                             style={{
                               display: "flex", alignItems: "center", gap: 5, height: 28, padding: "0 14px",
-                              borderRadius: 7, cursor: "none", border: "none",
+                              borderRadius: 7, border: "none",
                               background: S.acid, color: "#09090b",
                               fontSize: 11, fontWeight: 900, letterSpacing: "0.06em",
                               opacity: (submitting || running || currentProblem?.isSolved) ? 0.45 : 1,
@@ -894,7 +892,7 @@ export default function BattleArenaPage() {
                             style={{
                               display: "flex", alignItems: "center", gap: 5,
                               padding: "0 12px", height: 36, borderRadius: 0, border: "none",
-                              background: "transparent", cursor: "none",
+                              background: "transparent",
                               fontSize: 11, fontWeight: 700, letterSpacing: "0.06em",
                               color: bottomTab === tab.value ? "#fff" : "rgba(255,255,255,0.28)",
                               borderBottom: bottomTab === tab.value ? `1px solid ${S.acid}` : "1px solid transparent",
@@ -921,7 +919,7 @@ export default function BattleArenaPage() {
                               <button onClick={() => setActiveTestCase(idx)}
                                 style={{
                                   display: "flex", alignItems: "center", gap: 5,
-                                  padding: "4px 10px", borderRadius: 7, border: "none", cursor: "none",
+                                  padding: "4px 10px", borderRadius: 7, border: "none",
                                   fontSize: 11, fontWeight: 700, transition: "all 0.15s",
                                   background: activeTestCase === idx ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.03)",
                                   outline: activeTestCase === idx
@@ -937,7 +935,7 @@ export default function BattleArenaPage() {
                                   style={{
                                     position: "absolute", top: -3, right: -3, width: 13, height: 13,
                                     borderRadius: "50%", border: `1px solid ${S.border}`,
-                                    background: "#0c0c0f", cursor: "none", display: "none",
+                                    background: "#0c0c0f", display: "none",
                                     alignItems: "center", justifyContent: "center",
                                     fontSize: 7, color: "rgba(255,255,255,0.4)", transition: "color 0.15s"
                                   }}
@@ -952,7 +950,7 @@ export default function BattleArenaPage() {
                           <button onClick={addCustomTestCase}
                             style={{
                               width: 26, height: 26, borderRadius: 7, border: `1px solid ${S.border}`,
-                              background: "transparent", cursor: "none", display: "flex",
+                              background: "transparent", display: "flex",
                               alignItems: "center", justifyContent: "center",
                               color: "rgba(255,255,255,0.3)", transition: "all 0.15s"
                             }}

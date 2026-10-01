@@ -1,11 +1,12 @@
-import React, { Suspense } from "react";
+import React, { Suspense, lazy } from "react";
 import { Routes, Route } from "react-router-dom";
 import { topicConfig } from "./config";
-import TopicPage from "../pages/topics/TopicPage";
 import VisualizerPage from "../pages/visualizer/VisualizerPage";
 import { lazyVisualizer } from "../pages/visualizer/legacyViz";
-import TopicsPage from "../pages/topics/TopicsPage";
-import AlgoCards from "../components/problems/AlgoCards";
+
+const TopicPage = lazy(() => import("../pages/topics/TopicPage"));
+const TopicsPage = lazy(() => import("../pages/topics/TopicsPage"));
+const AlgoCards = lazy(() => import("../components/problems/AlgoCards"));
 
 // Loading fallback component
 const LoadingFallback = () => (
@@ -210,8 +211,8 @@ const MinStack = lazyVisualizer(() => import("../pages/algorithms/Design/MinStac
 // PATHFINDING
 const AStarPathfinding = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/AStar"));
 const BFSPathfinding = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/BFS"));
-const ColorIslands = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/ColorIslands"));
-const FloodFill = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/FloodFill"));
+const ColorIslands = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/ColorIslands").then((m) => ({ default: m.ColorIslands })));
+const FloodFill = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/FloodFill").then((m) => ({ default: m.FloodFill })));
 const RatInMaze = lazyVisualizer(() => import("../pages/algorithms/Pathfinding/RatInMaze"));
 
 /**

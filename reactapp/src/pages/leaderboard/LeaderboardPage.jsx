@@ -12,7 +12,6 @@ import {
   fetchWeeklyCoinsLeaderboard, fetchStreakLeaderboard,
   fetchBattleRatingLeaderboard, fetchMyRank, fetchInstitutionLeaderboard,
 } from "@/services/leaderboardApi";
-import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO } from "@/components/common/MonumentTypography";
 import { FONT_MONO } from "@/styles/typeScale";
 
@@ -276,7 +275,7 @@ function TabBar({ active, onChange }) {
             onClick={() => onChange(tab.key)}
             style={{
               display: "flex", alignItems: "center", gap: 5, padding: "8px 12px",
-              border: "none", cursor: "none", background: "transparent", borderRadius: 8,
+              border: "none", background: "transparent", borderRadius: 8,
               fontSize: 10, fontWeight: 700, letterSpacing: "0.07em", textTransform: "uppercase",
               color: isActive ? tab.color : "rgba(255,255,255,0.26)",
               transition: "color 0.2s", whiteSpace: "nowrap", flexShrink: 0,
@@ -389,7 +388,7 @@ function LBRow({ entry, isMe, vl, tabColor, tabGlow, idx }) {
       background: isMe ? `${tabColor}05` : "transparent",
       position: "relative",
       animation: `rowIn 0.38s ease-out ${idx * 0.028}s both`,
-      transition: "background 0.18s", cursor: "none",
+      transition: "background 0.18s",
     }}
       onMouseEnter={e => { if (!isMe) e.currentTarget.style.background = "rgba(255,255,255,0.018)"; }}
       onMouseLeave={e => { e.currentTarget.style.background = isMe ? `${tabColor}05` : "transparent"; }}
@@ -479,7 +478,7 @@ function Pagination({ page, totalPages, onPage, color }) {
         style={{
           display: "flex", alignItems: "center", gap: 4, padding: "6px 14px",
           borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "transparent",
-          cursor: "none", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+          fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
           color: page === 0 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
           opacity: page === 0 ? 0.4 : 1, transition: "all 0.15s",
         }}
@@ -491,7 +490,7 @@ function Pagination({ page, totalPages, onPage, color }) {
         {Array.from({ length: Math.min(totalPages, 7) }).map((_, i) => (
           <button key={i} onClick={() => onPage(i)} style={{
             width: page === i ? 22 : 6, height: 6, borderRadius: 3,
-            border: "none", cursor: "none", padding: 0,
+            border: "none", padding: 0,
             background: page === i ? color : "rgba(255,255,255,0.12)",
             boxShadow: page === i ? `0 0 8px ${color}60` : "none",
             transition: "all 0.32s cubic-bezier(0.34,1.56,0.64,1)",
@@ -503,7 +502,7 @@ function Pagination({ page, totalPages, onPage, color }) {
         style={{
           display: "flex", alignItems: "center", gap: 4, padding: "6px 14px",
           borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "transparent",
-          cursor: "none", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
+          fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase",
           color: page >= totalPages - 1 ? "rgba(255,255,255,0.12)" : "rgba(255,255,255,0.45)",
           opacity: page >= totalPages - 1 ? 0.4 : 1, transition: "all 0.15s",
         }}
@@ -617,9 +616,8 @@ export default function LeaderboardPage() {
   return (
     <div ref={pageRef} style={{
       minHeight: "100vh", background: "#09090b",
-      paddingTop: 56, paddingBottom: 80, cursor: "none",
+      paddingTop: 56, paddingBottom: 80,
     }}>
-      <CustomCursor />
       <Background color={color} />
 
       <div style={{

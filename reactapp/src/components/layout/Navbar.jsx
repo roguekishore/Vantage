@@ -5,9 +5,8 @@ import { useGSAP } from "@gsap/react";
 import {
   House, Eye, BookOpen, Map as MapIcon, Swords, Trophy,
   Award, Bell, UserRoundPlus, Coins, Sparkles,
-  Flame, Shield, VolumeX, ArrowUpRight,
+  Flame, Shield, VolumeX, ArrowUpRight, Puzzle,
 } from "lucide-react";
-import ExtensionIcon from "@mui/icons-material/Extension";
 import useUserStore from "@/stores/useUserStore";
 import useGamificationStore from "@/stores/useGamificationStore";
 import useAchievementStore from "@/stores/useAchievementStore";
@@ -87,7 +86,7 @@ function GlitchLink({ label, path, active, badge }) {
       onMouseLeave={() => setHover(false)}
       data-cursor={label.toUpperCase()}
       style={{ position:"relative", padding:"6px 12px", textDecoration:"none",
-        borderRadius:8, cursor:"none", display:"inline-flex", alignItems:"center",
+        borderRadius:8, display:"inline-flex", alignItems:"center",
         fontFamily:NAV_TYPO.fontFamily,
         fontSize:12, fontWeight:active ? 900 : 600,
         letterSpacing: active ? NAV_TYPO.letterSpacing.metric : NAV_TYPO.letterSpacing.monument,
@@ -255,7 +254,7 @@ function Ticker({ visible }) {
 function Logo() {
   return (
     <Link to="/" data-cursor="HOME"
-      style={{ display:"flex",alignItems:"center",gap:9,textDecoration:"none",flexShrink:0,cursor:"none" }}>
+      style={{ display:"flex",alignItems:"center",gap:9,textDecoration:"none",flexShrink:0 }}>
       <div style={{ width:28,height:28,borderRadius:8,flexShrink:0,position:"relative",
         border:"1px solid rgba(255,255,255,0.1)",overflow:"hidden",
         background:"rgba(255,255,255,0.04)" }}>
@@ -329,7 +328,7 @@ function MobileOverlay({ open, onClose, links, isActive, incomingCount, stats, s
         <Logo />
         <button onClick={onClose} data-cursor="CLOSE"
           style={{ height:32,padding:"0 14px",borderRadius:8,border:"1px solid rgba(255,255,255,0.08)",
-            background:"rgba(255,255,255,0.04)",cursor:"none",
+            background:"rgba(255,255,255,0.04)",
             fontFamily:NAV_TYPO.fontFamily,fontSize:10,fontWeight:900,letterSpacing:NAV_TYPO.letterSpacing.monument,
             textTransform:"uppercase",color:"rgba(255,255,255,0.45)",
             transition:"all 0.15s" }}
@@ -349,7 +348,7 @@ function MobileOverlay({ open, onClose, links, isActive, incomingCount, stats, s
               ref={el => itemRefs.current[i] = el}
               data-cursor={label.toUpperCase()}
               style={{ display:"flex",alignItems:"center",justifyContent:"space-between",
-                padding:"clamp(10px,2vh,16px) 0",textDecoration:"none",cursor:"none",
+                padding:"clamp(10px,2vh,16px) 0",textDecoration:"none",
                 borderBottom:"1px solid rgba(255,255,255,0.04)",
                 transition:"padding-left 0.2s ease",opacity:active?1:0.5 }}
               onMouseEnter={e=>{e.currentTarget.style.paddingLeft="10px";e.currentTarget.style.opacity="1";}}
@@ -555,7 +554,7 @@ const Navbar = ({ controls, allowTransparency = false }) => {
             {/* DND */}
             {isAuthenticated && isDnd && (
               <div style={{ position:"relative" }} className="nb-desktop">
-                <button style={{ width:30,height:30,borderRadius:8,cursor:"none",
+                <button style={{ width:30,height:30,borderRadius:8,
                   background:"rgba(196,181,253,0.07)",border:"1px solid rgba(196,181,253,0.2)",
                   display:"flex",alignItems:"center",justifyContent:"center" }}
                   onMouseEnter={()=>{ if(dndTip.current) dndTip.current.style.opacity="1"; }}
@@ -576,7 +575,7 @@ const Navbar = ({ controls, allowTransparency = false }) => {
               <Link to="/friends" data-cursor="ALERTS"
                 style={{ position:"relative",width:30,height:30,borderRadius:8,
                   display:"flex",alignItems:"center",justifyContent:"center",
-                  textDecoration:"none",cursor:"none",
+                  textDecoration:"none",
                   color:"rgba(255,255,255,0.32)",transition:"color 0.15s" }}
                 onMouseEnter={e=>e.currentTarget.style.color="rgba(255,255,255,0.85)"}
                 onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.32)"}
@@ -606,7 +605,6 @@ const Navbar = ({ controls, allowTransparency = false }) => {
                 alignItems:"center",
                 justifyContent:"center",
                 textDecoration:"none",
-                cursor:"none",
                 padding:0,
                 outline:"none",
                 color:"#09090b",
@@ -625,13 +623,13 @@ const Navbar = ({ controls, allowTransparency = false }) => {
                 e.currentTarget.style.background="#EDFF66";
               }}
             >
-              <ExtensionIcon sx={{ fontSize: 14 }} />
+              <Puzzle size={14} />
             </button>
 
             {/* Avatar / sign-in */}
             {isAuthenticated ? (
               <Link to="/profile" data-cursor="PROFILE" title={user.username}
-                style={{ cursor:"none",textDecoration:"none" }}>
+                style={{ textDecoration:"none" }}>
                 <div style={{ width:30,height:30,borderRadius:8,flexShrink:0,
                   background:"rgba(255,255,255,0.06)",border:"1px solid rgba(255,255,255,0.1)",
                   display:"flex",alignItems:"center",justifyContent:"center",
@@ -648,7 +646,7 @@ const Navbar = ({ controls, allowTransparency = false }) => {
                   background:"#EDFF66",color:"#09090b",fontSize:11,
                   fontFamily:NAV_TYPO.fontFamily,fontWeight:900,letterSpacing:NAV_TYPO.letterSpacing.monument,
                   textTransform:"uppercase",display:"flex",alignItems:"center",
-                  textDecoration:"none",cursor:"none",transition:"opacity 0.15s",flexShrink:0,
+                  textDecoration:"none",transition:"opacity 0.15s",flexShrink:0,
                   boxShadow:"0 0 18px rgba(237,255,102,0.22)" }}
                 onMouseEnter={e=>e.currentTarget.style.opacity="0.84"}
                 onMouseLeave={e=>e.currentTarget.style.opacity="1"}
@@ -659,7 +657,7 @@ const Navbar = ({ controls, allowTransparency = false }) => {
             <button onClick={() => setMobileOpen(o=>!o)}
               data-cursor={mobileOpen?"CLOSE":"MENU"}
               style={{ width:30,height:30,borderRadius:8,border:"none",
-                background:"rgba(255,255,255,0.05)",cursor:"none",
+                background:"rgba(255,255,255,0.05)",
                 display:"flex",alignItems:"center",justifyContent:"center",
                 color:"rgba(255,255,255,0.45)",transition:"all 0.15s",flexShrink:0 }}
               onMouseEnter={e=>{e.currentTarget.style.background="rgba(255,255,255,0.09)";e.currentTarget.style.color="#fff";}}

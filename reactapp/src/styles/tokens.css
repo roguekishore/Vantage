@@ -79,7 +79,7 @@ html.light {
 
   --fg: #0A0A0B;
   --fg-muted: rgba(10,10,11,.66);
-  --fg-dim: rgba(10,10,11,.54);
+  --fg-dim: rgba(10,10,11,.58);
 
   /* Accent is a fill only in light mode; every fill draws --accent-edge. */
   --accent: #EDFF66;
@@ -90,9 +90,9 @@ html.light {
   --focus: #0A0A0B;
 
   --ok: #047857;
-  --warn: #B45309;
+  --warn: #AB4F09;
   --err: #B91C1C;
-  --info: #0E7490;
+  --info: #0E738F;
   --ok-soft: rgba(4,120,87,.10);
   --warn-soft: rgba(180,83,9,.10);
   --err-soft: rgba(185,28,28,.10);
@@ -112,9 +112,9 @@ html.light {
   --accent-ink-rgb: 92 107 0;
   --focus-rgb: 10 10 11;
   --ok-rgb: 4 120 87;
-  --warn-rgb: 180 83 9;
+  --warn-rgb: 171 79 9;
   --err-rgb: 185 28 28;
-  --info-rgb: 14 116 144;
+  --info-rgb: 14 115 143;
   --viz-write-rgb: 109 40 217;
 }
 

@@ -2,22 +2,7 @@ import React, { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "./components/common/ThemeProvider";
 import Navbar from "./components/layout/Navbar";
-import HomePage from "./pages/home/HomePage";
 import AppRoutes from "./routes";
-import WorldMap from "./map/WorldMap";
-import AuthPage from "./pages/auth/AuthPage";
-import ProfilePage from "./pages/profile/ProfilePage";
-import StorePage from "./pages/store/StorePage";
-import InventoryPage from "./pages/inventory/InventoryPage";
-import LeaderboardPage from "./pages/leaderboard/LeaderboardPage";
-import BattleLobbyPage from "./pages/battle/BattleLobbyPage";
-import BattleArenaPage from "./pages/battle/BattleArenaPage";
-import BattleResultPage from "./pages/battle/BattleResultPage";
-import AchievementsPage from "./pages/achievements/AchievementsPage";
-import FriendsPage from "./pages/friends/FriendsPage";
-import GroupLobbyPage from "./pages/group/GroupLobbyPage";
-import GroupArenaPage from "./pages/group/GroupArenaPage";
-import GroupResultPage from "./pages/group/GroupResultPage";
 import useUserStore from "./stores/useUserStore";
 import useGamificationStore from "./stores/useGamificationStore";
 import useAchievementStore from "./stores/useAchievementStore";
@@ -25,12 +10,33 @@ import useFriendsStore from "./stores/useFriendsStore";
 import useProgressStore from "./map/useProgressStore";
 import ProtectedRoute from "./components/layout/ProtectedRoute";
 import FriendChallengeModal from "./pages/friends/FriendChallengeModal";
+// Direct file imports (not the ds barrel) keep the rest of ds/* out of the main chunk.
+import { Toaster } from "./components/ds/Toast";
+import { TooltipProvider } from "./components/ds/Tooltip";
 import useBattleStore from "./stores/useBattleStore";
 
+const HomePage = lazy(() => import("./pages/home/HomePage"));
+const WorldMap = lazy(() => import("./map/WorldMap"));
+const AuthPage = lazy(() => import("./pages/auth/AuthPage"));
+const ProfilePage = lazy(() => import("./pages/profile/ProfilePage"));
+const StorePage = lazy(() => import("./pages/store/StorePage"));
+const InventoryPage = lazy(() => import("./pages/inventory/InventoryPage"));
+const LeaderboardPage = lazy(() => import("./pages/leaderboard/LeaderboardPage"));
+const BattleLobbyPage = lazy(() => import("./pages/battle/BattleLobbyPage"));
+const BattleArenaPage = lazy(() => import("./pages/battle/BattleArenaPage"));
+const BattleResultPage = lazy(() => import("./pages/battle/BattleResultPage"));
+const AchievementsPage = lazy(() => import("./pages/achievements/AchievementsPage"));
+const FriendsPage = lazy(() => import("./pages/friends/FriendsPage"));
+const GroupLobbyPage = lazy(() => import("./pages/group/GroupLobbyPage"));
+const GroupArenaPage = lazy(() => import("./pages/group/GroupArenaPage"));
+const GroupResultPage = lazy(() => import("./pages/group/GroupResultPage"));
 const JudgePage = lazy(() => import("./pages/judge/JudgePage"));
 const ProblemListPage = lazy(() => import("./pages/problems/ProblemListPage"));
+// Hidden design-system preview (not linked anywhere).
+const DsPage = lazy(() => import("./pages/ds/DsPage"));
 
 const NAVBAR_HIDDEN_PATHS = [
+  '/__ds',
   '/map',
   '/login',
   '/signup',
@@ -285,11 +291,13 @@ function AppContent() {
           <Route path="/map" element={<ProtectedRoute><WorldMap /></ProtectedRoute>} />
           <Route path="/problems" element={<ProblemListPage />} />
           <Route path="/problem/:problemId" element={<JudgePage />} />
+          <Route path="/__ds" element={<DsPage />} />
           <Route path="/*" element={<AppRoutes />} />
         </Routes>
       </Suspense>
 
       <FriendChallengeModal />
+      <Toaster />
 
       {!hideBattleOverlay && activeBattleState && battleId && (
         <div
@@ -393,9 +401,11 @@ function AppContent() {
 export default function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
-        <AppContent />
-      </BrowserRouter>
+      <TooltipProvider>
+        <BrowserRouter>
+          <AppContent />
+        </BrowserRouter>
+      </TooltipProvider>
     </ThemeProvider>
   );
 }

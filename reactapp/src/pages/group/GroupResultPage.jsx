@@ -8,7 +8,6 @@ import {
   Trophy, Medal, Star, Coins, Zap, ArrowRight,
   Users, Hash, CheckCircle2,
 } from "lucide-react";
-import CustomCursor from "../../components/common/CustomCursor";
 import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
 
 const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
@@ -99,8 +98,7 @@ export default function GroupResultPage() {
   }
 
   return (
-    <div className="group-battle-theme min-h-screen bg-zinc-950 pt-24 pb-16 px-4 sm:px-6" style={{ cursor: "none" }}>
-      <CustomCursor />
+    <div className="group-battle-theme min-h-screen bg-zinc-950 pt-24 pb-16 px-4 sm:px-6">
       <div className="w-full max-w-3xl mx-auto space-y-4 battle-fade-up">
 
         {/* Header */}
@@ -227,7 +225,6 @@ export default function GroupResultPage() {
         .group-battle-theme .rounded-xl{border-radius:12px!important}
         .group-battle-theme .battle-monument{font-family:${BATTLE_FONT_FAMILY};letter-spacing:${BATTLE_FONT_LETTER_SPACING}}
         .group-battle-theme .hover\:opacity-90:hover{opacity:.86!important}
-        .group-battle-theme button{cursor:none!important}
       `}</style>
     </div>
   );

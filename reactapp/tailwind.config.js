@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+const plugin = require('tailwindcss/plugin');
 const typeScale = require('./src/styles/typeScale.json');
 
 // Design-system colours read src/styles/tokens.css.
@@ -282,11 +283,31 @@ module.exports = {
           '50%': { backgroundPosition: '100% 100%' },
           '100%': { backgroundPosition: '0% 0%' },
         },
+        // ds loaders (§3.4): a 2px bar segment sweeping its track. Under
+        // prefers-reduced-motion the global rule in tokens.css stops it and
+        // the segment rests at its start position.
+        'ds-indeterminate': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(250%)' },
+        },
       },
       animation: {
         shine: 'shine var(--duration, 14s) infinite linear',
+        'ds-indeterminate': 'ds-indeterminate 1.2s linear infinite',
       },
     },
   },
-  plugins: [],
+  plugins: [
+    // ds/* interaction variants. `ds-hover:` is :hover on an enabled,
+    // non-busy element; `ds-focus:` is :focus-visible. Both also match
+    // data-force="hover" / data-force="focus" so the /__ds preview page can
+    // render those states statically with the primitives' own classes.
+    plugin(({ addVariant }) => {
+      addVariant('ds-hover', [
+        '&:hover:not(:disabled, [data-disabled], [aria-disabled="true"], [aria-busy="true"])',
+        '&[data-force~="hover"]',
+      ]);
+      addVariant('ds-focus', ['&:focus-visible', '&[data-force~="focus"]']);
+    }),
+  ],
 }

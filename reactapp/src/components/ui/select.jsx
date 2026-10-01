@@ -1,4 +1,6 @@
 import * as React from "react"
+// Legacy shadcn copy restyled onto design tokens (radius 0, no shadows).
+// New code imports from "@/components/ds" instead.
 import { ChevronDown } from "lucide-react"
 import { cn } from "../../lib/utils"
 
@@ -37,14 +39,14 @@ const SelectTrigger = React.forwardRef(({ className, _value, _open, _setOpen, ch
     ref={ref}
     data-slot="select-trigger"
     className={cn(
-      "flex h-9 items-center justify-between gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-background px-3 py-1.5 text-sm text-foreground ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+      "flex h-9 items-center justify-between gap-2 border border-border bg-elevated px-3 py-1.5 font-mono text-sm text-fg hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-[120ms]",
       className
     )}
     onClick={() => _setOpen?.(!_open)}
     {...props}
   >
     {children}
-    <ChevronDown className={cn("h-3.5 w-3.5 opacity-50 transition-transform", _open && "rotate-180")} />
+    <ChevronDown className={cn("h-3.5 w-3.5 text-fg-muted", _open && "rotate-180")} strokeWidth={1.5} />
   </button>
 ))
 SelectTrigger.displayName = "SelectTrigger"
@@ -56,7 +58,7 @@ const SelectContent = React.forwardRef(({ className, _value, _onValueChange, _op
       ref={ref}
       data-slot="select-content"
       className={cn(
-        "absolute top-[calc(100%+4px)] left-0 z-50 min-w-[8rem] overflow-hidden rounded-md border bg-popover text-popover-foreground shadow-md animate-in fade-in-0 zoom-in-95",
+        "absolute top-[calc(100%+4px)] left-0 z-modal min-w-[8rem] overflow-hidden border border-border-strong bg-surface text-fg",
         className
       )}
       {...props}
@@ -79,7 +81,7 @@ const SelectItem = React.forwardRef(({ className, value, _value, _onValueChange,
       ref={ref}
       data-slot="select-item"
       className={cn(
-        "relative flex w-full cursor-pointer select-none items-center rounded-sm py-1.5 px-2 text-sm outline-none transition-colors hover:bg-elevated hover:text-fg",
+        "relative flex w-full cursor-pointer select-none items-center py-1.5 px-2 font-mono text-sm outline-none transition-colors hover:bg-fg hover:text-bg",
         isSelected && "bg-elevated text-fg font-medium",
         className
       )}

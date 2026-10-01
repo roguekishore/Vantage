@@ -4,18 +4,16 @@
  * Magnetic MagicCard hover effect preserved · GSAP scroll · particle canvas
  */
 
-import React, { useRef, useEffect, useState, useCallback } from "react";
+import React, { useRef, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import { motion, useMotionTemplate, useMotionValue } from "motion/react";
 import {
   ArrowLeft, Clock, ChevronRight, Hash, Zap,
   Star, TrendingUp, BookOpen,
 } from "lucide-react";
 import { problems as PROBLEM_CATALOG } from "../../search/catalog";
-import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -118,24 +116,26 @@ function MagicProblemCard({ algo, onClick, fallbackIcon: FallbackIcon, index }) 
   const Icon = algo.icon || FallbackIcon || Hash;
   const diff = D(algo.difficulty);
 
-  const mouseX = useMotionValue(-300);
-  const mouseY = useMotionValue(-300);
-
-  const reset = useCallback(() => {
-    mouseX.set(-300); mouseY.set(-300);
-  }, [mouseX, mouseY]);
-
-  const handleMove = useCallback((e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
-  }, [mouseX, mouseY]);
+  const borderRef = useRef(null);
+  const glowRef = useRef(null);
 
   // Magnetic border gradient — follows cursor
-  const borderGrad = useMotionTemplate`radial-gradient(220px circle at ${mouseX}px ${mouseY}px, ${diff.gradFrom}, ${diff.gradTo}, rgba(255,255,255,0.06) 80%)`;
+  const borderGradAt = (x, y) => `radial-gradient(220px circle at ${x}px ${y}px, ${diff.gradFrom}, ${diff.gradTo}, rgba(255,255,255,0.06) 80%)`;
 
   // Inner glow — same cursor tracking, softer
-  const innerGlow = useMotionTemplate`radial-gradient(200px circle at ${mouseX}px ${mouseY}px, ${diff.glow}, transparent 80%)`;
+  const innerGlowAt = (x, y) => `radial-gradient(200px circle at ${x}px ${y}px, ${diff.glow}, transparent 80%)`;
+
+  const paint = (x, y) => {
+    if (borderRef.current) borderRef.current.style.background = borderGradAt(x, y);
+    if (glowRef.current) glowRef.current.style.background = innerGlowAt(x, y);
+  };
+
+  const reset = () => paint(-300, -300);
+
+  const handleMove = (e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    paint(e.clientX - rect.left, e.clientY - rect.top);
+  };
 
   const [hov, setHov] = useState(false);
 
@@ -143,16 +143,16 @@ function MagicProblemCard({ algo, onClick, fallbackIcon: FallbackIcon, index }) 
     <div
       className="tp-card"
       data-cursor="EXPLORE"
-      style={{ position: "relative", borderRadius: 16, cursor: "none" }}
+      style={{ position: "relative", borderRadius: 16 }}
       onPointerMove={handleMove}
       onPointerLeave={() => { reset(); setHov(false); }}
       onPointerEnter={() => setHov(true)}
       onClick={onClick}
     >
       {/* Magic magnetic border */}
-      <motion.div style={{
+      <div ref={borderRef} style={{
         position: "absolute", inset: 0, borderRadius: 16,
-        background: borderGrad,
+        background: borderGradAt(-300, -300),
         opacity: hov ? 1 : 0,
         transition: "opacity 0.25s",
         padding: 1,
@@ -170,9 +170,9 @@ function MagicProblemCard({ algo, onClick, fallbackIcon: FallbackIcon, index }) 
         transition: "margin 0.25s, border 0.25s",
       }}>
         {/* Inner glow overlay */}
-        <motion.div style={{
+        <div ref={glowRef} style={{
           position: "absolute", inset: 0, pointerEvents: "none",
-          background: innerGlow,
+          background: innerGlowAt(-300, -300),
           opacity: hov ? 1 : 0,
           transition: "opacity 0.3s",
           borderRadius: 15,
@@ -465,10 +465,8 @@ const TopicPage = ({
         overflowX: "hidden",
         paddingTop: 56,
         paddingBottom: 100,
-        cursor: "none",
       }}
     >
-      <CustomCursor />
       <BgCanvas />
 
       {/* Noise */}
@@ -510,7 +508,7 @@ const TopicPage = ({
               display: "inline-flex", alignItems: "center", gap: 8,
               fontSize: 11, fontWeight: 800, letterSpacing: ".1em",
               textTransform: "uppercase", color: "rgba(255,255,255,0.28)",
-              background: "none", border: "none", cursor: "none",
+              background: "none", border: "none",
               padding: 0, transition: "color .15s",
             }}
             onMouseEnter={e => e.currentTarget.style.color = "#fff"}

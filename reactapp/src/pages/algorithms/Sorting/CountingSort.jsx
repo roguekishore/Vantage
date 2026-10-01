@@ -7,7 +7,6 @@ import {
   StatBlock, Legend, ComplexityFooter,
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 const CODE_LINES = [
   { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "countingSort(arr) {", k: "" }] },
@@ -151,8 +150,7 @@ const CountingSortVisualizer = () => {
   );
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
       <VisualizerHeader title="COUNTING" subtitle="SORT." category="Sorting" icon={ListOrdered}
         right={
           <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}

@@ -8,7 +8,6 @@ import {
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
 import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 /* ─────────────────────────────────────────────────────────────
    CODE LINES
@@ -153,8 +152,7 @@ const MergeSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
 
       <VisualizerHeader
         title="MERGE"

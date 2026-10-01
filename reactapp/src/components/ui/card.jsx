@@ -1,4 +1,6 @@
 import * as React from "react"
+// Legacy shadcn copy restyled onto design tokens (radius 0, no shadows).
+// New code imports from "@/components/ds" instead.
 
 import { cn } from "../../lib/utils"
 
@@ -7,7 +9,7 @@ function Card({ className, ...props }) {
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "bg-surface text-fg flex flex-col gap-6 border border-border py-6",
         className
       )}
       {...props}
@@ -32,7 +34,7 @@ function CardTitle({ className, ...props }) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold", className)}
+      className={cn("font-mono text-h3 leading-none", className)}
       {...props}
     />
   )
@@ -42,7 +44,7 @@ function CardDescription({ className, ...props }) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("font-mono text-small text-fg-muted", className)}
       {...props}
     />
   )
