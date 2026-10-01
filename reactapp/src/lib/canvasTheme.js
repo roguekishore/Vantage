@@ -22,6 +22,7 @@
 export const RGB_TOKENS = [
   "bg", "surface", "elevated", "fg",
   "accent", "on-accent", "accent-edge", "accent-ink", "focus",
+  "globe-base", "globe-glow", "globe-marker", "globe-arc",
   "ok", "warn", "err", "info", "viz-write",
 ];
 
@@ -37,14 +38,14 @@ export const COLOR_TOKENS = [
 
 /* Dark-theme fallbacks (mirror of tokens.css `:root, html.dark`). */
 const FALLBACK = {
-  "--bg": "#09090B",
-  "--surface": "#0F0F12",
-  "--elevated": "#16161A",
-  "--border": "rgba(255,255,255,.10)",
-  "--border-strong": "rgba(255,255,255,.22)",
+  "--bg": "#0E0E11",
+  "--surface": "#16161A",
+  "--elevated": "#1F1F24",
+  "--border": "rgba(255,255,255,.15)",
+  "--border-strong": "rgba(255,255,255,.30)",
   "--fg": "#F5F5F4",
-  "--fg-muted": "rgba(255,255,255,.66)",
-  "--fg-dim": "rgba(255,255,255,.52)",
+  "--fg-muted": "rgba(255,255,255,.74)",
+  "--fg-dim": "rgba(255,255,255,.62)",
   "--accent": "#EDFF66",
   "--on-accent": "#09090B",
   "--accent-edge": "#EDFF66",
@@ -61,9 +62,9 @@ const FALLBACK = {
   "--info-soft": "rgba(103,232,249,.14)",
   "--viz-write": "#C4B5FD",
   "--backdrop": "rgba(0,0,0,.6)",
-  "--bg-rgb": "9 9 11",
-  "--surface-rgb": "15 15 18",
-  "--elevated-rgb": "22 22 26",
+  "--bg-rgb": "14 14 17",
+  "--surface-rgb": "22 22 26",
+  "--elevated-rgb": "31 31 36",
   "--fg-rgb": "245 245 244",
   "--accent-rgb": "237 255 102",
   "--on-accent-rgb": "9 9 11",
@@ -75,6 +76,10 @@ const FALLBACK = {
   "--err-rgb": "248 113 113",
   "--info-rgb": "103 232 249",
   "--viz-write-rgb": "196 181 253",
+  "--globe-base-rgb": "237 255 102",
+  "--globe-glow-rgb": "237 255 102",
+  "--globe-marker-rgb": "251 100 21",
+  "--globe-arc-rgb": "237 255 102",
 };
 
 const hasDOM = typeof window !== "undefined" && typeof document !== "undefined";
@@ -177,7 +182,7 @@ const camel = (name) => name.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
 /**
  * Snapshot of every colour token for the current theme:
  * { theme, bg, surface, ..., borderStrong, fgMuted, accentInk, vizWrite, ...,
- *   rgb: { bg: "9,9,11", fg: "245,245,244", accent: ..., vizWrite: ... } }
+ *   rgb: { bg: "14,14,17", fg: "245,245,244", accent: ..., vizWrite: ... } }
  */
 export function getThemeTokens() {
   const out = { theme: currentTheme(), rgb: {} };

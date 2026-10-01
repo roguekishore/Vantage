@@ -43,7 +43,7 @@ function getProblemsForTopic(topicKey) {
  * - icon: Lucide icon component
  * - description: Brief description of the topic
  * - page: Route identifier / key for navigation
- * - spotlightColor: Color for the CardSpotlight effect (hex or rgb)
+ * - spotlightColor: system token (var(--accent)); per-topic colours retired
  * - subtitle: Short subtitle for CardFlip
  * - problems: Array of problem labels in this topic (from catalog)
  */
@@ -53,7 +53,7 @@ export const topics = [
   //   icon: Star,
   //   description: "Review your saved problems and topics for easy access.",
   //   page: "Starred",
-  //   spotlightColor: "#f59e0b",
+  //   spotlightColor: "var(--accent)",
   //   subtitle: "Explore your saved problems",
   //   topics: [],
   // },
@@ -63,7 +63,7 @@ export const topics = [
     description:
       "Arrange data efficiently using algorithms like QuickSort, MergeSort, and BubbleSort.",
     page: "Sorting",
-    spotlightColor: "#f97316",
+    spotlightColor: "var(--accent)",
     subtitle: "Master sorting algorithms",
     problems: getProblemsForTopic("Sorting"),
   },
@@ -72,7 +72,7 @@ export const topics = [
     icon: Brackets,
     description: "Contiguous data, two-pointers, and traversals.",
     page: "Arrays",
-    spotlightColor: "#3b82f6",
+    spotlightColor: "var(--accent)",
     subtitle: "Explore array techniques",
     problems: getProblemsForTopic("Arrays"),
   },
@@ -81,7 +81,7 @@ export const topics = [
     icon: SearchCode,
     description: "Logarithmic time search in sorted data.",
     page: "BinarySearch",
-    spotlightColor: "#14b8a6",
+    spotlightColor: "var(--accent)",
     subtitle: "Efficient searching",
     problems: getProblemsForTopic("BinarySearch"),
   },
@@ -91,7 +91,7 @@ export const topics = [
     description:
       "Text manipulation, pattern matching, and character operations.",
     page: "Strings",
-    spotlightColor: "#a855f7",
+    spotlightColor: "var(--accent)",
     subtitle: "String manipulation mastery",
     problems: getProblemsForTopic("Strings"),
   },
@@ -100,7 +100,7 @@ export const topics = [
     icon: Search,
     description: "Find elements using efficient search logic.",
     page: "Searching",
-    spotlightColor: "#10b981",
+    spotlightColor: "var(--accent)",
     subtitle: "Search algorithm techniques",
     problems: getProblemsForTopic("Searching"),
   },
@@ -109,7 +109,7 @@ export const topics = [
     icon: Hash,
     description: "Key-value pairs, hash maps, and collision resolution.",
     page: "Hashing",
-    spotlightColor: "#ef4444",
+    spotlightColor: "var(--accent)",
     subtitle: "Hash-based data structures",
     problems: getProblemsForTopic("Hashing"),
   },
@@ -118,7 +118,7 @@ export const topics = [
     icon: GitBranch,
     description: "Nodes, pointers, cycle detection, and list manipulation.",
     page: "LinkedList",
-    spotlightColor: "#6366f1",
+    spotlightColor: "var(--accent)",
     subtitle: "Linked list structures",
     problems: getProblemsForTopic("LinkedList"),
   },
@@ -127,7 +127,7 @@ export const topics = [
     icon: Repeat,
     description: "Solve problems by breaking them into smaller instances.",
     page: "Recursion",
-    spotlightColor: "#8b5cf6",
+    spotlightColor: "var(--accent)",
     subtitle: "Recursive problem solving",
     problems: getProblemsForTopic("Recursion"),
   },
@@ -137,7 +137,7 @@ export const topics = [
     description:
       "Work with data at the binary level for ultimate efficiency.",
     page: "BitManipulation",
-    spotlightColor: "#64748b",
+    spotlightColor: "var(--accent)",
     subtitle: "Binary operations",
     problems: getProblemsForTopic("BitManipulation"),
   },
@@ -147,7 +147,7 @@ export const topics = [
     description:
       "LIFO-based problems, expression evaluation, and histograms.",
     page: "Stack",
-    spotlightColor: "#7c3aed",
+    spotlightColor: "var(--accent)",
     subtitle: "Stack data structures",
     problems: getProblemsForTopic("Stack"),
   },
@@ -156,7 +156,7 @@ export const topics = [
     icon: ArrowRightLeft,
     description: "FIFO principle, breadth-first search, and schedulers.",
     page: "Queue",
-    spotlightColor: "#ec4899",
+    spotlightColor: "var(--accent)",
     subtitle: "Queue operations",
     problems: getProblemsForTopic("Queue"),
   },
@@ -165,7 +165,7 @@ export const topics = [
     icon: RectangleHorizontal,
     description: "Efficiently process subarrays, substrings, and ranges.",
     page: "SlidingWindows",
-    spotlightColor: "#0d9488",
+    spotlightColor: "var(--accent)",
     subtitle: "Window-based techniques",
     problems: getProblemsForTopic("SlidingWindows"),
   },
@@ -175,7 +175,7 @@ export const topics = [
     description:
       "Priority queues and finding min/max elements efficiently.",
     page: "Heaps",
-    spotlightColor: "#ea580c",
+    spotlightColor: "var(--accent)",
     subtitle: "Priority queue mastery",
     problems: getProblemsForTopic("Heaps"),
   },
@@ -185,7 +185,7 @@ export const topics = [
     description:
       "Hierarchical data, traversals (BFS, DFS), and binary trees.",
     page: "Trees",
-    spotlightColor: "#22c55e",
+    spotlightColor: "var(--accent)",
     subtitle: "Tree traversals",
     problems: getProblemsForTopic("Trees"),
   },
@@ -195,7 +195,7 @@ export const topics = [
     description:
       "Networks of nodes, traversal algorithms, and pathfinding.",
     page: "Graphs",
-    spotlightColor: "#0ea5e9",
+    spotlightColor: "var(--accent)",
     subtitle: "Graph algorithms",
     problems: getProblemsForTopic("Graphs"),
   },
@@ -205,7 +205,7 @@ export const topics = [
     description:
       "Navigate through mazes using BFS, DFS, and advanced pathfinding algorithms.",
     page: "Pathfinding",
-    spotlightColor: "#d946ef",
+    spotlightColor: "var(--accent)",
     subtitle: "Navigation techniques",
     problems: getProblemsForTopic("Pathfinding"),
   },
@@ -215,7 +215,7 @@ export const topics = [
     description:
       "Make locally optimal choices in the hope of finding a global optimum.",
     page: "GreedyAlgorithms",
-    spotlightColor: "#f43f5e",
+    spotlightColor: "var(--accent)",
     subtitle: "Greedy optimization",
     problems: getProblemsForTopic("GreedyAlgorithms"),
   },
@@ -225,7 +225,7 @@ export const topics = [
     description:
       "Exploring all possible solutions by trying and undoing choices efficiently.",
     page: "Backtracking",
-    spotlightColor: "#fb923c",
+    spotlightColor: "var(--accent)",
     subtitle: "Backtracking exploration",
     problems: getProblemsForTopic("Backtracking"),
   },
@@ -234,7 +234,7 @@ export const topics = [
     icon: Workflow,
     description: "Optimization by solving and caching sub-problems.",
     page: "DynamicProgramming",
-    spotlightColor: "#c026d3",
+    spotlightColor: "var(--accent)",
     subtitle: "Memoization mastery",
     problems: getProblemsForTopic("DynamicProgramming"),
   },
@@ -244,7 +244,7 @@ export const topics = [
     description:
       "Implement complex data structures combining HashMap, Linked List, and advanced design patterns.",
     page: "Design",
-    spotlightColor: "#06b6d4",
+    spotlightColor: "var(--accent)",
     subtitle: "System design patterns",
     problems: getProblemsForTopic("Design"),
   },
@@ -254,7 +254,7 @@ export const topics = [
     description:
       "Master the numerical foundations and essential utilities for efficient problem-solving.",
     page: "MathematicalMiscellaneous",
-    spotlightColor: "#2dd4bf",
+    spotlightColor: "var(--accent)",
     subtitle: "Mathematical foundations",
     problems: getProblemsForTopic("MathematicalMiscellaneous"),
   },

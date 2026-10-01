@@ -16,16 +16,16 @@ html.dark {
   color-scheme: dark;
 
   /* Surfaces */
-  --bg: #09090B;
-  --surface: #0F0F12;
-  --elevated: #16161A;
-  --border: rgba(255,255,255,.10);
-  --border-strong: rgba(255,255,255,.22);
+  --bg: #0E0E11;
+  --surface: #16161A;
+  --elevated: #1F1F24;
+  --border: rgba(255,255,255,.15);
+  --border-strong: rgba(255,255,255,.30);
 
   /* Text */
   --fg: #F5F5F4;
-  --fg-muted: rgba(255,255,255,.66);
-  --fg-dim: rgba(255,255,255,.52);
+  --fg-muted: rgba(255,255,255,.74);
+  --fg-dim: rgba(255,255,255,.62);
 
   /* Accent */
   --accent: #EDFF66;
@@ -52,9 +52,9 @@ html.dark {
   --backdrop: rgba(0,0,0,.6);
 
   /* Channel triplets */
-  --bg-rgb: 9 9 11;
-  --surface-rgb: 15 15 18;
-  --elevated-rgb: 22 22 26;
+  --bg-rgb: 14 14 17;
+  --surface-rgb: 22 22 26;
+  --elevated-rgb: 31 31 36;
   --fg-rgb: 245 245 244;
   --accent-rgb: 237 255 102;
   --on-accent-rgb: 9 9 11;
@@ -66,6 +66,51 @@ html.dark {
   --err-rgb: 248 113 113;
   --info-rgb: 103 232 249;
   --viz-write-rgb: 196 181 253;
+
+  /* World map stage colours (old map palette; fill and stroke both read the
+     same token). Dual-theme; every value holds 3:1 on the land surfaces. */
+  --wm-stage-1: #22C55E;
+  --wm-stage-2: #3B82F6;
+  --wm-stage-3: #6366F1;
+  --wm-stage-4: #8B5CF6;
+  --wm-stage-5: #0EA5E9;
+  --wm-stage-6: #10B981;
+  --wm-stage-7: #14B8A6;
+  --wm-stage-8: #F59E0B;
+  --wm-stage-9: #F97316;
+  --wm-stage-10: #8B5CF6;
+  --wm-stage-11: #A855F7;
+  --wm-stage-12: #F59E0B;
+  --wm-stage-13: #EA580C;
+  --wm-stage-14: #06B6D4;
+  --wm-stage-15: #6366F1;
+  --wm-stage-16: #22C55E;
+  --wm-stage-17: #84CC16;
+  --wm-stage-18: #65A30D;
+  --wm-stage-19: #4D7C0F;
+  --wm-stage-20: #EF4444;
+  --wm-stage-21: #A855F7;
+  --wm-stage-22: #EC4899;
+  --wm-stage-23: #FACC15;
+  --wm-stage-24: #2DD4BF;
+  --wm-stage-a: #64748B;
+  --wm-stage-b: #FB923C;
+  --wm-stage-c: #EAB308;
+
+  /* Globe (cobe takes 0..1 RGB, so each colour has a 0-255 triplet; divide
+     by 255 in JS). Old Friends-page look: acid base and glow, orange markers. */
+  --globe-base: #EDFF66;
+  --globe-glow: #EDFF66;
+  --globe-marker: #FB6415;
+  --globe-arc: #EDFF66;
+  --globe-base-rgb: 237 255 102;
+  --globe-glow-rgb: 237 255 102;
+  --globe-marker-rgb: 251 100 21;
+  --globe-arc-rgb: 237 255 102;
+  --globe-dark: 0;
+  --globe-diffuse: 0.4;
+  --globe-brightness: 1.2;
+  --globe-opacity: 0.72;
 }
 
 html.light {
@@ -116,6 +161,47 @@ html.light {
   --err-rgb: 185 28 28;
   --info-rgb: 14 115 143;
   --viz-write-rgb: 109 40 217;
+
+  --wm-stage-1: #1B9A49;
+  --wm-stage-2: #3B82F6;
+  --wm-stage-3: #6366F1;
+  --wm-stage-4: #8B5CF6;
+  --wm-stage-5: #0C8EC8;
+  --wm-stage-6: #0D986A;
+  --wm-stage-7: #109788;
+  --wm-stage-8: #BA7808;
+  --wm-stage-9: #D66313;
+  --wm-stage-10: #8B5CF6;
+  --wm-stage-11: #A855F7;
+  --wm-stage-12: #BA7808;
+  --wm-stage-13: #E5560C;
+  --wm-stage-14: #0592AA;
+  --wm-stage-15: #6366F1;
+  --wm-stage-16: #1B9A49;
+  --wm-stage-17: #5F9310;
+  --wm-stage-18: #5D960C;
+  --wm-stage-19: #4D7C0F;
+  --wm-stage-20: #EF4444;
+  --wm-stage-21: #A855F7;
+  --wm-stage-22: #E74796;
+  --wm-stage-23: #A0830D;
+  --wm-stage-24: #1F9486;
+  --wm-stage-a: #64748B;
+  --wm-stage-b: #C4722F;
+  --wm-stage-c: #A88106;
+
+  --globe-base: #5C6B00;
+  --globe-glow: #5C6B00;
+  --globe-marker: #C2410C;
+  --globe-arc: #5C6B00;
+  --globe-base-rgb: 92 107 0;
+  --globe-glow-rgb: 92 107 0;
+  --globe-marker-rgb: 194 65 12;
+  --globe-arc-rgb: 92 107 0;
+  --globe-dark: 0;
+  --globe-diffuse: 0.6;
+  --globe-brightness: 1.1;
+  --globe-opacity: 0.6;
 }
 
 /* Theme-independent tokens */
