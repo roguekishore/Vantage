@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import {
-  Coins, Sparkles, Flame, ChevronLeft, ChevronRight, TrendingUp, Swords, Building2, Trophy,
+  Coins, Sparkles, Flame, ChevronLeft, ChevronRight, TrendingUp, Swords, Building2, Trophy, Crown,
 } from "lucide-react";
 import { getStoredUser } from "@/services/userApi";
 import {
@@ -99,6 +99,53 @@ function Pagination({ page, totalPages, onPage }) {
         Next <ChevronRight aria-hidden="true" />
       </Button>
     </nav>
+  );
+}
+
+/* ════════════════════════════════════════
+   PODIUM: top three of the first page (real entries only)
+════════════════════════════════════════ */
+const PODIUM = {
+  1: { bar: "h-28", first: true },
+  2: { bar: "h-20", first: false },
+  3: { bar: "h-14", first: false },
+};
+
+function PodiumSlot({ entry, rank, unit, isMe }) {
+  const cfg = PODIUM[rank];
+  return (
+    <li className="flex min-w-0 flex-col justify-end" aria-label={`Rank ${rank}: ${entry.username}`}>
+      <div className="mb-3 grid min-w-0 justify-items-center gap-2 px-1 text-center">
+        {cfg.first ? <Crown size={18} strokeWidth={1.5} aria-hidden="true" className="text-accent-ink" /> : null}
+        <Avatar name={entry.username} size={cfg.first ? "lg" : "md"} />
+        <span className="max-w-full truncate font-mono text-body text-fg">{entry.username}</span>
+        {isMe ? <Badge tone="accent">You</Badge> : null}
+        <span className="font-mono text-small font-bold tabular-nums text-fg">
+          {entry.value?.toLocaleString()} <span className="font-normal text-fg-muted">{unit}</span>
+        </span>
+      </div>
+      <div
+        className={cn(
+          "flex items-start justify-center border border-b-0 pt-2 font-display text-h2 tabular-nums",
+          cfg.bar,
+          cfg.first ? "border-accent-edge bg-accent text-on-accent" : "border-border-strong bg-surface text-fg-muted"
+        )}
+        style={{ fontSynthesis: "none" }}
+      >
+        {rank}
+      </div>
+    </li>
+  );
+}
+
+function Podium({ entries, unit, userId }) {
+  const [first, second, third] = entries;
+  return (
+    <ol aria-label="Top three" className="mt-6 grid grid-cols-3 items-end gap-2 border-b border-border-strong sm:gap-4">
+      <PodiumSlot entry={second} rank={2} unit={unit} isMe={userId === second.userId} />
+      <PodiumSlot entry={first} rank={1} unit={unit} isMe={userId === first.userId} />
+      <PodiumSlot entry={third} rank={3} unit={unit} isMe={userId === third.userId} />
+    </ol>
   );
 }
 
@@ -263,7 +310,11 @@ export default function LeaderboardPage() {
   const showBoardPanel = (showTotal && !error) || isWeekly || activeTab === "institution" || !user?.uid;
   const hasAside = showMyRank || showBoardPanel;
 
+  const showPodium = !loading && !error && !noInstitution && page === 0 && entries.length >= 3;
+
   const board = (
+    <>
+    {showPodium ? <Podium entries={entries} unit={VL[activeTab]} userId={user?.uid} /> : null}
     <div className={cn("mt-6 grid gap-6", hasAside && "lg:grid-cols-[minmax(0,1fr)_288px] lg:items-start")}>
       <Panel
         as="section"
@@ -314,6 +365,7 @@ export default function LeaderboardPage() {
         </aside>
       ) : null}
     </div>
+    </>
   );
 
   return (

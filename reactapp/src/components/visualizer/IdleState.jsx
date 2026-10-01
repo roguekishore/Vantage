@@ -38,7 +38,7 @@ export default function IdleState({
                         fontFamily: MONUMENT,
                         fontWeight: 900,
                         fontSize: 18,
-                        color: "rgba(255,255,255,0.18)",
+                        color: V.dim,
                         letterSpacing: "0.04em",
                     }}
                 >

@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "react";
-import { V } from "../../../components/visualizer/theme";
 
 /**
  * useMonacoHighlight
@@ -166,20 +165,20 @@ function ensureHighlightStyles() {
   style.id = STYLE_ELEMENT_ID;
   style.textContent = `
 .cfv-hover-highlight {
-  background: ${V.accentDim};
-  box-shadow: inset 3px 0 0 ${V.accent};
+  background: var(--accent-soft);
+  border-left: 3px solid var(--accent-ink);
 }
 .cfv-hover-gutter {
-  background: ${V.accent};
+  background: var(--accent-ink);
   width: 3px !important;
   margin-left: 2px;
 }
 .cfv-exec-highlight {
-  background: ${V.greenDim};
-  box-shadow: inset 3px 0 0 ${V.green};
+  background: var(--ok-soft);
+  border-left: 3px solid var(--ok);
 }
 .cfv-exec-gutter {
-  background: ${V.green};
+  background: var(--ok);
   width: 3px !important;
   margin-left: 2px;
 }

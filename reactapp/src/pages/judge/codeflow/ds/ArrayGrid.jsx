@@ -142,7 +142,6 @@ function Cell({ index, value, isChanged, pointers, showColIndex }) {
           color: isChanged ? V.accent : T.fg,
           background: isChanged ? T.accentSoft : T.elevated,
           border: `1px solid ${isChanged ? T.accentInk : T.border}`,
-          boxShadow: "none",
           transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
         }}
         title={value}

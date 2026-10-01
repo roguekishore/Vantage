@@ -393,7 +393,7 @@ export function NQueensCanvas({ size = 8, color: colorToken = "accent-ink" }) {
       }
 
       const margin = 12;
-      const infoH = 28;
+      const infoH = 34;
       const boardSize = Math.min(W() - margin * 2, H() - margin * 2 - infoH);
       const bx = (W() - boardSize) / 2;
       const by = margin + 6;
@@ -489,12 +489,12 @@ export function NQueensCanvas({ size = 8, color: colorToken = "accent-ink" }) {
       // axis labels
       ctx.save();
       ctx.fillStyle = rgba("fg", 0.2);
-      ctx.font = "500 6px 'JetBrains Mono', monospace";
+      ctx.font = "500 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for (let i = 0; i < size; i++) {
-        ctx.fillText(String(i), bx + i * cell + cell / 2, by + boardSize + 8);
-        ctx.fillText(String(i), bx - 8, by + i * cell + cell / 2);
+        ctx.fillText(String(i), bx + i * cell + cell / 2, by + boardSize + 10);
+        ctx.fillText(String(i), bx - 9, by + i * cell + cell / 2);
       }
       ctx.restore();
 
@@ -519,16 +519,18 @@ export function NQueensCanvas({ size = 8, color: colorToken = "accent-ink" }) {
       ctx.save();
       if (state.kind === "solution") glow(10);
       ctx.fillStyle = state.kind === "solution" ? color : rgba(color, 0.85);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText(`${status}: ${msg}`, 8, H() - 12);
+      ctx.fillText(`${status}: ${msg}`, 8, H() - 14);
       noGlow();
 
-      ctx.fillStyle = rgba(color, 0.45);
-      ctx.font = "600 7px 'JetBrains Mono', monospace";
+      const hudLeftW = ctx.measureText(`${status}: ${msg}`).width;
+      ctx.fillStyle = rgba(color, 0.6);
+      ctx.font = "600 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "right";
-      ctx.fillText(`Q=${qCount()}/${size}  •  ${stepIdx}/${steps.length}`, W() - 8, H() - 12);
+      const hudRight = `Q=${qCount()}/${size}  •  ${stepIdx}/${steps.length}`;
+      if (hudLeftW + ctx.measureText(hudRight).width + 32 < W()) ctx.fillText(hudRight, W() - 8, H() - 14);
 
       const p = steps.length ? stepIdx / steps.length : 0;
       ctx.fillStyle = rgba("fg", 0.08);
@@ -841,14 +843,14 @@ export function SudokuCanvas({ color: colorToken = "accent-ink" }) {
       ctx.save();
       if (state.kind === "solution") glow(10);
       ctx.fillStyle = state.kind === "solution" ? color : rgba(color, 0.86);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.fillText(`${status}: ${msg}`, 8, H() - 12);
       noGlow();
 
       ctx.fillStyle = rgba(color, 0.5);
-      ctx.font = "600 7px 'JetBrains Mono', monospace";
+      ctx.font = "600 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "right";
       ctx.fillText(`filled ${filledCount()}/81  •  ${stepIdx}/${steps.length}`, W() - 8, H() - 12);
 
@@ -1121,12 +1123,12 @@ export function SnakesLaddersCanvas({ color: colorToken = "accent-ink" }) {
           : `ROLL ${event.dice || 0}`;
       ctx.save();
       ctx.fillStyle = rgba(color, 0.88);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.fillText(`${label}`, 8, H() - 12);
       ctx.fillStyle = rgba(color, 0.5);
-      ctx.font = "600 7px 'JetBrains Mono', monospace";
+      ctx.font = "600 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "right";
       ctx.fillText(`POS ${currentPos}  •  TURN ${event.turn || 0}`, W() - 8, H() - 12);
 
@@ -1352,7 +1354,7 @@ export function KnightsTourCanvas({ color: colorToken = "accent-ink", size = 8 }
       // axis labels (N-Queens-style)
       ctx.save();
       ctx.fillStyle = rgba("fg", 0.2);
-      ctx.font = "500 6px 'JetBrains Mono', monospace";
+      ctx.font = "500 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       for (let i = 0; i < size; i++) {
@@ -1365,14 +1367,14 @@ export function KnightsTourCanvas({ color: colorToken = "accent-ink", size = 8 }
       ctx.save();
       if (completed) glow(10);
       ctx.fillStyle = completed ? color : rgba(color, 0.85);
-      ctx.font = "700 8px 'JetBrains Mono', monospace";
+      ctx.font = "700 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.fillText(completed ? "SOLUTION: Full tour complete" : "TRY: exploring legal knight moves", 8, H() - 12);
       noGlow();
 
       ctx.fillStyle = rgba(color, 0.45);
-      ctx.font = "600 7px 'JetBrains Mono', monospace";
+      ctx.font = "600 10px 'JetBrains Mono', monospace";
       ctx.textAlign = "right";
       ctx.fillText(`STEP ${Math.min(currentStep + 1, total)}/${total}`, W() - 8, H() - 12);
 

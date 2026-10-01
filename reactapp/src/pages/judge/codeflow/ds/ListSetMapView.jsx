@@ -102,7 +102,6 @@ function MapRows({ data, changed }) {
               alignItems: "center",
               gap: 6,
               padding: "2px 4px",
-              borderRadius: 0,
               background: isChanged ? T.accentSoft : "transparent",
               transition: "background 0.15s ease",
             }}
@@ -149,7 +148,6 @@ function Chip({ index, value, isChanged }) {
         color: isChanged ? V.accent : T.fg,
         background: isChanged ? T.accentSoft : T.elevated,
         border: `1px solid ${isChanged ? T.accentInk : T.border}`,
-        boxShadow: "none",
         transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
       }}
       title={value}
@@ -226,7 +224,6 @@ function ValueBox({ value, isChanged }) {
         color: isChanged ? V.accent : T.fg,
         background: isChanged ? T.accentSoft : T.elevated,
         border: `1px solid ${isChanged ? T.accentInk : T.border}`,
-        boxShadow: "none",
         transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
       }}
       title={value}

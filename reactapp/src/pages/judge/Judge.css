@@ -40,12 +40,6 @@
   outline-offset: 2px;
 }
 
-/* Monaco: flat, square, token chrome around the vantage-* theme. */
-.judge-root .monaco-editor,
-.judge-root .monaco-editor .overflow-guard {
-  border-radius: 0;
-}
-
 /* Codeflow decorations from useMonacoHighlight. */
 .judge-root .cfv-hover-highlight {
   background: var(--accent-soft);

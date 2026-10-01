@@ -1,17 +1,20 @@
 import { forwardRef, useEffect, useId, useRef, useState } from "react"
-import { Link, useLocation, useNavigate } from "react-router-dom"
+import { useLocation, useNavigate } from "react-router-dom"
+import gsap from "gsap"
+import { useGSAP } from "@gsap/react"
 import { AlertTriangle, Check, ChevronDown, ChevronsUpDown, Eye, EyeOff } from "lucide-react"
 import useUserStore from "@/stores/useUserStore"
 import Logo from "@/components/common/Logo"
+import { NQueensCanvas } from "@/components/animations/ComplexAnimations"
+import { useThemeTokens } from "@/hooks/useThemeTokens"
+import { prefersReducedMotion } from "@/hooks/useReducedMotion"
+import { rgba } from "@/lib/canvasTheme"
 import {
   Button,
   Field,
   IconButton,
   Input,
   OfflineState,
-  PageHeader,
-  PageShell,
-  Panel,
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -71,11 +74,16 @@ function FormAlert({ message }) {
 function OptionalSection({ children }) {
   const [open, setOpen] = useState(false)
   const bodyId = `optional-${useId().replace(/:/g, "")}`
+  const bodyRef = useRef(null)
+  useEffect(() => {
+    if (!open || !bodyRef.current || prefersReducedMotion()) return
+    gsap.from(bodyRef.current, { opacity: 0, y: -6, duration: 0.3, ease: "power3.out" })
+  }, [open])
   return (
     <div className="grid gap-4">
       <Button
         variant="ghost"
-        className="w-full justify-between border-border px-3"
+        className="w-full justify-between border-x-transparent border-border px-0"
         aria-expanded={open}
         aria-controls={bodyId}
         onClick={() => setOpen(p => !p)}
@@ -83,7 +91,7 @@ function OptionalSection({ children }) {
         Optional details
         <ChevronDown aria-hidden="true" className={open ? "rotate-180" : undefined} />
       </Button>
-      <div id={bodyId} hidden={!open} className={open ? "grid gap-4" : "hidden"}>
+      <div ref={bodyRef} id={bodyId} hidden={!open} className={open ? "grid gap-4" : "hidden"}>
         {children}
       </div>
     </div>
@@ -212,6 +220,69 @@ function InstitutionPicker({ value, onSelect }) {
   )
 }
 
+/* ─────────────────────────────────────────────
+   LEFT PANEL: NQueens canvas, vignette and editorial overlay
+───────────────────────────────────────────── */
+const STATS = [["50+", "Algorithms"], ["150+", "Problems"], ["1v1", "Battles"]]
+
+function LeftPanel() {
+  const ref = useRef(null)
+  useThemeTokens() /* re-render on theme toggle so the vignette repaints */
+  useGSAP(() => {
+    if (prefersReducedMotion()) return
+    gsap.from(".lp-line", { opacity: 0, y: 14, stagger: 0.06, duration: 0.45, ease: "expo.out", delay: 0.1 })
+  }, { scope: ref })
+
+  return (
+    <section
+      ref={ref}
+      aria-label="About Vantage"
+      className="relative h-64 w-full overflow-hidden bg-bg sm:h-80 lg:h-full"
+    >
+      <div className="absolute inset-0" aria-hidden="true">
+        <NQueensCanvas size={8} color="accent-ink" />
+      </div>
+      {/* vignette: a visual effect inside the canvas panel */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0"
+        style={{ background: `linear-gradient(135deg, ${rgba("bg", 0.75)} 0%, ${rgba("bg", 0.25)} 50%, ${rgba("bg", 0.65)} 100%)` /* ui-allow: visual */ }}
+      />
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 px-5 py-5 sm:px-8 sm:py-7">
+        <div className="lp-line mb-4 flex items-center gap-2 lg:mb-6">
+          <Logo size={26} alt="" />
+          <span className="font-display text-body uppercase tracking-wider text-fg" style={{ fontWeight: "var(--display-weight)", fontSynthesis: "none" }}>
+            Vantage
+          </span>
+        </div>
+
+        <h2
+          className="lp-line mb-2 font-display text-h1 uppercase leading-[0.9] text-fg lg:mb-3 lg:text-display"
+          style={{ fontWeight: "var(--display-weight)", fontSynthesis: "none" }}
+        >
+          Visualize.
+          <br />
+          <span className="text-accent-ink">Dominate.</span>
+        </h2>
+
+        <p className="lp-line hidden max-w-xs text-small text-fg-muted lg:block">
+          Real-time 1v1 battles, algorithm visualization, and an online judge, for developers who actually want to win.
+        </p>
+
+        <dl className="lp-line mt-5 hidden w-fit border border-border bg-bg/40 lg:flex">
+          {STATS.map(([v, l], i) => (
+            <div key={l} className={`px-4 py-2 ${i < STATS.length - 1 ? "border-r border-border" : ""}`}>
+              <dd className="font-display text-h3 leading-none text-accent-ink" style={{ fontWeight: "var(--display-weight)", fontSynthesis: "none" }}>{v}</dd>
+              <dt className="mt-1 font-mono text-micro uppercase text-fg-dim">{l}</dt>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
 /* ═══════════════════════════════════════════════
    PAGE
 ═══════════════════════════════════════════════ */
@@ -305,146 +376,176 @@ export default function AuthPage({ initialMode = "login" }) {
 
   const retry = () => formRef.current?.requestSubmit?.()
 
+  /* Right panel entrance */
+  const rightRef = useRef(null)
+  useGSAP(() => {
+    if (prefersReducedMotion()) return
+    gsap.from(".rp-in", { opacity: 0, x: 16, stagger: 0.04, duration: 0.38, ease: "expo.out", delay: 0.1 })
+  }, { scope: rightRef })
+
   return (
-    <PageShell narrow className="pt-8 sm:pt-12" containerClassName="max-w-xl">
-      <div className="mb-8 flex items-center justify-between gap-4">
-        <Link
-          to="/"
-          className={`inline-flex items-center gap-2 font-mono text-label uppercase text-fg transition-colors duration-[120ms] ease-out ds-hover:text-accent-ink ${FOCUS_RING}`}
-        >
-          <Logo size={24} alt="" />
-          Vantage
-        </Link>
-        <ThemeToggle />
-      </div>
+    <div className="grid min-h-screen bg-bg text-fg lg:h-screen lg:grid-cols-2 lg:overflow-hidden">
+      <LeftPanel />
 
-      <PageHeader
-        className="mb-6 pb-6"
-        eyebrow={isLogin ? "Welcome back" : "Get started"}
-        title={isLogin ? "Sign in" : "Create account"}
-        description={
-          isLogin
-            ? "Sign in to solve problems on the judge, join battles and track your progress."
-            : "One account for the judge, battles, the leaderboard and your achievements."
-        }
-      />
+      <main ref={rightRef} className="relative flex border-t border-border bg-bg lg:h-full lg:overflow-y-auto lg:border-l lg:border-t-0">
+        {/* Brand mark and theme toggle, top right */}
+        <div className="rp-in absolute right-4 top-4 z-raised flex items-center gap-3 sm:right-7 sm:top-6">
+          <span className="font-mono text-micro uppercase tracking-widest text-fg-dim">Vantage</span>
+          <Logo size={20} alt="" />
+          <ThemeToggle />
+        </div>
 
-      {offline ? (
-        <OfflineState
-          className="mb-6 px-4 py-8"
-          description={`Vantage can't ${isLogin ? "sign you in" : "create your account"} while the server is unreachable. Check your connection and retry. The visualizers run in your browser and keep working offline.`}
-          onRetry={retry}
-        />
-      ) : null}
+        <div className="mx-auto my-auto flex w-full max-w-[600px] flex-col px-5 pb-10 pt-20 sm:px-[clamp(28px,4vw,52px)]">
+          <div className="rp-in mb-3 flex items-center gap-2">
+            <span className="h-px w-5 bg-border-strong" aria-hidden="true" />
+            <span className="font-mono text-micro uppercase tracking-widest text-fg-muted">
+              {isLogin ? "Welcome back" : "Get started"}
+            </span>
+          </div>
 
-      <Panel>
-        {isLogin ? (
-          /* ──── LOGIN ──── */
-          <form ref={formRef} onSubmit={handleLogin} className="grid gap-4">
-            <FormAlert message={bannerError} />
-            <Field label="Email" required>
-              <Input
-                type="email"
-                autoComplete="email"
-                placeholder="you@example.com"
-                value={loginEmail}
-                onChange={e => setLoginEmail(e.target.value)}
-              />
-            </Field>
-            <Field label="Password" required>
-              <PasswordInput
-                autoComplete="current-password"
-                value={loginPassword}
-                onChange={e => setLoginPassword(e.target.value)}
-              />
-            </Field>
-            <Button type="submit" variant="primary" size="lg" className="mt-2 w-full" loading={loginLoading}>
-              {loginLoading ? "Signing in…" : "Sign in"}
-            </Button>
-            <p className="flex flex-wrap items-center justify-center gap-2 font-mono text-small text-fg-muted">
-              No account yet?
-              <Button variant="link" onClick={() => switchMode("signup")}>Create account</Button>
-            </p>
-          </form>
-        ) : (
-          /* ──── SIGNUP ──── */
-          <form ref={formRef} onSubmit={handleSignup} className="grid gap-4">
-            <FormAlert message={bannerError} />
+          <h1
+            className="rp-in mb-6 font-display text-display uppercase leading-[0.9] text-fg"
+            style={{ fontWeight: "var(--display-weight)", fontSynthesis: "none" }}
+          >
+            {isLogin ? (
+              <>
+                <span className="block">Sign</span>
+                <span className="block text-fg-dim">In.</span>
+              </>
+            ) : (
+              <>
+                <span className="block">Create</span>
+                <span className="block text-fg-dim">Account.</span>
+              </>
+            )}
+          </h1>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Username" required hint="Lowercase letters and numbers, up to 20" error={fieldError("username")}>
-                <Input
-                  ref={usernameRef}
-                  type="text"
-                  autoComplete="username"
-                  placeholder="johndoe"
-                  value={username}
-                  onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20))}
-                  maxLength={20}
-                />
-              </Field>
-              <Field label="Email" required>
-                <Input
-                  type="email"
-                  autoComplete="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                />
-              </Field>
+          {offline ? (
+            <OfflineState
+              className="mb-6 px-4 py-8"
+              description={`Vantage can't ${isLogin ? "sign you in" : "create your account"} while the server is unreachable. Check your connection and retry. The visualizers run in your browser and keep working offline.`}
+              onRetry={retry}
+            />
+          ) : null}
+
+          <div className="rp-in w-full border border-border bg-surface">
+            {/* Top accent line */}
+            <div aria-hidden="true" className="h-px" style={{ background: `linear-gradient(90deg, ${rgba("accent", 1)}, ${rgba("accent", 0.15)}, transparent)` /* ui-allow: visual */ }} />
+            <div className="px-5 pb-5 pt-5 sm:px-6">
+              {isLogin ? (
+                /* ──── LOGIN ──── */
+                <form ref={formRef} onSubmit={handleLogin} className="grid gap-4">
+                  <FormAlert message={bannerError} />
+                  <Field label="Email" required>
+                    <Input
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      value={loginEmail}
+                      onChange={e => setLoginEmail(e.target.value)}
+                    />
+                  </Field>
+                  <Field label="Password" required>
+                    <PasswordInput
+                      autoComplete="current-password"
+                      value={loginPassword}
+                      onChange={e => setLoginPassword(e.target.value)}
+                    />
+                  </Field>
+                  <Button type="submit" variant="primary" size="lg" className="mt-2 w-full" loading={loginLoading}>
+                    {loginLoading ? "Signing in…" : "Continue"}
+                  </Button>
+                  <p className="flex flex-wrap items-center justify-center gap-2 font-mono text-small text-fg-muted">
+                    No account?
+                    <Button variant="link" onClick={() => switchMode("signup")}>Sign up</Button>
+                  </p>
+                </form>
+              ) : (
+                /* ──── SIGNUP ──── */
+                <form ref={formRef} onSubmit={handleSignup} className="grid gap-4">
+                  <FormAlert message={bannerError} />
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Username" required hint="Lowercase letters and numbers, up to 20" error={fieldError("username")}>
+                      <Input
+                        ref={usernameRef}
+                        type="text"
+                        autoComplete="username"
+                        placeholder="johndoe"
+                        value={username}
+                        onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20))}
+                        maxLength={20}
+                      />
+                    </Field>
+                    <Field label="Email" required>
+                      <Input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="you@example.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                      />
+                    </Field>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Field label="Password" required hint="At least 8 characters" error={fieldError("password")}>
+                      <PasswordInput
+                        ref={passwordRef}
+                        autoComplete="new-password"
+                        value={password}
+                        onChange={e => setPassword(e.target.value)}
+                      />
+                    </Field>
+                    <Field label="Confirm password" required error={fieldError("confirmPassword")}>
+                      <PasswordInput
+                        ref={confirmPasswordRef}
+                        autoComplete="new-password"
+                        value={confirmPassword}
+                        onChange={e => setConfirmPassword(e.target.value)}
+                      />
+                    </Field>
+                  </div>
+
+                  <OptionalSection>
+                    <Field label="LeetCode username">
+                      <Input type="text" placeholder="john_doe" value={lcusername} onChange={e => setLcusername(e.target.value)} />
+                    </Field>
+                    <Field label="Institution">
+                      <InstitutionPicker value={selectedInstitution} onSelect={setSelectedInstitution} />
+                    </Field>
+                    <Field label="Graduation year">
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        placeholder="2027"
+                        min="1980"
+                        max="2040"
+                        className="tabular-nums"
+                        value={graduationYear}
+                        onChange={e => setGraduationYear(e.target.value)}
+                      />
+                    </Field>
+                  </OptionalSection>
+
+                  <Button type="submit" variant="primary" size="lg" className="mt-2 w-full" loading={signupLoading}>
+                    {signupLoading ? "Creating account…" : "Create account"}
+                  </Button>
+
+                  <p className="flex flex-wrap items-center justify-center gap-2 font-mono text-small text-fg-muted">
+                    Already a member?
+                    <Button variant="link" onClick={() => switchMode("login")}>Sign in</Button>
+                  </p>
+                </form>
+              )}
             </div>
+          </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Password" required hint="At least 8 characters" error={fieldError("password")}>
-                <PasswordInput
-                  ref={passwordRef}
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                />
-              </Field>
-              <Field label="Confirm password" required error={fieldError("confirmPassword")}>
-                <PasswordInput
-                  ref={confirmPasswordRef}
-                  autoComplete="new-password"
-                  value={confirmPassword}
-                  onChange={e => setConfirmPassword(e.target.value)}
-                />
-              </Field>
-            </div>
-
-            <OptionalSection>
-              <Field label="LeetCode username">
-                <Input type="text" placeholder="john_doe" value={lcusername} onChange={e => setLcusername(e.target.value)} />
-              </Field>
-              <Field label="Institution">
-                <InstitutionPicker value={selectedInstitution} onSelect={setSelectedInstitution} />
-              </Field>
-              <Field label="Graduation year">
-                <Input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="2027"
-                  min="1980"
-                  max="2040"
-                  className="tabular-nums"
-                  value={graduationYear}
-                  onChange={e => setGraduationYear(e.target.value)}
-                />
-              </Field>
-            </OptionalSection>
-
-            <Button type="submit" variant="primary" size="lg" className="mt-2 w-full" loading={signupLoading}>
-              {signupLoading ? "Creating account…" : "Create account"}
-            </Button>
-
-            <p className="flex flex-wrap items-center justify-center gap-2 font-mono text-small text-fg-muted">
-              Already have an account?
-              <Button variant="link" onClick={() => switchMode("login")}>Sign in</Button>
-            </p>
-          </form>
-        )}
-      </Panel>
-    </PageShell>
+          <p className="rp-in mt-4 font-mono text-micro uppercase tracking-wider text-fg-dim">
+            Competitive DSA Platform · Est. 2026
+          </p>
+        </div>
+      </main>
+    </div>
   )
 }

@@ -21,6 +21,7 @@ import {
 } from "@/components/ds";
 import { cn } from "@/lib/utils";
 import { fetchProgressStats } from "../../services/problemApi";
+import ProblemsHeroCanvas from "./ProblemsHeroCanvas";
 
 /* ─────────────────────────────────────────────────────────
    CONSTANTS
@@ -560,19 +561,25 @@ export default function ProblemsTable({
 
   return (
     <PageShell>
-      <PageHeader
-        eyebrow={eyebrow}
-        title={title}
-        description={subtitle || "Filter by difficulty, stage or status, then open a problem in the judge."}
-        actions={
-          <ProgressSummary
-            completionPct={completionPct}
-            solved={solvedCount}
-            attempted={attemptedCount}
-            total={displayTotal}
-          />
-        }
-      />
+      <div className="mb-8 grid gap-6 border-b border-border pb-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-stretch">
+        <PageHeader
+          className="mb-0 border-b-0 pb-0"
+          eyebrow={eyebrow}
+          title={title}
+          description={subtitle || "Filter by difficulty, stage or status, then open a problem in the judge."}
+          actions={
+            <ProgressSummary
+              completionPct={completionPct}
+              solved={solvedCount}
+              attempted={attemptedCount}
+              total={displayTotal}
+            />
+          }
+        />
+        <div className="hidden min-h-[200px] border border-border bg-surface lg:block">
+          <ProblemsHeroCanvas className="block h-full w-full" />
+        </div>
+      </div>
 
       {/* ══ FILTERS ══ */}
       <section aria-label="Filters" className="mb-4 grid gap-4 border border-border bg-surface p-4">

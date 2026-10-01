@@ -5,30 +5,31 @@
  * This ensures a consistent look across every algorithm page.
  *
  * ── PALETTE ──────────────────────────────────────────────
+ * Neutrals come from the design tokens (styles/tokens.css) so they follow dark/light.
  * Dark, terminal-brutalist aesthetic with acid-yellow accent.
  * Non-accent text is deliberately bright for readability.
  */
 
 export const V = {
     /* ── backgrounds ── */
-    bg: "#09090b",
-    surface: "#0c0c0f",
-    elevated: "#151519",
+    bg: "var(--bg)",
+    surface: "var(--surface)",
+    elevated: "var(--elevated)",
 
     /* ── borders ── */
-    border: "rgba(255,255,255,0.08)",
-    borderHi: "rgba(255,255,255,0.16)",
+    border: "var(--border)",
+    borderHi: "var(--border-strong)",
 
     /* ── accent (acid yellow) ── */
     accent: "#EDFF66",
-    accentDim: "rgba(237,255,102,0.12)",
+    accentDim: "var(--accent-soft)",
     accentMid: "rgba(237,255,102,0.30)",
 
     /* ── text (bright for readability) ── */
-    text: "#F5F5F5",          // primary – near-white
+    text: "var(--fg)",          // primary – near-white
     textBright: "#FFFFFF",          // headings & stat values
-    muted: "rgba(255,255,255,0.55)", // secondary – still readable
-    dim: "rgba(255,255,255,0.28)", // labels, line numbers
+    muted: "var(--fg-muted)", // secondary – still readable
+    dim: "var(--fg-dim)", // labels, line numbers
 
     /* ── semantic colors ── */
     green: "#34d399",
@@ -67,7 +68,7 @@ export const MONUMENT = "'Monument Extended',sans-serif";
 /* ── common inline-style fragments ── */
 export const LABEL_STYLE = {
     fontFamily: MONO,
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: 700,
     letterSpacing: "0.18em",
     textTransform: "uppercase",
