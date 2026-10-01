@@ -188,3 +188,29 @@ html.light {
 :where(:not(.monaco-editor, .monaco-editor *, [data-legacy-viz] *))::-webkit-scrollbar-thumb {
   border-radius: 0 !important;
 }
+
+/* ==========================================================================
+   Page canvas (§3.9): replaces the old <body class="bg-gray-900">. The html
+   class (and color-scheme) is set before first paint by the inline script
+   in public/index.html, then kept in sync by ThemeProvider.
+   ========================================================================== */
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+/* ==========================================================================
+   Reduced motion (§3.6): zero every CSS animation and transition. GSAP and
+   canvas loops check prefersReducedMotion() / useReducedMotion()
+   (src/hooks/useReducedMotion.js).
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

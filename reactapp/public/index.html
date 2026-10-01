@@ -5,9 +5,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="An interactive algorithm visualizer to understand sorting and pathfinding algorithms easily." />
     <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/algo.svg" />
+    <!-- Browser UI colour = --bg per scheme (src/styles/tokens.css). -->
+    <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090B" />
+    <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F4F0" />
+    <!-- Pre-paint theme (no flash). Mirrors ThemeProvider: stored
+         'vantage-theme' ("dark" | "light"), else prefers-color-scheme. -->
+    <script>
+      (function () {
+        var t = null;
+        try { t = localStorage.getItem("vantage-theme"); } catch (e) {}
+        if (t !== "dark" && t !== "light") {
+          t = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        }
+        var d = document.documentElement;
+        d.classList.remove(t === "dark" ? "light" : "dark");
+        d.classList.add(t);
+        d.style.colorScheme = t;
+      })();
+    </script>
     <title>Vantage</title>
   </head>
-  <body class="bg-gray-900">
+  <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <main id="root"></main>
   </body>

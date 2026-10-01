@@ -1,19 +1,33 @@
 import { Moon, Sun } from "lucide-react";
-import { Button } from "../ui/button";
 import { useTheme } from "./ThemeProvider";
 
-export function ThemeToggle() {
-  const { theme, setTheme } = useTheme();
+/*
+ * Square sun/moon icon button. Flips the resolved theme
+ * and stores the explicit choice. Token colours only, no motion beyond a
+ * 120ms border-colour hover. The ds unit moves this onto ds/IconButton and
+ * swaps `title` for the ds Tooltip.
+ */
+const SIZES = { sm: "h-7 w-7", md: "h-9 w-9" }; // 28 / 36px (§3.8 Button sizes)
 
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-  };
+export function ThemeToggle({ size = "md", className = "", ...props }) {
+  const { resolvedTheme, setTheme } = useTheme();
+  const next = resolvedTheme === "dark" ? "light" : "dark";
+  const label = `Switch to ${next} theme`;
+  const Icon = resolvedTheme === "dark" ? Sun : Moon;
 
   return (
-    <Button variant="outline" size="icon" onClick={toggleTheme}>
-      <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+    <button
+      type="button"
+      onClick={() => setTheme(next)}
+      aria-label={label}
+      title={label}
+      data-theme-toggle=""
+      className={`inline-flex shrink-0 items-center justify-center rounded-none border border-border bg-transparent text-fg transition-colors duration-[120ms] hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${SIZES[size] || SIZES.md} ${className}`}
+      {...props}
+    >
+      <Icon size={16} strokeWidth={1.5} aria-hidden="true" />
+    </button>
   );
 }
+
+export default ThemeToggle;
