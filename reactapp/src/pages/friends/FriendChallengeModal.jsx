@@ -5,6 +5,7 @@ import useFriendsStore from "@/stores/useFriendsStore";
 import useUserStore from "@/stores/useUserStore";
 import useBattleStore from "@/stores/useBattleStore";
 import { MONUMENT_TYPO as FRIENDS_TYPO } from "@/components/common/MonumentTypography";
+import { FONT_MONO } from "@/styles/typeScale";
 
 export default function FriendChallengeModal() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function FriendChallengeModal() {
     letterSpacing: FRIENDS_TYPO.letterSpacing.monument,
   };
   const baseTextStyle = {
-    fontFamily: "Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    fontFamily: FONT_MONO,
     letterSpacing: "normal",
   };
 

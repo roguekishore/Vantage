@@ -11,6 +11,7 @@ import useUserStore from "@/stores/useUserStore";
 import useBattleStore from "@/stores/useBattleStore";
 import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
+import { FONT_MONO } from "@/styles/typeScale";
 import { Globe } from "@/components/ui/globe";
 
 const PAGE_SIZE = 10;
@@ -214,7 +215,7 @@ function FriendRow({ f, isOnline, onChallenge, actionLoading, activeBattleState 
     >
       <Avatar name={f.username} online={isOnline} size={40} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: 700, fontSize: 13.5, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        <div style={{ fontFamily: FONT_MONO, fontWeight: 700, fontSize: 13.5, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
           {f.username}
         </div>
         <div style={{ fontSize: 11, color: isOnline ? "rgba(52,211,153,0.7)" : "rgba(255,255,255,0.22)", marginTop: 2, fontWeight: 500 }}>
@@ -281,7 +282,7 @@ function SearchRow({ u, sendRequest, acceptRequest, actionLoading }) {
       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
     >
       <Avatar name={u.username} online={false} size={34} />
-      <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: "'Inter', sans-serif" }}>{u.username}</span>
+      <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FONT_MONO }}>{u.username}</span>
       {u.relationStatus === "NONE" && (
         <button disabled={actionLoading} onClick={() => sendRequest(u.uid)} data-cursor="ADD"
           style={{ height: 30, paddingLeft: 12, paddingRight: 12, borderRadius: 7, border: "none", cursor: "none", background: "#EDFF66", color: "#09090b", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", gap: 5, opacity: actionLoading ? 0.4 : 1, flexShrink: 0 }}>

@@ -8,6 +8,7 @@ import { NQueensCanvas } from "../../components/animations/ComplexAnimations"
 import CustomCursor from "@/components/common/CustomCursor"
 import Logo from "@/components/common/Logo"
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography"
+import { FONT_MONO } from "@/styles/typeScale";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080"
 
@@ -40,7 +41,7 @@ function VInput({ id, type = "text", placeholder, value, onChange, required, min
           padding: isPw ? "0 36px 0 12px" : "0 12px",
           fontSize: 12.5, color: "#fff", outline: "none",
           transition: "border-color 0.15s",
-          fontFamily: "'Inter', sans-serif",
+          fontFamily: FONT_MONO,
           cursor: "none",
         }}
       />
@@ -154,7 +155,7 @@ function InstitutionPicker({ value, onSelect }) {
           border: `1px solid ${open ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)"}`,
           borderRadius: 9, cursor: "none",
           fontSize: 12.5, color: value ? "#fff" : "rgba(255,255,255,0.22)",
-          fontFamily: "'Inter', sans-serif", transition: "border-color 0.15s",
+          fontFamily: FONT_MONO, transition: "border-color 0.15s",
         }}>
         <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, textAlign: "left" }}>
           {value ? value.name : "Search institution…"}
@@ -165,7 +166,7 @@ function InstitutionPicker({ value, onSelect }) {
         <div style={{ background: "#111114", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, overflow: "hidden" }}>
           <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Type to search…"
-              style={{ width: "100%", background: "none", border: "none", outline: "none", fontSize: 12, color: "#fff", fontFamily: "'Inter', sans-serif", cursor: "none" }}
+              style={{ width: "100%", background: "none", border: "none", outline: "none", fontSize: 12, color: "#fff", fontFamily: FONT_MONO, cursor: "none" }}
             />
           </div>
           <div style={{ maxHeight: 150, overflowY: "auto" }}>

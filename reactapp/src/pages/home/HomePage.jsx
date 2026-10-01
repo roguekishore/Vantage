@@ -179,7 +179,7 @@ function RaceCanvas() {
         ctx.fillRect(bx, by, bw, bh);
       });
       ctx.shadowBlur = 0;
-      ctx.font = `700 9px ${HOME_TYPO.canvasFontFamily},monospace`;
+      ctx.font = `400 9px ${HOME_TYPO.canvasFontFamily},monospace`; // Monument ships 400 only
       ctx.fillStyle = "rgba(255,255,255,0.22)";
       ctx.textAlign = "left";
       ctx.fillText(label.toUpperCase(), x0 + 12, H() - 13);
@@ -233,7 +233,7 @@ function RaceCanvas() {
       ctx.fillStyle = "#09090b"; ctx.fill();
       ctx.strokeStyle = "rgba(255,255,255,0.1)"; ctx.lineWidth = 1; ctx.stroke();
       ctx.fillStyle = "rgba(255,255,255,0.4)";
-      ctx.font = `900 8px ${HOME_TYPO.canvasFontFamily},monospace`; ctx.textAlign = "center";
+      ctx.font = `400 8px ${HOME_TYPO.canvasFontFamily},monospace`; /* Monument ships 400 only */ ctx.textAlign = "center";
       ctx.fillText("VS", half, cy + 3); ctx.textAlign = "left";
 
       if (b.done && q.done && !state.restartTimer) {
@@ -1188,13 +1188,6 @@ export default function HomePage() {
       <FinalCTA />
       <Footer />
       <style>{`
-        @font-face {
-          font-family: 'Monument Extended';
-          src: url('/fonts/MonumentExtended-Regular.otf') format('opentype');
-          font-weight: 400;
-          font-style: normal;
-          font-display: swap;
-        }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         html{scroll-behavior:smooth;}
         ::-webkit-scrollbar{width:0;}

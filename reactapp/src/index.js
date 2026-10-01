@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 // Design tokens + global radius reset load before everything else.
 import './styles/tokens.css';
 import './index.css';
+// Self-hosted fonts + html/body type defaults; after index.css so they
+// follow Tailwind preflight.
+import './styles/fonts.css';
 import App from './App';
 
 // Suppress the benign "ResizeObserver loop" error that browsers fire when an
