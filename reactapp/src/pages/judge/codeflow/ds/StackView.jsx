@@ -1,5 +1,8 @@
 import React from "react";
-import { V, MONO } from "../../../../components/visualizer/theme";
+// V.accent stays on changed values only because the *.test.js files pin that
+// hex; Judge.css maps it to --accent-ink in the light theme.
+import { V } from "../../../../components/visualizer/theme";
+import { T, MONO } from "../cfTheme";
 
 /**
  * StackView — vertical LIFO stack renderer for the Code Flow dry-run window.
@@ -62,7 +65,7 @@ export default function StackView({ model }) {
             <span
               style={{
                 fontFamily: MONO,
-                fontSize: 9,
+                fontSize: 10,
                 fontWeight: 700,
                 letterSpacing: "0.12em",
                 color: isTop ? V.accent : "transparent",
@@ -93,8 +96,8 @@ function Cell({ value, index, isChanged }) {
       <span
         style={{
           fontFamily: MONO,
-          fontSize: 9,
-          color: V.dim,
+          fontSize: 10,
+          color: T.fgDim,
           minWidth: 16,
           textAlign: "right",
           userSelect: "none",
@@ -113,11 +116,11 @@ function Cell({ value, index, isChanged }) {
           fontFamily: MONO,
           fontSize: 12,
           fontWeight: isChanged ? 700 : 500,
-          color: isChanged ? V.accent : V.text,
-          background: isChanged ? V.accentDim : V.elevated,
-          border: `1px solid ${isChanged ? V.accentMid : V.border}`,
-          boxShadow: isChanged ? `0 0 8px ${V.accentDim}` : "none",
-          transition: "background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease",
+          color: isChanged ? V.accent : T.fg,
+          background: isChanged ? T.accentSoft : T.elevated,
+          border: `1px solid ${isChanged ? T.accentInk : T.border}`,
+          boxShadow: "none",
+          transition: "background-color 120ms ease-out, color 120ms ease-out, border-color 120ms ease-out",
         }}
         title={value}
       >
@@ -133,7 +136,7 @@ function EmptyPlaceholder() {
       style={{
         fontFamily: MONO,
         fontSize: 11,
-        color: V.dim,
+        color: T.fgDim,
         fontStyle: "italic",
       }}
     >

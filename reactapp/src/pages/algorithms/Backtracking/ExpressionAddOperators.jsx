@@ -201,9 +201,9 @@ const ExpressionAddOperators = ({ navigate }) => {
           >
             <ArrowLeft size={18} /> Back
           </button>
-          <h2 className="text-2xl font-bold text-fuchsia-300">
+          <h1 className="text-2xl font-bold text-fuchsia-300">
             Expression Add Operators
-          </h2>
+          </h1>
         </div>
         <div className="text-sm text-theme-tertiary">
           LeetCode #282 • Tier 3 (Hard)

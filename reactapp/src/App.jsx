@@ -2,6 +2,7 @@ import React, { lazy, Suspense, useState, useEffect, useRef } from "react";
 import { BrowserRouter, Routes, Route, useLocation, useNavigate } from "react-router-dom";
 import { ThemeProvider } from "./components/common/ThemeProvider";
 import Navbar from "./components/layout/Navbar";
+import Footer from "./components/layout/Footer";
 import AppRoutes from "./routes";
 import useUserStore from "./stores/useUserStore";
 import useGamificationStore from "./stores/useGamificationStore";
@@ -13,6 +14,10 @@ import FriendChallengeModal from "./pages/friends/FriendChallengeModal";
 // Direct file imports (not the ds barrel) keep the rest of ds/* out of the main chunk.
 import { Toaster } from "./components/ds/Toast";
 import { TooltipProvider } from "./components/ds/Tooltip";
+import { Button } from "./components/ds/Button";
+import { IconButton } from "./components/ds/IconButton";
+import { PageLoader } from "./components/ds/States";
+import { ArrowUp } from "lucide-react";
 import useBattleStore from "./stores/useBattleStore";
 
 const HomePage = lazy(() => import("./pages/home/HomePage"));
@@ -61,10 +66,6 @@ const ZINC_LIGHT_SCOPE_PATHS = [
   '/friends',
   '/group',
   '/problems',
-];
-
-const MAP_DARK_LOCK_PATHS = [
-  '/map',
 ];
 
 function ScrollToTop() {
@@ -194,16 +195,11 @@ function AppContent() {
     const shouldUseZincLightScope = ZINC_LIGHT_SCOPE_PATHS.some((path) =>
       location.pathname === path || location.pathname.startsWith(path + '/')
     );
-    const isMapPage = MAP_DARK_LOCK_PATHS.some((path) =>
-      location.pathname === path || location.pathname.startsWith(path + '/')
-    );
 
-    body.classList.toggle('vantage-zinc-pages', shouldUseZincLightScope && !isMapPage);
-    body.classList.toggle('vantage-map-page', isMapPage);
+    body.classList.toggle('vantage-zinc-pages', shouldUseZincLightScope);
 
     return () => {
       body.classList.remove('vantage-zinc-pages');
-      body.classList.remove('vantage-map-page');
     };
   }, [location.pathname]);
 
@@ -227,6 +223,7 @@ function AppContent() {
 
   const showScrollTop = scrollProgress > 0.1;
   const hideBattleOverlay =
+    location.pathname === "/" ||
     location.pathname === "/battle" ||
     location.pathname.startsWith("/battle/match/") ||
     location.pathname.startsWith("/battle/result/") ||
@@ -234,6 +231,8 @@ function AppContent() {
     location.pathname.startsWith("/group/") ||
     location.pathname === "/login" ||
     location.pathname === "/signup";
+
+  const showBattleOverlay = !hideBattleOverlay && Boolean(activeBattleState && battleId);
 
   const handleBattleOverlayJoin = async () => {
     if (!battleId || !uid) return;
@@ -270,7 +269,7 @@ function AppContent() {
         />
       )}
 
-      <Suspense fallback={<div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#888' }}>Loading...</div>}>
+      <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<AuthPage initialMode="login" />} />
@@ -296,104 +295,49 @@ function AppContent() {
         </Routes>
       </Suspense>
 
+      {/* Footer on every page that shows the Navbar (not arenas, judge, map, auth). */}
+      {showNavbar && <Footer />}
+
       <FriendChallengeModal />
-      <Toaster />
 
-      {!hideBattleOverlay && activeBattleState && battleId && (
-        <div
-          style={{
-            position: "fixed",
-            left: "50%",
-            transform: "translateX(-50%)",
-            bottom: "1.2rem",
-            width: "min(760px, calc(100vw - 2rem))",
-            zIndex: 9998,
-            borderRadius: 14,
-            border: "1px solid rgba(248,113,113,0.3)",
-            background: "rgba(13,13,16,0.9)",
-            backdropFilter: "blur(12px)",
-            boxShadow: "0 12px 36px rgba(0,0,0,0.45)",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            padding: "12px 14px",
-          }}
-        >
+      {showBattleOverlay && (
+        <>
+          {/* Spacer so the strip never covers the end of the page. */}
+          <div aria-hidden="true" className="h-14" />
           <div
-            style={{
-              width: 10,
-              height: 10,
-              borderRadius: "50%",
-              background: activeBattleState === "ACTIVE" ? "#f87171" : "#fbbf24",
-              boxShadow:
-                activeBattleState === "ACTIVE"
-                  ? "0 0 12px rgba(248,113,113,0.9)"
-                  : "0 0 12px rgba(251,191,36,0.85)",
-              flexShrink: 0,
-            }}
-          />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}>
-              Ongoing Battle
-            </div>
-            <div style={{ fontSize: 13, color: "#fff" }}>
-              You have a battle {activeBattleState === "ACTIVE" ? "in progress" : "waiting in lobby"}.
-            </div>
-          </div>
-
-          <button
-            onClick={handleBattleOverlayJoin}
-            style={{
-              height: 36,
-              borderRadius: 10,
-              border: "none",
-              padding: "0 14px",
-              background: "#EDFF66",
-              color: "#09090b",
-              fontSize: 11,
-              fontWeight: 900,
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              cursor: "pointer",
-              flexShrink: 0,
-            }}
+            role="status"
+            className="fixed inset-x-0 bottom-0 z-toast flex min-h-14 items-center gap-3 border-t border-border-strong bg-surface px-[var(--gutter)] py-2"
           >
-            {activeBattleState === "ACTIVE" ? "Rejoin Battle" : "Rejoin Lobby"}
-          </button>
-        </div>
+            <span
+              aria-hidden="true"
+              className={`block size-2.5 shrink-0 ${activeBattleState === "ACTIVE" ? "bg-err" : "bg-warn"}`}
+            />
+            <div className="min-w-0 flex-1">
+              <div className="font-mono text-label uppercase text-fg-muted">Ongoing battle</div>
+              <div className="font-mono text-small text-fg">
+                You have a battle {activeBattleState === "ACTIVE" ? "in progress" : "waiting in lobby"}.
+              </div>
+            </div>
+            <Button variant="primary" size="sm" onClick={handleBattleOverlayJoin}>
+              {activeBattleState === "ACTIVE" ? "Rejoin battle" : "Rejoin lobby"}
+            </Button>
+          </div>
+        </>
       )}
 
-      {/* Scroll to Top Button */}
-      <button
-        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-        aria-label="Scroll to top"
-        style={{
-          position: "fixed",
-          bottom: "1.75rem",
-          right: "1.75rem",
-          zIndex: 9999,
-          width: 40,
-          height: 40,
-          borderRadius: "50%",
-          border: "1px solid rgba(255,255,255,0.15)",
-          background: "rgba(15,15,20,0.75)",
-          backdropFilter: "blur(10px)",
-          color: "#fff",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          cursor: "pointer",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.35)",
-          opacity: showScrollTop ? 1 : 0,
-          transform: showScrollTop ? "translateY(0) scale(1)" : "translateY(12px) scale(0.85)",
-          transition: "opacity 0.25s ease, transform 0.25s ease",
-          pointerEvents: showScrollTop ? "auto" : "none",
-        }}
-      >
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-          <path d="M8 12V4M4 8l4-4 4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
-      </button>
+      {/* Toasts after the battle strip: same z-toast layer, later paint wins. */}
+      <Toaster />
+
+      {/* Scroll to top: sits above the battle strip when it is showing. */}
+      {showScrollTop && (
+        <IconButton
+          icon={ArrowUp}
+          variant="secondary"
+          aria-label="Back to top"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          className={`fixed right-4 z-raised bg-surface ${showBattleOverlay ? "bottom-[72px]" : "bottom-4"}`}
+        />
+      )}
     </div>
   );
 }

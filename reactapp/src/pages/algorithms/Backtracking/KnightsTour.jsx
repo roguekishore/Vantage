@@ -154,7 +154,7 @@ const KnightsTour = ({ navigate }) => {
           >
             <ArrowLeft size={18} /> Back
           </button>
-          <h2 className="text-2xl font-bold text-accent-primary">Knight’s Tour</h2>
+          <h1 className="text-2xl font-bold text-accent-primary">Knight’s Tour</h1>
         </div>
         <div className="text-sm text-theme-tertiary">
           Backtracking • Tier 3 (Hard)

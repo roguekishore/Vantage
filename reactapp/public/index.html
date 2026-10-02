@@ -3,8 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="An interactive algorithm visualizer to understand sorting and pathfinding algorithms easily." />
-    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/algo.svg" />
+    <title>Vantage — DSA visualizers, judge and battles</title>
+    <meta name="description" content="Vantage is a DSA practice platform: step-by-step algorithm visualizers, a problem set with an online judge, real-time coding battles, a leaderboard and a progress map." />
+    <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/vantage.svg" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <!-- Open Graph / Twitter -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Vantage" />
+    <meta property="og:title" content="Vantage — DSA visualizers, judge and battles" />
+    <meta property="og:description" content="Step-by-step algorithm visualizers, a problem set with an online judge, and real-time coding battles." />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Vantage — DSA visualizers, judge and battles" />
+    <meta name="twitter:description" content="Step-by-step algorithm visualizers, a problem set with an online judge, and real-time coding battles." />
     <!-- Browser UI colour = --bg per scheme (src/styles/tokens.css). -->
     <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#09090B" />
     <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F4F0" />
@@ -23,10 +33,9 @@
         d.style.colorScheme = t;
       })();
     </script>
-    <title>Vantage</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <main id="root"></main>
+    <div id="root"></div>
   </body>
 </html>

@@ -1,68 +1,66 @@
-import { useEffect, useRef, useState, useCallback } from "react"
-import { useLocation, useNavigate } from "react-router-dom"
-import gsap from "gsap"
-import { useGSAP } from "@gsap/react"
-import { Check, ChevronsUpDown, Eye, EyeOff, ChevronDown } from "lucide-react"
+import { forwardRef, useEffect, useId, useRef, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+import { AlertTriangle, Check, ChevronDown, ChevronsUpDown, Eye, EyeOff } from "lucide-react"
 import useUserStore from "@/stores/useUserStore"
-import { NQueensCanvas } from "../../components/animations/ComplexAnimations"
 import Logo from "@/components/common/Logo"
-import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography"
-import { FONT_MONO } from "@/styles/typeScale";
+import {
+  Button,
+  Field,
+  IconButton,
+  Input,
+  OfflineState,
+  PageHeader,
+  PageShell,
+  Panel,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  ThemeToggle,
+  useField,
+} from "@/components/ds"
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080"
 
-/* ─────────────────────────────────────────────
-   INPUT
-───────────────────────────────────────────── */
-function VInput({ id, type = "text", placeholder, value, onChange, required, min, max, maxLength }) {
-  const [focused, setFocused] = useState(false)
-  const [showPw,  setShowPw]  = useState(false)
-  const isPw = type === "password"
-  return (
-    <div style={{ position: "relative" }}>
-      <input
-        id={id}
-        type={isPw ? (showPw ? "text" : "password") : type}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required={required}
-        min={min}
-        max={max}
-        maxLength={maxLength}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
-        style={{
-          width: "100%", height: 38,
-          background: "rgba(255,255,255,0.03)",
-          border: `1px solid ${focused ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)"}`,
-          borderRadius: 9,
-          padding: isPw ? "0 36px 0 12px" : "0 12px",
-          fontSize: 12.5, color: "#fff", outline: "none",
-          transition: "border-color 0.15s",
-          fontFamily: FONT_MONO,
-        }}
-      />
-      {isPw && (
-        <button type="button" onClick={() => setShowPw(p => !p)}
-          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.28)", display: "flex", alignItems: "center" }}>
-          {showPw ? <EyeOff size={13} /> : <Eye size={13} />}
-        </button>
-      )}
-    </div>
-  )
+/* Message both handlers set when fetch throws (network failure). */
+const NETWORK_ERROR = "Could not reach the server."
+
+/* Client-side validation messages from handleSignup, shown on their field. */
+const SIGNUP_FIELD_ERRORS = {
+  "Username must be 1-20 chars using only lowercase letters and numbers": "username",
+  "Password must be at least 8 characters": "password",
+  "Passwords do not match": "confirmPassword",
 }
 
+const FOCUS_RING = "ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-2 ds-focus:outline-focus"
+
 /* ─────────────────────────────────────────────
-   FIELD
+   PASSWORD INPUT: ds Input + show/hide IconButton
 ───────────────────────────────────────────── */
-function Field({ label, children }) {
+const PasswordInput = forwardRef(function PasswordInput(props, ref) {
+  const [showPw, setShowPw] = useState(false)
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-      <span style={{ fontSize: 9.5, fontWeight: 800, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
-        {label}
-      </span>
-      {children}
+    <div className="relative">
+      <Input ref={ref} {...props} type={showPw ? "text" : "password"} className="pr-10" />
+      <IconButton
+        size="sm"
+        icon={showPw ? EyeOff : Eye}
+        aria-label={showPw ? "Hide password" : "Show password"}
+        onClick={() => setShowPw(p => !p)}
+        className="absolute right-1 top-1"
+      />
+    </div>
+  )
+})
+
+/* ─────────────────────────────────────────────
+   INLINE API ERROR (above the form fields)
+───────────────────────────────────────────── */
+function FormAlert({ message }) {
+  if (!message) return null
+  return (
+    <div role="alert" className="flex items-start gap-2 border border-err bg-err-soft px-3 py-2 font-mono text-small text-err">
+      <AlertTriangle size={16} strokeWidth={1.5} aria-hidden="true" className="mt-0.5 shrink-0" />
+      <p>{message}</p>
     </div>
   )
 }
@@ -72,53 +70,38 @@ function Field({ label, children }) {
 ───────────────────────────────────────────── */
 function OptionalSection({ children }) {
   const [open, setOpen] = useState(false)
-  const bodyRef = useRef(null)
-
-  useEffect(() => {
-    if (!bodyRef.current) return
-    if (open) {
-      gsap.set(bodyRef.current, { height: "auto", opacity: 1 })
-      gsap.from(bodyRef.current, { height: 0, opacity: 0, duration: 0.3, ease: "power3.out" })
-    } else {
-      gsap.to(bodyRef.current, { height: 0, opacity: 0, duration: 0.25, ease: "power3.in" })
-    }
-  }, [open])
-
+  const bodyId = `optional-${useId().replace(/:/g, "")}`
   return (
-    <div>
-      <button type="button" onClick={() => setOpen(p => !p)} data-cursor="EXPAND"
-        style={{
-          display: "flex", alignItems: "center", gap: 8, width: "100%",
-          background: "none", border: "none",
-          padding: "8px 0",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          borderBottom: open ? "none" : "1px solid rgba(255,255,255,0.06)",
-        }}>
-        <span style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>
-          Optional Details
-        </span>
-        <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.05)" }} />
-        <ChevronDown size={11} style={{ color: "rgba(255,255,255,0.28)", transform: open ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 0.25s ease" }} />
-      </button>
-      <div ref={bodyRef} style={{ height: 0, opacity: 0, overflow: open ? "visible" : "hidden" }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 12, paddingBottom: 6 }}>
-          {children}
-        </div>
+    <div className="grid gap-4">
+      <Button
+        variant="ghost"
+        className="w-full justify-between border-border px-3"
+        aria-expanded={open}
+        aria-controls={bodyId}
+        onClick={() => setOpen(p => !p)}
+      >
+        Optional details
+        <ChevronDown aria-hidden="true" className={open ? "rotate-180" : undefined} />
+      </Button>
+      <div id={bodyId} hidden={!open} className={open ? "grid gap-4" : "hidden"}>
+        {children}
       </div>
     </div>
   )
 }
 
 /* ─────────────────────────────────────────────
-   INSTITUTION PICKER
+   INSTITUTION PICKER: field-style trigger, ds Popover with a search Input
+   and a listbox of results
 ───────────────────────────────────────────── */
 function InstitutionPicker({ value, onSelect }) {
+  const field = useField()
   const [open,    setOpen]    = useState(false)
   const [query,   setQuery]   = useState("")
   const [results, setResults] = useState([])
   const debounceRef           = useRef(null)
-  const dropRef               = useRef(null)
-  const containerRef          = useRef(null)
+  const listRef               = useRef(null)
+  const listId                = `institutions-${useId().replace(/:/g, "")}`
 
   useEffect(() => {
     if (!open) return
@@ -132,150 +115,100 @@ function InstitutionPicker({ value, onSelect }) {
     return () => clearTimeout(debounceRef.current)
   }, [open, query])
 
-  useEffect(() => {
-    if (!dropRef.current) return
-    gsap.to(dropRef.current, { height: open ? "auto" : 0, opacity: open ? 1 : 0, duration: 0.2, ease: "power2.inOut" })
-  }, [open])
+  const options = () => Array.from(listRef.current?.querySelectorAll('[role="option"]') ?? [])
 
-  useEffect(() => {
-    const handler = (e) => { if (containerRef.current && !containerRef.current.contains(e.target)) setOpen(false) }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [])
+  const onSearchKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      options()[0]?.focus()
+    }
+  }
+
+  const onListKeyDown = (e) => {
+    if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return
+    e.preventDefault()
+    const opts = options()
+    const i = opts.indexOf(document.activeElement)
+    const next = e.key === "ArrowDown" ? Math.min(i + 1, opts.length - 1) : i - 1
+    if (next < 0) listRef.current?.closest("[data-institution-popover]")?.querySelector("input")?.focus()
+    else opts[next]?.focus()
+  }
 
   return (
-    <div ref={containerRef} style={{ position: "relative" }}>
-      <button type="button" onClick={() => setOpen(p => !p)} data-cursor="SELECT"
-        style={{
-          width: "100%", height: 38, display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "0 12px",
-          background: "rgba(255,255,255,0.03)",
-          border: `1px solid ${open ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)"}`,
-          borderRadius: 9,
-          fontSize: 12.5, color: value ? "#fff" : "rgba(255,255,255,0.22)",
-          fontFamily: FONT_MONO, transition: "border-color 0.15s",
-        }}>
-        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, textAlign: "left" }}>
-          {value ? value.name : "Search institution…"}
-        </span>
-        <ChevronsUpDown size={13} style={{ color: "rgba(255,255,255,0.25)", flexShrink: 0, marginLeft: 6 }} />
-      </button>
-      <div ref={dropRef} style={{ height: 0, opacity: 0, overflow: "hidden", position: "absolute", top: "calc(100% + 6px)", left: 0, right: 0, zIndex: 50 }}>
-        <div style={{ background: "#111114", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, overflow: "hidden" }}>
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Type to search…"
-              style={{ width: "100%", background: "none", border: "none", outline: "none", fontSize: 12, color: "#fff", fontFamily: FONT_MONO }}
-            />
-          </div>
-          <div style={{ maxHeight: 150, overflowY: "auto" }}>
-            {results.length === 0
-              ? <div style={{ padding: "12px", fontSize: 11, color: "rgba(255,255,255,0.25)" }}>{query ? "No results." : "Start typing…"}</div>
-              : results.map(inst => (
-                <button key={inst.id} type="button"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          id={field?.id}
+          aria-describedby={field?.describedBy}
+          aria-haspopup="listbox"
+          className={`flex h-9 w-full items-center justify-between gap-2 border border-border bg-elevated px-3 text-left font-mono text-body transition-colors duration-[120ms] ease-out ds-hover:border-border-strong ${FOCUS_RING}`}
+        >
+          <span className={`min-w-0 flex-1 truncate ${value ? "text-fg" : "text-fg-dim"}`}>
+            {value ? value.name : "Search institution"}
+          </span>
+          <ChevronsUpDown size={16} strokeWidth={1.5} aria-hidden="true" className="shrink-0 text-fg-muted" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent data-institution-popover="" className="w-[var(--radix-popover-trigger-width)] p-0">
+        <div className="border-b border-border p-2">
+          <Input
+            id={`${listId}-search`}
+            size="sm"
+            role="combobox"
+            aria-label="Search institutions"
+            aria-expanded="true"
+            aria-controls={listId}
+            aria-autocomplete="list"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={onSearchKeyDown}
+            placeholder="Type to search"
+          />
+        </div>
+        {results.length === 0 ? (
+          <p role="status" className="px-3 py-3 text-fg-muted">{query ? "No results." : "Start typing."}</p>
+        ) : (
+          <div
+            ref={listRef}
+            id={listId}
+            role="listbox"
+            aria-label="Institutions"
+            onKeyDown={onListKeyDown}
+            className="max-h-48 overflow-y-auto py-1"
+          >
+            {results.map(inst => {
+              const selected = value?.id === inst.id
+              return (
+                <button
+                  key={inst.id}
+                  type="button"
+                  role="option"
+                  aria-selected={selected}
                   onClick={() => { onSelect(value?.id === inst.id ? null : inst); setOpen(false) }}
-                  data-cursor="SELECT"
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", background: "none", border: "none", textAlign: "left", transition: "background 0.1s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
-                  onMouseLeave={e => e.currentTarget.style.background = "none"}
+                  className="flex w-full items-start gap-2 px-3 py-2 text-left transition-colors duration-[120ms] ease-out ds-hover:bg-elevated ds-focus:bg-elevated ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-[-2px] ds-focus:outline-focus"
                 >
-                  <Check size={10} style={{ color: "#34d399", opacity: value?.id === inst.id ? 1 : 0, flexShrink: 0 }} />
-                  <div>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{inst.name}</div>
-                    {inst.university && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{inst.university}{inst.district ? `, ${inst.district}` : ""}</div>}
-                  </div>
+                  <Check
+                    size={14}
+                    strokeWidth={1.5}
+                    aria-hidden="true"
+                    className={`mt-0.5 shrink-0 text-ok ${selected ? "" : "opacity-0"}`}
+                  />
+                  <span className="grid min-w-0 gap-1">
+                    <span className="truncate text-small text-fg">{inst.name}</span>
+                    {inst.university && (
+                      <span className="truncate text-small text-fg-muted">
+                        {inst.university}{inst.district ? `, ${inst.district}` : ""}
+                      </span>
+                    )}
+                  </span>
                 </button>
-              ))
-            }
+              )
+            })}
           </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   BUTTON
-───────────────────────────────────────────── */
-function VButton({ children, loading }) {
-  return (
-    <button type="submit" disabled={loading} data-cursor="GO"
-      style={{
-        width: "100%", height: 42, borderRadius: 10, border: "none",
-        background: loading ? "rgba(237,255,102,0.5)" : "#EDFF66",
-        color: "#09090b", fontSize: 11, fontWeight: 900, letterSpacing: "0.09em",
-        textTransform: "uppercase", opacity: loading ? 0.7 : 1, transition: "opacity 0.15s",
-      }}
-      onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = "0.88" }}
-      onMouseLeave={e => { e.currentTarget.style.opacity = "1" }}
-    >
-      {children}
-    </button>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   ERROR
-───────────────────────────────────────────── */
-function ErrorBanner({ msg }) {
-  if (!msg) return null
-  return (
-    <div style={{ padding: "8px 12px", borderRadius: 8, background: "rgba(248,113,113,0.07)", border: "1px solid rgba(248,113,113,0.18)", fontSize: 11.5, color: "#f87171" }}>
-      {msg}
-    </div>
-  )
-}
-
-/* ─────────────────────────────────────────────
-   LEFT PANEL
-───────────────────────────────────────────── */
-function LeftPanel() {
-  const ref = useRef(null)
-  useGSAP(() => {
-    gsap.fromTo(".lp-line",
-      { opacity: 0, y: 14 },
-      { opacity: 1, y: 0, stagger: 0.06, duration: 0.45, ease: "expo.out", delay: 0.1 }
-    )
-  }, { scope: ref })
-
-  return (
-    <div ref={ref} style={{ position: "relative", width: "100%", height: "100%", overflow: "hidden", background: "#050507" }}>
-      <div style={{ position: "absolute", inset: 0 }}>
-        <NQueensCanvas size={8} color="#EDFF66" />
-      </div>
-      {/* vignette */}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(135deg, rgba(5,5,7,0.75) 0%, rgba(5,5,7,0.25) 50%, rgba(5,5,7,0.65) 100%)", pointerEvents: "none" }} />
-
-      {/* Editorial overlay — bottom-left */}
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, padding: "28px 32px", pointerEvents: "none" }}>
-        {/* Logo */}
-        <div className="lp-line" style={{ opacity: 0, display: "flex", alignItems: "center", gap: 9, marginBottom: 24 }}>
-          <Logo size={26} style={{ borderRadius: 6 }} />
-          <span style={{ fontFamily: T.fontFamily, fontWeight: 900, fontSize: 14, color: "#fff", letterSpacing: "0.05em" }}>VANTAGE</span>
-        </div>
-
-        <div className="lp-line" style={{ opacity: 0 }}>
-          <h2 style={{ fontFamily: T.fontFamily, fontWeight: 900, fontSize: "clamp(2rem,3.4vw,3rem)", lineHeight: 0.9, letterSpacing: "-0.02em", color: "#fff", margin: "0 0 10px" }}>
-            VISUALIZE.<br /><span style={{ color: "#EDFF66" }}>DOMINATE.</span>
-          </h2>
-        </div>
-
-        <div className="lp-line" style={{ opacity: 0 }}>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", lineHeight: 1.7, maxWidth: 280, margin: 0 }}>
-            Real-time 1v1 battles, algorithm visualization, and an online judge — for developers who actually want to win.
-          </p>
-        </div>
-
-        {/* Stats strip */}
-        <div className="lp-line" style={{ opacity: 0, display: "flex", gap: 0, marginTop: 20, overflow: "hidden", borderRadius: 10, border: "1px solid rgba(255,255,255,0.07)", width: "fit-content", background: "rgba(255,255,255,0.03)" }}>
-          {[["50+", "Algorithms"], ["150+", "Problems"], ["1v1", "Battles"]].map(([v, l], i) => (
-            <div key={l} style={{ padding: "9px 15px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.07)" : "none" }}>
-              <div style={{ fontFamily: T.fontFamily, fontWeight: 900, fontSize: 15, color: "#EDFF66", lineHeight: 1 }}>{v}</div>
-              <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{l}</div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
+        )}
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -291,26 +224,7 @@ export default function AuthPage({ initialMode = "login" }) {
 
   useEffect(() => { setMode(initialMode === "signup" ? "signup" : "login") }, [initialMode])
 
-  /* Mode switch — quick fade swap */
-  const switchMode = (next) => {
-    if (!formRef.current) { setMode(next); return }
-    gsap.to(formRef.current, {
-      opacity: 0, y: 8, duration: 0.15, ease: "power2.in",
-      onComplete: () => {
-        setMode(next)
-        gsap.fromTo(formRef.current, { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.22, ease: "power3.out" })
-      }
-    })
-  }
-
-  /* Right panel entrance — fast */
-  const rightRef = useRef(null)
-  useGSAP(() => {
-    gsap.fromTo(".rp-in",
-      { opacity: 0, x: 16 },
-      { opacity: 1, x: 0, stagger: 0.04, duration: 0.38, ease: "expo.out", delay: 0.1 }
-    )
-  }, { scope: rightRef })
+  const switchMode = (next) => setMode(next)
 
   /* ── Login ── */
   const [loginEmail,    setLoginEmail]    = useState("")
@@ -336,7 +250,7 @@ export default function AuthPage({ initialMode = "login" }) {
       useUserStore.getState().setUser(data)
       window.postMessage({ type: "VANTAGE_LOGIN", lcusername: data.lcusername ?? null, uid: data.uid ?? null }, "*")
       navigate("/")
-    } catch { setLoginError("Could not reach the server.") }
+    } catch { setLoginError(NETWORK_ERROR) }
     finally { setLoginLoading(false) }
   }
 
@@ -369,158 +283,168 @@ export default function AuthPage({ initialMode = "login" }) {
       useUserStore.getState().setUser(data)
       window.postMessage({ type: "VANTAGE_LOGIN", lcusername: data.lcusername ?? null, uid: data.uid ?? null }, "*")
       navigate("/")
-    } catch { setSignupError("Could not reach the server.") }
+    } catch { setSignupError(NETWORK_ERROR) }
     finally { setSignupLoading(false) }
   }
 
+  /* ── View state derived from the error strings ── */
+  const activeError = isLogin ? loginError : signupError
+  const offline = activeError === NETWORK_ERROR
+  const signupFieldKey = isLogin ? null : SIGNUP_FIELD_ERRORS[signupError] ?? null
+  const bannerError = offline || signupFieldKey ? "" : activeError
+  const fieldError = (key) => (signupFieldKey === key ? signupError : undefined)
+
+  /* Move focus to the field a validation message points at. */
+  const usernameRef = useRef(null)
+  const passwordRef = useRef(null)
+  const confirmPasswordRef = useRef(null)
+  useEffect(() => {
+    const target = { username: usernameRef, password: passwordRef, confirmPassword: confirmPasswordRef }[signupFieldKey]
+    target?.current?.focus()
+  }, [signupFieldKey, signupError])
+
+  const retry = () => formRef.current?.requestSubmit?.()
+
   return (
-    <div style={{ width: "100vw", height: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr", background: "#09090b", overflow: "hidden" }}>
+    <PageShell narrow className="pt-8 sm:pt-12" containerClassName="max-w-xl">
+      <div className="mb-8 flex items-center justify-between gap-4">
+        <Link
+          to="/"
+          className={`inline-flex items-center gap-2 font-mono text-label uppercase text-fg transition-colors duration-[120ms] ease-out ds-hover:text-accent-ink ${FOCUS_RING}`}
+        >
+          <Logo size={24} alt="" />
+          Vantage
+        </Link>
+        <ThemeToggle />
+      </div>
 
-      {/* ══ LEFT ══ */}
-      <LeftPanel />
+      <PageHeader
+        className="mb-6 pb-6"
+        eyebrow={isLogin ? "Welcome back" : "Get started"}
+        title={isLogin ? "Sign in" : "Create account"}
+        description={
+          isLogin
+            ? "Sign in to solve problems on the judge, join battles and track your progress."
+            : "One account for the judge, battles, the leaderboard and your achievements."
+        }
+      />
 
-      {/* ══ RIGHT ══ */}
-      <div ref={rightRef}
-        style={{
-          position: "relative", height: "100%",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: "#09090b",
-          borderLeft: "1px solid rgba(255,255,255,0.05)",
-          overflow: "hidden",
-        }}
-      >
-        {/* Logo mark — top right, outside flow */}
-        <div className="rp-in" style={{ opacity: 0, position: "absolute", top: 26, right: 30, display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.18)" }}>Vantage</span>
-          <Logo size={20} style={{ borderRadius: 5 }} />
-        </div>
+      {offline ? (
+        <OfflineState
+          className="mb-6 px-4 py-8"
+          description={`Vantage can't ${isLogin ? "sign you in" : "create your account"} while the server is unreachable. Check your connection and retry. The visualizers run in your browser and keep working offline.`}
+          onRetry={retry}
+        />
+      ) : null}
 
-        {/* ── Centered content column ── */}
-        <div style={{ width: "100%", maxWidth: 600, padding: "0 clamp(28px,4vw,52px)", display: "flex", flexDirection: "column" }}>
+      <Panel>
+        {isLogin ? (
+          /* ──── LOGIN ──── */
+          <form ref={formRef} onSubmit={handleLogin} className="grid gap-4">
+            <FormAlert message={bannerError} />
+            <Field label="Email" required>
+              <Input
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={loginEmail}
+                onChange={e => setLoginEmail(e.target.value)}
+              />
+            </Field>
+            <Field label="Password" required>
+              <PasswordInput
+                autoComplete="current-password"
+                value={loginPassword}
+                onChange={e => setLoginPassword(e.target.value)}
+              />
+            </Field>
+            <Button type="submit" variant="primary" size="lg" className="mt-2 w-full" loading={loginLoading}>
+              {loginLoading ? "Signing in…" : "Sign in"}
+            </Button>
+            <p className="flex flex-wrap items-center justify-center gap-2 font-mono text-small text-fg-muted">
+              No account yet?
+              <Button variant="link" onClick={() => switchMode("signup")}>Create account</Button>
+            </p>
+          </form>
+        ) : (
+          /* ──── SIGNUP ──── */
+          <form ref={formRef} onSubmit={handleSignup} className="grid gap-4">
+            <FormAlert message={bannerError} />
 
-          {/* Eyebrow */}
-          <div className="rp-in" style={{ opacity: 0, display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <div style={{ height: 1, width: 20, background: "rgba(255,255,255,0.18)" }} />
-            <span style={{ fontSize: 9, fontWeight: 900, letterSpacing: "0.28em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>
-              {isLogin ? "Welcome back" : "Get started"}
-            </span>
-          </div>
-
-          {/* Heading */}
-          <div className="rp-in" style={{ opacity: 0, marginBottom: 22 }}>
-            <h1 style={{ fontFamily: T.fontFamily, fontWeight: 900, fontSize: "clamp(2.2rem,3.8vw,3.2rem)", letterSpacing: "-0.025em", lineHeight: 0.88, color: "#fff", margin: 0 }}>
-              {isLogin
-                ? <><span style={{ display: "block" }}>Sign</span><span style={{ display: "block", color: "rgba(255,255,255,0.2)" }}>In.</span></>
-                : <><span style={{ display: "block" }}>Create</span><span style={{ display: "block", color: "rgba(255,255,255,0.2)" }}>Account.</span></>
-              }
-            </h1>
-          </div>
-
-          {/* Form card */}
-          <div className="rp-in" ref={formRef}
-            style={{ opacity: 0, background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "visible", width: "100%" }}
-          >
-            {/* Top accent line */}
-            <div style={{ height: 1, background: "linear-gradient(90deg,#EDFF66,rgba(237,255,102,0.15),transparent)", borderRadius: "16px 16px 0 0" }} />
-
-            <div style={{ padding: "20px 22px 18px" }}>
-
-              {isLogin ? (
-                /* ──── LOGIN ──── */
-                <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-                  <ErrorBanner msg={loginError} />
-                  <Field label="Email">
-                    <VInput id="le" type="email" placeholder="you@example.com" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
-                  </Field>
-                  <Field label="Password">
-                    <VInput id="lp" type="password" placeholder="••••••••" value={loginPassword} onChange={e => setLoginPassword(e.target.value)} required />
-                  </Field>
-                  <div style={{ paddingTop: 4 }}>
-                    <VButton loading={loginLoading}>{loginLoading ? "Signing in…" : "Continue →"}</VButton>
-                  </div>
-                  <p style={{ textAlign: "center", fontSize: 11.5, color: "rgba(255,255,255,0.25)", margin: 0 }}>
-                    No account?{" "}
-                    <button type="button" onClick={() => switchMode("signup")} data-cursor="SWITCH"
-                      style={{ background: "none", border: "none", color: "#EDFF66", fontWeight: 800, fontSize: 11.5 }}>
-                      Sign up
-                    </button>
-                  </p>
-                </form>
-              ) : (
-                /* ──── SIGNUP ──── */
-                <form onSubmit={handleSignup} style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                  <ErrorBanner msg={signupError} />
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <Field label="Username">
-                      <VInput
-                        id="su"
-                        type="text"
-                        placeholder="johndoe"
-                        value={username}
-                        onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20))}
-                        maxLength={20}
-                        required
-                      />
-                    </Field>
-                    <Field label="Email">
-                      <VInput id="se" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required />
-                    </Field>
-                  </div>
-
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-                    <Field label="Password">
-                      <VInput id="sp" type="password" placeholder="8+ chars" value={password} onChange={e => setPassword(e.target.value)} required />
-                    </Field>
-                    <Field label="Confirm">
-                      <VInput id="sc" type="password" placeholder="repeat" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} required />
-                    </Field>
-                  </div>
-
-                  <OptionalSection>
-                    <Field label="LeetCode Username">
-                      <VInput id="slc" type="text" placeholder="john_doe" value={lcusername} onChange={e => setLcusername(e.target.value)} />
-                    </Field>
-                    <Field label="Institution">
-                      <InstitutionPicker value={selectedInstitution} onSelect={setSelectedInstitution} />
-                    </Field>
-                    <Field label="Graduation Year">
-                      <VInput id="sgy" type="number" placeholder="2027" min="1980" max="2040" value={graduationYear} onChange={e => setGraduationYear(e.target.value)} />
-                    </Field>
-                  </OptionalSection>
-
-                  <div style={{ paddingTop: 2 }}>
-                    <VButton loading={signupLoading}>{signupLoading ? "Creating…" : "Create Account →"}</VButton>
-                  </div>
-
-                  <p style={{ textAlign: "center", fontSize: 11.5, color: "rgba(255,255,255,0.25)", margin: 0 }}>
-                    Already a member?{" "}
-                    <button type="button" onClick={() => switchMode("login")} data-cursor="SWITCH"
-                      style={{ background: "none", border: "none", color: "#EDFF66", fontWeight: 800, fontSize: 11.5 }}>
-                      Sign in
-                    </button>
-                  </p>
-                </form>
-              )}
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Username" required hint="Lowercase letters and numbers, up to 20" error={fieldError("username")}>
+                <Input
+                  ref={usernameRef}
+                  type="text"
+                  autoComplete="username"
+                  placeholder="johndoe"
+                  value={username}
+                  onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 20))}
+                  maxLength={20}
+                />
+              </Field>
+              <Field label="Email" required>
+                <Input
+                  type="email"
+                  autoComplete="email"
+                  placeholder="you@example.com"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
+              </Field>
             </div>
-          </div>
 
-          {/* Footnote */}
-          <div className="rp-in" style={{ opacity: 0, marginTop: 16, fontSize: 10, color: "rgba(255,255,255,0.14)", letterSpacing: "0.04em" }}>
-            Competitive DSA Platform · Est. 2026
-          </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Field label="Password" required hint="At least 8 characters" error={fieldError("password")}>
+                <PasswordInput
+                  ref={passwordRef}
+                  autoComplete="new-password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                />
+              </Field>
+              <Field label="Confirm password" required error={fieldError("confirmPassword")}>
+                <PasswordInput
+                  ref={confirmPasswordRef}
+                  autoComplete="new-password"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                />
+              </Field>
+            </div>
 
-        </div>{/* end centered column */}
-      </div>{/* end right panel */}
+            <OptionalSection>
+              <Field label="LeetCode username">
+                <Input type="text" placeholder="john_doe" value={lcusername} onChange={e => setLcusername(e.target.value)} />
+              </Field>
+              <Field label="Institution">
+                <InstitutionPicker value={selectedInstitution} onSelect={setSelectedInstitution} />
+              </Field>
+              <Field label="Graduation year">
+                <Input
+                  type="number"
+                  inputMode="numeric"
+                  placeholder="2027"
+                  min="1980"
+                  max="2040"
+                  className="tabular-nums"
+                  value={graduationYear}
+                  onChange={e => setGraduationYear(e.target.value)}
+                />
+              </Field>
+            </OptionalSection>
 
-      <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 3px; }
-        input::placeholder { color: rgba(255,255,255,0.18); }
-        input[type=number]::-webkit-inner-spin-button,
-        input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
-      `}</style>
-    </div>
+            <Button type="submit" variant="primary" size="lg" className="mt-2 w-full" loading={signupLoading}>
+              {signupLoading ? "Creating account…" : "Create account"}
+            </Button>
+
+            <p className="flex flex-wrap items-center justify-center gap-2 font-mono text-small text-fg-muted">
+              Already have an account?
+              <Button variant="link" onClick={() => switchMode("login")}>Sign in</Button>
+            </p>
+          </form>
+        )}
+      </Panel>
+    </PageShell>
   )
 }

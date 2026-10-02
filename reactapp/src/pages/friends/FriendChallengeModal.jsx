@@ -1,36 +1,208 @@
 import { Clock3, Swords, VolumeX } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useFriendsStore from "@/stores/useFriendsStore";
 import useUserStore from "@/stores/useUserStore";
 import useBattleStore from "@/stores/useBattleStore";
-import { MONUMENT_TYPO as FRIENDS_TYPO } from "@/components/common/MonumentTypography";
-import { FONT_MONO } from "@/styles/typeScale";
+import { Avatar, Button, Dialog, DialogClose, DialogContent, DialogFooter } from "@/components/ds";
+
+/*
+ * The one ChallengeDialog (POLISH_PLAN §6, Friends). Three variants share
+ * one ds Dialog shell:
+ *   compose   pick mode, difficulty, problem count and time, then send
+ *             (opened from FriendsPage with its local challengeTarget)
+ *   incoming  accept / reject / do-not-disturb (global, store driven)
+ *   outgoing  waiting for the friend; cancel or keep in background
+ * The default export is the global incoming/outgoing host App.jsx mounts.
+ */
+
+const QUICK_DURATION_OPTIONS = [20, 30, 45, 60, 90, 120, 150, 180];
+
+const MODE_LABEL = { CASUAL_1V1: "Casual 1v1", RANKED_1V1: "Ranked 1v1", GROUP_FFA: "Group room" };
+const DIFF_LABEL = { EASY: "Easy", MEDIUM: "Medium", HARD: "Hard" };
+const DIFF_TONE = { EASY: "text-ok", MEDIUM: "text-warn", HARD: "text-err" };
+const DIFF_BAR = { EASY: "border-l-ok", MEDIUM: "border-l-warn", HARD: "border-l-err" };
+
+const labelCls = "font-mono text-label uppercase text-fg-muted";
+const focusCls = "ds-focus:outline ds-focus:outline-2 ds-focus:outline-offset-2 ds-focus:outline-focus";
+
+/* ── shared pieces ── */
+
+function Opponent({ name, meta }) {
+  return (
+    <div className="flex items-center gap-3">
+      <Avatar name={name} size="lg" />
+      <div className="grid min-w-0 gap-0.5 font-mono">
+        <div className="truncate text-body font-bold text-fg">{name}</div>
+        {meta ? <div className="text-small text-fg-muted">{meta}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+function ChallengeDetails({ challenge }) {
+  const rows = [
+    ["Mode", MODE_LABEL[challenge.mode] || challenge.mode],
+    ["Difficulty", DIFF_LABEL[challenge.difficulty] || challenge.difficulty, DIFF_TONE[challenge.difficulty]],
+    ["Problems", challenge.problemCount],
+  ];
+  if (challenge.durationMinutes > 0) rows.push(["Time", `${challenge.durationMinutes} min`]);
+  if (challenge.roomCode) rows.push(["Room", challenge.roomCode, "text-accent-ink"]);
+  return (
+    <dl className="mt-4 border border-border bg-bg font-mono text-small tabular-nums [&>div:last-child]:border-b-0">
+      {rows.map(([k, v, tone]) => (
+        <div key={k} className="flex items-baseline justify-between gap-4 border-b border-border px-3 py-2">
+          <dt className="text-fg-muted">{k}</dt>
+          <dd className={`text-right ${tone || "text-fg"}`}>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/** Single-choice option group (radiogroup with roving tabindex and arrow keys). */
+function OptionGroup({ label, value, options, onChange, className }) {
+  const labelId = useId();
+  const refs = useRef([]);
+  const onKeyDown = (e, i) => {
+    const next = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!next) return;
+    e.preventDefault();
+    const j = (i + next + options.length) % options.length;
+    refs.current[j]?.focus();
+    onChange(options[j].value);
+  };
+  return (
+    <div className="grid gap-2">
+      <div id={labelId} className={labelCls}>
+        {label}
+      </div>
+      <div role="radiogroup" aria-labelledby={labelId} className={`grid gap-1 ${className || ""}`}>
+        {options.map((o, i) => {
+          const checked = o.value === value;
+          return (
+            <button
+              key={o.value}
+              ref={(el) => { refs.current[i] = el; }}
+              type="button"
+              role="radio"
+              aria-checked={checked}
+              tabIndex={checked ? 0 : -1}
+              onClick={() => onChange(o.value)}
+              onKeyDown={(e) => onKeyDown(e, i)}
+              className={[
+                "inline-flex h-9 items-center justify-center gap-2 border px-2 font-mono text-label uppercase tabular-nums transition-colors duration-[120ms] ease-out",
+                focusCls,
+                o.bar ? `border-l-2 ${o.bar}` : "",
+                checked
+                  ? "border-accent-edge bg-accent text-on-accent"
+                  : `border-border bg-elevated ds-hover:border-border-strong ${o.tone || "text-fg-muted"} ds-hover:text-fg`,
+              ].join(" ")}
+            >
+              {o.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** The shared shell: ds Dialog with an opponent header row and a footer. */
+function ChallengeDialog({ open, onOpenChange, title, description, opponent, opponentMeta, blockDismiss = false, children, footer }) {
+  const block = blockDismiss ? (e) => e.preventDefault() : undefined;
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent
+        size="sm"
+        title={title}
+        description={description}
+        hideClose={blockDismiss}
+        onEscapeKeyDown={block}
+        onInteractOutside={block}
+      >
+        {opponent ? <Opponent name={opponent} meta={opponentMeta} /> : null}
+        {children}
+        {footer ? <DialogFooter>{footer}</DialogFooter> : null}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/* ── compose (FriendsPage) ── */
+
+export function ChallengeComposeDialog({ target, onClose, onSubmit, loading }) {
+  const [mode, setMode] = useState("CASUAL_1V1");
+  const [diff, setDiff] = useState("MEDIUM");
+  const [count, setCount] = useState(2);
+  const [durationMinutes, setDurationMinutes] = useState(60);
+
+  return (
+    <ChallengeDialog
+      open
+      onOpenChange={(o) => { if (!o) onClose(); }}
+      title="Send a challenge"
+      description="Pick the match settings. Your friend can accept or decline."
+      opponent={target.username}
+      opponentMeta="Online now"
+      footer={
+        <>
+          <DialogClose asChild>
+            <Button variant="secondary">Cancel</Button>
+          </DialogClose>
+          <Button
+            variant="primary"
+            loading={loading}
+            disabled={loading}
+            onClick={() => onSubmit({ mode, difficulty: diff, count, durationMinutes })}
+          >
+            <Swords aria-hidden="true" /> Send challenge
+          </Button>
+        </>
+      }
+    >
+      <div className="mt-6 grid gap-4">
+        <OptionGroup
+          label="Mode"
+          value={mode}
+          onChange={setMode}
+          className="grid-cols-2"
+          options={[
+            { value: "CASUAL_1V1", label: "Casual" },
+            { value: "RANKED_1V1", label: "Ranked" },
+          ]}
+        />
+        <OptionGroup
+          label="Difficulty"
+          value={diff}
+          onChange={setDiff}
+          className="grid-cols-3"
+          options={["EASY", "MEDIUM", "HARD"].map((v) => ({ value: v, label: DIFF_LABEL[v], tone: DIFF_TONE[v], bar: DIFF_BAR[v] }))}
+        />
+        <OptionGroup
+          label="Problems"
+          value={count}
+          onChange={setCount}
+          className="grid-cols-3"
+          options={[1, 2, 3].map((n) => ({ value: n, label: String(n) }))}
+        />
+        <OptionGroup
+          label="Time limit"
+          value={durationMinutes}
+          onChange={setDurationMinutes}
+          className="grid-cols-4"
+          options={QUICK_DURATION_OPTIONS.map((m) => ({ value: m, label: `${m}m` }))}
+        />
+      </div>
+    </ChallengeDialog>
+  );
+}
+
+/* ── incoming / outgoing (global, App.jsx) ── */
 
 export default function FriendChallengeModal() {
   const navigate = useNavigate();
   const user = useUserStore((s) => s.user);
-  const S = {
-    acid: "#EDFF66",
-    bg: "#09090b",
-    panel: "#0c0c0f",
-    panelSoft: "#0d0d10",
-    border: "rgba(255,255,255,0.08)",
-    borderStrong: "rgba(255,255,255,0.16)",
-    text: "#FFFFFF",
-    textSoft: "rgba(255,255,255,0.68)",
-    textDim: "rgba(255,255,255,0.45)",
-    green: "#10b981",
-    red: "#ef4444",
-  };
-  const headingTextStyle = {
-    fontFamily: FRIENDS_TYPO.fontFamily,
-    letterSpacing: FRIENDS_TYPO.letterSpacing.monument,
-  };
-  const baseTextStyle = {
-    fontFamily: FONT_MONO,
-    letterSpacing: "normal",
-  };
 
   const {
     activeIncomingChallenge,
@@ -97,240 +269,76 @@ export default function FriendChallengeModal() {
 
   if (activeOutgoingChallenge && outgoingChallengeMinimized && !activeIncomingChallenge) {
     return (
-      <button
+      <Button
+        variant="secondary"
         onClick={reopenOutgoingChallengeModal}
-        className="fixed bottom-5 right-5 z-[120]"
-        style={baseTextStyle}
+        className="fixed bottom-4 right-4 z-sticky bg-surface"
         title="Open pending challenge"
       >
-        <span
-          style={{
-            height: 42,
-            padding: "0 14px",
-            borderRadius: 10,
-            border: `1px solid ${S.borderStrong}`,
-            background: S.panel,
-            color: S.text,
-            boxShadow: "0 18px 50px rgba(0,0,0,0.45)",
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: 11,
-            fontWeight: 800,
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            ...baseTextStyle,
-          }}
-        >
-          <Swords size={13} color={S.acid} /> Pending challenge
-        </span>
-      </button>
+        <Swords aria-hidden="true" className="text-accent-ink" /> Pending challenge
+      </Button>
     );
   }
 
   if (activeOutgoingChallenge && !activeIncomingChallenge) {
     return (
-      <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(4px)" }}>
-        <div
-          className="w-full max-w-md"
-          style={{
-            borderRadius: 14,
-            border: `1px solid ${S.borderStrong}`,
-            background: `linear-gradient(180deg, ${S.panel} 0%, ${S.bg} 100%)`,
-            padding: 18,
-            boxShadow: "0 26px 70px rgba(0,0,0,0.55)",
-            position: "relative",
-            overflow: "hidden",
-            ...baseTextStyle,
-          }}
-        >
-          <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "20px 20px", opacity: 0.26, pointerEvents: "none" }} />
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${S.acid}, transparent)` }} />
-
-          <div className="flex items-start gap-3" style={{ position: "relative" }}>
-            <div style={{ width: 40, height: 40, borderRadius: 10, border: `1px solid ${S.border}`, background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Clock3 size={16} color={S.acid} />
-            </div>
-            <div className="min-w-0">
-              <p style={{ color: S.text, fontSize: 14, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", ...headingTextStyle }}>Challenge sent</p>
-              <p style={{ color: S.textSoft, fontSize: 12, marginTop: 4 }}>
-                Waiting for <span style={{ color: S.acid, fontWeight: 700 }}>{activeOutgoingChallenge.challengeeUsername}</span> to respond.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ position: "relative", marginTop: 14, borderRadius: 10, border: `1px solid ${S.border}`, background: S.panelSoft, padding: 12, fontSize: 12, lineHeight: 1.6 }}>
-            <p><span style={{ color: S.textDim }}>Mode:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.mode}</span></p>
-            <p><span style={{ color: S.textDim }}>Difficulty:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.difficulty}</span></p>
-            <p><span style={{ color: S.textDim }}>Problems:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.problemCount}</span></p>
-            {activeOutgoingChallenge.durationMinutes > 0 && (
-              <p><span style={{ color: S.textDim }}>Time:</span> <span style={{ color: S.text }}>{activeOutgoingChallenge.durationMinutes} min</span></p>
-            )}
-            {activeOutgoingChallenge.roomCode && (
-              <p><span style={{ color: S.textDim }}>Room:</span> <span style={{ color: S.acid }}>{activeOutgoingChallenge.roomCode}</span></p>
-            )}
-          </div>
-
-          <div className="flex gap-2" style={{ position: "relative", marginTop: 14 }}>
-            <button
-              disabled={actionLoading}
-              onClick={handleCancelOutgoing}
-              style={{
-                height: 36,
-                padding: "0 12px",
-                borderRadius: 8,
-                border: `1px solid ${S.border}`,
-                background: "transparent",
-                fontSize: 11,
-                fontWeight: 700,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                color: S.textSoft,
-                opacity: actionLoading ? 0.5 : 1,
-              }}
-            >
+      <ChallengeDialog
+        open
+        onOpenChange={(o) => { if (!o) dismissOutgoingChallengeModal(); }}
+        title="Challenge sent"
+        description={`Waiting for ${activeOutgoingChallenge.challengeeUsername} to respond.`}
+        opponent={activeOutgoingChallenge.challengeeUsername}
+        opponentMeta={
+          <span className="inline-flex items-center gap-2">
+            <Clock3 size={14} strokeWidth={1.5} aria-hidden="true" /> Waiting for a response
+          </span>
+        }
+        footer={
+          <>
+            <Button variant="secondary" disabled={actionLoading} onClick={handleCancelOutgoing}>
               Cancel request
-            </button>
-            <button
-              disabled={actionLoading}
-              onClick={dismissOutgoingChallengeModal}
-              style={{
-                height: 36,
-                padding: "0 12px",
-                borderRadius: 8,
-                border: "none",
-                background: S.acid,
-                color: "#09090b",
-                fontSize: 11,
-                fontWeight: 900,
-                letterSpacing: "0.06em",
-                textTransform: "uppercase",
-                opacity: actionLoading ? 0.5 : 1,
-              }}
-            >
+            </Button>
+            <Button variant="primary" disabled={actionLoading} onClick={dismissOutgoingChallengeModal}>
               Keep in background
-            </button>
-          </div>
-        </div>
-      </div>
+            </Button>
+          </>
+        }
+      >
+        <ChallengeDetails challenge={activeOutgoingChallenge} />
+      </ChallengeDialog>
     );
   }
 
+  const isRoom = activeIncomingChallenge.mode === "GROUP_FFA";
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.72)", backdropFilter: "blur(4px)" }}>
-      <div
-        className="w-full max-w-md"
-        style={{
-          borderRadius: 14,
-          border: `1px solid ${S.borderStrong}`,
-          background: `linear-gradient(180deg, ${S.panel} 0%, ${S.bg} 100%)`,
-          padding: 18,
-          boxShadow: "0 26px 70px rgba(0,0,0,0.55)",
-          position: "relative",
-          overflow: "hidden",
-          ...baseTextStyle,
-        }}
-      >
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px)", backgroundSize: "20px 20px", opacity: 0.26, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${S.acid}, transparent)` }} />
-
-        <div className="flex items-start gap-3" style={{ position: "relative" }}>
-          <div style={{ width: 40, height: 40, borderRadius: 10, border: `1px solid ${S.border}`, background: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Swords size={16} color={S.acid} />
-          </div>
-          <div className="min-w-0">
-            <p style={{ color: S.text, fontSize: 14, fontWeight: 800, letterSpacing: "0.06em", textTransform: "uppercase", ...headingTextStyle }}>Friend match request</p>
-            <p style={{ color: S.textSoft, fontSize: 12, marginTop: 4 }}>
-                <span style={{ color: S.acid, fontWeight: 700 }}>{activeIncomingChallenge.challengerUsername}</span>
-                {activeIncomingChallenge.mode === "GROUP_FFA" ? " invited you to join a room." : " challenged you."}
-            </p>
-          </div>
-        </div>
-
-        <div style={{ position: "relative", marginTop: 14, borderRadius: 10, border: `1px solid ${S.border}`, background: S.panelSoft, padding: 12, fontSize: 12, lineHeight: 1.6 }}>
-          <p><span style={{ color: S.textDim }}>Mode:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.mode}</span></p>
-          <p><span style={{ color: S.textDim }}>Difficulty:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.difficulty}</span></p>
-          <p><span style={{ color: S.textDim }}>Problems:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.problemCount}</span></p>
-          {activeIncomingChallenge.durationMinutes > 0 && (
-            <p><span style={{ color: S.textDim }}>Time:</span> <span style={{ color: S.text }}>{activeIncomingChallenge.durationMinutes} min</span></p>
-          )}
-          {activeIncomingChallenge.roomCode && (
-            <p><span style={{ color: S.textDim }}>Room:</span> <span style={{ color: S.acid }}>{activeIncomingChallenge.roomCode}</span></p>
-          )}
-        </div>
-
-        <div className="flex gap-2" style={{ position: "relative", marginTop: 14 }}>
-          <button
-            disabled={actionLoading}
-            onClick={handleAccept}
-            style={{
-              height: 36,
-              padding: "0 12px",
-              borderRadius: 8,
-              border: "none",
-              background: S.green,
-              color: "#09090b",
-              fontSize: 11,
-              fontWeight: 900,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              opacity: actionLoading ? 0.5 : 1,
-            }}
-          >
-            Accept
-          </button>
-          <button
-            disabled={actionLoading}
-            onClick={handleReject}
-            style={{
-              height: 36,
-              padding: "0 12px",
-              borderRadius: 8,
-              border: `1px solid ${S.border}`,
-              background: "transparent",
-              fontSize: 11,
-              fontWeight: 700,
-              letterSpacing: "0.06em",
-              textTransform: "uppercase",
-              color: S.textSoft,
-              opacity: actionLoading ? 0.5 : 1,
-            }}
-          >
+    <ChallengeDialog
+      open
+      blockDismiss
+      title={isRoom ? "Room invite" : "Friend match request"}
+      description={`${activeIncomingChallenge.challengerUsername}${isRoom ? " invited you to join a room." : " challenged you."}`}
+      opponent={activeIncomingChallenge.challengerUsername}
+      footer={
+        <>
+          <Button variant="secondary" disabled={actionLoading} onClick={handleReject}>
             Reject
-          </button>
-        </div>
-
-        <div style={{ position: "relative", marginTop: 12, paddingTop: 10, borderTop: `1px solid ${S.border}` }}>
-          <p style={{ fontSize: 10, color: S.textDim, marginBottom: 8, letterSpacing: "0.06em", textTransform: "uppercase" }}>Don’t disturb me for:</p>
-          <div className="flex flex-wrap gap-2">
-            {[15, 30, 60].map((m) => (
-              <button
-                key={m}
-                disabled={actionLoading}
-                onClick={() => handleMute(m)}
-                style={{
-                  height: 30,
-                  padding: "0 10px",
-                  borderRadius: 7,
-                  border: `1px solid ${S.border}`,
-                  background: "transparent",
-                  color: S.textSoft,
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: "0.06em",
-                  textTransform: "uppercase",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  opacity: actionLoading ? 0.5 : 1,
-                }}
-              >
-                <VolumeX size={12} /> {m} min
-              </button>
-            ))}
-          </div>
+          </Button>
+          <Button variant="primary" disabled={actionLoading} onClick={handleAccept}>
+            Accept
+          </Button>
+        </>
+      }
+    >
+      <ChallengeDetails challenge={activeIncomingChallenge} />
+      <div className="mt-4 grid gap-2 border-t border-border pt-4">
+        <div className={labelCls}>Do not disturb for</div>
+        <div className="flex flex-wrap gap-2">
+          {[15, 30, 60].map((m) => (
+            <Button key={m} size="sm" variant="secondary" disabled={actionLoading} onClick={() => handleMute(m)}>
+              <VolumeX aria-hidden="true" /> {m} min
+            </Button>
+          ))}
         </div>
       </div>
-    </div>
+    </ChallengeDialog>
   );
 }

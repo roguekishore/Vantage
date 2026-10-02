@@ -5,7 +5,7 @@ import React, {
   useImperativeHandle,
   useMemo,
 } from "react";
-import { V } from "../../../components/visualizer/theme";
+import { T } from "./cfTheme";
 import { CodeFlowProvider, useCodeFlowContext } from "./CodeFlowContext";
 import { useMonacoHighlight } from "./useMonacoHighlight";
 import {
@@ -216,7 +216,7 @@ function CodeFlowPanelView({
         flexDirection: "column",
         height: "100%",
         minHeight: 0,
-        background: V.bg,
+        background: T.bg,
       }}
     >
       <FlowControlBar

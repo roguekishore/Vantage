@@ -1,6 +1,28 @@
 import React, { useEffect, useRef } from "react";
 import { observeElementResize } from "../../lib/observeResize";
-import { rgba, toRgb } from "../../lib/canvasTheme";
+import { rgba, toRgb, cssVar } from "../../lib/canvasTheme";
+import { prefersReducedMotion } from "../../hooks/useReducedMotion";
+
+// Theme + motion helpers (POLISH_PLAN §3.6, §3.9).
+// tok("accent-ink") -> the current theme's hex for that token (hex/rgba pass
+// through), re-read every frame so a theme toggle applies without a remount.
+export const tok = (c) => (typeof c === "string" && /^[a-z][a-z-]*$/.test(c) ? cssVar(c) : c);
+// Reduced motion: hold() lets one frame through, then only redraws when the
+// theme or the canvas size changes (one static frame, still theme-correct).
+export function makeMotionGate(canvas) {
+  const reduced = prefersReducedMotion();
+  let drawnKey = null;
+  return {
+    hold() {
+      if (!reduced) return false;
+      const key = `${document.documentElement.className}|${canvas.width}x${canvas.height}`;
+      if (key === drawnKey) return true;
+      drawnKey = key;
+      return false;
+    },
+  };
+}
+
 
 /* ═══════════════════════════════════════════════════════════════════
    MATH & COLOR UTILITIES
@@ -86,7 +108,7 @@ class Particle {
     ctx.save();
     ctx.globalAlpha = Math.max(0, this.life * 0.9);
     ctx.shadowColor = this.color;
-    ctx.shadowBlur = r * 4;
+    ctx.shadowBlur = 0;
     ctx.fillStyle = this.color;
     ctx.beginPath();
     ctx.arc(this.x, this.y, r, 0, Math.PI * 2);
@@ -174,21 +196,21 @@ export const ALGO_CONFIGS = {
   bfs: {
     nodes: GRAPH_NODES, edges: GRAPH_EDGES,
     steps: [0, 1, 2, 3, 4, 5, 6, 7],
-    color: "#38bdf8", label: "BFS", sub: "Breadth-First Search", complexity: "O(V+E)",
+    color: "accent-ink", label: "BFS", sub: "Breadth-First Search", complexity: "O(V+E)",
     desc: "Visits nodes level by level using a queue. Guarantees shortest path in unweighted graphs.",
     edgeWeights: null,
   },
   dfs: {
     nodes: GRAPH_NODES, edges: GRAPH_EDGES,
     steps: [0, 1, 4, 5, 2, 3, 6, 7],
-    color: "#a78bfa", label: "DFS", sub: "Depth-First Search", complexity: "O(V+E)",
+    color: "accent-ink", label: "DFS", sub: "Depth-First Search", complexity: "O(V+E)",
     desc: "Dives deep before backtracking. Powers cycle detection, topological sort, and maze solving.",
     edgeWeights: null,
   },
   inorder: {
     nodes: TREE_NODES, edges: TREE_EDGES,
     steps: [3, 1, 4, 0, 5, 2, 6],
-    color: "#34d399", label: "Inorder", sub: "BST Traversal", complexity: "O(n)",
+    color: "accent-ink", label: "Inorder", sub: "BST Traversal", complexity: "O(n)",
     desc: "Left → Root → Right through a BST yields a perfectly sorted sequence.",
     edgeWeights: null, isTree: true,
   },
@@ -196,14 +218,14 @@ export const ALGO_CONFIGS = {
     nodes: DIJKSTRA_NODES,
     edges: DIJKSTRA_EDGES_W.map(([a, b]) => [a, b]),
     steps: [0, 4, 1, 2, 5, 3],
-    color: "#fb923c", label: "Dijkstra", sub: "Shortest Path", complexity: "O(E log V)",
+    color: "accent-ink", label: "Dijkstra", sub: "Shortest Path", complexity: "O(E log V)",
     desc: "Greedy shortest-path using a min-heap. Foundation of GPS and routing.",
     edgeWeights: DIJKSTRA_EDGES_W.map(([a, b, w]) => ({ a, b, w })),
   },
   topo: {
     nodes: TOPO_NODES, edges: TOPO_EDGES,
     steps: [0, 1, 2, 3, 4, 5],
-    color: "#fbbf24", label: "Topo Sort", sub: "DAG Ordering", complexity: "O(V+E)",
+    color: "accent-ink", label: "Topo Sort", sub: "DAG Ordering", complexity: "O(V+E)",
     desc: "Orders a DAG so every edge points forward. Critical for scheduling and build systems.",
     edgeWeights: null, isDirected: true,
   },
@@ -211,14 +233,14 @@ export const ALGO_CONFIGS = {
     nodes: PRIM_NODES,
     edges: PRIM_EDGES_W.map(([a, b]) => [a, b]),
     steps: [0, 2, 4, 1, 3],
-    color: "#22d3ee", label: "Prim's", sub: "Min Spanning Tree", complexity: "O(E log V)",
+    color: "accent-ink", label: "Prim's", sub: "Min Spanning Tree", complexity: "O(E log V)",
     desc: "Grows a minimum spanning tree greedily from a seed node.",
     edgeWeights: PRIM_EDGES_W.map(([a, b, w]) => ({ a, b, w })),
   },
   bsearch: {
     nodes: [], edges: [],
     steps: [],
-    color: "#e879f9", label: "Binary Search", sub: "Divide & Conquer", complexity: "O(log n)",
+    color: "accent-ink", label: "Binary Search", sub: "Divide & Conquer", complexity: "O(log n)",
     desc: "Halves the search space every step. Finds any target in 50M items in 26 steps.",
     isBinarySearch: true, target: 31,
     values: [2, 7, 11, 15, 22, 31, 45],
@@ -226,14 +248,14 @@ export const ALGO_CONFIGS = {
   floydwarshall: {
     nodes: FW_NODES, edges: FW_EDGES_W.map(([a, b]) => [a, b]),
     steps: [0, 1, 2, 3],
-    color: "#f43f5e", label: "Floyd-Warshall", sub: "All-Pairs Shortest Path", complexity: "O(V³)",
+    color: "accent-ink", label: "Floyd-Warshall", sub: "All-Pairs Shortest Path", complexity: "O(V³)",
     desc: "Finds shortest paths between ALL pairs of nodes simultaneously.",
     edgeWeights: FW_EDGES_W.map(([a, b, w]) => ({ a, b, w })),
     isFloydWarshall: true,
   },
   slidingwindow: {
     nodes: [], edges: [], steps: [],
-    color: "#06b6d4", label: "Sliding Window", sub: "Array Pattern", complexity: "O(n)",
+    color: "accent-ink", label: "Sliding Window", sub: "Array Pattern", complexity: "O(n)",
     desc: "Moves a fixed-size window across an array to compute rolling answers in linear time.",
     isSlidingWindow: true,
     values: [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5],
@@ -241,7 +263,7 @@ export const ALGO_CONFIGS = {
   },
   twopointers: {
     nodes: [], edges: [], steps: [],
-    color: "#60a5fa", label: "Two Pointers", sub: "Array Pattern", complexity: "O(n)",
+    color: "accent-ink", label: "Two Pointers", sub: "Array Pattern", complexity: "O(n)",
     desc: "Moves left and right pointers inward on sorted arrays to find target pairs.",
     isTwoPointers: true,
     values: [1, 2, 4, 6, 8, 9, 11, 15],
@@ -249,7 +271,7 @@ export const ALGO_CONFIGS = {
   },
   kadane: {
     nodes: [], edges: [], steps: [],
-    color: "#c084fc", label: "Kadane", sub: "Dynamic Programming", complexity: "O(n)",
+    color: "accent-ink", label: "Kadane", sub: "Dynamic Programming", complexity: "O(n)",
     desc: "Tracks running best subarray in one pass: extend vs restart at each position.",
     isKadane: true,
     values: [-2, 1, -3, 4, -1, 2, 1, -5, 4],
@@ -258,14 +280,14 @@ export const ALGO_CONFIGS = {
     nodes: KRUSKAL_NODES,
     edges: KRUSKAL_EDGES_W.map(([a, b]) => [a, b]),
     steps: [],
-    color: "#2dd4bf", label: "Kruskal", sub: "Min Spanning Tree", complexity: "O(E log E)",
+    color: "accent-ink", label: "Kruskal", sub: "Min Spanning Tree", complexity: "O(E log E)",
     desc: "Sorts edges by weight and uses disjoint sets to build an MST without cycles.",
     edgeWeights: KRUSKAL_EDGES_W.map(([a, b, w]) => ({ a, b, w })),
     isKruskal: true,
   },
   heapsort: {
     nodes: [], edges: [], steps: [],
-    color: "#f97316", label: "Heap Sort", sub: "Sorting", complexity: "O(n log n)",
+    color: "accent-ink", label: "Heap Sort", sub: "Sorting", complexity: "O(n log n)",
     desc: "Builds a max-heap then repeatedly extracts max to the sorted tail.",
     isHeapSort: true,
     values: [7, 3, 12, 1, 9, 5, 10, 2, 8, 6, 4, 11],
@@ -276,10 +298,10 @@ export const ALGO_CONFIGS = {
    SHARED CANVAS DRAW HELPERS
 ═══════════════════════════════════════════════════════════════════ */
 function makeDrawHelpers(ctx, col, glowScale = 1) {
-  const glow = (color, blur) => { ctx.shadowColor = color; ctx.shadowBlur = blur * glowScale; };
+  const glow = (color, blur) => { ctx.shadowColor = color; ctx.shadowBlur = 0; };
   const noGlow = () => { ctx.shadowBlur = 0; ctx.shadowColor = "transparent"; };
 
-  const drawNode = (x, y, r, fillColor, strokeColor, label, glowBlur = 0, labelColor = "#fff", pulse = 0) => {
+  const drawNode = (x, y, r, fillColor, strokeColor, label, glowBlur = 0, labelColor = rgba("fg", 1), pulse = 0) => {
     ctx.save();
     // outer pulse ring
     if (pulse > 0) {
@@ -366,13 +388,13 @@ function makeDrawHelpers(ctx, col, glowScale = 1) {
     // draw bright travelled path
     ctx.strokeStyle = color;
     ctx.lineWidth = width;
-    ctx.shadowBlur = 14 * glowScale;
+    ctx.shadowBlur = 0;
     ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(ex, ey); ctx.stroke();
     // leading orb
     ctx.beginPath();
     ctx.arc(ex, ey, width + 2, 0, Math.PI * 2);
-    ctx.fillStyle = "#fff";
-    ctx.shadowBlur = 18 * glowScale;
+    ctx.fillStyle = rgba("fg", 1);
+    ctx.shadowBlur = 0;
     ctx.fill();
     noGlow();
     ctx.restore();
@@ -380,7 +402,7 @@ function makeDrawHelpers(ctx, col, glowScale = 1) {
 
   const drawWeightLabel = (mx, my, weight, active, color) => {
     const bg = active ? color : rgba("fg", 0.1);
-    const fg = active ? "#09090b" : rgba("fg", 0.5);
+    const fg = active ? rgba("bg", 1) : rgba("fg", 0.5);
     ctx.save();
     ctx.fillStyle = bg;
     ctx.beginPath();
@@ -425,13 +447,14 @@ export function AlgoCanvas({ algo }) {
       { threshold: 0.01 }
     );
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
     const W = () => canvas.offsetWidth;
     const H = () => canvas.offsetHeight;
     const px = (n) => ({ x: (n.x / 100) * W(), y: (n.y / 100) * H() });
-    const col = algo.color;
+    let col = tok(algo.color);
     const helpers = makeDrawHelpers(ctx, col, perf.glowScale);
 
     let animId, resetTimer;
@@ -600,7 +623,7 @@ export function AlgoCanvas({ algo }) {
           helpers.glow(col, 22);
           ctx.beginPath();
           ctx.arc(ox, oy, 4, 0, Math.PI * 2);
-          ctx.fillStyle = "#fff";
+          ctx.fillStyle = rgba("fg", 1);
           ctx.fill();
           ctx.beginPath();
           ctx.arc(ox, oy, 6, 0, Math.PI * 2);
@@ -626,10 +649,10 @@ export function AlgoCanvas({ algo }) {
             pulse = age < 1 ? easeOutCubic(age) : 0;
           }
 
-          const fillC = isVisited ? rgba(col, 0.15 + et * 0.7) : "rgba(10,10,20,0.6)";
+          const fillC = isVisited ? rgba(col, 0.15 + et * 0.7) : rgba("bg", 0.6);
           const strokeC = isVisited ? col : rgba("fg", 0.15);
           const glowB = isVisited ? 16 * et : 0;
-          const labelC = isVisited ? (et > 0.7 ? "#09090b" : rgba(col, et)) : rgba("fg", 0.3);
+          const labelC = isVisited ? (et > 0.7 ? rgba("bg", 1) : rgba(col, et)) : rgba("fg", 0.3);
           helpers.drawNode(x, y, r, fillC, strokeC, n.label, glowB, labelC, pulse);
 
           // Visit order badge
@@ -665,7 +688,7 @@ export function AlgoCanvas({ algo }) {
             ctx.roundRect(bx, startY, boxW, 14, 3);
             ctx.fill();
             ctx.stroke();
-            ctx.fillStyle = qi === 0 ? "#09090b" : rgba("fg", 0.6);
+            ctx.fillStyle = qi === 0 ? rgba("bg", 1) : rgba("fg", 0.6);
             ctx.font = "700 7px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[nid]?.label || "", bx + boxW / 2, startY + 7);
@@ -690,7 +713,7 @@ export function AlgoCanvas({ algo }) {
             ctx.beginPath();
             ctx.roundRect(bx, H() - 20, 18, 14, 3);
             ctx.fill(); ctx.stroke();
-            ctx.fillStyle = si === 0 ? "#09090b" : rgba("fg", 0.6);
+            ctx.fillStyle = si === 0 ? rgba("bg", 1) : rgba("fg", 0.6);
             ctx.font = "700 7px monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[nid]?.label || "", bx + 9, H() - 13);
@@ -875,7 +898,7 @@ export function AlgoCanvas({ algo }) {
         helpers.glow(col, 22);
         ctx.beginPath();
         ctx.arc(cursorPos.x, cursorPos.y, 5, 0, Math.PI * 2);
-        ctx.fillStyle = "#fff";
+        ctx.fillStyle = rgba("fg", 1);
         ctx.fill();
         ctx.beginPath();
         ctx.arc(cursorPos.x, cursorPos.y, 12, 0, Math.PI * 2);
@@ -892,10 +915,10 @@ export function AlgoCanvas({ algo }) {
           const orderIdx = visitOrder.indexOf(n.id);
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
 
-          const fillC = isVisited ? rgba(col, 0.1 + et * 0.75) : "rgba(10,10,20,0.6)";
+          const fillC = isVisited ? rgba(col, 0.1 + et * 0.75) : rgba("bg", 0.6);
           const strokeC = isVisited ? col : rgba("fg", 0.12);
           helpers.drawNode(x, y, isVisited ? 9 : 7.5, fillC, strokeC, n.label,
-            isVisited ? 14 * et : 0, isVisited && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.2, et)));
+            isVisited ? 14 * et : 0, isVisited && et > 0.6 ? rgba("bg", 1) : rgba(col, Math.max(0.2, et)));
 
           // order badge
           if (isVisited) {
@@ -1040,10 +1063,10 @@ export function AlgoCanvas({ algo }) {
           const isVisited = visitOrder.includes(n.id);
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
           helpers.drawNode(x, y, isVisited ? 9.5 : 7.5,
-            isVisited ? rgba(col, 0.15 + et * 0.7) : "rgba(10,10,20,0.6)",
+            isVisited ? rgba(col, 0.15 + et * 0.7) : rgba("bg", 0.6),
             isVisited ? col : rgba("fg", 0.15),
             n.label, isVisited ? 16 * et : 0,
-            isVisited && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.3, et)));
+            isVisited && et > 0.6 ? rgba("bg", 1) : rgba(col, Math.max(0.3, et)));
 
           // distance badge above node
           const d = distT[n.id];
@@ -1054,7 +1077,7 @@ export function AlgoCanvas({ algo }) {
           ctx.fillStyle = badgeColor;
           ctx.font = `700 ${dStr.length > 2 ? 6 : 7}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
-          if (isVisited) { ctx.shadowColor = col; ctx.shadowBlur = 6; }
+          if (isVisited) { ctx.shadowColor = col; ctx.shadowBlur = 0; }
           ctx.fillText(dStr, x, y - 14);
           ctx.restore();
         });
@@ -1133,10 +1156,10 @@ export function AlgoCanvas({ algo }) {
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
 
           helpers.drawNode(x, y, isVisited ? 9 : 7.5,
-            isVisited ? rgba(col, 0.12 + et * 0.72) : "rgba(10,10,20,0.6)",
+            isVisited ? rgba(col, 0.12 + et * 0.72) : rgba("bg", 0.6),
             isVisited ? col : rgba("fg", 0.15),
             n.label, isVisited ? 14 * et : 0,
-            isVisited && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.3, et)));
+            isVisited && et > 0.6 ? rgba("bg", 1) : rgba(col, Math.max(0.3, et)));
 
           if (isVisited) {
             ctx.save();
@@ -1272,10 +1295,10 @@ export function AlgoCanvas({ algo }) {
           const inMST = mstNodes.has(n.id);
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
           helpers.drawNode(x, y, inMST ? 9 : 7.5,
-            inMST ? rgba(col, 0.12 + et * 0.72) : "rgba(10,10,20,0.6)",
+            inMST ? rgba(col, 0.12 + et * 0.72) : rgba("bg", 0.6),
             inMST ? col : rgba("fg", 0.15),
             n.label, inMST ? 16 * et : 0,
-            inMST && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.3, et)));
+            inMST && et > 0.6 ? rgba("bg", 1) : rgba(col, Math.max(0.3, et)));
         });
 
         // cost display
@@ -1402,7 +1425,7 @@ export function AlgoCanvas({ algo }) {
           helpers.noGlow();
 
           // value
-          ctx.fillStyle = isFound ? "#09090b"
+          ctx.fillStyle = isFound ? rgba("bg", 1)
             : isMid ? rgba("fg", 1)
               : eliminated ? rgba("fg", 0.1)
                 : rgba("fg", 0.75);
@@ -1768,7 +1791,7 @@ export function AlgoCanvas({ algo }) {
           ctx.stroke();
           helpers.noGlow();
 
-          ctx.fillStyle = isFoundCell ? "#09090b"
+          ctx.fillStyle = isFoundCell ? rgba("bg", 1)
             : (isL || isR) ? rgba("fg", 1)
               : eliminated ? rgba("fg", 0.1)
                 : rgba("fg", 0.65);
@@ -1897,7 +1920,7 @@ export function AlgoCanvas({ algo }) {
           ctx.fillStyle = isActive ? col
             : inCur ? rgba(col, 0.6)
               : inBest ? rgba(col, 0.3)
-                : isPos ? rgba("fg", 0.1) : "rgba(248,113,113,0.3)";
+                : isPos ? rgba("fg", 0.1) : rgba("err", 0.3);
 
           const radii = isPos ? [3, 3, 0, 0] : [0, 0, 3, 3];
           ctx.beginPath();
@@ -2041,7 +2064,7 @@ export function AlgoCanvas({ algo }) {
           } else if (isRej) {
             ctx.save();
             ctx.setLineDash([2, 4]);
-            ctx.strokeStyle = "rgba(239,68,68,0.35)";
+            ctx.strokeStyle = rgba("err", 0.35);
             ctx.lineWidth = 0.8;
             ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y); ctx.stroke();
             ctx.setLineDash([]);
@@ -2066,7 +2089,7 @@ export function AlgoCanvas({ algo }) {
           // weight label
           if (ew) {
             ctx.save();
-            const labelCol = isAcc ? col : isRej ? "rgba(239,68,68,0.7)" : rgba("fg", 0.22);
+            const labelCol = isAcc ? col : isRej ? rgba("err", 0.7) : rgba("fg", 0.22);
             ctx.fillStyle = isAcc ? rgba(col, 0.9) : labelCol;
             ctx.font = "600 7px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
@@ -2084,10 +2107,10 @@ export function AlgoCanvas({ algo }) {
             return aa === nd.id || bb === nd.id;
           });
           helpers.drawNode(x, y, inMST ? 9.5 : 7.5,
-            inMST ? rgba(col, 0.75) : "rgba(10,10,20,0.7)",
+            inMST ? rgba(col, 0.75) : rgba("bg", 0.7),
             inMST ? col : rgba("fg", 0.18),
             nd.label, inMST ? 16 : 0,
-            inMST ? "#09090b" : rgba("fg", 0.4));
+            inMST ? rgba("bg", 1) : rgba("fg", 0.4));
         });
 
         // ── status ──
@@ -2116,7 +2139,7 @@ export function AlgoCanvas({ algo }) {
             ctx.font = "700 7px 'JetBrains Mono', monospace";
             ctx.fillText(`${nA.label}-${nB.label} (w=${curStep.w}) \u2713 ACCEPTED`, W() / 2, 6);
           } else {
-            ctx.fillStyle = "rgba(239,68,68,0.7)";
+            ctx.fillStyle = rgba("err", 0.7);
             ctx.font = "700 7px 'JetBrains Mono', monospace";
             ctx.fillText(`${nA.label}-${nB.label} (w=${curStep.w}) \u2717 CYCLE`, W() / 2, 6);
           }
@@ -2262,7 +2285,7 @@ export function AlgoCanvas({ algo }) {
           ctx.beginPath(); ctx.arc(bx, by, 4.5, 0, Math.PI * 2);
           ctx.fillStyle = col; ctx.fill();
           ctx.beginPath(); ctx.arc(bx, by, 2, 0, Math.PI * 2);
-          ctx.fillStyle = "#fff"; ctx.fill();
+          ctx.fillStyle = rgba("fg", 1); ctx.fill();
           helpers.noGlow();
           ctx.restore();
         }
@@ -2276,10 +2299,10 @@ export function AlgoCanvas({ algo }) {
           const isJ = focus && nd.id === focus.j;
           const highlight = isK ? 1 : (isI || isJ) ? 0.8 : 0;
           helpers.drawNode(x, y, 9,
-            isK ? "#f0ff00" : (isI || isJ) ? rgba(col, 0.7) : "rgba(10,10,20,0.7)",
-            isK ? "#f0ff00" : (isI || isJ) ? col : rgba("fg", 0.18),
+            isK ? rgba("fg", 0.9) : (isI || isJ) ? rgba(col, 0.7) : rgba("bg", 0.7),
+            isK ? rgba("fg", 0.9) : (isI || isJ) ? col : rgba("fg", 0.18),
             nd.label, isK ? 18 : (isI || isJ) ? 12 : 0,
-            (isK || (isI || isJ)) ? "#09090b" : rgba("fg", 0.45));
+            (isK || (isI || isJ)) ? rgba("bg", 1) : rgba("fg", 0.45));
         });
 
         // ── DISTANCE MATRIX SECTION ──
@@ -2306,7 +2329,7 @@ export function AlgoCanvas({ algo }) {
           const ry = matOffY + (i + 1) * cellSz + cellSz / 2;
           const isKCol = focus && focus.k === i;
           ctx.save();
-          ctx.fillStyle = isKCol ? "#f0ff00" : rgba("fg", 0.35);
+          ctx.fillStyle = isKCol ? rgba("fg", 0.9) : rgba("fg", 0.35);
           ctx.font = `${isKCol ? "700" : "500"} 7px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText(nodeLabels[i], cx, matOffY + cellSz / 2); // col header
@@ -2329,7 +2352,7 @@ export function AlgoCanvas({ algo }) {
             ctx.save();
             ctx.fillStyle = flash > 0 ? rgba(col, flash * 0.5)
               : isFocusCell ? rgba(col, 0.2)
-                : (isKRow || isKCol) ? "rgba(240,255,0,0.06)"
+                : (isKRow || isKCol) ? rgba(col, 0.06)
                   : i === j ? rgba("fg", 0.04)
                     : rgba("fg", 0.02);
             ctx.strokeStyle = flash > 0 ? rgba(col, flash * 0.8)
@@ -2514,8 +2537,9 @@ export function AlgoCanvas({ algo }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
       if (W() === 0 || H() === 0) return;
+      col = tok(algo.color);
       if (!ts0) ts0 = ts;
       render(ts - ts0);
     };
@@ -2548,7 +2572,7 @@ export function MergeSortCanvas() {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
-    const COLOR = "#34d399";
+    let COLOR = tok("accent-ink");
     const N = 20;
 
     const perf = getCanvasPerfProfile();
@@ -2568,6 +2592,7 @@ export function MergeSortCanvas() {
       { threshold: 0.01 }
     );
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -2606,7 +2631,7 @@ export function MergeSortCanvas() {
     let restartTimer = null, animId;
     let lastTs = 0;
 
-    const glow = (c, b) => { ctx.shadowColor = c; ctx.shadowBlur = b * perf.glowScale; };
+    const glow = (c, b) => { ctx.shadowColor = c; ctx.shadowBlur = 0; };
     const noGlow = () => { ctx.shadowBlur = 0; ctx.shadowColor = "transparent"; };
 
     const init = () => {
@@ -2621,9 +2646,10 @@ export function MergeSortCanvas() {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
       if (W() === 0 || H() === 0) return;
 
+      COLOR = tok("accent-ink");
       const dt = ts - lastTs;
 
       // throttle logic updates to ~24fps, but render every frame
@@ -2674,7 +2700,7 @@ export function MergeSortCanvas() {
         const rx1 = startX + lo * (bw + gap);
         const rx2 = startX + hi * (bw + gap) + bw;
         ctx.save();
-        ctx.fillStyle = `rgba(52,211,153,0.05)`;
+        ctx.fillStyle = rgba(COLOR, 0.05);
         ctx.fillRect(rx1 - 1, TOP_PAD, rx2 - rx1 + 2, maxBarH);
         ctx.restore();
 
@@ -2683,7 +2709,7 @@ export function MergeSortCanvas() {
           const lx1 = startX + lo * (bw + gap);
           const lx2 = startX + mid * (bw + gap) + bw;
           ctx.save();
-          ctx.fillStyle = `rgba(52,211,153,0.06)`;
+          ctx.fillStyle = rgba(COLOR, 0.06);
           ctx.fillRect(lx1, TOP_PAD, lx2 - lx1, maxBarH);
           ctx.restore();
         }
@@ -2703,8 +2729,8 @@ export function MergeSortCanvas() {
         ctx.save();
         if (isActive) { glow(COLOR, 16); }
         ctx.fillStyle = isActive ? COLOR
-          : inLeft ? `rgba(52,211,153,0.6)`
-            : inRight ? `rgba(52,211,153,0.32)`
+          : inLeft ? rgba(COLOR, 0.6)
+            : inRight ? rgba(COLOR, 0.32)
               : rgba("fg", 0.1);
 
         // bar rect from by going DOWN to baseY
@@ -2738,7 +2764,7 @@ export function MergeSortCanvas() {
         const rx = startX + hi * (bw + gap) + bw;
         ctx.save();
         glow(COLOR, 5);
-        ctx.strokeStyle = `rgba(52,211,153,0.5)`;
+        ctx.strokeStyle = rgba(COLOR, 0.5);
         ctx.lineWidth = 1;
         ctx.beginPath();
         ctx.moveTo(lx, baseY + 4);
@@ -2751,7 +2777,7 @@ export function MergeSortCanvas() {
         if (mid >= lo && mid < hi) {
           const mx = startX + mid * (bw + gap) + bw;
           ctx.save();
-          ctx.strokeStyle = `rgba(52,211,153,0.22)`;
+          ctx.strokeStyle = rgba(COLOR, 0.22);
           ctx.lineWidth = 0.8;
           ctx.setLineDash([2, 3]);
           ctx.beginPath();
@@ -2765,12 +2791,12 @@ export function MergeSortCanvas() {
 
       // labels
       ctx.save();
-      ctx.fillStyle = `rgba(52,211,153,0.6)`;
+      ctx.fillStyle = rgba(COLOR, 0.6);
       ctx.font = "700 8px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
       ctx.fillText("MERGE SORT", startX, H() - 4);
-      ctx.fillStyle = `rgba(52,211,153,0.28)`;
+      ctx.fillStyle = rgba(COLOR, 0.28);
       ctx.textAlign = "right";
       ctx.fillText(`${stepIdx}/${steps.length}`, W() - startX, H() - 4);
       ctx.restore();

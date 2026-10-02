@@ -2,7 +2,29 @@ import React, { useEffect, useRef } from "react";
 import { observeElementResize } from "../../lib/observeResize";
 // rgba(tokenOrHex, a): rgba("fg", 0.1) reads --fg-rgb at call time, so a
 // theme toggle applies on the next frame without a remount.
-import { rgba } from "../../lib/canvasTheme";
+import { rgba, cssVar } from "../../lib/canvasTheme";
+import { prefersReducedMotion } from "../../hooks/useReducedMotion";
+
+// Theme + motion helpers (POLISH_PLAN §3.6, §3.9).
+// tok("accent-ink") -> the current theme's hex for that token (hex/rgba pass
+// through), re-read every frame so a theme toggle applies without a remount.
+const tok = (c) => (typeof c === "string" && /^[a-z][a-z-]*$/.test(c) ? cssVar(c) : c);
+// Reduced motion: hold() lets one frame through, then only redraws when the
+// theme or the canvas size changes (one static frame, still theme-correct).
+function makeMotionGate(canvas) {
+  const reduced = prefersReducedMotion();
+  let drawnKey = null;
+  return {
+    hold() {
+      if (!reduced) return false;
+      const key = `${document.documentElement.className}|${canvas.width}x${canvas.height}`;
+      if (key === drawnKey) return true;
+      drawnKey = key;
+      return false;
+    },
+  };
+}
+
 
 
 const keyOf = (x, y) => `${x},${y}`;
@@ -24,7 +46,7 @@ function getCanvasPerfProfile() {
 
 export const MID_ANIMATONS_CONFIGS = {
   astar: {
-    color: "#60a5fa",
+    color: "accent-ink",
     label: "A* Pathfinding",
     sub: "Graph Search",
     complexity: "O(E)",
@@ -32,7 +54,7 @@ export const MID_ANIMATONS_CONFIGS = {
     isAStar: true,
   },
   unionfind: {
-    color: "#34d399",
+    color: "accent-ink",
     label: "Union-Find",
     sub: "Disjoint Set Union",
     complexity: "~O(α(n))",
@@ -40,7 +62,7 @@ export const MID_ANIMATONS_CONFIGS = {
     isUnionFind: true,
   },
   kmp: {
-    color: "#f59e0b",
+    color: "accent-ink",
     label: "KMP",
     sub: "String Matching",
     complexity: "O(n+m)",
@@ -48,7 +70,7 @@ export const MID_ANIMATONS_CONFIGS = {
     isKmp: true,
   },
   palindrome: {
-    color: "#a78bfa",
+    color: "accent-ink",
     label: "Longest Palindrome",
     sub: "String",
     complexity: "O(n²)",
@@ -403,7 +425,7 @@ function buildAStarSteps(cols, rows) {
   return { steps, walls, start, goal, cols, rows };
 }
 
-export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
+export function MidAnimatonsCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -411,6 +433,7 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
     if (!canvas) return;
 
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -427,6 +450,7 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
     let isPageVisible = document.visibilityState !== "hidden";
     const io = new IntersectionObserver(([entry]) => { isInView = !!entry?.isIntersecting; }, { threshold: 0.01 });
     io.observe(canvas);
+    const gate = makeMotionGate(canvas);
     const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -446,7 +470,7 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
 
     const glow = (blur = 10, c = color) => {
       ctx.shadowColor = c;
-      ctx.shadowBlur = blur * perf.glowScale;
+      ctx.shadowBlur = 0;
     };
     const noGlow = () => {
       ctx.shadowBlur = 0;
@@ -462,7 +486,8 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
-      if (!isInView || !isPageVisible) return;
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       if (W() === 0 || H() === 0) return;
 
       clearCanvas();
@@ -508,18 +533,18 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
 
           ctx.save();
           if (walls.has(k)) {
-            ctx.fillStyle = "rgba(20,20,26,0.95)";
+            ctx.fillStyle = rgba("surface", 0.95);
           } else if (k === keyOf(start.x, start.y)) {
-            ctx.fillStyle = "rgba(52,211,153,0.9)";
+            ctx.fillStyle = rgba("ok", 0.9);
           } else if (k === keyOf(goal.x, goal.y)) {
-            ctx.fillStyle = "rgba(248,113,113,0.9)";
+            ctx.fillStyle = rgba("err", 0.9);
           } else if (k === state.current) {
             glow(8);
             ctx.fillStyle = rgba(color, 0.88);
           } else if (openSet.has(k)) {
             ctx.fillStyle = rgba(color, 0.28);
           } else if (closedSet.has(k)) {
-            ctx.fillStyle = "rgba(99,102,241,0.25)";
+            ctx.fillStyle = rgba("fg", 0.12);
           } else {
             ctx.fillStyle = rgba("fg", 0.06);
           }
@@ -587,18 +612,19 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
       io.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function UnionFindCanvas({ color = "#34d399" }) {
+export function UnionFindCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -610,6 +636,18 @@ export function UnionFindCanvas({ color = "#34d399" }) {
     setup();
     const stopResizeObserver = observeElementResize(canvas, setup);
 
+    // Pause off-screen and in background tabs (IntersectionObserver + visibility).
+    let isInView = true;
+    let isPageVisible = document.visibilityState !== "hidden";
+    const io = new IntersectionObserver(
+      ([entry]) => { isInView = !!entry?.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    io.observe(canvas);
+    const gate = makeMotionGate(canvas);
+    const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
     const steps = buildUnionFindSteps(8);
     let idx = 0;
     let state = steps[0];
@@ -620,6 +658,8 @@ export function UnionFindCanvas({ color = "#34d399" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       const W = canvas.offsetWidth;
       const H = canvas.offsetHeight;
       if (!W || !H) return;
@@ -664,16 +704,16 @@ export function UnionFindCanvas({ color = "#34d399" }) {
         const root = state.parent[i] === i;
         const active = state.active.includes(i);
         ctx.save();
-        ctx.fillStyle = root ? "rgba(52,211,153,0.9)" : rgba(color, 0.65);
+        ctx.fillStyle = root ? rgba("ok", 0.9) : rgba(color, 0.65);
         if (active) {
           ctx.shadowColor = color;
-          ctx.shadowBlur = 12 * perf.glowScale;
+          ctx.shadowBlur = 0;
         }
         ctx.beginPath();
         ctx.arc(pos[i].x, pos[i].y, active ? 11 : 9, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.fillStyle = "#09090b";
+        ctx.fillStyle = rgba("bg", 1);
         ctx.font = "700 8px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -697,19 +737,22 @@ export function UnionFindCanvas({ color = "#34d399" }) {
       cancelAnimationFrame(animId);
       if (resetTimer) clearTimeout(resetTimer);
       stopResizeObserver();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function KmpCanvas({ color = "#f59e0b" }) {
+export function KmpCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -720,6 +763,18 @@ export function KmpCanvas({ color = "#f59e0b" }) {
     };
     setup();
     const stopResizeObserver = observeElementResize(canvas, setup);
+
+    // Pause off-screen and in background tabs (IntersectionObserver + visibility).
+    let isInView = true;
+    let isPageVisible = document.visibilityState !== "hidden";
+    const io = new IntersectionObserver(
+      ([entry]) => { isInView = !!entry?.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    io.observe(canvas);
+    const gate = makeMotionGate(canvas);
+    const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const text = "ABABDABACDABABCABAB";
     const pattern = "ABABCABAB";
@@ -734,6 +789,8 @@ export function KmpCanvas({ color = "#f59e0b" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       const W = canvas.offsetWidth;
       const H = canvas.offsetHeight;
       if (!W || !H) return;
@@ -777,7 +834,7 @@ export function KmpCanvas({ color = "#f59e0b" }) {
       for (let j = 0; j < pattern.length; j++) {
         const x = tx + (align + j) * cell;
         if (x < tx || x > tx + text.length * cell - cell) continue;
-        ctx.fillStyle = j === state.j ? rgba(color, 0.85) : "rgba(245,158,11,0.22)";
+        ctx.fillStyle = j === state.j ? rgba(color, 0.85) : rgba(color, 0.22);
         ctx.fillRect(x, py, cell - 1, cell - 1);
         ctx.fillStyle = rgba("fg", 0.95);
         ctx.font = "700 9px 'JetBrains Mono', monospace";
@@ -803,7 +860,7 @@ export function KmpCanvas({ color = "#f59e0b" }) {
       }
 
       if (state.kind === "found" || foundFlash > 0) {
-        ctx.fillStyle = `rgba(52,211,153,${0.75 * Math.max(foundFlash, 0.4)})`;
+        ctx.fillStyle = rgba("ok", 0.75 * Math.max(foundFlash, 0.4));
         ctx.font = "700 8px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.fillText(`MATCH @ ${state.foundAt ?? "?"}`, W / 2, ly + 28);
@@ -824,19 +881,22 @@ export function KmpCanvas({ color = "#f59e0b" }) {
       cancelAnimationFrame(animId);
       if (resetTimer) clearTimeout(resetTimer);
       stopResizeObserver();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function SegmentTreeCanvas({ color = "#a78bfa" }) {
+export function SegmentTreeCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -847,6 +907,18 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
     };
     setup();
     const stopResizeObserver = observeElementResize(canvas, setup);
+
+    // Pause off-screen and in background tabs (IntersectionObserver + visibility).
+    let isInView = true;
+    let isPageVisible = document.visibilityState !== "hidden";
+    const io = new IntersectionObserver(
+      ([entry]) => { isInView = !!entry?.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    io.observe(canvas);
+    const gate = makeMotionGate(canvas);
+    const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const model = buildSegmentTreeModel();
     const { root, nodes, events, arrSize } = model;
@@ -871,6 +943,8 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       const W = canvas.offsetWidth;
       const H = canvas.offsetHeight;
       if (!W || !H) return;
@@ -918,13 +992,13 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
         ctx.fillStyle = isActive ? rgba(color, 0.9) : rgba("fg", 0.12);
         if (isActive) {
           ctx.shadowColor = color;
-          ctx.shadowBlur = 12 * perf.glowScale;
+          ctx.shadowBlur = 0;
         }
         ctx.beginPath();
         ctx.arc(x, y, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.fillStyle = isActive ? "#09090b" : rgba("fg", 0.85);
+        ctx.fillStyle = isActive ? rgba("bg", 1) : rgba("fg", 0.85);
         ctx.font = "700 7px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -962,19 +1036,22 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
       cancelAnimationFrame(animId);
       if (resetTimer) clearTimeout(resetTimer);
       stopResizeObserver();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
-export function PalindromeCanvas({ color = "#a78bfa" }) {
+export function PalindromeCanvas({ color: colorToken = "accent-ink" }) {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d", { alpha: true, desynchronized: true });
+    let color = tok(colorToken);
     const perf = getCanvasPerfProfile();
     const dpr = Math.min(window.devicePixelRatio || 1, perf.dprCap);
 
@@ -985,6 +1062,18 @@ export function PalindromeCanvas({ color = "#a78bfa" }) {
     };
     setup();
     const stopResizeObserver = observeElementResize(canvas, setup);
+
+    // Pause off-screen and in background tabs (IntersectionObserver + visibility).
+    let isInView = true;
+    let isPageVisible = document.visibilityState !== "hidden";
+    const io = new IntersectionObserver(
+      ([entry]) => { isInView = !!entry?.isIntersecting; },
+      { threshold: 0.01 }
+    );
+    io.observe(canvas);
+    const gate = makeMotionGate(canvas);
+    const onVisibilityChange = () => { isPageVisible = document.visibilityState !== "hidden"; };
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     const str = "forgeeksskeegforlevelmadam";
     const events = buildPalindromeEvents(str);
@@ -998,6 +1087,8 @@ export function PalindromeCanvas({ color = "#a78bfa" }) {
 
     const loop = (ts) => {
       animId = requestAnimationFrame(loop);
+      if (!isInView || !isPageVisible || gate.hold()) return;
+      color = tok(colorToken);
       const W = canvas.offsetWidth;
       const H = canvas.offsetHeight;
       if (!W || !H) return;
@@ -1034,7 +1125,7 @@ export function PalindromeCanvas({ color = "#a78bfa" }) {
         if (inBest) {
           ctx.fillStyle = rgba(color, 0.7 + pulse * 0.2);
           ctx.shadowColor = color;
-          ctx.shadowBlur = (10 + pulse * 8) * perf.glowScale;
+          ctx.shadowBlur = 0;
         } else if (inWindow) {
           ctx.fillStyle = rgba(color, 0.35);
         } else {
@@ -1082,24 +1173,26 @@ export function PalindromeCanvas({ color = "#a78bfa" }) {
       cancelAnimationFrame(animId);
       if (resetTimer) clearTimeout(resetTimer);
       stopResizeObserver();
+      io.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [color]);
+  }, [colorToken]);
 
   return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", contain: "strict" }} />;
 }
 
 export function MidAnimatonsAlgoCanvas({ algo }) {
   if (algo?.isAStar) {
-    return <MidAnimatonsCanvas color={algo.color || "#60a5fa"} />;
+    return <MidAnimatonsCanvas color={algo.color || "accent-ink"} />;
   }
   if (algo?.isUnionFind) {
-    return <UnionFindCanvas color={algo.color || "#34d399"} />;
+    return <UnionFindCanvas color={algo.color || "accent-ink"} />;
   }
   if (algo?.isKmp) {
-    return <KmpCanvas color={algo.color || "#f59e0b"} />;
+    return <KmpCanvas color={algo.color || "accent-ink"} />;
   }
   if (algo?.isPalindrome) {
-    return <PalindromeCanvas color={algo.color || "#a78bfa"} />;
+    return <PalindromeCanvas color={algo.color || "accent-ink"} />;
   }
   return null;
 }

@@ -1,5 +1,5 @@
 import React from "react";
-import { V, MONO } from "../../../components/visualizer/theme";
+import { T, MONO } from "./cfTheme";
 import { useCodeFlowContext } from "./CodeFlowContext";
 
 /**
@@ -56,23 +56,21 @@ export default function FlowBlock({ node, activeBlockIds, depth = 0, currentStep
           padding: "6px 10px",
           marginBottom: 4,
           cursor: "pointer",
-          background: isActive ? V.accentDim : style.bg,
-          borderLeft: `3px solid ${isActive ? V.accent : style.border}`,
-          border: `1px solid ${isActive ? V.accentMid : V.border}`,
-          borderLeftWidth: 3,
-          boxShadow: isActive ? `0 0 10px ${V.accentDim}` : "none",
-          transition: "background 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease",
+          background: isActive ? T.accentSoft : style.bg,
+          border: `1px solid ${isActive ? T.accentInk : T.border}`,
+          borderLeft: `3px solid ${isActive ? T.accentInk : style.border}`,
+          transition: "background-color 120ms ease-out, border-color 120ms ease-out",
         }}
       >
         {/* type tag */}
         <span
           style={{
             fontFamily: MONO,
-            fontSize: 9,
-            fontWeight: 700,
-            letterSpacing: "0.14em",
+            fontSize: 10,
+            fontWeight: 500,
+            letterSpacing: "0.08em",
             textTransform: "uppercase",
-            color: isActive ? V.accent : style.tag,
+            color: isActive ? T.accentInk : style.tag,
             flexShrink: 0,
           }}
         >
@@ -84,7 +82,7 @@ export default function FlowBlock({ node, activeBlockIds, depth = 0, currentStep
           style={{
             fontFamily: MONO,
             fontSize: 12,
-            color: isActive ? V.textBright : V.text,
+            color: T.fg,
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -102,11 +100,11 @@ export default function FlowBlock({ node, activeBlockIds, depth = 0, currentStep
               fontFamily: MONO,
               fontSize: 10,
               fontWeight: 700,
-              color: V.accent,
-              background: V.accentDim,
-              border: `1px solid ${V.accentMid}`,
+              fontVariantNumeric: "tabular-nums",
+              color: T.accentInk,
+              background: T.accentSoft,
+              border: `1px solid ${T.accentInk}`,
               padding: "1px 6px",
-              borderRadius: 2,
               flexShrink: 0,
             }}
           >
@@ -133,18 +131,20 @@ export default function FlowBlock({ node, activeBlockIds, depth = 0, currentStep
 }
 
 /**
- * Per-BlockType visual tokens, sourced from the shared visualizer theme.
+ * Per-BlockType visual tokens. Mono by design (status colours carry meaning
+ * only, §3.1): the type tag names the block, the active path is accent-ink.
  * @type {Record<string, {bg: string, border: string, tag: string}>}
  */
+const BASE = { bg: T.surface, border: T.borderStrong, tag: T.fgMuted };
 const BLOCK_STYLES = {
-  program: { bg: V.surface, border: V.borderHi, tag: V.dim },
-  function: { bg: V.greenDim, border: V.green, tag: V.green },
-  loop: { bg: V.purpleDim, border: V.purple, tag: V.purple },
-  conditional: { bg: V.amberDim, border: V.amber, tag: V.amber },
-  declaration: { bg: V.blueDim, border: V.blue, tag: V.blue },
-  assignment: { bg: V.cyanDim, border: V.cyan, tag: V.cyan },
-  call: { bg: V.greenDim, border: V.green, tag: V.green },
-  io: { bg: V.accentDim, border: V.accentMid, tag: V.accent },
-  return: { bg: V.redDim, border: V.red, tag: V.red },
-  block: { bg: V.elevated, border: V.border, tag: V.dim },
+  program: { bg: T.bg, border: T.border, tag: T.fgDim },
+  function: BASE,
+  loop: BASE,
+  conditional: BASE,
+  declaration: BASE,
+  assignment: BASE,
+  call: BASE,
+  io: BASE,
+  return: BASE,
+  block: { bg: T.surface, border: T.border, tag: T.fgDim },
 };

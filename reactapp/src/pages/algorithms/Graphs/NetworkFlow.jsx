@@ -239,6 +239,7 @@ const NetworkFlow = () => {
 
   return (
     <div className="bg-theme-primary text-theme-primary min-h-screen">
+      <h1 className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 text-2xl font-bold">Network Flow</h1>
       {/* Full-width Algorithm Info below editor */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 mt-10 pb-10">
         <div className="bg-theme-secondary/50 rounded-xl p-5 border border-theme-secondary">

@@ -1,105 +1,40 @@
 /* ========================================
-   DSA CONQUEST MAP
-   SVG country states (UNCHANGED) + new chrome
+   VANTAGE MAP (/map)
+   Country states, marker, grid and popup placement. Every colour is a
+   design token (src/styles/tokens.css), so the map repaints on a theme
+   toggle without a reload (POLISH_PLAN §6.1).
    ======================================== */
 
-/* ── CSS variables ── */
+/* ── Map tokens (derived from the global tokens, flip with the theme) ── */
 .skill-tree-wrapper {
-  --wm-grid:         rgba(255, 255, 255, 0.04);
-  --worldmap-icons:  rgba(255, 255, 255, 0.65);
-  --wm-yellow:       #EDFF66;
-  --wm-purple:       #7c3aed;
-  --wm-purple-light: #a78bfa;
+  --wm-sea:              var(--bg);
+  --wm-land:             var(--surface);
+  --wm-land-stroke:      var(--border);
+  --wm-locked:           var(--elevated);
+  --wm-locked-stroke:    var(--border);
+  --wm-available:        rgb(var(--fg-rgb) / 0.16);
+  --wm-available-hover:  rgb(var(--fg-rgb) / 0.26);
+  --wm-available-stroke: var(--border-strong);
+  --wm-current-fill:     var(--accent);
+  --wm-current-stroke:   var(--fg);
+  /* Stage colours fail 3:1 against the land in at least one theme, so the
+     completed stroke uses the accent ink instead (POLISH_PLAN §6). */
+  --wm-completed:        var(--accent-soft);
+  --wm-completed-stroke: var(--accent-ink);
+  --wm-selected-stroke:  var(--fg);
+  --wm-grid:             rgb(var(--fg-rgb) / 0.05);
+
+  height:     100vh;
+  height:     100dvh;
+  background: var(--wm-sea);
+  color:      var(--fg);
 }
 
-/* Light theme override for grid */
-.light .skill-tree-wrapper {
-  --wm-grid: rgba(0, 0, 0, 0.05);
-}
-
-/* ── Lucide icon color override for dock ── */
-.skill-tree-wrapper .lucide {
-  color: var(--worldmap-icons) !important;
-}
-.skill-tree-wrapper .lucide path,
-.skill-tree-wrapper .lucide line,
-.skill-tree-wrapper .lucide circle,
-.skill-tree-wrapper .lucide polyline,
-.skill-tree-wrapper .lucide rect {
-  fill:   none !important;
-  stroke: var(--worldmap-icons) !important;
-}
-
-/* ── Dock icon classes kept from original ── */
-.wm-icon { color: var(--worldmap-icons) !important; }
-.wm-icon-purple { color: var(--wm-purple) !important; }
-
-/* ═══════════════════════════════════════
-   SIDEBAR BUTTON SYSTEM (new)
-   ═══════════════════════════════════════ */
-
-.wm-sidebar-btn {
-  display:         flex;
-  align-items:     center;
-  justify-content: center;
-  width:           36px;
-  height:          36px;
-  border-radius:   10px;
-  background:      rgba(255, 255, 255, 0.04);
-  border:          1px solid rgba(255, 255, 255, 0.07);
-  color:           rgba(255, 255, 255, 0.4);
-  cursor:          pointer;
-  transition:      color 0.15s, border-color 0.15s, background 0.15s;
-  flex-shrink:     0;
-}
-.wm-sidebar-btn:hover {
-  color:        rgba(255, 255, 255, 0.9);
-  border-color: rgba(255, 255, 255, 0.14);
-  background:   rgba(255, 255, 255, 0.07);
-}
-
-.wm-sidebar-btn--accent {
-  background:   rgba(196, 181, 253, 0.1) !important;
-  border-color: rgba(196, 181, 253, 0.2) !important;
-  color:        #c4b5fd !important;
-}
-.wm-sidebar-btn--accent:hover {
-  background:   rgba(196, 181, 253, 0.18) !important;
-  border-color: rgba(196, 181, 253, 0.35) !important;
-}
-
-.wm-sidebar-btn--active {
-  background:   rgba(196, 181, 253, 0.12) !important;
-  border-color: rgba(196, 181, 253, 0.3) !important;
-  color:        #c4b5fd !important;
-}
-
-.wm-sidebar-btn--danger:hover {
-  color:        #f87171 !important;
-  border-color: rgba(248, 113, 113, 0.3) !important;
-  background:   rgba(248, 113, 113, 0.08) !important;
-}
-
-.wm-sidebar-btn--text {
-  font-size:      9px;
-  font-weight:    900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-/* ── HUD pulsing dot ── */
-.wm-hud-dot {
-  width:         6px;
-  height:        6px;
-  border-radius: 50%;
-  background:    #EDFF66;
-  box-shadow:    0 0 8px rgba(237, 255, 102, 0.6);
-  animation:     hudPulse 2.5s ease-in-out infinite;
-}
-
-@keyframes hudPulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(237, 255, 102, 0.6); }
-  50%       { opacity: 0.5; box-shadow: 0 0 4px rgba(237, 255, 102, 0.3); }
+/* ── Background grid (inline SVG pattern) ── */
+.skill-tree-wrapper .wm-grid-line {
+  fill:         none;
+  stroke:       var(--wm-grid);
+  stroke-width: 1;
 }
 
 /* ═══════════════════════════════════════
@@ -111,8 +46,8 @@
 }
 
 .skill-tree-wrapper.high-res-mode .world-svg path {
-  contain: none;
-  transition: fill 0.2s ease, opacity 0.2s ease;
+  contain:    none;
+  transition: fill 120ms ease-out, stroke 120ms ease-out;
 }
 .skill-tree-wrapper.high-res-mode .map-container,
 .skill-tree-wrapper.high-res-mode .world-svg {
@@ -125,126 +60,89 @@
 }
 
 /* ═══════════════════════════════════════
-   COUNTRY STATES - DARK (default)
+   COUNTRY STATES (one rule set, both themes)
    ═══════════════════════════════════════ */
 
-/* Placeholder / unmapped */
+/* Placeholder / unmapped land */
 .skill-tree-wrapper .world-svg path.country-placeholder,
 .skill-tree-wrapper .world-svg path:not(.country-placeholder):not(.country-completed):not(.country-current):not(.country-available):not(.country-locked) {
-  fill:         #27272a;
-  opacity:      0.8;
-  stroke:       #3f3f46;
-  stroke-width: 0.6;
-  cursor:       default;
-}
-
-/* Completed */
-.skill-tree-wrapper .world-svg path.country-completed {
-  fill:         var(--topic-color, #a1a1aa);
-  opacity:      0.95;
-  stroke:       #09090b;
-  stroke-width: 0.8;
-  cursor:       pointer;
-}
-.skill-tree-wrapper .world-svg path.country-completed:hover {
-  opacity: 1;
-  filter:  brightness(1.2);
-}
-
-/* Current */
-.skill-tree-wrapper .world-svg path.country-current {
-  fill:         var(--wm-yellow);
-  opacity:      1;
-  stroke:       var(--wm-purple);
-  stroke-width: 2;
-  cursor:       pointer;
-  filter:       drop-shadow(0 0 8px rgba(124, 58, 237, 0.55));
-}
-.skill-tree-wrapper .world-svg path.country-current:hover {
-  opacity: 0.9;
-}
-
-/* Available */
-.skill-tree-wrapper .world-svg path.country-available {
-  fill:         #d4d4d8;
-  opacity:      1;
-  stroke:       var(--topic-color, #a1a1aa);
-  stroke-width: 1.4;
-  cursor:       pointer;
-}
-.skill-tree-wrapper .world-svg path.country-available:hover {
-  opacity: 1;
-  fill:    #e4e4e7;
-  filter:  brightness(1.1);
-}
-
-/* Locked */
-.skill-tree-wrapper .world-svg path.country-locked {
-  fill:         #27272a;
-  opacity:      0.65;
-  stroke:       #3f3f46;
-  stroke-width: 0.6;
-  cursor:       not-allowed;
-}
-
-/* ═══════════════════════════════════════
-   COUNTRY STATES - LIGHT THEME
-   ═══════════════════════════════════════ */
-
-.light .skill-tree-wrapper .world-svg path.country-placeholder,
-.light .skill-tree-wrapper .world-svg path:not(.country-placeholder):not(.country-completed):not(.country-current):not(.country-available):not(.country-locked) {
-  fill:         #d4d4d8;
-  opacity:      0.70;
-  stroke:       #a1a1aa;
+  fill:         var(--wm-land);
+  stroke:       var(--wm-land-stroke);
   stroke-width: 0.5;
   cursor:       default;
 }
 
-.light .skill-tree-wrapper .world-svg path.country-completed {
-  fill:         var(--topic-color, #71717a);
-  opacity:      0.95;
-  stroke:       #ffffff;
-  stroke-width: 1;
-  cursor:       pointer;
-  filter:       saturate(1.2);
-}
-.light .skill-tree-wrapper .world-svg path.country-completed:hover {
-  opacity: 1;
-  filter:  saturate(1.4) brightness(1.1);
-}
-
-.light .skill-tree-wrapper .world-svg path.country-current {
-  fill:         var(--wm-yellow);
-  opacity:      1;
-  stroke:       var(--wm-purple);
-  stroke-width: 2.5;
-  cursor:       pointer;
-  filter:       drop-shadow(0 0 6px rgba(124, 58, 237, 0.45));
-}
-.light .skill-tree-wrapper .world-svg path.country-current:hover {
-  opacity: 0.95;
-  filter:  drop-shadow(0 0 10px rgba(124, 58, 237, 0.6));
-}
-
-.light .skill-tree-wrapper .world-svg path.country-available {
-  fill:         #93939e;
-  opacity:      1;
-  stroke:       var(--topic-color, #71717a);
-  stroke-width: 1.4;
-  cursor:       pointer;
-}
-.light .skill-tree-wrapper .world-svg path.country-available:hover {
-  opacity: 1;
-  fill:    #71717a;
-  filter:  brightness(0.95);
-}
-
-.light .skill-tree-wrapper .world-svg path.country-locked {
-  fill:         #e4e4e7;
-  opacity:      0.75;
-  stroke:       #a1a1aa;
+/* Locked */
+.skill-tree-wrapper .world-svg path.country-locked {
+  fill:         var(--wm-locked);
+  stroke:       var(--wm-locked-stroke);
   stroke-width: 0.6;
   cursor:       not-allowed;
+}
+
+/* Available */
+.skill-tree-wrapper .world-svg path.country-available {
+  fill:         var(--wm-available);
+  stroke:       var(--wm-available-stroke);
+  stroke-width: 1;
+  cursor:       pointer;
+}
+.skill-tree-wrapper .world-svg path.country-available:hover {
+  fill:   var(--wm-available-hover);
+  stroke: var(--fg);
+}
+
+/* Current */
+.skill-tree-wrapper .world-svg path.country-current {
+  fill:         var(--wm-current-fill);
+  stroke:       var(--wm-current-stroke);
+  stroke-width: 2;
+  cursor:       pointer;
+}
+
+/* Completed: accent-soft fill, 2-unit accent-ink stroke */
+.skill-tree-wrapper .world-svg path.country-completed {
+  fill:         var(--wm-completed);
+  stroke:       var(--wm-completed-stroke);
+  stroke-width: 2;
+  cursor:       pointer;
+}
+.skill-tree-wrapper .world-svg path.country-completed:hover {
+  stroke: var(--fg);
+}
+
+/* Selected (popup open). Declared last so it wins over the state stroke. */
+.skill-tree-wrapper .world-svg path.country-selected {
+  stroke:       var(--wm-selected-stroke);
+  stroke-width: 3;
+}
+
+/* ═══════════════════════════════════════
+   LEGEND SWATCHES (same tokens as the paths)
+   ═══════════════════════════════════════ */
+
+.skill-tree-wrapper .wm-swatch {
+  display:     inline-block;
+  width:       12px;
+  height:      12px;
+  flex-shrink: 0;
+  border:      1px solid transparent;
+}
+.skill-tree-wrapper .wm-swatch--locked {
+  background:   var(--wm-locked);
+  border-color: var(--border-strong);
+}
+.skill-tree-wrapper .wm-swatch--available {
+  background:   var(--wm-available);
+  border-color: var(--wm-available-stroke);
+}
+.skill-tree-wrapper .wm-swatch--current {
+  background:   var(--wm-current-fill);
+  border-color: var(--wm-current-stroke);
+}
+.skill-tree-wrapper .wm-swatch--completed {
+  background:   var(--wm-completed);
+  border:       2px solid var(--wm-completed-stroke);
 }
 
 /* ═══════════════════════════════════════
@@ -279,29 +177,56 @@
 }
 
 /* ═══════════════════════════════════════
-   POSITION MARKER
+   POSITION MARKER (static, no pulse)
    ═══════════════════════════════════════ */
 
-.skill-tree-wrapper .pulse-ring {
-  animation: pulseRing 2s infinite;
+.skill-tree-wrapper .wm-marker {
+  position:       absolute;
+  inset:          0;
+  width:          100%;
+  height:         100%;
+  pointer-events: none;
+  overflow:       visible;
 }
-
-@keyframes pulseRing {
-  0%   { r: 12; opacity: 0.5; }
-  50%  { r: 20; opacity: 0.15; }
-  100% { r: 12; opacity: 0.5; }
+.skill-tree-wrapper .wm-marker-ring {
+  fill:         none;
+  stroke:       var(--fg);
+  stroke-width: 1.5;
+}
+.skill-tree-wrapper .wm-marker-core {
+  fill:         var(--accent);
+  stroke:       var(--on-accent);
+  stroke-width: 1.5;
 }
 
 /* ═══════════════════════════════════════
-   RESPONSIVE
+   COUNTRY POPUP placement
+   The anchor arrives as custom properties; on phones the popup docks to
+   the bottom edge instead of floating beside the country.
    ═══════════════════════════════════════ */
 
-@media (max-width: 768px) {
+.wm-popup {
+  position:  fixed;
+  left:      var(--wm-pop-x, 50%);
+  top:       var(--wm-pop-y, 50%);
+  transform: translate(var(--wm-pop-tx, 0), var(--wm-pop-ty, 0));
+  width:     320px;
+  max-width: calc(100vw - 32px);
+}
+
+@media (max-width: 767px) {
+  .wm-popup {
+    left:      0;
+    right:     0;
+    top:       auto;
+    bottom:    0;
+    transform: none;
+    width:     100%;
+    max-width: none;
+    max-height: 70vh;
+    overflow-y: auto;
+  }
   .skill-tree-wrapper .map-container {
     min-height: 100vh;
-  }
-  .wm-sidebar-btn {
-    width:  30px;
-    height: 30px;
   }
 }
