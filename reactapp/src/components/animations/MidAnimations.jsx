@@ -1,13 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { observeElementResize } from "../../lib/observeResize";
+// rgba(tokenOrHex, a): rgba("fg", 0.1) reads --fg-rgb at call time, so a
+// theme toggle applies on the next frame without a remount.
+import { rgba } from "../../lib/canvasTheme";
 
-const rgba = (hex, a) => {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${a})`;
-};
 
 const keyOf = (x, y) => `${x},${y}`;
 const parseKey = (k) => {
@@ -525,12 +521,12 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
           } else if (closedSet.has(k)) {
             ctx.fillStyle = "rgba(99,102,241,0.25)";
           } else {
-            ctx.fillStyle = "rgba(255,255,255,0.06)";
+            ctx.fillStyle = rgba("fg", 0.06);
           }
 
           ctx.fillRect(cx, cy, cell, cell);
           noGlow();
-          ctx.strokeStyle = "rgba(255,255,255,0.08)";
+          ctx.strokeStyle = rgba("fg", 0.08);
           ctx.lineWidth = 0.6;
           ctx.strokeRect(cx, cy, cell, cell);
           ctx.restore();
@@ -571,7 +567,7 @@ export function MidAnimatonsCanvas({ color = "#60a5fa" }) {
       ctx.fillText(`STEP ${Math.min(stepIdx, steps.length)}/${steps.length}${pathLen}`, W() - 8, H() - 12);
 
       const p = steps.length ? Math.min(1, stepIdx / steps.length) : 0;
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillStyle = rgba("fg", 0.08);
       ctx.beginPath();
       ctx.roundRect(8, H() - 8, W() - 16, 3, 2);
       ctx.fill();
@@ -655,7 +651,7 @@ export function UnionFindCanvas({ color = "#34d399" }) {
         const p = state.parent[i];
         if (p === i) continue;
         ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.2)";
+        ctx.strokeStyle = rgba("fg", 0.2);
         ctx.lineWidth = 1.1;
         ctx.beginPath();
         ctx.moveTo(pos[i].x, pos[i].y);
@@ -767,9 +763,9 @@ export function KmpCanvas({ color = "#f59e0b" }) {
 
       for (let i = 0; i < text.length; i++) {
         const x = tx + i * cell;
-        ctx.fillStyle = i === state.i ? rgba(color, 0.8) : "rgba(255,255,255,0.08)";
+        ctx.fillStyle = i === state.i ? rgba(color, 0.8) : rgba("fg", 0.08);
         ctx.fillRect(x, ty, cell - 1, cell - 1);
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillStyle = rgba("fg", 0.9);
         ctx.font = "700 9px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -783,7 +779,7 @@ export function KmpCanvas({ color = "#f59e0b" }) {
         if (x < tx || x > tx + text.length * cell - cell) continue;
         ctx.fillStyle = j === state.j ? rgba(color, 0.85) : "rgba(245,158,11,0.22)";
         ctx.fillRect(x, py, cell - 1, cell - 1);
-        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.fillStyle = rgba("fg", 0.95);
         ctx.font = "700 9px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -792,15 +788,15 @@ export function KmpCanvas({ color = "#f59e0b" }) {
 
       // LPS strip
       const ly = py + cell + 10;
-      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      ctx.fillStyle = rgba("fg", 0.2);
       ctx.font = "600 7px 'JetBrains Mono', monospace";
       ctx.textAlign = "left";
       ctx.fillText("LPS:", tx, ly + 8);
       for (let j = 0; j < lps.length; j++) {
         const x = tx + 28 + j * cell;
-        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.fillStyle = rgba("fg", 0.1);
         ctx.fillRect(x, ly, cell - 1, 14);
-        ctx.fillStyle = "rgba(255,255,255,0.75)";
+        ctx.fillStyle = rgba("fg", 0.75);
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
         ctx.fillText(String(lps[j]), x + (cell - 1) / 2, ly + 7.5);
@@ -897,7 +893,7 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
 
       for (const n of nodes) {
         if (n.left) {
-          ctx.strokeStyle = "rgba(255,255,255,0.15)";
+          ctx.strokeStyle = rgba("fg", 0.15);
           ctx.lineWidth = 0.9;
           ctx.beginPath();
           ctx.moveTo(getX(n, W), getY(n, H));
@@ -905,7 +901,7 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
           ctx.stroke();
         }
         if (n.right) {
-          ctx.strokeStyle = "rgba(255,255,255,0.15)";
+          ctx.strokeStyle = rgba("fg", 0.15);
           ctx.lineWidth = 0.9;
           ctx.beginPath();
           ctx.moveTo(getX(n, W), getY(n, H));
@@ -919,7 +915,7 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
         const y = getY(n, H);
         const isActive = active.has(n.id);
         ctx.save();
-        ctx.fillStyle = isActive ? rgba(color, 0.9) : "rgba(255,255,255,0.12)";
+        ctx.fillStyle = isActive ? rgba(color, 0.9) : rgba("fg", 0.12);
         if (isActive) {
           ctx.shadowColor = color;
           ctx.shadowBlur = 12 * perf.glowScale;
@@ -928,7 +924,7 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
         ctx.arc(x, y, 10, 0, Math.PI * 2);
         ctx.fill();
         ctx.shadowBlur = 0;
-        ctx.fillStyle = isActive ? "#09090b" : "rgba(255,255,255,0.85)";
+        ctx.fillStyle = isActive ? "#09090b" : rgba("fg", 0.85);
         ctx.font = "700 7px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -943,9 +939,9 @@ export function SegmentTreeCanvas({ color = "#a78bfa" }) {
       const sy = H * 0.74;
       for (let i = 0; i < arr.length; i++) {
         const x = sx + i * (bw + 4);
-        ctx.fillStyle = "rgba(255,255,255,0.1)";
+        ctx.fillStyle = rgba("fg", 0.1);
         ctx.fillRect(x, sy, bw, 18);
-        ctx.fillStyle = "rgba(255,255,255,0.9)";
+        ctx.fillStyle = rgba("fg", 0.9);
         ctx.font = "700 8px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -1042,12 +1038,12 @@ export function PalindromeCanvas({ color = "#a78bfa" }) {
         } else if (inWindow) {
           ctx.fillStyle = rgba(color, 0.35);
         } else {
-          ctx.fillStyle = "rgba(255,255,255,0.08)";
+          ctx.fillStyle = rgba("fg", 0.08);
         }
         ctx.fillRect(x, y, cell - 1, 20);
         ctx.shadowBlur = 0;
 
-        ctx.fillStyle = "rgba(255,255,255,0.95)";
+        ctx.fillStyle = rgba("fg", 0.95);
         ctx.font = "700 9px 'JetBrains Mono', monospace";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";

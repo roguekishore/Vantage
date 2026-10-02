@@ -392,7 +392,7 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="dark" storageKey="vantage-theme">
+    <ThemeProvider>
       <BrowserRouter>
         <AppContent />
       </BrowserRouter>

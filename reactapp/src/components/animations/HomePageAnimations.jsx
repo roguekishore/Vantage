@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { observeElementResize } from "../../lib/observeResize";
+import { rgba, toRgb } from "../../lib/canvasTheme";
 
 /* ═══════════════════════════════════════════════════════════════════
    MATH & COLOR UTILITIES
@@ -15,15 +16,11 @@ const easeInOutQuart = (t) => t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t 
 const easeOutBack = (t) => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
 const dist = (x1, y1, x2, y2) => Math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2);
 
-function hexToRgb(hex) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+// Colours resolve through canvasTheme at call time: rgba(tokenOrHex, a),
+// e.g. rgba("fg", 0.1) reads --fg-rgb, so a theme toggle applies next frame.
+function hexToRgb(color) {
+  const [r, g, b] = toRgb(color);
   return { r, g, b };
-}
-function rgba(hex, a) {
-  const { r, g, b } = hexToRgb(hex);
-  return `rgba(${r},${g},${b},${a})`;
 }
 function lerpColor(hex1, hex2, t) {
   const c1 = hexToRgb(hex1), c2 = hexToRgb(hex2);
@@ -382,8 +379,8 @@ function makeDrawHelpers(ctx, col, glowScale = 1) {
   };
 
   const drawWeightLabel = (mx, my, weight, active, color) => {
-    const bg = active ? color : "rgba(255,255,255,0.1)";
-    const fg = active ? "#09090b" : "rgba(255,255,255,0.5)";
+    const bg = active ? color : rgba("fg", 0.1);
+    const fg = active ? "#09090b" : rgba("fg", 0.5);
     ctx.save();
     ctx.fillStyle = bg;
     ctx.beginPath();
@@ -565,7 +562,7 @@ export function AlgoCanvas({ algo }) {
 
         // === DRAW BACKGROUND GRID ===
         ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.03)";
+        ctx.strokeStyle = rgba("fg", 0.03);
         ctx.lineWidth = 0.5;
         for (let gx = 0; gx < W(); gx += 24) {
           ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H()); ctx.stroke();
@@ -590,7 +587,7 @@ export function AlgoCanvas({ algo }) {
             helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba(col, 0.8), 1.8);
             helpers.noGlow();
           } else {
-            helpers.drawEdge(na.x, na.y, nb.x, nb.y, "rgba(255,255,255,0.07)", 0.8);
+            helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba("fg", 0.07), 0.8);
           }
         });
 
@@ -630,9 +627,9 @@ export function AlgoCanvas({ algo }) {
           }
 
           const fillC = isVisited ? rgba(col, 0.15 + et * 0.7) : "rgba(10,10,20,0.6)";
-          const strokeC = isVisited ? col : "rgba(255,255,255,0.15)";
+          const strokeC = isVisited ? col : rgba("fg", 0.15);
           const glowB = isVisited ? 16 * et : 0;
-          const labelC = isVisited ? (et > 0.7 ? "#09090b" : rgba(col, et)) : "rgba(255,255,255,0.3)";
+          const labelC = isVisited ? (et > 0.7 ? "#09090b" : rgba(col, et)) : rgba("fg", 0.3);
           helpers.drawNode(x, y, r, fillC, strokeC, n.label, glowB, labelC, pulse);
 
           // Visit order badge
@@ -668,7 +665,7 @@ export function AlgoCanvas({ algo }) {
             ctx.roundRect(bx, startY, boxW, 14, 3);
             ctx.fill();
             ctx.stroke();
-            ctx.fillStyle = qi === 0 ? "#09090b" : "rgba(255,255,255,0.6)";
+            ctx.fillStyle = qi === 0 ? "#09090b" : rgba("fg", 0.6);
             ctx.font = "700 7px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[nid]?.label || "", bx + boxW / 2, startY + 7);
@@ -693,7 +690,7 @@ export function AlgoCanvas({ algo }) {
             ctx.beginPath();
             ctx.roundRect(bx, H() - 20, 18, 14, 3);
             ctx.fill(); ctx.stroke();
-            ctx.fillStyle = si === 0 ? "#09090b" : "rgba(255,255,255,0.6)";
+            ctx.fillStyle = si === 0 ? "#09090b" : rgba("fg", 0.6);
             ctx.font = "700 7px monospace";
             ctx.textAlign = "center";
             ctx.fillText(algo.nodes[nid]?.label || "", bx + 9, H() - 13);
@@ -853,7 +850,7 @@ export function AlgoCanvas({ algo }) {
             helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba(col, 0.7), 1.6);
             helpers.noGlow();
           } else {
-            helpers.drawEdge(na.x, na.y, nb.x, nb.y, "rgba(255,255,255,0.07)", 0.8);
+            helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba("fg", 0.07), 0.8);
           }
         });
 
@@ -896,7 +893,7 @@ export function AlgoCanvas({ algo }) {
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
 
           const fillC = isVisited ? rgba(col, 0.1 + et * 0.75) : "rgba(10,10,20,0.6)";
-          const strokeC = isVisited ? col : "rgba(255,255,255,0.12)";
+          const strokeC = isVisited ? col : rgba("fg", 0.12);
           helpers.drawNode(x, y, isVisited ? 9 : 7.5, fillC, strokeC, n.label,
             isVisited ? 14 * et : 0, isVisited && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.2, et)));
 
@@ -1032,7 +1029,7 @@ export function AlgoCanvas({ algo }) {
             helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba(col, 0.85), 2);
             helpers.noGlow();
           } else {
-            helpers.drawEdge(na.x, na.y, nb.x, nb.y, "rgba(255,255,255,0.07)", 0.8);
+            helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba("fg", 0.07), 0.8);
           }
           if (ew) helpers.drawWeightLabel(mx, my, ew.w, sptEdge && prog >= 1, col);
         });
@@ -1044,7 +1041,7 @@ export function AlgoCanvas({ algo }) {
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
           helpers.drawNode(x, y, isVisited ? 9.5 : 7.5,
             isVisited ? rgba(col, 0.15 + et * 0.7) : "rgba(10,10,20,0.6)",
-            isVisited ? col : "rgba(255,255,255,0.15)",
+            isVisited ? col : rgba("fg", 0.15),
             n.label, isVisited ? 16 * et : 0,
             isVisited && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.3, et)));
 
@@ -1053,7 +1050,7 @@ export function AlgoCanvas({ algo }) {
           const dStr = d?.val === INF ? "∞" : `${d?.val}`;
           ctx.save();
           ctx.globalAlpha = d?.vis ?? 0;
-          const badgeColor = isVisited ? col : "rgba(255,255,255,0.4)";
+          const badgeColor = isVisited ? col : rgba("fg", 0.4);
           ctx.fillStyle = badgeColor;
           ctx.font = `700 ${dStr.length > 2 ? 6 : 7}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
@@ -1124,7 +1121,7 @@ export function AlgoCanvas({ algo }) {
             helpers.drawArrow(na.x, na.y, nb.x, nb.y, rgba(col, 0.8), 1.6, 7);
             helpers.noGlow();
           } else {
-            helpers.drawArrow(na.x, na.y, nb.x, nb.y, "rgba(255,255,255,0.1)", 0.8, 5);
+            helpers.drawArrow(na.x, na.y, nb.x, nb.y, rgba("fg", 0.1), 0.8, 5);
           }
         });
 
@@ -1137,7 +1134,7 @@ export function AlgoCanvas({ algo }) {
 
           helpers.drawNode(x, y, isVisited ? 9 : 7.5,
             isVisited ? rgba(col, 0.12 + et * 0.72) : "rgba(10,10,20,0.6)",
-            isVisited ? col : "rgba(255,255,255,0.15)",
+            isVisited ? col : rgba("fg", 0.15),
             n.label, isVisited ? 14 * et : 0,
             isVisited && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.3, et)));
 
@@ -1264,7 +1261,7 @@ export function AlgoCanvas({ algo }) {
             helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba(col, 0.8), 2);
             helpers.noGlow();
           } else {
-            helpers.drawEdge(na.x, na.y, nb.x, nb.y, "rgba(255,255,255,0.07)", 0.8);
+            helpers.drawEdge(na.x, na.y, nb.x, nb.y, rgba("fg", 0.07), 0.8);
           }
           if (ew) helpers.drawWeightLabel(mx, my - 5, ew.w, inMST, col);
         });
@@ -1276,7 +1273,7 @@ export function AlgoCanvas({ algo }) {
           const et = easeOutElastic(clamp(visitT[n.id] ?? 0, 0, 1));
           helpers.drawNode(x, y, inMST ? 9 : 7.5,
             inMST ? rgba(col, 0.12 + et * 0.72) : "rgba(10,10,20,0.6)",
-            inMST ? col : "rgba(255,255,255,0.15)",
+            inMST ? col : rgba("fg", 0.15),
             n.label, inMST ? 16 * et : 0,
             inMST && et > 0.6 ? "#09090b" : rgba(col, Math.max(0.3, et)));
         });
@@ -1392,11 +1389,11 @@ export function AlgoCanvas({ algo }) {
           ctx.fillStyle = isFound ? col
             : isMid ? rgba(col, 0.3)
               : inRange ? rgba(col, 0.1)
-                : "rgba(255,255,255,0.02)";
-          ctx.strokeStyle = isFound ? "#fff"
+                : rgba("fg", 0.02);
+          ctx.strokeStyle = isFound ? rgba("fg", 1)
             : isMid ? col
               : inRange ? rgba(col, 0.45)
-                : "rgba(255,255,255,0.06)";
+                : rgba("fg", 0.06);
           ctx.lineWidth = isMid || isFound ? 1.8 : 0.8;
           ctx.beginPath();
           ctx.roundRect(x, baseY, boxW, boxH, 8);
@@ -1406,16 +1403,16 @@ export function AlgoCanvas({ algo }) {
 
           // value
           ctx.fillStyle = isFound ? "#09090b"
-            : isMid ? "#fff"
-              : eliminated ? "rgba(255,255,255,0.1)"
-                : "rgba(255,255,255,0.75)";
+            : isMid ? rgba("fg", 1)
+              : eliminated ? rgba("fg", 0.1)
+                : rgba("fg", 0.75);
           ctx.font = `700 ${boxW > 30 ? 10 : 9}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
           ctx.fillText(v, x + boxW / 2, baseY + boxH / 2);
 
           // index
-          ctx.fillStyle = "rgba(255,255,255,0.12)";
+          ctx.fillStyle = rgba("fg", 0.12);
           ctx.font = "500 6px monospace";
           ctx.textBaseline = "alphabetic";
           ctx.fillText(i, x + boxW / 2, baseY + boxH + 10);
@@ -1460,7 +1457,7 @@ export function AlgoCanvas({ algo }) {
         ctx.textAlign = "left";
         ctx.fillText(foundIdx >= 0 ? `✓ FOUND: ${algo.target}` : `TARGET: ${algo.target}`, 8, H() - 8);
         helpers.noGlow();
-        ctx.fillStyle = "rgba(255,255,255,0.2)";
+        ctx.fillStyle = rgba("fg", 0.2);
         ctx.textAlign = "right";
         ctx.fillText(`STEP ${phase}`, W() - 8, H() - 8);
         ctx.restore();
@@ -1521,7 +1518,7 @@ export function AlgoCanvas({ algo }) {
         ctx.save();
         for (let g = 0.25; g <= 1; g += 0.25) {
           const gy = baseY - maxBarH * g;
-          ctx.strokeStyle = "rgba(255,255,255,0.04)";
+          ctx.strokeStyle = rgba("fg", 0.04);
           ctx.lineWidth = 0.5;
           ctx.setLineDash([2, 6]);
           ctx.beginPath(); ctx.moveTo(startX - 8, gy); ctx.lineTo(startX + totalW + 8, gy); ctx.stroke();
@@ -1531,7 +1528,7 @@ export function AlgoCanvas({ algo }) {
 
         // baseline
         ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.1)";
+        ctx.strokeStyle = rgba("fg", 0.1);
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(startX - 8, baseY); ctx.lineTo(startX + totalW + 8, baseY); ctx.stroke();
         ctx.restore();
@@ -1578,7 +1575,7 @@ export function AlgoCanvas({ algo }) {
           if (inWin) helpers.glow(col, 12);
           ctx.fillStyle = inWin ? col
             : inBest ? rgba(col, 0.35)
-              : "rgba(255,255,255,0.07)";
+              : rgba("fg", 0.07);
           // draw bar from by upward to baseY
           ctx.beginPath();
           ctx.roundRect(x, by, bw, barH, [3, 3, 0, 0]);
@@ -1586,13 +1583,13 @@ export function AlgoCanvas({ algo }) {
 
           // cap highlight
           if (inWin) {
-            ctx.fillStyle = "rgba(255,255,255,0.55)";
+            ctx.fillStyle = rgba("fg", 0.55);
             ctx.fillRect(x + bw * 0.15, by, bw * 0.7, 1.5);
           }
           helpers.noGlow();
 
           // value label above bar
-          ctx.fillStyle = inWin ? "#fff" : "rgba(255,255,255,0.3)";
+          ctx.fillStyle = inWin ? rgba("fg", 1) : rgba("fg", 0.3);
           ctx.font = "600 7px monospace";
           ctx.textAlign = "center";
           ctx.fillText(v, x + bw / 2, by - 4);
@@ -1758,11 +1755,11 @@ export function AlgoCanvas({ algo }) {
           else if (isL || isR) helpers.glow(col, 14);
           ctx.fillStyle = isFoundCell ? col
             : (isL || isR) ? rgba(col, 0.22)
-              : eliminated ? "rgba(255,255,255,0.02)"
+              : eliminated ? rgba("fg", 0.02)
                 : rgba(col, 0.07);
-          ctx.strokeStyle = isFoundCell ? "#fff"
+          ctx.strokeStyle = isFoundCell ? rgba("fg", 1)
             : (isL || isR) ? col
-              : eliminated ? "rgba(255,255,255,0.06)"
+              : eliminated ? rgba("fg", 0.06)
                 : rgba(col, 0.22);
           ctx.lineWidth = (isL || isR || isFoundCell) ? 1.8 : 0.8;
           ctx.beginPath();
@@ -1772,9 +1769,9 @@ export function AlgoCanvas({ algo }) {
           helpers.noGlow();
 
           ctx.fillStyle = isFoundCell ? "#09090b"
-            : (isL || isR) ? "#fff"
-              : eliminated ? "rgba(255,255,255,0.1)"
-                : "rgba(255,255,255,0.65)";
+            : (isL || isR) ? rgba("fg", 1)
+              : eliminated ? rgba("fg", 0.1)
+                : rgba("fg", 0.65);
           ctx.font = `700 ${bw > 26 ? 10 : 9}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -1872,11 +1869,11 @@ export function AlgoCanvas({ algo }) {
 
         // ── baseline ──
         ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.14)";
+        ctx.strokeStyle = rgba("fg", 0.14);
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(startX - 6, baseY); ctx.lineTo(startX + totalW + 6, baseY); ctx.stroke();
         // zero label
-        ctx.fillStyle = "rgba(255,255,255,0.2)";
+        ctx.fillStyle = rgba("fg", 0.2);
         ctx.font = "500 6px monospace";
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
@@ -1900,7 +1897,7 @@ export function AlgoCanvas({ algo }) {
           ctx.fillStyle = isActive ? col
             : inCur ? rgba(col, 0.6)
               : inBest ? rgba(col, 0.3)
-                : isPos ? "rgba(255,255,255,0.1)" : "rgba(248,113,113,0.3)";
+                : isPos ? rgba("fg", 0.1) : "rgba(248,113,113,0.3)";
 
           const radii = isPos ? [3, 3, 0, 0] : [0, 0, 3, 3];
           ctx.beginPath();
@@ -1909,14 +1906,14 @@ export function AlgoCanvas({ algo }) {
 
           // bright cap on active bar
           if (isActive) {
-            ctx.fillStyle = "rgba(255,255,255,0.6)";
+            ctx.fillStyle = rgba("fg", 0.6);
             if (isPos) ctx.fillRect(x, rectY, bw, 1.5);
             else ctx.fillRect(x, rectY + barH - 1.5, bw, 1.5);
           }
           helpers.noGlow();
 
           // value label just outside the bar tip
-          ctx.fillStyle = isActive ? "#fff" : "rgba(255,255,255,0.35)";
+          ctx.fillStyle = isActive ? rgba("fg", 1) : rgba("fg", 0.35);
           ctx.font = "600 6px monospace";
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -1945,7 +1942,7 @@ export function AlgoCanvas({ algo }) {
         ctx.textBaseline = "alphabetic";
         ctx.fillText(`BEST: ${bestSum > -Infinity ? bestSum : "—"}`, 8, H() - 8);
         helpers.noGlow();
-        ctx.fillStyle = "rgba(255,255,255,0.3)";
+        ctx.fillStyle = rgba("fg", 0.3);
         ctx.textAlign = "right";
         ctx.fillText(`CUR: ${idx > 0 ? curSum : "—"}`, W() - 8, H() - 8);
         ctx.restore();
@@ -2060,7 +2057,7 @@ export function AlgoCanvas({ algo }) {
             helpers.noGlow();
           } else {
             ctx.save();
-            ctx.strokeStyle = "rgba(255,255,255,0.08)";
+            ctx.strokeStyle = rgba("fg", 0.08);
             ctx.lineWidth = 0.8;
             ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y); ctx.stroke();
             ctx.restore();
@@ -2069,7 +2066,7 @@ export function AlgoCanvas({ algo }) {
           // weight label
           if (ew) {
             ctx.save();
-            const labelCol = isAcc ? col : isRej ? "rgba(239,68,68,0.7)" : "rgba(255,255,255,0.22)";
+            const labelCol = isAcc ? col : isRej ? "rgba(239,68,68,0.7)" : rgba("fg", 0.22);
             ctx.fillStyle = isAcc ? rgba(col, 0.9) : labelCol;
             ctx.font = "600 7px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
@@ -2088,9 +2085,9 @@ export function AlgoCanvas({ algo }) {
           });
           helpers.drawNode(x, y, inMST ? 9.5 : 7.5,
             inMST ? rgba(col, 0.75) : "rgba(10,10,20,0.7)",
-            inMST ? col : "rgba(255,255,255,0.18)",
+            inMST ? col : rgba("fg", 0.18),
             nd.label, inMST ? 16 : 0,
-            inMST ? "#09090b" : "rgba(255,255,255,0.4)");
+            inMST ? "#09090b" : rgba("fg", 0.4));
         });
 
         // ── status ──
@@ -2219,12 +2216,12 @@ export function AlgoCanvas({ algo }) {
 
           ctx.save();
           if (hot) helpers.glow(col, 10);
-          ctx.strokeStyle = hot ? rgba(col, 0.85) : "rgba(255,255,255,0.1)";
+          ctx.strokeStyle = hot ? rgba(col, 0.85) : rgba("fg", 0.1);
           ctx.lineWidth = hot ? 2 : 0.9;
           ctx.beginPath(); ctx.moveTo(na.x, na.y); ctx.lineTo(nb.x, nb.y); ctx.stroke();
           helpers.noGlow();
           if (ew) {
-            ctx.fillStyle = hot ? col : "rgba(255,255,255,0.3)";
+            ctx.fillStyle = hot ? col : rgba("fg", 0.3);
             ctx.font = "600 7px 'JetBrains Mono', monospace";
             ctx.textAlign = "center";
             ctx.textBaseline = "middle";
@@ -2280,15 +2277,15 @@ export function AlgoCanvas({ algo }) {
           const highlight = isK ? 1 : (isI || isJ) ? 0.8 : 0;
           helpers.drawNode(x, y, 9,
             isK ? "#f0ff00" : (isI || isJ) ? rgba(col, 0.7) : "rgba(10,10,20,0.7)",
-            isK ? "#f0ff00" : (isI || isJ) ? col : "rgba(255,255,255,0.18)",
+            isK ? "#f0ff00" : (isI || isJ) ? col : rgba("fg", 0.18),
             nd.label, isK ? 18 : (isI || isJ) ? 12 : 0,
-            (isK || (isI || isJ)) ? "#09090b" : "rgba(255,255,255,0.45)");
+            (isK || (isI || isJ)) ? "#09090b" : rgba("fg", 0.45));
         });
 
         // ── DISTANCE MATRIX SECTION ──
         // divider
         ctx.save();
-        ctx.strokeStyle = "rgba(255,255,255,0.08)";
+        ctx.strokeStyle = rgba("fg", 0.08);
         ctx.lineWidth = 1;
         ctx.beginPath(); ctx.moveTo(graphW + 2, 8); ctx.lineTo(graphW + 2, H() - 8); ctx.stroke();
         ctx.restore();
@@ -2309,7 +2306,7 @@ export function AlgoCanvas({ algo }) {
           const ry = matOffY + (i + 1) * cellSz + cellSz / 2;
           const isKCol = focus && focus.k === i;
           ctx.save();
-          ctx.fillStyle = isKCol ? "#f0ff00" : "rgba(255,255,255,0.35)";
+          ctx.fillStyle = isKCol ? "#f0ff00" : rgba("fg", 0.35);
           ctx.font = `${isKCol ? "700" : "500"} 7px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center"; ctx.textBaseline = "middle";
           ctx.fillText(nodeLabels[i], cx, matOffY + cellSz / 2); // col header
@@ -2333,11 +2330,11 @@ export function AlgoCanvas({ algo }) {
             ctx.fillStyle = flash > 0 ? rgba(col, flash * 0.5)
               : isFocusCell ? rgba(col, 0.2)
                 : (isKRow || isKCol) ? "rgba(240,255,0,0.06)"
-                  : i === j ? "rgba(255,255,255,0.04)"
-                    : "rgba(255,255,255,0.02)";
+                  : i === j ? rgba("fg", 0.04)
+                    : rgba("fg", 0.02);
             ctx.strokeStyle = flash > 0 ? rgba(col, flash * 0.8)
               : isFocusCell ? rgba(col, 0.5)
-                : "rgba(255,255,255,0.07)";
+                : rgba("fg", 0.07);
             ctx.lineWidth = flash > 0 ? 1.2 : 0.5;
             if (flash > 0) helpers.glow(col, 8 * flash);
             ctx.beginPath();
@@ -2347,11 +2344,11 @@ export function AlgoCanvas({ algo }) {
 
             // value
             const dispVal = val >= INF ? "∞" : String(val);
-            ctx.fillStyle = flash > 0 ? "#fff"
+            ctx.fillStyle = flash > 0 ? rgba("fg", 1)
               : isFocusCell ? col
-                : val >= INF ? "rgba(255,255,255,0.2)"
-                  : i === j ? "rgba(255,255,255,0.25)"
-                    : "rgba(255,255,255,0.7)";
+                : val >= INF ? rgba("fg", 0.2)
+                  : i === j ? rgba("fg", 0.25)
+                    : rgba("fg", 0.7);
             ctx.font = `${flash > 0 ? "700" : "500"} ${cellSz > 18 ? 8 : 7}px 'JetBrains Mono', monospace`;
             ctx.textAlign = "center"; ctx.textBaseline = "middle";
             ctx.fillText(dispVal, cx + cellSz / 2, cy + cellSz / 2);
@@ -2362,7 +2359,7 @@ export function AlgoCanvas({ algo }) {
         // progress bar at bottom
         const prog = steps.length ? stepIdx / steps.length : 0;
         ctx.save();
-        ctx.fillStyle = "rgba(255,255,255,0.06)";
+        ctx.fillStyle = rgba("fg", 0.06);
         ctx.beginPath(); ctx.roundRect(8, H() - 12, W() - 16, 4, 2); ctx.fill();
         helpers.glow(col, 6);
         ctx.fillStyle = col;
@@ -2461,12 +2458,12 @@ export function AlgoCanvas({ algo }) {
           ctx.fillStyle = sorted ? rgba(col, 0.22)
             : isSwap ? col
               : isRoot ? rgba(col, 0.85)
-                : "rgba(255,255,255,0.1)";
+                : rgba("fg", 0.1);
           ctx.beginPath();
           ctx.roundRect(x, by, bw, h, [Math.min(3, bw / 2), Math.min(3, bw / 2), 0, 0]);
           ctx.fill();
           if (!sorted) {
-            ctx.fillStyle = isSwap ? "rgba(255,255,255,0.6)" : rgba(col, 0.35);
+            ctx.fillStyle = isSwap ? rgba("fg", 0.6) : rgba(col, 0.35);
             ctx.fillRect(x, by, bw, 1.5);
           }
           helpers.noGlow();
@@ -2708,7 +2705,7 @@ export function MergeSortCanvas() {
         ctx.fillStyle = isActive ? COLOR
           : inLeft ? `rgba(52,211,153,0.6)`
             : inRight ? `rgba(52,211,153,0.32)`
-              : `rgba(255,255,255,0.1)`;
+              : rgba("fg", 0.1);
 
         // bar rect from by going DOWN to baseY
         const r = Math.min(2, bw / 2);
@@ -2718,7 +2715,7 @@ export function MergeSortCanvas() {
 
         // bright cap line on active bar
         if (isActive) {
-          ctx.fillStyle = "rgba(255,255,255,0.7)";
+          ctx.fillStyle = rgba("fg", 0.7);
           ctx.fillRect(bx, by, bw, 1.5);
         }
         noGlow();
@@ -2727,7 +2724,7 @@ export function MergeSortCanvas() {
 
       // baseline
       ctx.save();
-      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.strokeStyle = rgba("fg", 0.1);
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(startX - 4, baseY);

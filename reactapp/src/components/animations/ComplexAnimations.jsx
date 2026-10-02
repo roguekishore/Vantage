@@ -1,14 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import { observeElementResize } from "../../lib/observeResize";
+// rgba(tokenOrHex, a): rgba("fg", 0.1) reads --fg-rgb at call time, so a
+// theme toggle applies on the next frame without a remount.
+import { rgba } from "../../lib/canvasTheme";
 
 const lerp = (a, b, t) => a + (b - a) * t;
-const rgba = (hex, a) => {
-  const h = hex.replace("#", "");
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r},${g},${b},${a})`;
-};
 
 function getCanvasPerfProfile() {
   const reducedMotion = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
@@ -316,7 +312,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
     const drawQueen = (x, y, cell, hot = false) => {
       ctx.save();
       if (hot) glow(14);
-      ctx.fillStyle = hot ? "#fff" : color;
+      ctx.fillStyle = hot ? rgba("fg", 1) : color;
       ctx.font = `700 ${Math.max(14, cell * 0.62)}px 'JetBrains Mono', 'Fira Code', monospace`;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -396,7 +392,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
           const dark = (r + c) % 2 === 1;
 
           ctx.save();
-          ctx.fillStyle = dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.11)";
+          ctx.fillStyle = dark ? rgba("fg", 0.05) : rgba("fg", 0.11);
           ctx.fillRect(x, y, cell, cell);
 
           if (state.row === r) {
@@ -467,7 +463,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
 
       // axis labels
       ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      ctx.fillStyle = rgba("fg", 0.2);
       ctx.font = "500 6px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -510,7 +506,7 @@ export function NQueensCanvas({ size = 8, color = "#f59e0b" }) {
       ctx.fillText(`Q=${qCount()}/${size}  •  ${stepIdx}/${steps.length}`, W() - 8, H() - 12);
 
       const p = steps.length ? stepIdx / steps.length : 0;
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillStyle = rgba("fg", 0.08);
       ctx.beginPath();
       ctx.roundRect(8, H() - 8, W() - 16, 3, 2);
       ctx.fill();
@@ -687,7 +683,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
           const boxTone = (Math.floor(r / 3) + Math.floor(c / 3)) % 2 === 0;
 
           ctx.save();
-          ctx.fillStyle = boxTone ? "rgba(255,255,255,0.07)" : "rgba(255,255,255,0.03)";
+          ctx.fillStyle = boxTone ? rgba("fg", 0.07) : rgba("fg", 0.03);
           ctx.fillRect(x, y, cell, cell);
 
           // row/col focus
@@ -747,14 +743,14 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
         ctx.beginPath();
         ctx.moveTo(bx + i * cell, by);
         ctx.lineTo(bx + i * cell, by + boardSize);
-        ctx.strokeStyle = i % 3 === 0 ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)";
+        ctx.strokeStyle = i % 3 === 0 ? rgba("fg", 0.35) : rgba("fg", 0.12);
         ctx.lineWidth = i % 3 === 0 ? 1.6 : 0.7;
         ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo(bx, by + i * cell);
         ctx.lineTo(bx + boardSize, by + i * cell);
-        ctx.strokeStyle = i % 3 === 0 ? "rgba(255,255,255,0.35)" : "rgba(255,255,255,0.12)";
+        ctx.strokeStyle = i % 3 === 0 ? rgba("fg", 0.35) : rgba("fg", 0.12);
         ctx.lineWidth = i % 3 === 0 ? 1.6 : 0.7;
         ctx.stroke();
       }
@@ -772,7 +768,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
 
           ctx.save();
           if (active && !given) glow(8);
-          ctx.fillStyle = given ? "rgba(255,255,255,0.92)" : (active ? color : "rgba(178,242,255,0.9)");
+          ctx.fillStyle = given ? rgba("fg", 0.92) : (active ? color : "rgba(178,242,255,0.9)");
           ctx.font = `700 ${Math.max(10, cell * 0.5)}px 'JetBrains Mono', monospace`;
           ctx.textAlign = "center";
           ctx.textBaseline = "middle";
@@ -829,7 +825,7 @@ export function SudokuCanvas({ color = "#22d3ee" }) {
       ctx.fillText(`filled ${filledCount()}/81  •  ${stepIdx}/${steps.length}`, W() - 8, H() - 12);
 
       const p = steps.length ? stepIdx / steps.length : 0;
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillStyle = rgba("fg", 0.08);
       ctx.beginPath();
       ctx.roundRect(8, H() - 8, W() - 16, 3, 2);
       ctx.fill();
@@ -1046,9 +1042,9 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
           const y = by + r * cell;
           const dark = (r + c) % 2 === 1;
           ctx.save();
-          ctx.fillStyle = dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.1)";
+          ctx.fillStyle = dark ? rgba("fg", 0.05) : rgba("fg", 0.1);
           ctx.fillRect(x, y, cell, cell);
-          ctx.strokeStyle = "rgba(255,255,255,0.08)";
+          ctx.strokeStyle = rgba("fg", 0.08);
           ctx.lineWidth = 0.6;
           ctx.strokeRect(x, y, cell, cell);
           ctx.restore();
@@ -1057,7 +1053,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
 
       // numbers
       ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.25)";
+      ctx.fillStyle = rgba("fg", 0.25);
       ctx.font = `${Math.max(5, cell * 0.18)}px 'JetBrains Mono', monospace`;
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
@@ -1104,7 +1100,7 @@ export function SnakesLaddersCanvas({ color = "#f43f5e" }) {
       ctx.fillText(`POS ${currentPos}  •  TURN ${event.turn || 0}`, W() - 8, H() - 12);
 
       const p = events.length ? eventIdx / events.length : 0;
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillStyle = rgba("fg", 0.08);
       ctx.beginPath();
       ctx.roundRect(8, H() - 8, W() - 16, 3, 2);
       ctx.fill();
@@ -1260,7 +1256,7 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
           const isKnightCell = r === kr && c === kc;
 
           ctx.save();
-          ctx.fillStyle = dark ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.11)";
+          ctx.fillStyle = dark ? rgba("fg", 0.05) : rgba("fg", 0.11);
           ctx.fillRect(x, y, cell, cell);
 
           if (isKnightCell) {
@@ -1321,7 +1317,7 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
 
       // axis labels (N-Queens-style)
       ctx.save();
-      ctx.fillStyle = "rgba(255,255,255,0.2)";
+      ctx.fillStyle = rgba("fg", 0.2);
       ctx.font = "500 6px 'JetBrains Mono', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
@@ -1347,7 +1343,7 @@ export function KnightsTourCanvas({ color = "#8b5cf6", size = 8 }) {
       ctx.fillText(`STEP ${Math.min(currentStep + 1, total)}/${total}`, W() - 8, H() - 12);
 
       const prog = total > 0 ? (currentStep + (moving ? 0.5 : 0)) / total : 0;
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillStyle = rgba("fg", 0.08);
       ctx.beginPath();
       ctx.roundRect(8, H() - 8, W() - 16, 3, 2);
       ctx.fill();
