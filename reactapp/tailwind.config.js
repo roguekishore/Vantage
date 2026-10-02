@@ -1,4 +1,21 @@
 /** @type {import('tailwindcss').Config} */
+const typeScale = require('./src/styles/typeScale.json');
+
+// Design-system colours (POLISH_PLAN §3.1/§3.2) read src/styles/tokens.css.
+// Solid tokens use their `--*-rgb` triplet so opacity modifiers work
+// (`bg-accent/50` -> rgb(var(--accent-rgb) / 0.5)). Translucent tokens
+// (border, fg-muted, fg-dim, *-soft) are already rgba and take no modifier.
+const rgb = (name) => `rgb(var(--${name}-rgb) / <alpha-value>)`;
+
+// Type scale -> Tailwind fontSize ([size, { lineHeight, letterSpacing, fontWeight }]).
+// Case (UPPER for display/h1/h2/label/micro) is applied with `uppercase`.
+const fontSize = Object.fromEntries(
+  Object.entries(typeScale.scale).map(([step, t]) => [
+    step,
+    [t.fontSize, { lineHeight: t.lineHeight, letterSpacing: t.letterSpacing, fontWeight: t.fontWeight }],
+  ])
+);
+
 module.exports = {
   darkMode: 'class',
   content: [
@@ -6,12 +23,78 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // font-mono: JetBrains Mono (body/UI), font-display: Monument Extended.
+      // @font-face rules ship with the fonts unit (1.2).
       fontFamily: {
+        mono: typeScale.fonts.mono,
+        display: typeScale.fonts.display,
         inter: ["Inter", "sans-serif"],
         general: ["general", "sans-serif"],
         zentry: ["zentry", "sans-serif"],
       },
+      // Type steps: text-display | text-h1 | text-h2 | text-h3 | text-body |
+      // text-small | text-label | text-micro (no text below 10px).
+      fontSize,
+      // Spacing: Tailwind defaults are kept so legacy classes keep working.
+      // New code uses only the §3.5 steps: 1 (4px), 2 (8px), 3 (12px),
+      // 4 (16px), 6 (24px), 8 (32px), 12 (48px), 16 (64px).
+      // Breakpoints: Tailwind defaults only (sm 640, md 768, lg 1024,
+      // xl 1280, 2xl 1536); no custom `screens`.
+      // z-index scale (§3.5): z-base … z-tooltip. Above 70 is a bug.
+      zIndex: {
+        base: 'var(--z-base)',
+        raised: 'var(--z-raised)',
+        sticky: 'var(--z-sticky)',
+        nav: 'var(--z-nav)',
+        overlay: 'var(--z-overlay)',
+        modal: 'var(--z-modal)',
+        toast: 'var(--z-toast)',
+        tooltip: 'var(--z-tooltip)',
+      },
       colors: {
+        // ---------------------------------------------------------------
+        // Design system (tokens.css). Class names mirror token names:
+        //   bg-bg  bg-surface  bg-elevated
+        //   text-fg  text-fg-muted  text-fg-dim
+        //   border-border  border-border-strong
+        //   bg-accent  text-on-accent  border-accent-edge  text-accent-ink
+        //   bg-accent-soft  outline-focus
+        //   text-ok|warn|err|info  bg-ok-soft|warn-soft|err-soft|info-soft
+        //   text-viz-write
+        // None of these names were in use before (grep src/, 2026-10-02).
+        // `accent` is the acid accent. shadcn's old hover fill (also called
+        // accent) is gone: ui/* hover fills use bg-elevated. The legacy
+        // accent-primary* (purple) classes live under the same key below.
+        // ---------------------------------------------------------------
+        bg: rgb('bg'),
+        surface: rgb('surface'),
+        elevated: rgb('elevated'),
+        fg: {
+          DEFAULT: rgb('fg'),
+          muted: 'var(--fg-muted)',
+          dim: 'var(--fg-dim)',
+        },
+        border: {
+          DEFAULT: 'var(--border)', // also shadcn's border colour
+          strong: 'var(--border-strong)',
+        },
+        accent: {
+          DEFAULT: rgb('accent'),
+          foreground: rgb('on-accent'), // shadcn name for text on accent
+          edge: rgb('accent-edge'),
+          ink: rgb('accent-ink'),
+          soft: 'var(--accent-soft)',
+          // Legacy purple (index.css --color-accent-primary*); retired in later phases.
+          primary: 'var(--color-accent-primary)',
+          'primary-hover': 'var(--color-accent-primary-hover)',
+          'primary-light': 'var(--color-accent-primary-light)',
+        },
+        'on-accent': rgb('on-accent'),
+        focus: rgb('focus'),
+        ok: { DEFAULT: rgb('ok'), soft: 'var(--ok-soft)' },
+        warn: { DEFAULT: rgb('warn'), soft: 'var(--warn-soft)' },
+        err: { DEFAULT: rgb('err'), soft: 'var(--err-soft)' },
+        info: { DEFAULT: rgb('info'), soft: 'var(--info-soft)' },
         brand: {
           primary: "#2563eb", // Electric Blue
           secondary: "#7c3aed", // Purple
@@ -57,15 +140,10 @@ module.exports = {
           DEFAULT: 'var(--muted)',
           foreground: 'var(--muted-foreground)',
         },
-        accent: {
-          DEFAULT: 'var(--accent)',
-          foreground: 'var(--accent-foreground)',
-        },
         destructive: {
           DEFAULT: 'var(--destructive)',
           foreground: 'var(--destructive-foreground)',
         },
-        border: 'var(--border)',
         input: 'var(--input)',
         ring: 'var(--ring)',
         // Theme-aware colors using CSS variables
@@ -80,12 +158,6 @@ module.exports = {
           'text-muted': 'var(--color-text-muted)',
           'border-primary': 'var(--color-border-primary)',
           'border-secondary': 'var(--color-border-secondary)',
-        },
-        // Accent colors
-        accent: {
-          primary: 'var(--color-accent-primary)',
-          'primary-hover': 'var(--color-accent-primary-hover)',
-          'primary-light': 'var(--color-accent-primary-light)',
         },
         success: {
           DEFAULT: 'var(--color-success)',
@@ -131,6 +203,7 @@ module.exports = {
           comparing: 'var(--color-viz-comparing)',
           sorted: 'var(--color-viz-sorted)',
           default: 'var(--color-viz-default)',
+          write: rgb('viz-write'), // §3.2 design-system token
         },
         // Code syntax colors
         code: {
@@ -198,6 +271,8 @@ module.exports = {
         'orange': 'var(--color-orange)',
         'purple': 'var(--color-purple)',
       },
+      // Radius: the global reset in tokens.css zeroes everything, and
+      // shadcn's --radius is 0, so these resolve to 0 as well.
       borderRadius: {
         lg: 'var(--radius)',
         md: 'calc(var(--radius) - 2px)',

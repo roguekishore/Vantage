@@ -1,0 +1,190 @@
+/* ==========================================================================
+   VANTAGE design tokens (POLISH_PLAN §3.1, §3.2, §3.3, §3.4, §3.5)
+   Loaded first, from src/index.js, before index.css.
+
+   - Dark values live on `:root, html.dark`; light values on `html.light`.
+     ThemeProvider toggles `light` / `dark` on <html>.
+   - Solid colours also ship as `r g b` channel triplets (`--*-rgb`) so
+     Tailwind `<alpha-value>` works and canvas code can build rgba() strings.
+   - Translucent tokens (borders, fg-muted/dim, *-soft) are literal rgba and
+     have no channel triplet.
+   - The shadcn variables alias these tokens at the bottom of this file.
+   ========================================================================== */
+
+:root,
+html.dark {
+  color-scheme: dark;
+
+  /* Surfaces */
+  --bg: #09090B;
+  --surface: #0F0F12;
+  --elevated: #16161A;
+  --border: rgba(255,255,255,.10);
+  --border-strong: rgba(255,255,255,.22);
+
+  /* Text */
+  --fg: #F5F5F4;
+  --fg-muted: rgba(255,255,255,.66);
+  --fg-dim: rgba(255,255,255,.52);
+
+  /* Accent */
+  --accent: #EDFF66;
+  --on-accent: #09090B;
+  --accent-edge: #EDFF66;
+  --accent-ink: #EDFF66;
+  --accent-soft: rgba(237,255,102,.12);
+  --focus: #EDFF66;
+
+  /* Status (meaning only, never decoration) */
+  --ok: #34D399;
+  --warn: #FBBF24;
+  --err: #F87171;
+  --info: #67E8F9;
+  --ok-soft: rgba(52,211,153,.14);
+  --warn-soft: rgba(251,191,36,.14);
+  --err-soft: rgba(248,113,113,.14);
+  --info-soft: rgba(103,232,249,.14);
+
+  /* Visualizer state (§3.2) */
+  --viz-write: #C4B5FD;
+
+  /* Overlay backdrop (§3.5) */
+  --backdrop: rgba(0,0,0,.6);
+
+  /* Channel triplets */
+  --bg-rgb: 9 9 11;
+  --surface-rgb: 15 15 18;
+  --elevated-rgb: 22 22 26;
+  --fg-rgb: 245 245 244;
+  --accent-rgb: 237 255 102;
+  --on-accent-rgb: 9 9 11;
+  --accent-edge-rgb: 237 255 102;
+  --accent-ink-rgb: 237 255 102;
+  --focus-rgb: 237 255 102;
+  --ok-rgb: 52 211 153;
+  --warn-rgb: 251 191 36;
+  --err-rgb: 248 113 113;
+  --info-rgb: 103 232 249;
+  --viz-write-rgb: 196 181 253;
+}
+
+html.light {
+  color-scheme: light;
+
+  --bg: #F4F4F0;
+  --surface: #FFFFFF;
+  --elevated: #EBEBE6;
+  --border: rgba(10,10,11,.14);
+  --border-strong: rgba(10,10,11,.32);
+
+  --fg: #0A0A0B;
+  --fg-muted: rgba(10,10,11,.66);
+  --fg-dim: rgba(10,10,11,.54);
+
+  /* Accent is a fill only in light mode; every fill draws --accent-edge. */
+  --accent: #EDFF66;
+  --on-accent: #09090B;
+  --accent-edge: #0A0A0B;
+  --accent-ink: #5C6B00;
+  --accent-soft: rgba(92,107,0,.10);
+  --focus: #0A0A0B;
+
+  --ok: #047857;
+  --warn: #B45309;
+  --err: #B91C1C;
+  --info: #0E7490;
+  --ok-soft: rgba(4,120,87,.10);
+  --warn-soft: rgba(180,83,9,.10);
+  --err-soft: rgba(185,28,28,.10);
+  --info-soft: rgba(14,116,144,.10);
+
+  --viz-write: #6D28D9;
+
+  --backdrop: rgba(10,10,11,.35);
+
+  --bg-rgb: 244 244 240;
+  --surface-rgb: 255 255 255;
+  --elevated-rgb: 235 235 230;
+  --fg-rgb: 10 10 11;
+  --accent-rgb: 237 255 102;
+  --on-accent-rgb: 9 9 11;
+  --accent-edge-rgb: 10 10 11;
+  --accent-ink-rgb: 92 107 0;
+  --focus-rgb: 10 10 11;
+  --ok-rgb: 4 120 87;
+  --warn-rgb: 180 83 9;
+  --err-rgb: 185 28 28;
+  --info-rgb: 14 116 144;
+  --viz-write-rgb: 109 40 217;
+}
+
+/* Theme-independent tokens */
+:root {
+  /* Layout (§3.5) */
+  --nav-h: 56px;
+  --container: 1200px;
+  --container-narrow: 768px;
+  --gutter: clamp(16px, 4vw, 48px);
+
+  /* Typography (§3.3): every Monument display weight reads this token.
+     400 = Monument Extended Regular with font-synthesis: none. Swap to the
+     Ultrabold weight here once that face is licensed and loaded. */
+  --display-weight: 400;
+
+  /* z-index scale (§3.5). Anything above 70 is a bug. */
+  --z-base: 0;
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-nav: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-toast: 60;
+  --z-tooltip: 70;
+
+  /* --------------------------------------------------------------------
+     shadcn bridge: src/components/ui/* read these. They alias the tokens
+     above so shadcn follows the theme. Only obvious mappings are aliased;
+     --primary, --input, --chart-* and --sidebar-* stay legacy (index.css)
+     until the ds/* unit restyles ui/*.
+     Note: shadcn's old hover-fill variable was also called --accent. That
+     name now belongs to the acid accent; ui/* hover fills use bg-elevated.
+     -------------------------------------------------------------------- */
+  --radius: 0px;
+  --background: var(--bg);
+  --foreground: var(--fg);
+  --card: var(--surface);
+  --card-foreground: var(--fg);
+  --popover: var(--surface);
+  --popover-foreground: var(--fg);
+  --secondary: var(--elevated);
+  --secondary-foreground: var(--fg);
+  --muted: var(--elevated);
+  --muted-foreground: var(--fg-muted);
+  --accent-foreground: var(--on-accent);
+  --destructive: var(--err);
+  --ring: var(--focus);
+}
+
+/* ==========================================================================
+   Global radius reset (§3.4): 0 everywhere, including pseudo-elements.
+   Exclusions:
+     [data-shape="round"]   graph/tree nodes and radio inputs (and their
+                            ::before/::after)
+     .monaco-editor         and all its descendants (Monaco's own widgets)
+     [data-legacy-viz] *    every descendant of a not-yet-migrated visualizer
+                            (see src/pages/visualizer/legacyViz.jsx)
+   :where() keeps the selector at zero specificity; !important does the
+   overriding. :not() with a selector list of complex selectors is supported
+   in Chromium 88+, Firefox 84+ and Safari 9+.
+   ========================================================================== */
+:where(:not([data-shape="round"], .monaco-editor, .monaco-editor *, [data-legacy-viz] *)),
+:where(:not([data-shape="round"], .monaco-editor, .monaco-editor *, [data-legacy-viz] *))::before,
+:where(:not([data-shape="round"], .monaco-editor, .monaco-editor *, [data-legacy-viz] *))::after {
+  border-radius: 0 !important;
+}
+
+/* Separate rule: Firefox drops a whole selector list that contains an
+   unknown -webkit- pseudo-element. */
+:where(:not(.monaco-editor, .monaco-editor *, [data-legacy-viz] *))::-webkit-scrollbar-thumb {
+  border-radius: 0 !important;
+}

@@ -1,15 +1,16 @@
-import React, { lazy, Suspense, useMemo } from "react";
+import React, { Suspense, useMemo } from "react";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { cn } from "../../lib/utils";
+import { lazyVisualizer } from "../visualizer/legacyViz";
 
 /* ── judgeId → visualizer lazy component map ── */
 const VISUALIZER_MAP = {
-  "find-max-element": lazy(() =>
+  "find-max-element": lazyVisualizer(() =>
     import("../algorithms/Arrays/FindMaxElement")
   ),
-  "find-min-element": lazy(() =>
+  "find-min-element": lazyVisualizer(() =>
     import("../algorithms/Arrays/FindMinElement")
   ),
 };
@@ -48,7 +49,7 @@ export default function VisualizerDrawer({
         onClick={onToggle}
         className={cn(
           "flex items-center gap-2 h-8 px-3 text-xs font-medium transition-colors",
-          "bg-card hover:bg-accent text-muted-foreground hover:text-foreground",
+          "bg-card hover:bg-elevated text-muted-foreground hover:text-foreground",
           "select-none"
         )}
       >

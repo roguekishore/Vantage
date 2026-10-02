@@ -1,0 +1,16 @@
+{
+  "fonts": {
+    "mono": ["\"JetBrains Mono\"", "ui-monospace", "SFMono-Regular", "Menlo", "Monaco", "Consolas", "\"Liberation Mono\"", "\"Courier New\"", "monospace"],
+    "display": ["\"Monument Extended\"", "ui-sans-serif", "system-ui", "sans-serif"]
+  },
+  "scale": {
+    "display": { "font": "display", "fontSize": "clamp(2.75rem, 6vw, 5rem)", "lineHeight": "0.92", "fontWeight": "var(--display-weight)", "letterSpacing": "-0.01em", "textTransform": "uppercase" },
+    "h1":      { "font": "display", "fontSize": "clamp(2rem, 3.6vw, 3rem)",   "lineHeight": "0.95", "fontWeight": "var(--display-weight)", "letterSpacing": "-0.01em", "textTransform": "uppercase" },
+    "h2":      { "font": "display", "fontSize": "22px", "lineHeight": "1.1", "fontWeight": "var(--display-weight)", "letterSpacing": "0", "textTransform": "uppercase" },
+    "h3":      { "font": "mono", "fontSize": "15px", "lineHeight": "1.3", "fontWeight": "700", "letterSpacing": "0", "textTransform": "none" },
+    "body":    { "font": "mono", "fontSize": "14px", "lineHeight": "1.6", "fontWeight": "400", "letterSpacing": "0", "textTransform": "none" },
+    "small":   { "font": "mono", "fontSize": "12px", "lineHeight": "1.5", "fontWeight": "400", "letterSpacing": "0", "textTransform": "none" },
+    "label":   { "font": "mono", "fontSize": "11px", "lineHeight": "1.2", "fontWeight": "700", "letterSpacing": "0.12em", "textTransform": "uppercase" },
+    "micro":   { "font": "mono", "fontSize": "10px", "lineHeight": "1.2", "fontWeight": "500", "letterSpacing": "0.08em", "textTransform": "uppercase" }
+  }
+}

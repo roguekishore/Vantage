@@ -265,25 +265,12 @@ html {
 
 :root {
   /* ========== CLERK-INSPIRED THEME - Light Mode ========== */
-  --radius: 0.625rem;
-  --background: #FFFFFF;
-  --foreground: #09090B;
-  --card: #FFFFFF;
-  --card-foreground: #09090B;
-  --popover: #FFFFFF;
-  --popover-foreground: #09090B;
+  /* shadcn surface/text/border/ring/radius variables now alias the design
+     tokens in src/styles/tokens.css (shadcn bridge). Only the legacy-only
+     variables below remain here. */
   --primary: #5542FF;
   --primary-foreground: #FFFFFF;
-  --secondary: #F4F4F5;
-  --secondary-foreground: #18181B;
-  --muted: #F4F4F5;
-  --muted-foreground: #71717A;
-  --accent: #F4F4F5;
-  --accent-foreground: #18181B;
-  --destructive: #EF4444;
-  --border: #E4E4E7;
   --input: #E4E4E7;
-  --ring: #5542FF;
   --chart-1: #5542FF;
   --chart-2: #B28EF2;
   --chart-3: #7C6BFF;
@@ -412,24 +399,10 @@ html {
 
 /* ========== DARK THEME (clerk-inspired) ========== */
 .dark {
-  --background: #09090B;
-  --foreground: #FAFAFA;
-  --card: #111113;
-  --card-foreground: #FAFAFA;
-  --popover: #111113;
-  --popover-foreground: #FAFAFA;
+  /* shadcn surface/text/border/ring vars: see the bridge in styles/tokens.css */
   --primary: #5542FF;
   --primary-foreground: #FFFFFF;
-  --secondary: #1A1A1E;
-  --secondary-foreground: #FAFAFA;
-  --muted: #1A1A1E;
-  --muted-foreground: #A1A1AA;
-  --accent: #1A1A1E;
-  --accent-foreground: #FAFAFA;
-  --destructive: #EF4444;
-  --border: #1E1E24;
   --input: #1E1E24;
-  --ring: #5542FF;
   --chart-1: #5542FF;
   --chart-2: #B28EF2;
   --chart-3: #7C6BFF;
