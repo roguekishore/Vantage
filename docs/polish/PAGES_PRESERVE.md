@@ -52,7 +52,7 @@ This is the consistency layer. It's what makes the app feel like one product:
 
 ## Method, per page
 
-1. Build the old app once: `git worktree add ../vantage-old 96004b0` (outside the repo; read-only reference), `npm ci`, then build into `build-old` with `REACT_APP_API_URL=http://localhost:1`. Remove the worktree at the end of the run.
+1. Build the old app once as a read-only reference, outside the repo and without a worktree: `git archive 96004b0 reactapp | tar -x -C ../vantage-old`, then `npm ci` and `npm run build` in `../vantage-old/reactapp` with `REACT_APP_API_URL=http://localhost:1` and `CI=false`. If that build fails on the `react-hooks/exhaustive-deps` lint error, apply run 1's fix (commit `a01fe9e`) to the copy only. Serve it on its own port.
 2. Compare the old file (`git show 96004b0:<path>`) with the current one. For heavily stripped pages, start from the old file and apply the harmonize layer, keeping run 1's states and fixes. For lightly changed pages, restore the missing pieces into the current file. The agent chooses.
 3. Screenshot old and new side by side at 1280×800 in both themes, plus 390×844 for Home, Auth and Map. Stay within the screenshot limits.
 
