@@ -3,6 +3,8 @@
 This is the reference for every Phase 2+ unit. Read it before you build a page or a visualizer. It documents the code as it is, not the plan. Where it differs from POLISH_PLAN §3, this file wins.
 Sources: `reactapp/src/styles/{tokens.css,fonts.css,typeScale.json,typeScale.js}`, `reactapp/tailwind.config.js`, `reactapp/src/components/ds/**`, `src/lib/{canvasTheme,monacoThemes}.js`, `src/hooks/{useThemeTokens,useReducedMotion}.js`, `src/components/common/{ThemeProvider,ThemeToggle}.jsx`, `src/pages/visualizer/legacyViz.jsx`, `public/index.html`, `src/pages/ds/**`. All paths below are relative to `reactapp/`.
 
+> **Owner revision, 2026-10-02:** app pages keep their signature visuals (heroes, canvases, the Friends globe, map stage colours, PixelCards) and their old layouts; only the consistency layer is mandatory. `docs/polish/PAGES_PRESERVE.md` defines this and outranks §1 and §10 below for app pages. Everything else in this file (tokens, radius, type, primitives, theming) still applies everywhere. Signature colours must be added here as tokens when they're introduced.
+
 ## 1. Principles
 
 - The identity is terminal-brutalist: flat surfaces, 1px hairline borders, mono type, one acid accent and zero radius. The content does the decorating.

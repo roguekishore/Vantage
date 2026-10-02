@@ -2,7 +2,9 @@
 
 Audience: an Opus orchestrator that dispatches Opus subagents, one per unit of work. Read `HANDOFF.md` first: it defines how the run is executed. Where this plan says "strong" or "cheap", both now mean an Opus subagent. The harness gates and the job prompt still apply unchanged.
 Revision 2026-10-02: owner confirmed terminal-brutalist, full redesign of every surface, no cutline, work on branch `polish`. This revision fixes the light-mode accent, the Phase 4/5 ordering contradiction and the radius-reset fallout, adds a test gate, and moves route smoke and demo data into Phase 1.
+**Revision 2026-10-02 (after run 1): app pages are preserved and harmonized, not redesigned.** `PAGES_PRESERVE.md` supersedes §6 and, for app pages, the bans in §3.6 and §3.10. Visualizers still get the full redesign (§2, §5).
 Companion files:
+- `PAGES_PRESERVE.md`: owner direction for app pages; read before touching any page.
 - `HANDOFF.md`: orchestrator instructions, unit definitions, gates, git rules and stop conditions.
 - `VISUALIZER_MIGRATION_PROMPT.md`: the `defineVisualizer` contract plus the per-file job prompt and acceptance checks.
 - `visualizer-manifest.json`: all 145 visualizer files, each with track, wave, model, stage kind, aux panels, modes, notes and status.
@@ -193,6 +195,8 @@ Reset exclusions, so the global rule doesn't cause damage during migration:
 
 ### 3.6 Motion
 
+> For app pages, `PAGES_PRESERVE.md` "Effects" overrides the bans below: looping and decorative motion is allowed inside signature visuals (heroes, canvases, globe, map), paused off-screen and under reduced motion.
+
 - **One library: GSAP.** Remove `framer-motion` and `motion`.
 - **Allowed:**
   - one entrance per page, a 200–300ms fade or 8px rise
@@ -244,6 +248,8 @@ Setup facts and constraints:
 - At the end of Phase 5 (not earlier; legacy visualizers depend on it until then), delete the remap layer (`index.css:1396-1713`), `ZINC_LIGHT_SCOPE_PATHS` and `MAP_DARK_LOCK_PATHS` (`App.jsx:45-62`, ~191-205), and the `.battle-page` purple variables (`index.css:872-883`).
 
 ### 3.10 Enforcement: `scripts/check-ui.mjs`, run in CI and before every batch
+
+> Signature-visual exceptions on app pages are defined in `PAGES_PRESERVE.md` "Enforcement". They must be explicit and reported, never silent.
 
 It fails on any of the following in `src/**` (allow-list: `src/styles/tokens.css`, `src/components/ds/**`, `canvasTheme.js`):
 - hex, `rgb()` or `hsl()` colour literals
@@ -334,6 +340,8 @@ Full contract and per-file job: `VISUALIZER_MIGRATION_PROMPT.md`. What the shell
 ---
 
 ## 6. Page redesign specs
+
+> **Superseded by `PAGES_PRESERVE.md`.** Do not follow the "remove" or "cut" instructions below (for example removing the Auth NQueens canvas, the Friends globe, Home sections, PixelCards or the map stage colours). The rows below are historical; use them only for the non-destructive fixes they list (offline states, mojibake, labels, tabs, tables).
 
 Each page is PageShell + PageHeader + primitives + OfflineState. What follows is only what's specific to each page.
 

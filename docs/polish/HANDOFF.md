@@ -13,11 +13,12 @@ Design direction is fixed: terminal-brutalist as specified in `POLISH_PLAN.md` �
 ## Read order (you and every subagent)
 
 1. `docs/polish/HANDOFF.md` (this file)
-2. `docs/polish/POLISH_PLAN.md`: the spec. §0 guardrails, §3 design system, §4 shell, §5 visualizer shell, §6 pages, §7 phases and acceptance.
-3. `docs/polish/DESIGN_SYSTEM.md`: created at the end of Phase 1. From then on, it is the frozen source of truth and outranks §3 wherever they differ.
-4. `docs/polish/VISUALIZER_MIGRATION_PROMPT.md` and `docs/polish/visualizer-manifest.json`: for visualizer units.
-5. `docs/polish/evidence/*.md`: file:line evidence. Check here before re-investigating anything.
-6. `docs/polish/PROGRESS.md`: the run log (you create it).
+2. `docs/polish/PAGES_PRESERVE.md`: owner direction for app pages (preserve and harmonize). It supersedes POLISH_PLAN §6.
+3. `docs/polish/POLISH_PLAN.md`: the spec. §0 guardrails, §3 design system, §4 shell, §5 visualizer shell, §6 pages, §7 phases and acceptance.
+4. `docs/polish/DESIGN_SYSTEM.md`: created at the end of Phase 1. From then on, it is the frozen source of truth and outranks §3 wherever they differ (except where PAGES_PRESERVE.md overrides it for app pages).
+5. `docs/polish/VISUALIZER_MIGRATION_PROMPT.md` and `docs/polish/visualizer-manifest.json`: for visualizer units.
+6. `docs/polish/evidence/*.md`: file:line evidence. Check here before re-investigating anything.
+7. `docs/polish/PROGRESS.md`: the run log (you create it).
 
 ## Why this shape
 
