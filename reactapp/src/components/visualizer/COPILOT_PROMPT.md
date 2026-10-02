@@ -18,7 +18,7 @@ You are building an algorithm visualizer page for the **Vantage** project. Every
 Every visualizer file follows this exact structure:
 
 ```
-1. IMPORTS — React hooks, lucide icons, visualizer components, VisualizerPointer, CustomCursor
+1. IMPORTS — React hooks, lucide icons, visualizer components, VisualizerPointer
 2. CODE_LINES — Array of { n, tokens: [{ t, k }] } objects for pseudocode display
 3. LEGEND_ITEMS — Color legend entries: { color, border, label }
 4. COMPONENT — Functional component with:
@@ -35,7 +35,7 @@ Every visualizer file follows this exact structure:
 
 | Component | Purpose | Key Props |
 |-----------|---------|-----------|
-| `VisualizerShell` | Full-page wrapper — dark bg, mono font, full-width padding | `noCursor` |
+| `VisualizerShell` | Full-page wrapper — dark bg, mono font, full-width padding | `style` |
 | `VisualizerHeader` | Monument Extended two-line title + controls slot | `title`, `subtitle`, `category`, `icon`, `right` |
 | `ControlBar` | Play/pause/step/speed/reset — pre-load shows children + Run | `loaded`, `playing`, `step`, `totalSteps`, `speed`, `onRun`, `onReset`, `onForward`, `onBackward`, `onPlayPause`, `onSpeedChange` |
 | `ProgressBar` | Thin accent progress bar | `step`, `totalSteps` |
@@ -55,7 +55,6 @@ Every visualizer file follows this exact structure:
 
 Also import separately:
 - `VisualizerPointer` from `@/components/VisualizerPointer` — animated arrow pointer for array elements
-- `CustomCursor` from `@/components/CustomCursor` — custom cursor replacement
 
 ### Design Tokens (`V` object from `@/components/visualizer`)
 
@@ -128,8 +127,7 @@ See `src/pages/algorithms/Sorting/BubbleSort.jsx` as the canonical reference for
 2. **NEVER use border-radius** — everything is sharp-edged
 3. **NEVER hardcode colors** — always reference V.xxx tokens
 4. **Always use `VisualizerShell`** as the outermost wrapper
-5. **Always include `<CustomCursor />`** as first child of VisualizerShell
-6. **Preserve algorithm logic exactly** — only rewrite the render/JSX section
-7. **Speed default is 300ms**, not 80ms
-8. **Pointers use `direction="up"`** — arrows appear below elements, inside the container
-9. **Full-width layout** — no maxWidth constraint on the page
+5. **Preserve algorithm logic exactly** — only rewrite the render/JSX section
+6. **Speed default is 300ms**, not 80ms
+7. **Pointers use `direction="up"`** — arrows appear below elements, inside the container
+8. **Full-width layout** — no maxWidth constraint on the page

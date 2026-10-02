@@ -7,7 +7,6 @@ import {
   StatBlock, Legend, ComplexityFooter,
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 const CODE_LINES = [
   { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "pancakeSort(arr) {", k: "" }] },
@@ -117,8 +116,7 @@ const PancakeSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
       <VisualizerHeader title="PANCAKE" subtitle="SORT." category="Sorting" icon={FlipVertical}
         right={
           <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}

@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowLeft, Play, Pause, RotateCcw, Zap } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 /*
   ExpressionAddOperators.jsx
@@ -20,15 +19,11 @@ const Node = ({ text, status }) => {
       : "bg-theme-tertiary/40 border-theme-primary";
 
   return (
-    <motion.div
-      layout
-      initial={{ scale: 0.98, opacity: 0 }}
-      animate={{ scale: 1, opacity: 1 }}
-      exit={{ opacity: 0 }}
+    <div
       className={`p-3 rounded-lg border ${bg} text-sm font-mono text-theme-primary`}
     >
       {text}
-    </motion.div>
+    </div>
   );
 };
 
@@ -267,13 +262,10 @@ const ExpressionAddOperators = ({ navigate }) => {
             Step Viewer
           </h3>
           <div className="space-y-2">
-            <AnimatePresence initial={false}>
+            <>
               {current && (
-                <motion.div
+                <div
                   key={current.id || "empty"}
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -8 }}
                 >
                   <Node
                     text={`${current.note || ""} ${
@@ -292,9 +284,9 @@ const ExpressionAddOperators = ({ navigate }) => {
                         : "normal"
                     }
                   />
-                </motion.div>
+                </div>
               )}
-            </AnimatePresence>
+            </>
           </div>
 
           <div className="mt-4 text-sm text-theme-tertiary">
@@ -318,11 +310,8 @@ const ExpressionAddOperators = ({ navigate }) => {
               {frames
                 .slice(Math.max(0, playIndex - 6), playIndex + 1)
                 .map((f) => (
-                  <motion.div
+                  <div
                     key={f.id}
-                    layout
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
                     className="flex items-center justify-between gap-3"
                   >
                     <div className="flex-1">
@@ -334,7 +323,7 @@ const ExpressionAddOperators = ({ navigate }) => {
                     <div className="text-sm font-mono text-theme-secondary">
                       {f.value ?? "-"}
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
             </div>
           </div>
@@ -352,14 +341,12 @@ const ExpressionAddOperators = ({ navigate }) => {
           {solutions.length > 0 ? (
             <div className="space-y-2">
               {solutions.map((s, i) => (
-                <motion.div
+                <div
                   key={s + i}
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
                   className="p-2 rounded-md bg-success800/30 border border-success700 text-sm font-mono"
                 >
                   {s}
-                </motion.div>
+                </div>
               ))}
             </div>
           ) : (

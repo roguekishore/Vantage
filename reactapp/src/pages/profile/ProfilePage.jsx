@@ -18,7 +18,6 @@ import useFriendsStore from "@/stores/useFriendsStore";
 import useProgressStore, {
   STAGES, STAGE_ORDER, ALL_PROBLEMS, Difficulty,
 } from "@/map/useProgressStore";
-import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO } from "@/components/common/MonumentTypography";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -186,7 +185,7 @@ function StatChip({ icon: Icon, label, value, color, delay = 0 }) {
       display: "flex", flexDirection: "column", alignItems: "center",
       justifyContent: "center", gap: 10, padding: "22px 14px",
       background: `${color}0d`, border: `1px solid ${color}30`,
-      borderRadius: 14, textAlign: "center", cursor: "none",
+      borderRadius: 14, textAlign: "center",
       transition: "border-color 0.2s,background 0.2s"
     }}
       onMouseEnter={e => { e.currentTarget.style.background = `${color}1a`; e.currentTarget.style.borderColor = `${color}50`; }}
@@ -304,7 +303,7 @@ function StageRow({ stageKey, stage, prog, idx }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 14, padding: "11px 20px",
-      borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s", cursor: "none"
+      borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s"
     }}
       onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.025)"; }}
       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
@@ -339,7 +338,7 @@ function CoinTx({ tx }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12, padding: "12px 20px",
-      borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s", cursor: "none"
+      borderBottom: "1px solid rgba(255,255,255,0.04)", transition: "background 0.15s"
     }}
       onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.018)"; }}
       onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
@@ -526,8 +525,7 @@ const ProfilePage = () => {
   ];
 
   return (
-    <div ref={pageRef} style={{ minHeight: "100vh", background: "#09090b", paddingTop: 56, paddingBottom: 100, cursor: "none", overflowX: "hidden" }}>
-      <CustomCursor />
+    <div ref={pageRef} style={{ minHeight: "100vh", background: "#09090b", paddingTop: 56, paddingBottom: 100, overflowX: "hidden" }}>
 
       {/* fixed bg glow */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0, overflow: "hidden" }}>
@@ -674,7 +672,7 @@ const ProfilePage = () => {
                   padding: "8px 14px", borderRadius: 10,
                   background: "rgba(9,9,11,0.65)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)",
                   fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.3)", cursor: "none", transition: "all 0.2s"
+                  color: "rgba(255,255,255,0.3)", transition: "all 0.2s"
                 }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(237,255,102,0.35)"; e.currentTarget.style.color = ACID_YELLOW; e.currentTarget.style.background = "rgba(237,255,102,0.08)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; e.currentTarget.style.background = "rgba(9,9,11,0.65)"; }}
@@ -728,7 +726,7 @@ const ProfilePage = () => {
                   </div>
                 </div>
                 {isDnd && (
-                  <button onClick={unmuteChallenges} disabled={friendsActionLoading} data-cursor="OFF" style={{ padding: "8px 16px", borderRadius: 8, fontSize: 10, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: ACID_YELLOW, background: "rgba(237,255,102,0.1)", border: "1px solid rgba(237,255,102,0.2)", cursor: "none", transition: "all 0.15s" }}>Turn Off</button>
+                  <button onClick={unmuteChallenges} disabled={friendsActionLoading} data-cursor="OFF" style={{ padding: "8px 16px", borderRadius: 8, fontSize: 10, fontWeight: 900, letterSpacing: "0.12em", textTransform: "uppercase", color: ACID_YELLOW, background: "rgba(237,255,102,0.1)", border: "1px solid rgba(237,255,102,0.2)", transition: "all 0.15s" }}>Turn Off</button>
                 )}
               </div>
             </Card>
@@ -883,15 +881,15 @@ const ProfilePage = () => {
                   </div>
                   {coinHistory.totalPages > 1 && (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                      <button data-cursor="PREV" onClick={async () => { if (coinPage > 0) { const p = coinPage - 1; setCoinPage(p); setCoinHistory(await fetchCoinHistory(user.uid, p, 10)); } }} disabled={coinPage === 0} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: coinPage === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)", cursor: "none", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => { if (coinPage > 0) e.currentTarget.style.color = ACID_YELLOW; }} onMouseLeave={e => { e.currentTarget.style.color = coinPage === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)"; }}>
+                      <button data-cursor="PREV" onClick={async () => { if (coinPage > 0) { const p = coinPage - 1; setCoinPage(p); setCoinHistory(await fetchCoinHistory(user.uid, p, 10)); } }} disabled={coinPage === 0} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: coinPage === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => { if (coinPage > 0) e.currentTarget.style.color = ACID_YELLOW; }} onMouseLeave={e => { e.currentTarget.style.color = coinPage === 0 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)"; }}>
                         <ChevronLeft size={14} /> Prev
                       </button>
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                         {Array.from({ length: Math.min(coinHistory.totalPages, 7) }).map((_, i) => (
-                          <button key={i} data-cursor="PAGE" onClick={async () => { setCoinPage(i); setCoinHistory(await fetchCoinHistory(user.uid, i, 10)); }} style={{ width: coinPage === i ? 24 : 8, height: 4, borderRadius: 2, border: "none", cursor: "none", background: coinPage === i ? ACID_YELLOW : "rgba(255,255,255,0.15)", transition: "all 0.2s" }} />
+                          <button key={i} data-cursor="PAGE" onClick={async () => { setCoinPage(i); setCoinHistory(await fetchCoinHistory(user.uid, i, 10)); }} style={{ width: coinPage === i ? 24 : 8, height: 4, borderRadius: 2, border: "none", background: coinPage === i ? ACID_YELLOW : "rgba(255,255,255,0.15)", transition: "all 0.2s" }} />
                         ))}
                       </div>
-                      <button data-cursor="NEXT" onClick={async () => { if (coinPage < coinHistory.totalPages - 1) { const p = coinPage + 1; setCoinPage(p); setCoinHistory(await fetchCoinHistory(user.uid, p, 10)); } }} disabled={coinPage >= coinHistory.totalPages - 1} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: coinPage >= coinHistory.totalPages - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)", cursor: "none", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => { if (coinPage < coinHistory.totalPages - 1) e.currentTarget.style.color = ACID_YELLOW; }} onMouseLeave={e => { e.currentTarget.style.color = coinPage >= coinHistory.totalPages - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)"; }}>
+                      <button data-cursor="NEXT" onClick={async () => { if (coinPage < coinHistory.totalPages - 1) { const p = coinPage + 1; setCoinPage(p); setCoinHistory(await fetchCoinHistory(user.uid, p, 10)); } }} disabled={coinPage >= coinHistory.totalPages - 1} style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, fontWeight: 900, letterSpacing: "0.1em", textTransform: "uppercase", color: coinPage >= coinHistory.totalPages - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => { if (coinPage < coinHistory.totalPages - 1) e.currentTarget.style.color = ACID_YELLOW; }} onMouseLeave={e => { e.currentTarget.style.color = coinPage >= coinHistory.totalPages - 1 ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.4)"; }}>
                         Next <ChevronRight size={14} />
                       </button>
                     </div>

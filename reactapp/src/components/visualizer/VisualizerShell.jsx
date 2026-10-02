@@ -9,9 +9,8 @@ import { V, MONO, LABEL_STYLE } from "./theme";
  *
  * @param {React.ReactNode} children – Page content
  * @param {object}          [style]  – Extra styles on the container
- * @param {boolean}         [noCursor] – If true, hides the native cursor (for CustomCursor)
  */
-export default function VisualizerShell({ children, style, noCursor = false }) {
+export default function VisualizerShell({ children, style }) {
     return (
         <div
             style={{
@@ -20,7 +19,6 @@ export default function VisualizerShell({ children, style, noCursor = false }) {
                 color: V.text,
                 fontFamily: MONO,
                 padding: "32px 48px",
-                ...(noCursor ? { cursor: "none" } : {}),
                 ...style,
             }}
         >

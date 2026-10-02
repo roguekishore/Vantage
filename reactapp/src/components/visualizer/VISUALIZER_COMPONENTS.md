@@ -81,7 +81,7 @@ import {
 Full-page wrapper. Applies `#09090B` background, monospace font, padding.
 
 ```jsx
-<VisualizerShell noCursor={true}>
+<VisualizerShell>
   {/* entire page content */}
 </VisualizerShell>
 ```
@@ -89,7 +89,6 @@ Full-page wrapper. Applies `#09090B` background, monospace font, padding.
 | Prop | Type | Default | Description |
 |---|---|---|---|
 | `children` | ReactNode | — | Page content |
-| `noCursor` | boolean | `false` | Hide native cursor (for CustomCursor) |
 | `style` | object | — | Extra styles |
 
 ---
@@ -377,7 +376,6 @@ import {
   StatBlock, Legend, ComplexityFooter,
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
-import CustomCursor from "@/components/CustomCursor";
 
 const BubbleSortVisualizer = () => {
   const [history, setHistory] = useState([]);
@@ -393,8 +391,7 @@ const BubbleSortVisualizer = () => {
   const pct = history.length > 1 ? Math.round((step / (history.length - 1)) * 100) : 0;
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
 
       {/* ── HEADER + CONTROLS ── */}
       <VisualizerHeader

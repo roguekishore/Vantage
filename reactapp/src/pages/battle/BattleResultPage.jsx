@@ -11,7 +11,6 @@ import {
   ArrowUp, ArrowDown, Loader2, RotateCcw, Home,
   Crown, Target, Clock, CheckCircle2,
 } from "lucide-react";
-import CustomCursor from "../../components/common/CustomCursor";
 import { MONUMENT_TYPO, getMonumentCanvasFont } from "../../components/common/MonumentTypography";
 
 const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
@@ -361,8 +360,7 @@ export default function BattleResultPage() {
   );
 
   return (
-    <div ref={pageRef} style={{ minHeight:"100vh",background:"#09090b",display:"flex",flexDirection:"column",overflowX:"hidden",paddingTop:56,cursor:"none" }}>
-      <CustomCursor />
+    <div ref={pageRef} style={{ minHeight:"100vh",background:"#09090b",display:"flex",flexDirection:"column",overflowX:"hidden",paddingTop:56 }}>
 
       {/* Background */}
       <div style={{ position:"fixed",inset:0,pointerEvents:"none",zIndex:0 }}>
@@ -429,7 +427,7 @@ export default function BattleResultPage() {
             <div style={{ height:2,background:O.barGrad }}/>
             <div style={{ padding:"clamp(18px,2.5vh,26px) clamp(18px,2.5vw,28px)",display:"flex",flexDirection:"column",gap:10,flex:1,justifyContent:"center" }}>
               <button onClick={()=>{reset();navigate("/battle");}} data-cursor="REMATCH"
-                style={{ height:50,borderRadius:12,border:"none",cursor:"none",background:"#EDFF66",color:"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"opacity 0.15s",width:"100%" }}
+                style={{ height:50,borderRadius:12,border:"none",background:"#EDFF66",color:"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"opacity 0.15s",width:"100%" }}
                 onMouseEnter={e=>e.currentTarget.style.opacity="0.84"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}
               ><RotateCcw size={13}/> Play Again</button>
               <div style={{ display:"flex",gap:8 }}>
@@ -438,7 +436,7 @@ export default function BattleResultPage() {
                   { label:"Home",  Icon:CheckCircle2, path:"/" },
                 ].map(({ label, Icon, path }) => (
                   <button key={label} onClick={()=>navigate(path)} data-cursor={label.toUpperCase()}
-                    style={{ flex:1,height:40,borderRadius:10,cursor:"none",background:"transparent",border:"1px solid rgba(255,255,255,0.08)",fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",display:"flex",alignItems:"center",justifyContent:"center",gap:6,transition:"all 0.15s" }}
+                    style={{ flex:1,height:40,borderRadius:10,background:"transparent",border:"1px solid rgba(255,255,255,0.08)",fontSize:11,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",color:"rgba(255,255,255,0.35)",display:"flex",alignItems:"center",justifyContent:"center",gap:6,transition:"all 0.15s" }}
                     onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.2)";e.currentTarget.style.color="#fff";}}
                     onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.08)";e.currentTarget.style.color="rgba(255,255,255,0.35)";}}
                   ><Icon size={12}/>{label}</button>

@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import useUserStore from "@/stores/useUserStore";
 import useAchievementStore from "@/stores/useAchievementStore";
-import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -73,7 +72,7 @@ function TiltCard({ children, style, intensity = 8 }) {
     gsap.to(ref.current, { transform: "perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(0px)", duration: 0.6, ease: "expo.out" });
   }, []);
   return (
-    <div ref={ref} style={{ willChange: "transform", transformStyle: "preserve-3d", cursor: "none", ...style }}
+    <div ref={ref} style={{ willChange: "transform", transformStyle: "preserve-3d", ...style }}
       onMouseMove={onMove} onMouseLeave={onLeave}>{children}</div>
   );
 }
@@ -208,7 +207,7 @@ function StickyTabs({ active, onChange, badges, earnedCount }) {
             <button key={key} onClick={() => onChange(key)} data-cursor={label.toUpperCase()}
               style={{
                 display: "flex", alignItems: "center", gap: 7,
-                padding: "8px 14px", borderRadius: 8, border: "none", cursor: "none",
+                padding: "8px 14px", borderRadius: 8, border: "none",
                 background: isActive ? "rgba(255,255,255,0.08)" : "transparent",
                 fontSize: 11, fontWeight: 700, letterSpacing: "0.05em",
                 color: isActive ? "#fff" : "rgba(255,255,255,0.28)",
@@ -531,8 +530,7 @@ export default function AchievementsPage() {
   /* ── not logged in ── */
   if (!user?.uid) {
     return (
-      <div style={{ minHeight: "100vh", background: "#09090b", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, cursor: "none" }}>
-        <CustomCursor />
+      <div style={{ minHeight: "100vh", background: "#09090b", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ maxWidth: 340, width: "100%", background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden" }}>
           <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(196,181,253,0.5),transparent)" }} />
           <div style={{ padding: "32px 28px", display: "flex", flexDirection: "column", alignItems: "center", gap: 18, textAlign: "center" }}>
@@ -544,7 +542,7 @@ export default function AchievementsPage() {
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.7 }}>Track your badges and forge your legacy.</p>
             </div>
             <button onClick={() => navigate("/login")} data-cursor="GO"
-              style={{ width: "100%", height: 44, borderRadius: 10, border: "none", cursor: "none", background: "#EDFF66", color: "#09090b", fontSize: 11, fontWeight: 900, letterSpacing: "0.09em", textTransform: "uppercase" }}>
+              style={{ width: "100%", height: 44, borderRadius: 10, border: "none", background: "#EDFF66", color: "#09090b", fontSize: 11, fontWeight: 900, letterSpacing: "0.09em", textTransform: "uppercase" }}>
               Log In
             </button>
           </div>
@@ -554,8 +552,7 @@ export default function AchievementsPage() {
   }
 
   return (
-    <div ref={pageRef} style={{ minHeight: "100vh", background: "#09090b", paddingTop: 56, paddingBottom: 120, cursor: "none", overflowX: "hidden", position: "relative" }}>
-      <CustomCursor />
+    <div ref={pageRef} style={{ minHeight: "100vh", background: "#09090b", paddingTop: 56, paddingBottom: 120, overflowX: "hidden", position: "relative" }}>
 
       {/* ── bg atmosphere ── */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>

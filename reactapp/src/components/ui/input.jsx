@@ -1,4 +1,6 @@
 import * as React from "react"
+// Legacy shadcn copy restyled onto design tokens (radius 0, no shadows).
+// New code imports from "@/components/ds" instead.
 import { cn } from "../../lib/utils"
 
 const Input = React.forwardRef(({ className, type = "text", ...props }, ref) => {
@@ -6,7 +8,7 @@ const Input = React.forwardRef(({ className, type = "text", ...props }, ref) => 
     <input
       type={type}
       className={cn(
-        "flex h-10 w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-background px-3 py-2 text-sm text-foreground ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200",
+        "flex h-9 w-full border border-border bg-elevated px-3 py-2 font-mono text-sm text-fg file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-fg-dim hover:border-border-strong focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 transition-colors duration-[120ms]",
         className
       )}
       ref={ref}

@@ -8,7 +8,6 @@ import {
   ArrayBox, InputField, IdleState,
 } from "@/components/visualizer";
 import VisualizerPointer from "@/components/visualizer/VisualizerPointer";
-import CustomCursor from "@/components/common/CustomCursor";
 
 const CODE_LINES = [
   { n: 1, tokens: [{ t: "function ", k: "kw" }, { t: "combSort(arr) {", k: "" }] },
@@ -111,8 +110,7 @@ const CombSortVisualizer = () => {
   };
 
   return (
-    <VisualizerShell noCursor>
-      <CustomCursor />
+    <VisualizerShell>
       <VisualizerHeader title="COMB" subtitle="SORT." category="Sorting" icon={List}
         right={
           <ControlBar loaded={loaded} playing={autoPlay} step={step} totalSteps={history.length}

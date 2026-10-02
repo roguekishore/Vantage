@@ -1,22 +1,24 @@
 import * as React from "react"
+// Legacy shadcn copy restyled onto design tokens (radius 0, no shadows).
+// New code imports from "@/components/ds" instead.
 import { cn } from "../../lib/utils"
 
 function Badge({ className, variant = "default", ...props }) {
   const variants = {
-    default: "border-transparent bg-primary text-primary-foreground",
-    secondary: "border-transparent bg-secondary text-secondary-foreground",
-    destructive: "border-transparent bg-destructive text-destructive-foreground",
-    outline: "text-foreground",
-    success: "border-transparent bg-[var(--color-success-light)] text-[var(--color-success)]",
-    warning: "border-transparent bg-[var(--color-warning-light)] text-[var(--color-warning)]",
-    danger: "border-transparent bg-[var(--color-danger-light)] text-[var(--color-danger)]",
+    default: "border-accent-edge bg-accent text-on-accent",
+    secondary: "border-border bg-elevated text-fg-muted",
+    destructive: "border-err bg-err-soft text-err",
+    outline: "border-border-strong text-fg",
+    success: "border-ok bg-ok-soft text-ok",
+    warning: "border-warn bg-warn-soft text-warn",
+    danger: "border-err bg-err-soft text-err",
   }
 
   return (
     <div
       data-slot="badge"
       className={cn(
-        "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+        "inline-flex items-center border px-2 py-0.5 font-mono text-micro uppercase tabular-nums",
         variants[variant] || variants.default,
         className
       )}

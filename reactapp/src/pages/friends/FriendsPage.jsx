@@ -9,7 +9,6 @@ import { useGSAP } from "@gsap/react";
 import useFriendsStore from "@/stores/useFriendsStore";
 import useUserStore from "@/stores/useUserStore";
 import useBattleStore from "@/stores/useBattleStore";
-import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
 import { FONT_MONO } from "@/styles/typeScale";
 import { Globe } from "@/components/ui/globe";
@@ -210,7 +209,7 @@ function FriendRow({ f, isOnline, onChallenge, actionLoading, activeBattleState 
         display: "flex", alignItems: "center", gap: 14,
         padding: "11px 16px", borderRadius: 12,
         background: hov ? "rgba(255,255,255,0.03)" : "transparent",
-        transition: "background 0.15s", cursor: "none",
+        transition: "background 0.15s",
       }}
     >
       <Avatar name={f.username} online={isOnline} size={40} />
@@ -224,7 +223,7 @@ function FriendRow({ f, isOnline, onChallenge, actionLoading, activeBattleState 
       </div>
       {isOnline && !activeBattleState ? (
         <button onClick={() => onChallenge?.(f)} disabled={actionLoading} data-cursor="FIGHT"
-          style={{ height: 32, paddingLeft: 14, paddingRight: 14, borderRadius: 8, border: "none", cursor: "none", background: hov ? "#f87171" : "rgba(248,113,113,0.12)", color: hov ? "#fff" : "#f87171", fontSize: 11, fontWeight: 800, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5, opacity: actionLoading ? 0.4 : 1, transition: "all 0.15s", whiteSpace: "nowrap", flexShrink: 0 }}>
+          style={{ height: 32, paddingLeft: 14, paddingRight: 14, borderRadius: 8, border: "none", background: hov ? "#f87171" : "rgba(248,113,113,0.12)", color: hov ? "#fff" : "#f87171", fontSize: 11, fontWeight: 800, letterSpacing: "0.04em", display: "flex", alignItems: "center", gap: 5, opacity: actionLoading ? 0.4 : 1, transition: "all 0.15s", whiteSpace: "nowrap", flexShrink: 0 }}>
           <Swords size={11} /> Fight
         </button>
       ) : (
@@ -239,7 +238,7 @@ function FriendRow({ f, isOnline, onChallenge, actionLoading, activeBattleState 
 ───────────────────────────────────────────────────────────────── */
 function RequestRow({ name, meta, onAccept, onReject, onCancel, actionLoading }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 16px", borderRadius: 12, cursor: "none" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "11px 16px", borderRadius: 12 }}>
       <Avatar name={name} online={false} size={40} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontFamily: T.fontFamily, fontWeight: 900, fontSize: 13.5, letterSpacing: T.letterSpacing?.monument || "0.03em", color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</div>
@@ -248,21 +247,21 @@ function RequestRow({ name, meta, onAccept, onReject, onCancel, actionLoading })
       <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
         {onAccept && (
           <button disabled={actionLoading} onClick={onAccept} data-cursor="ACCEPT"
-            style={{ width: 32, height: 32, borderRadius: 8, border: "none", cursor: "none", background: "rgba(52,211,153,0.1)", display: "flex", alignItems: "center", justifyContent: "center", opacity: actionLoading ? 0.4 : 1, transition: "background 0.15s" }}
+            style={{ width: 32, height: 32, borderRadius: 8, border: "none", background: "rgba(52,211,153,0.1)", display: "flex", alignItems: "center", justifyContent: "center", opacity: actionLoading ? 0.4 : 1, transition: "background 0.15s" }}
             onMouseEnter={e => { if (!actionLoading) e.currentTarget.style.background = "rgba(52,211,153,0.22)"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "rgba(52,211,153,0.1)"; }}
           ><Check size={13} color="#34d399" /></button>
         )}
         {onReject && (
           <button disabled={actionLoading} onClick={onReject} data-cursor="REJECT"
-            style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", cursor: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.28)", opacity: actionLoading ? 0.4 : 1, transition: "all 0.15s" }}
+            style={{ width: 32, height: 32, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.28)", opacity: actionLoading ? 0.4 : 1, transition: "all 0.15s" }}
             onMouseEnter={e => { if (!actionLoading) { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)"; }}}
             onMouseLeave={e => { e.currentTarget.style.color = "rgba(255,255,255,0.28)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; }}
           ><X size={13} /></button>
         )}
         {onCancel && (
           <button disabled={actionLoading} onClick={onCancel} data-cursor="CANCEL"
-            style={{ height: 32, paddingLeft: 14, paddingRight: 14, borderRadius: 8, cursor: "none", background: "transparent", border: "1px solid rgba(255,255,255,0.07)", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", opacity: actionLoading ? 0.4 : 1, transition: "all 0.15s" }}
+            style={{ height: 32, paddingLeft: 14, paddingRight: 14, borderRadius: 8, background: "transparent", border: "1px solid rgba(255,255,255,0.07)", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.28)", opacity: actionLoading ? 0.4 : 1, transition: "all 0.15s" }}
             onMouseEnter={e => { if (!actionLoading) { e.currentTarget.style.color = "#f87171"; e.currentTarget.style.borderColor = "rgba(248,113,113,0.3)"; }}}
             onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.07)"; e.currentTarget.style.color = "rgba(255,255,255,0.28)"; }}
           >Cancel</button>
@@ -277,7 +276,7 @@ function RequestRow({ name, meta, onAccept, onReject, onCancel, actionLoading })
 ───────────────────────────────────────────────────────────────── */
 function SearchRow({ u, sendRequest, acceptRequest, actionLoading }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 12px", borderRadius: 10, cursor: "none", transition: "background 0.12s" }}
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 12px", borderRadius: 10, transition: "background 0.12s" }}
       onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
     >
@@ -285,7 +284,7 @@ function SearchRow({ u, sendRequest, acceptRequest, actionLoading }) {
       <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#fff", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontFamily: FONT_MONO }}>{u.username}</span>
       {u.relationStatus === "NONE" && (
         <button disabled={actionLoading} onClick={() => sendRequest(u.uid)} data-cursor="ADD"
-          style={{ height: 30, paddingLeft: 12, paddingRight: 12, borderRadius: 7, border: "none", cursor: "none", background: "#EDFF66", color: "#09090b", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", gap: 5, opacity: actionLoading ? 0.4 : 1, flexShrink: 0 }}>
+          style={{ height: 30, paddingLeft: 12, paddingRight: 12, borderRadius: 7, border: "none", background: "#EDFF66", color: "#09090b", fontSize: 11, fontWeight: 800, display: "flex", alignItems: "center", gap: 5, opacity: actionLoading ? 0.4 : 1, flexShrink: 0 }}>
           <UserPlus size={11} /> Add
         </button>
       )}
@@ -297,7 +296,7 @@ function SearchRow({ u, sendRequest, acceptRequest, actionLoading }) {
       )}
       {u.relationStatus === "REQUEST_RECEIVED" && u.pendingRequestId && (
         <button disabled={actionLoading} onClick={() => acceptRequest(u.pendingRequestId)} data-cursor="ACCEPT"
-          style={{ width: 30, height: 30, borderRadius: 7, border: "none", cursor: "none", background: "rgba(52,211,153,0.12)", display: "flex", alignItems: "center", justifyContent: "center", opacity: actionLoading ? 0.4 : 1, flexShrink: 0 }}>
+          style={{ width: 30, height: 30, borderRadius: 7, border: "none", background: "rgba(52,211,153,0.12)", display: "flex", alignItems: "center", justifyContent: "center", opacity: actionLoading ? 0.4 : 1, flexShrink: 0 }}>
           <Check size={12} color="#34d399" />
         </button>
       )}
@@ -336,7 +335,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
             </div>
           </div>
           <button onClick={onClose} data-cursor="CLOSE"
-            style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", cursor: "none", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.28)", transition: "all 0.15s" }}
+            style={{ width: 30, height: 30, borderRadius: 8, border: "1px solid rgba(255,255,255,0.07)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.28)", transition: "all 0.15s" }}
             onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.05)"; e.currentTarget.style.color = "#fff"; }}
             onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.28)"; }}
           ><X size={13} /></button>
@@ -351,7 +350,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
                 const act = mode === v;
                 return (
                   <button key={v} onClick={() => setMode(v)} data-cursor={label.toUpperCase()}
-                    style={{ padding: "11px 13px", borderRadius: 10, border: `1px solid ${act ? color + "30" : "rgba(255,255,255,0.06)"}`, cursor: "none", background: act ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)", textAlign: "left", transition: "all 0.15s" }}>
+                    style={{ padding: "11px 13px", borderRadius: 10, border: `1px solid ${act ? color + "30" : "rgba(255,255,255,0.06)"}`, background: act ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)", textAlign: "left", transition: "all 0.15s" }}>
                     <Icon size={13} color={act ? color : "rgba(255,255,255,0.2)"} style={{ marginBottom: 7 }} />
                     <div style={{ fontFamily: T.fontFamily, fontSize: 12, fontWeight: 900, color: act ? "#fff" : "rgba(255,255,255,0.35)", letterSpacing: T.letterSpacing?.monument || "0.03em" }}>{label}</div>
                   </button>
@@ -368,7 +367,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
                 const act = diff === v;
                 return (
                   <button key={v} onClick={() => setDiff(v)} data-cursor={label.toUpperCase()}
-                    style={{ padding: "9px 0", borderRadius: 9, border: `1px solid ${act ? color + "35" : "rgba(255,255,255,0.06)"}`, cursor: "none", background: act ? `${color}0d` : "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 11, fontWeight: 800, color: act ? color : "rgba(255,255,255,0.3)", transition: "all 0.15s" }}>
+                    style={{ padding: "9px 0", borderRadius: 9, border: `1px solid ${act ? color + "35" : "rgba(255,255,255,0.06)"}`, background: act ? `${color}0d` : "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontSize: 11, fontWeight: 800, color: act ? color : "rgba(255,255,255,0.3)", transition: "all 0.15s" }}>
                     <div style={{ width: 5, height: 5, borderRadius: "50%", background: act ? color : "rgba(255,255,255,0.18)" }} />
                     {label}
                   </button>
@@ -385,7 +384,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
                 const act = count === n;
                 return (
                   <button key={n} onClick={() => setCount(n)} data-cursor="SELECT"
-                    style={{ padding: "12px 0", borderRadius: 9, border: `1px solid ${act ? "rgba(237,255,102,0.25)" : "rgba(255,255,255,0.06)"}`, cursor: "none", background: act ? "#EDFF66" : "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, fontSize: 17, fontWeight: 900, color: act ? "#09090b" : "rgba(255,255,255,0.32)", transition: "all 0.15s" }}>
+                    style={{ padding: "12px 0", borderRadius: 9, border: `1px solid ${act ? "rgba(237,255,102,0.25)" : "rgba(255,255,255,0.06)"}`, background: act ? "#EDFF66" : "rgba(255,255,255,0.02)", display: "flex", flexDirection: "column", alignItems: "center", gap: 2, fontSize: 17, fontWeight: 900, color: act ? "#09090b" : "rgba(255,255,255,0.32)", transition: "all 0.15s" }}>
                     {n}
                   </button>
                 );
@@ -401,7 +400,7 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
                 const act = durationMinutes === m;
                 return (
                   <button key={m} onClick={() => setDurationMinutes(m)} data-cursor="SELECT"
-                    style={{ padding: "10px 0", borderRadius: 9, border: `1px solid ${act ? "rgba(237,255,102,0.25)" : "rgba(255,255,255,0.06)"}`, cursor: "none", background: act ? "rgba(237,255,102,0.12)" : "rgba(255,255,255,0.02)", fontSize: 10, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", color: act ? "#EDFF66" : "rgba(255,255,255,0.35)", transition: "all 0.15s" }}>
+                    style={{ padding: "10px 0", borderRadius: 9, border: `1px solid ${act ? "rgba(237,255,102,0.25)" : "rgba(255,255,255,0.06)"}`, background: act ? "rgba(237,255,102,0.12)" : "rgba(255,255,255,0.02)", fontSize: 10, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", color: act ? "#EDFF66" : "rgba(255,255,255,0.35)", transition: "all 0.15s" }}>
                     {m}m
                   </button>
                 );
@@ -412,12 +411,12 @@ function ChallengeModal({ target, onClose, onSubmit, loading }) {
           {/* Actions */}
           <div className="cm-row" style={{ opacity: 0, display: "flex", gap: 8 }}>
             <button onClick={onClose} data-cursor="CANCEL"
-              style={{ height: 44, paddingLeft: 18, paddingRight: 18, borderRadius: 11, cursor: "none", background: "transparent", border: "1px solid rgba(255,255,255,0.08)", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
+              style={{ height: 44, paddingLeft: 18, paddingRight: 18, borderRadius: 11, background: "transparent", border: "1px solid rgba(255,255,255,0.08)", fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.3)", transition: "all 0.15s" }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.18)"; e.currentTarget.style.color = "#fff"; }}
               onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "rgba(255,255,255,0.3)"; }}
             >Cancel</button>
             <button onClick={() => onSubmit({ mode, difficulty: diff, count, durationMinutes })} disabled={loading} data-cursor="FIGHT"
-              style={{ flex: 1, height: 44, borderRadius: 11, border: "none", cursor: "none", background: loading ? "rgba(248,113,113,0.4)" : "#f87171", color: "#fff", fontSize: 11, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, transition: "opacity 0.15s" }}
+              style={{ flex: 1, height: 44, borderRadius: 11, border: "none", background: loading ? "rgba(248,113,113,0.4)" : "#f87171", color: "#fff", fontSize: 11, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: 7, transition: "opacity 0.15s" }}
               onMouseEnter={e => { if (!loading) e.currentTarget.style.opacity = "0.85"; }}
               onMouseLeave={e => { e.currentTarget.style.opacity = "1"; }}
             ><Swords size={13} /> Send Challenge</button>
@@ -438,7 +437,7 @@ function PillTabs({ tabs, active, onChange }) {
         const act = tab.key === active;
         return (
           <button key={tab.key} onClick={() => onChange(tab.key)} data-cursor={tab.label.toUpperCase()}
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 7, border: "none", cursor: "none", background: act ? "rgba(255,255,255,0.08)" : "transparent", outline: act ? "1px solid rgba(255,255,255,0.1)" : "none", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: act ? "#fff" : "rgba(255,255,255,0.32)", transition: "all 0.15s" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 13px", borderRadius: 7, border: "none", background: act ? "rgba(255,255,255,0.08)" : "transparent", outline: act ? "1px solid rgba(255,255,255,0.1)" : "none", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", color: act ? "#fff" : "rgba(255,255,255,0.32)", transition: "all 0.15s" }}
             onMouseEnter={e => { if (!act) e.currentTarget.style.color = "rgba(255,255,255,0.58)"; }}
             onMouseLeave={e => { if (!act) e.currentTarget.style.color = "rgba(255,255,255,0.32)"; }}
           >
@@ -533,8 +532,7 @@ export default function FriendsPage() {
   // ── NOT LOGGED IN ──
   if (!user?.uid) {
     return (
-      <div style={{ minHeight: "100vh", background: "#09090b", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, cursor: "none" }}>
-        <CustomCursor />
+      <div style={{ minHeight: "100vh", background: "#09090b", display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ maxWidth: 360, width: "100%", background: "#0c0c0f", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, overflow: "hidden", boxShadow: "0 32px 64px rgba(0,0,0,0.5)" }}>
           <div style={{ height: 1, background: "linear-gradient(90deg,transparent,rgba(237,255,102,0.5),transparent)" }} />
           <div style={{ padding: "36px 32px", display: "flex", flexDirection: "column", alignItems: "center", gap: 20, textAlign: "center" }}>
@@ -546,7 +544,7 @@ export default function FriendsPage() {
               <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", lineHeight: 1.7 }}>Connect and challenge players on the platform.</p>
             </div>
             <button onClick={() => navigate("/login")} data-cursor="GO"
-              style={{ width: "100%", height: 44, borderRadius: 11, border: "none", cursor: "none", background: "#EDFF66", color: "#09090b", fontSize: 12, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
+              style={{ width: "100%", height: 44, borderRadius: 11, border: "none", background: "#EDFF66", color: "#09090b", fontSize: 12, fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase" }}>
               Log In
             </button>
           </div>
@@ -562,8 +560,7 @@ export default function FriendsPage() {
   ];
 
   return (
-    <div ref={pageRef} style={{ minHeight: "100vh", background: "#09090b", paddingTop: 56, paddingBottom: 80, cursor: "none", overflowX: "hidden", position: "relative" }}>
-      <CustomCursor />
+    <div ref={pageRef} style={{ minHeight: "100vh", background: "#09090b", paddingTop: 56, paddingBottom: 80, overflowX: "hidden", position: "relative" }}>
 
       {/* Page-corner globe */}
       <div style={{ position: "fixed", right: 0, bottom: 0, width: "clamp(460px,56vw,780px)", height: "clamp(460px,56vw,780px)", transform: "translate(25%,25%)", opacity: 0.72, pointerEvents: "none", zIndex: 0 }}>
@@ -734,14 +731,14 @@ export default function FriendsPage() {
                     {searchTotalPages > 1 && (
                       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                         <button disabled={searchPage === 0 || loadingSearch} onClick={() => searchUsers(query, searchPage - 1, PAGE_SIZE)}
-                          style={{ width: 28, height: 28, borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "transparent", cursor: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", opacity: searchPage === 0 ? 0.3 : 1 }}>
+                          style={{ width: 28, height: 28, borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", opacity: searchPage === 0 ? 0.3 : 1 }}>
                           <ChevronLeft size={11} />
                         </button>
                         <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.2)" }}>
                           {searchPage + 1} / {Math.max(searchTotalPages, 1)}
                         </span>
                         <button disabled={searchPage + 1 >= searchTotalPages || loadingSearch} onClick={() => searchUsers(query, searchPage + 1, PAGE_SIZE)}
-                          style={{ width: 28, height: 28, borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "transparent", cursor: "none", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", opacity: searchPage + 1 >= searchTotalPages ? 0.3 : 1 }}>
+                          style={{ width: 28, height: 28, borderRadius: 7, border: "1px solid rgba(255,255,255,0.07)", background: "transparent", display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(255,255,255,0.3)", opacity: searchPage + 1 >= searchTotalPages ? 0.3 : 1 }}>
                           <ChevronRight size={11} />
                         </button>
                       </div>
@@ -775,7 +772,7 @@ export default function FriendsPage() {
                       <span style={{ flex: 1, fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.72)", fontFamily: T.fontFamily, letterSpacing: T.letterSpacing?.monument || "0.03em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{f.username}</span>
                       {!activeBattleState && (
                         <button onClick={() => setChallengeTarget(f)} data-cursor="FIGHT"
-                          style={{ width: 28, height: 28, borderRadius: 7, border: "none", cursor: "none", background: "rgba(248,113,113,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#f87171", transition: "background 0.15s", flexShrink: 0 }}
+                          style={{ width: 28, height: 28, borderRadius: 7, border: "none", background: "rgba(248,113,113,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#f87171", transition: "background 0.15s", flexShrink: 0 }}
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(248,113,113,0.2)"}
                           onMouseLeave={e => e.currentTarget.style.background = "rgba(248,113,113,0.1)"}
                         ><Swords size={11} /></button>

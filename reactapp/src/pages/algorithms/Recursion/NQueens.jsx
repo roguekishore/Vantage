@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ChevronLeft, ChevronRight, RotateCcw, Play, Terminal } from "lucide-react";
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography";
-import CustomCursor from "@/components/common/CustomCursor";
 
 /* ─────────────────────────────────────────────────────────────
    CONSTANTS
@@ -390,8 +389,7 @@ const NQueensVisualizer = () => {
   const pct = history.length > 1 ? Math.round((step / (history.length - 1)) * 100) : 0;
 
   return (
-    <div style={{ background: C.bg, minHeight: "100vh", color: C.text, fontFamily: "monospace", padding: "24px", cursor: "none" }}>
-      <CustomCursor />
+    <div style={{ background: C.bg, minHeight: "100vh", color: C.text, fontFamily: "monospace", padding: "24px" }}>
 
       {/* ── HEADER ── */}
       <div style={{ marginBottom: 20 }}>
@@ -429,26 +427,26 @@ const NQueensVisualizer = () => {
             {/* Load / Reset */}
             {!loaded ? (
               <button onClick={load} data-cursor="RUN"
-                style={{ height: 36, padding: "0 18px", background: C.accent, border: "none", cursor: "none", fontFamily: "monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: C.bg, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 7 }}>
+                style={{ height: 36, padding: "0 18px", background: C.accent, border: "none", fontFamily: "monospace", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: C.bg, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 7 }}>
                 <Play size={11} /> Run
               </button>
             ) : (
               <>
                 {/* Back */}
                 <button onClick={back} disabled={step <= 0} data-cursor="PREV"
-                  style={{ width: 36, height: 36, background: C.surface, border: `1px solid ${C.border}`, cursor: "none", display: "flex", alignItems: "center", justifyContent: "center", color: step <= 0 ? C.dim : C.text, transition: "all 0.1s" }}>
+                  style={{ width: 36, height: 36, background: C.surface, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: step <= 0 ? C.dim : C.text, transition: "all 0.1s" }}>
                   <ChevronLeft size={14} />
                 </button>
 
                 {/* Play/Pause */}
                 <button onClick={() => setAutoPlay(p => !p)} data-cursor={autoPlay ? "PAUSE" : "PLAY"}
-                  style={{ height: 36, padding: "0 14px", background: autoPlay ? C.accentDim : C.surface, border: `1px solid ${autoPlay ? C.accent : C.border}`, cursor: "none", fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: autoPlay ? C.accent : C.muted, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s" }}>
+                  style={{ height: 36, padding: "0 14px", background: autoPlay ? C.accentDim : C.surface, border: `1px solid ${autoPlay ? C.accent : C.border}`, fontFamily: "monospace", fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: autoPlay ? C.accent : C.muted, textTransform: "uppercase", display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s" }}>
                   {autoPlay ? "⏸ Pause" : "▶ Play"}
                 </button>
 
                 {/* Fwd */}
                 <button onClick={fwd} disabled={step >= history.length - 1} data-cursor="NEXT"
-                  style={{ width: 36, height: 36, background: C.surface, border: `1px solid ${C.border}`, cursor: "none", display: "flex", alignItems: "center", justifyContent: "center", color: step >= history.length - 1 ? C.dim : C.text, transition: "all 0.1s" }}>
+                  style={{ width: 36, height: 36, background: C.surface, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: step >= history.length - 1 ? C.dim : C.text, transition: "all 0.1s" }}>
                   <ChevronRight size={14} />
                 </button>
 
@@ -457,7 +455,7 @@ const NQueensVisualizer = () => {
                   <span style={{ fontSize: 9, color: C.dim, letterSpacing: "0.12em", textTransform: "uppercase" }}>spd</span>
                   <input type="range" min="20" max="400" value={400 - speed + 20}
                     onChange={e => setSpeed(400 - parseInt(e.target.value) + 20)}
-                    style={{ width: 60, accentColor: C.accent, cursor: "none" }}
+                    style={{ width: 60, accentColor: C.accent }}
                   />
                 </div>
 
@@ -468,7 +466,7 @@ const NQueensVisualizer = () => {
 
                 {/* Reset */}
                 <button onClick={reset} data-cursor="RESET"
-                  style={{ width: 36, height: 36, background: C.surface, border: `1px solid ${C.border}`, cursor: "none", display: "flex", alignItems: "center", justifyContent: "center", color: C.red }}>
+                  style={{ width: 36, height: 36, background: C.surface, border: `1px solid ${C.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: C.red }}>
                   <RotateCcw size={13} />
                 </button>
               </>

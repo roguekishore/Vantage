@@ -5,7 +5,6 @@ import { useGSAP } from "@gsap/react"
 import { Check, ChevronsUpDown, Eye, EyeOff, ChevronDown } from "lucide-react"
 import useUserStore from "@/stores/useUserStore"
 import { NQueensCanvas } from "../../components/animations/ComplexAnimations"
-import CustomCursor from "@/components/common/CustomCursor"
 import Logo from "@/components/common/Logo"
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography"
 import { FONT_MONO } from "@/styles/typeScale";
@@ -42,12 +41,11 @@ function VInput({ id, type = "text", placeholder, value, onChange, required, min
           fontSize: 12.5, color: "#fff", outline: "none",
           transition: "border-color 0.15s",
           fontFamily: FONT_MONO,
-          cursor: "none",
         }}
       />
       {isPw && (
         <button type="button" onClick={() => setShowPw(p => !p)}
-          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "none", color: "rgba(255,255,255,0.28)", display: "flex", alignItems: "center" }}>
+          style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", color: "rgba(255,255,255,0.28)", display: "flex", alignItems: "center" }}>
           {showPw ? <EyeOff size={13} /> : <Eye size={13} />}
         </button>
       )}
@@ -91,7 +89,7 @@ function OptionalSection({ children }) {
       <button type="button" onClick={() => setOpen(p => !p)} data-cursor="EXPAND"
         style={{
           display: "flex", alignItems: "center", gap: 8, width: "100%",
-          background: "none", border: "none", cursor: "none",
+          background: "none", border: "none",
           padding: "8px 0",
           borderTop: "1px solid rgba(255,255,255,0.06)",
           borderBottom: open ? "none" : "1px solid rgba(255,255,255,0.06)",
@@ -153,7 +151,7 @@ function InstitutionPicker({ value, onSelect }) {
           padding: "0 12px",
           background: "rgba(255,255,255,0.03)",
           border: `1px solid ${open ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.07)"}`,
-          borderRadius: 9, cursor: "none",
+          borderRadius: 9,
           fontSize: 12.5, color: value ? "#fff" : "rgba(255,255,255,0.22)",
           fontFamily: FONT_MONO, transition: "border-color 0.15s",
         }}>
@@ -166,7 +164,7 @@ function InstitutionPicker({ value, onSelect }) {
         <div style={{ background: "#111114", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, overflow: "hidden" }}>
           <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Type to search…"
-              style={{ width: "100%", background: "none", border: "none", outline: "none", fontSize: 12, color: "#fff", fontFamily: FONT_MONO, cursor: "none" }}
+              style={{ width: "100%", background: "none", border: "none", outline: "none", fontSize: 12, color: "#fff", fontFamily: FONT_MONO }}
             />
           </div>
           <div style={{ maxHeight: 150, overflowY: "auto" }}>
@@ -176,7 +174,7 @@ function InstitutionPicker({ value, onSelect }) {
                 <button key={inst.id} type="button"
                   onClick={() => { onSelect(value?.id === inst.id ? null : inst); setOpen(false) }}
                   data-cursor="SELECT"
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", background: "none", border: "none", cursor: "none", textAlign: "left", transition: "background 0.1s" }}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", background: "none", border: "none", textAlign: "left", transition: "background 0.1s" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
                   onMouseLeave={e => e.currentTarget.style.background = "none"}
                 >
@@ -202,7 +200,7 @@ function VButton({ children, loading }) {
   return (
     <button type="submit" disabled={loading} data-cursor="GO"
       style={{
-        width: "100%", height: 42, borderRadius: 10, border: "none", cursor: "none",
+        width: "100%", height: 42, borderRadius: 10, border: "none",
         background: loading ? "rgba(237,255,102,0.5)" : "#EDFF66",
         color: "#09090b", fontSize: 11, fontWeight: 900, letterSpacing: "0.09em",
         textTransform: "uppercase", opacity: loading ? 0.7 : 1, transition: "opacity 0.15s",
@@ -376,8 +374,7 @@ export default function AuthPage({ initialMode = "login" }) {
   }
 
   return (
-    <div style={{ width: "100vw", height: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr", background: "#09090b", cursor: "none", overflow: "hidden" }}>
-      <CustomCursor />
+    <div style={{ width: "100vw", height: "100vh", display: "grid", gridTemplateColumns: "1fr 1fr", background: "#09090b", overflow: "hidden" }}>
 
       {/* ══ LEFT ══ */}
       <LeftPanel />
@@ -444,7 +441,7 @@ export default function AuthPage({ initialMode = "login" }) {
                   <p style={{ textAlign: "center", fontSize: 11.5, color: "rgba(255,255,255,0.25)", margin: 0 }}>
                     No account?{" "}
                     <button type="button" onClick={() => switchMode("signup")} data-cursor="SWITCH"
-                      style={{ background: "none", border: "none", cursor: "none", color: "#EDFF66", fontWeight: 800, fontSize: 11.5 }}>
+                      style={{ background: "none", border: "none", color: "#EDFF66", fontWeight: 800, fontSize: 11.5 }}>
                       Sign up
                     </button>
                   </p>
@@ -499,7 +496,7 @@ export default function AuthPage({ initialMode = "login" }) {
                   <p style={{ textAlign: "center", fontSize: 11.5, color: "rgba(255,255,255,0.25)", margin: 0 }}>
                     Already a member?{" "}
                     <button type="button" onClick={() => switchMode("login")} data-cursor="SWITCH"
-                      style={{ background: "none", border: "none", cursor: "none", color: "#EDFF66", fontWeight: 800, fontSize: 11.5 }}>
+                      style={{ background: "none", border: "none", color: "#EDFF66", fontWeight: 800, fontSize: 11.5 }}>
                       Sign in
                     </button>
                   </p>

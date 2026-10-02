@@ -9,7 +9,6 @@ import {
   Play, UserX, LogOut, AlertTriangle, Loader2,
   ChevronRight, Hash, Search, UserPlus,
 } from "lucide-react";
-import CustomCursor from "../../components/common/CustomCursor";
 import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
 
 const BATTLE_FONT_FAMILY = MONUMENT_TYPO.fontFamily;
@@ -185,8 +184,7 @@ export default function GroupLobbyPage() {
 
   /* ════════════════════════════════════ RENDER ════════════════ */
   return (
-    <div className="group-battle-theme min-h-screen bg-zinc-950 pt-24 pb-16 px-4 sm:px-6" style={{ cursor: "none" }}>
-      <CustomCursor />
+    <div className="group-battle-theme min-h-screen bg-zinc-950 pt-24 pb-16 px-4 sm:px-6">
       <div className="max-w-3xl mx-auto space-y-4">
 
         {/* ── Page Header ── */}
@@ -661,7 +659,6 @@ export default function GroupLobbyPage() {
         .group-battle-theme input.battle-monument::placeholder{letter-spacing:.08em;font-family:inherit}
         .group-battle-theme .hover\:opacity-90:hover{opacity:.86!important}
         .group-battle-theme .hover\:text-rose-400:hover{color:#f87171!important}
-        .group-battle-theme button{cursor:none!important}
       `}</style>
     </div>
   );

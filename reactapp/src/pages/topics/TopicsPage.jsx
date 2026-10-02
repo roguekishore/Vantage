@@ -6,7 +6,6 @@ import { problems as PROBLEM_CATALOG } from "../../search/catalog";
 import { topicConfig, getTopicByKey } from "../../routes/config";
 import { MONUMENT_TYPO } from "../../components/common/MonumentTypography";
 import { COMPLEX_ALGO_CONFIGS, ComplexAlgoCanvas } from "../../components/animations/ComplexAnimations";
-import CustomCursor from "../../components/common/CustomCursor";
 import "../home/HomePage.css";
 import TopicPixelCard from "./TopicPixelCard";
 import { Input } from "../../components/ui/input";
@@ -174,8 +173,7 @@ const TopicsPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-screen bg-background pt-24 md:pt-28" style={{ cursor: "none" }}>
-      <CustomCursor />
+    <div className="relative min-h-screen w-screen bg-background pt-24 md:pt-28">
 
       {/* Masked complex animation background */}
       <div

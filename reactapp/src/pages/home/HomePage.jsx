@@ -36,69 +36,6 @@ const getCanvasPerfProfile = () => {
 };
 
 /* -------------------------------------------------------
-   CUSTOM CURSOR
-------------------------------------------------------- */
-function Cursor() {
-  const dotRef = useRef(null);
-  const ringRef = useRef(null);
-  const mouse = useRef({ x: -300, y: -300 });
-  const ring  = useRef({ x: -300, y: -300 });
-  const [label, setLabel] = useState("");
-
-  useEffect(() => {
-    const onMove = (e) => { mouse.current = { x: e.clientX, y: e.clientY }; };
-    document.addEventListener("mousemove", onMove);
-
-    let raf;
-    const tick = () => {
-      ring.current.x += (mouse.current.x - ring.current.x) * 0.11;
-      ring.current.y += (mouse.current.y - ring.current.y) * 0.11;
-      if (dotRef.current)  dotRef.current.style.transform  = `translate(${mouse.current.x - 3}px, ${mouse.current.y - 3}px)`;
-      if (ringRef.current) ringRef.current.style.transform = `translate(${ring.current.x - 16}px, ${ring.current.y - 16}px)`;
-      raf = requestAnimationFrame(tick);
-    };
-    tick();
-
-    const enter = (e) => {
-      const lbl = e.currentTarget.dataset.cursor || "";
-      setLabel(lbl);
-      gsap.to(ringRef.current, { scale: lbl ? 3.2 : 1.8, duration: 0.3, ease: "power2.out" });
-    };
-    const leave = () => {
-      setLabel("");
-      gsap.to(ringRef.current, { scale: 1, duration: 0.35, ease: "power2.out" });
-    };
-
-    const attach = () => {
-      document.querySelectorAll("[data-cursor]").forEach(el => {
-        el.removeEventListener("mouseenter", enter);
-        el.removeEventListener("mouseleave", leave);
-        el.addEventListener("mouseenter", enter);
-        el.addEventListener("mouseleave", leave);
-      });
-    };
-    attach();
-    const observer = new MutationObserver(attach);
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => { cancelAnimationFrame(raf); document.removeEventListener("mousemove", onMove); observer.disconnect(); };
-  }, []);
-
-  return (
-    <>
-      <div ref={dotRef} style={{ position:"fixed",top:0,left:0,width:6,height:6,borderRadius:"50%",
-        background:"#EDFF66",pointerEvents:"none",zIndex:9999,mixBlendMode:"difference" }} />
-      <div ref={ringRef} style={{ position:"fixed",top:0,left:0,width:32,height:32,borderRadius:"50%",
-        border:"1px solid rgba(237,255,102,0.55)",pointerEvents:"none",zIndex:9998,
-        display:"flex",alignItems:"center",justifyContent:"center",mixBlendMode:"difference" }}>
-        {label && <span style={{ fontSize:6,fontWeight:900,letterSpacing:"0.08em",color:"#EDFF66",
-          textTransform:"uppercase",whiteSpace:"nowrap",lineHeight:1 }}>{label}</span>}
-      </div>
-    </>
-  );
-}
-
-/* -------------------------------------------------------
    RACE CANVAS - Bubble vs Quick on live canvas
 ------------------------------------------------------- */
 function RaceCanvas() {
@@ -354,8 +291,8 @@ function Hero() {
             The platform that combines live algorithm visualization, an online judge, and real-time 1v1 battles - for developers who actually want to win.
           </p>
           <div className="hm" style={{ display:"flex",gap:10,marginTop:28,flexWrap:"wrap",opacity:0 }}>
-            <button onClick={()=>navigate("/problems")} data-cursor="GO" style={{ height:46,padding:"0 24px",borderRadius:10,border:"none",cursor:"none",background:"#EDFF66",color:"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"opacity 0.15s" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.86"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>Start for free <ArrowRight size={13}/></button>
-            <button onClick={()=>navigate("/battle")} data-cursor="BATTLE" style={{ height:46,padding:"0 22px",borderRadius:10,cursor:"none",background:"transparent",border:"1px solid rgba(255,255,255,0.1)",fontSize:12,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:8,transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";e.currentTarget.style.color="#fff";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.42)";}}><Swords size={12}/> Challenge someone</button>
+            <button onClick={()=>navigate("/problems")} data-cursor="GO" style={{ height:46,padding:"0 24px",borderRadius:10,border:"none",background:"#EDFF66",color:"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"opacity 0.15s" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.86"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>Start for free <ArrowRight size={13}/></button>
+            <button onClick={()=>navigate("/battle")} data-cursor="BATTLE" style={{ height:46,padding:"0 22px",borderRadius:10,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",fontSize:12,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.42)",display:"flex",alignItems:"center",gap:8,transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";e.currentTarget.style.color="#fff";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.42)";}}><Swords size={12}/> Challenge someone</button>
           </div>
           <div className="hm" style={{ display:"flex",borderTop:"1px solid rgba(255,255,255,0.06)",marginTop:36,opacity:0 }}>
             {[{n:"50+",l:"Algorithms"},{n:"150+",l:"Problems"},{n:"1v1",l:"Live Battles"},{n:"8",l:"Streaks"}].map(({n,l},i)=>(
@@ -447,7 +384,7 @@ function VizShowcase() {
           <p style={{ fontSize:13,color:"rgba(255,255,255,0.28)",lineHeight:1.75,margin:"0 0 16px" }}>
             Every algorithm on Vantage runs as a live animation. Not a GIF. Not a diagram. A live execution you can pause, scrub, and study.
           </p>
-          <button onClick={()=>navigate("/sorting")} data-cursor="EXPLORE" style={{ height:36,padding:"0 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"rgba(255,255,255,0.4)",cursor:"none",fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6,transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";e.currentTarget.style.color="#fff";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.4)";}}>
+          <button onClick={()=>navigate("/sorting")} data-cursor="EXPLORE" style={{ height:36,padding:"0 16px",borderRadius:8,border:"1px solid rgba(255,255,255,0.1)",background:"transparent",color:"rgba(255,255,255,0.4)",fontSize:11,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:6,transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.28)";e.currentTarget.style.color="#fff";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.4)";}}>
             Explore all 50+ algorithms <ArrowUpRight size={12}/>
           </button>
         </div>
@@ -487,7 +424,7 @@ function VizShowcase() {
       <div style={{ margin:"0 clamp(24px,5vw,72px)",padding:"18px 0",display:"flex",alignItems:"center",justifyContent:"space-between",borderBottom:"1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ display:"flex",gap:20,flexWrap:"wrap" }}>
           {["Floyd-Warshall","Bellman-Ford","AVL Tree","Heaps","Tries","DP","Kruskal's"].map(a=>(
-            <span key={a} style={{ fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.18)",cursor:"none",transition:"color 0.15s" }} data-cursor="VIEW" onMouseEnter={e=>e.currentTarget.style.color="rgba(255,255,255,0.6)"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.18)"}>{a}</span>
+            <span key={a} style={{ fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(255,255,255,0.18)",transition:"color 0.15s" }} data-cursor="VIEW" onMouseEnter={e=>e.currentTarget.style.color="rgba(255,255,255,0.6)"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.18)"}>{a}</span>
           ))}
           <span style={{ fontSize:10,fontWeight:700,letterSpacing:"0.12em",textTransform:"uppercase",color:"rgba(237,255,102,0.55)" }}>+43 more ?</span>
         </div>
@@ -532,7 +469,7 @@ function Features() {
       </div>
       <div className="fc-track" style={{ display:"flex",gap:12,padding:"0 clamp(24px,5vw,72px)",overflowX:"auto",scrollbarWidth:"none" }}>
         {FEAT_CARDS.map((c) => (
-          <div key={c.num} className="fc-card" data-cursor={c.tag} style={{ flexShrink:0,width:272,borderRadius:16,background:"#0d0d10",border:"1px solid rgba(255,255,255,0.06)",padding:26,display:"flex",flexDirection:"column",cursor:"none",position:"relative",overflow:"hidden",transition:"border-color 0.25s, transform 0.25s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor=`${c.accent}30`;e.currentTarget.style.transform="translateY(-4px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.06)";e.currentTarget.style.transform="translateY(0)";}}>
+          <div key={c.num} className="fc-card" data-cursor={c.tag} style={{ flexShrink:0,width:272,borderRadius:16,background:"#0d0d10",border:"1px solid rgba(255,255,255,0.06)",padding:26,display:"flex",flexDirection:"column",position:"relative",overflow:"hidden",transition:"border-color 0.25s, transform 0.25s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor=`${c.accent}30`;e.currentTarget.style.transform="translateY(-4px)";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.06)";e.currentTarget.style.transform="translateY(0)";}}>
             <div style={{ position:"absolute",top:0,left:0,right:0,height:2,background:`linear-gradient(90deg, ${c.accent}55, transparent)` }} />
             <div style={{ fontSize:10,fontWeight:900,letterSpacing:"0.14em",color:"rgba(255,255,255,0.14)",marginBottom:18 }}>{c.num} /</div>
             <div style={{ width:38,height:38,borderRadius:10,border:`1px solid ${c.accent}20`,background:`${c.accent}0c`,display:"flex",alignItems:"center",justifyContent:"center",marginBottom:18 }}><c.icon size={15} color={c.accent}/></div>
@@ -854,10 +791,10 @@ function BattleSection() {
             </div>
 
             <div className="btl-left-item" style={{ display:"flex",gap:10 }}>
-              <button onClick={()=>navigate("/battle")} data-cursor="FIGHT" style={{ height:46,padding:"0 26px",borderRadius:11,border:"none",cursor:"none",background:"#f87171",color:"#fff",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"opacity 0.15s" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.82"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+              <button onClick={()=>navigate("/battle")} data-cursor="FIGHT" style={{ height:46,padding:"0 26px",borderRadius:11,border:"none",background:"#f87171",color:"#fff",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"opacity 0.15s" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.82"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
                 <Swords size={12}/> Enter Arena
               </button>
-              <button onClick={()=>navigate("/battle")} data-cursor="PLAY" style={{ height:46,padding:"0 22px",borderRadius:11,cursor:"none",background:"transparent",border:"1px solid rgba(255,255,255,0.1)",fontSize:12,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.36)",transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.26)";e.currentTarget.style.color="#fff";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.36)";}}>
+              <button onClick={()=>navigate("/battle")} data-cursor="PLAY" style={{ height:46,padding:"0 22px",borderRadius:11,background:"transparent",border:"1px solid rgba(255,255,255,0.1)",fontSize:12,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.36)",transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.26)";e.currentTarget.style.color="#fff";}} onMouseLeave={e=>{e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(255,255,255,0.36)";}}>
                 Casual
               </button>
             </div>
@@ -940,10 +877,10 @@ function BattleSection() {
 
               {/* CTA button */}
               {found
-                ? <button onClick={()=>navigate("/battle")} data-cursor="FIGHT" style={{ width:"100%",height:46,borderRadius:11,border:"none",cursor:"none",background:"linear-gradient(135deg, #f87171, #f43f5e)",color:"#fff",fontSize:12,fontWeight:900,letterSpacing:"0.14em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"opacity 0.15s",boxShadow:"0 0 32px rgba(248,113,113,0.22)" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.86"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
+                ? <button onClick={()=>navigate("/battle")} data-cursor="FIGHT" style={{ width:"100%",height:46,borderRadius:11,border:"none",background:"linear-gradient(135deg, #f87171, #f43f5e)",color:"#fff",fontSize:12,fontWeight:900,letterSpacing:"0.14em",textTransform:"uppercase",display:"flex",alignItems:"center",justifyContent:"center",gap:8,transition:"opacity 0.15s",boxShadow:"0 0 32px rgba(248,113,113,0.22)" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.86"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>
                     <Swords size={13}/> Start Battle
                   </button>
-                : <button onClick={handleFind} data-cursor="MATCH" disabled={finding} style={{ width:"100%",height:46,borderRadius:11,border:"none",cursor:"none",background:finding?"rgba(255,255,255,0.05)":"#EDFF66",color:finding?"rgba(255,255,255,0.3)":"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",transition:"all 0.25s",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
+                : <button onClick={handleFind} data-cursor="MATCH" disabled={finding} style={{ width:"100%",height:46,borderRadius:11,border:"none",background:finding?"rgba(255,255,255,0.05)":"#EDFF66",color:finding?"rgba(255,255,255,0.3)":"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",transition:"all 0.25s",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
                     {finding
                       ? <><div style={{ display:"flex",gap:3 }}>{[0,1,2].map(i=><div key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(255,255,255,0.3)",animation:"blink 0.8s step-end infinite",animationDelay:`${i*0.22}s` }}/>)}</div> Matching…</>
                       : "Find an Opponent"
@@ -1038,7 +975,7 @@ function ExtensionInstallGuide() {
             target="_blank"
             rel="noreferrer"
             data-cursor="DOWNLOAD"
-            style={{ height:44,padding:"0 18px",borderRadius:10,border:"none",cursor:"none",background:"#09090b",color:"#EDFF66",fontSize:11,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:8,textDecoration:"none",transition:"opacity 0.15s",boxShadow:"0 0 20px rgba(0,0,0,0.2)" }}
+            style={{ height:44,padding:"0 18px",borderRadius:10,border:"none",background:"#09090b",color:"#EDFF66",fontSize:11,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"inline-flex",alignItems:"center",gap:8,textDecoration:"none",transition:"opacity 0.15s",boxShadow:"0 0 20px rgba(0,0,0,0.2)" }}
             onMouseEnter={e=>e.currentTarget.style.opacity="0.85"}
             onMouseLeave={e=>e.currentTarget.style.opacity="1"}
           >
@@ -1108,8 +1045,8 @@ function FinalCTA() {
           <h2 className="fcta" style={{ fontFamily:HOME_TYPO.monumentFontFamily,fontSize:"clamp(3.2rem,6.5vw,6.5rem)",fontWeight:900,color:"#09090b",letterSpacing:HOME_TYPO.letterSpacing.displayTight,lineHeight:0.9,margin:0,maxWidth:780 }}>Your DSA journey<br/>starts here.</h2>
           <p className="fcta" style={{ fontSize:15,color:"rgba(0,0,0,0.42)",lineHeight:1.72,maxWidth:440,margin:0 }}>No credit card. No fluff. Just a platform built for coders who want to get dangerously good at algorithms.</p>
           <div className="fcta" style={{ display:"flex",gap:12,flexWrap:"wrap" }}>
-            <button onClick={()=>navigate("/problems")} data-cursor="GO" style={{ height:50,padding:"0 30px",borderRadius:11,border:"none",cursor:"none",background:"#09090b",color:"#EDFF66",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"opacity 0.15s" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.78"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>Start for free <ArrowRight size={13}/></button>
-            <button onClick={()=>navigate("/battle")} data-cursor="FIGHT" style={{ height:50,padding:"0 26px",borderRadius:11,cursor:"none",background:"rgba(0,0,0,0.09)",border:"1px solid rgba(0,0,0,0.14)",color:"rgba(0,0,0,0.46)",fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,0,0,0.16)";e.currentTarget.style.color="rgba(0,0,0,0.76)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,0,0,0.09)";e.currentTarget.style.color="rgba(0,0,0,0.46)";}}>
+            <button onClick={()=>navigate("/problems")} data-cursor="GO" style={{ height:50,padding:"0 30px",borderRadius:11,border:"none",background:"#09090b",color:"#EDFF66",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"opacity 0.15s" }} onMouseEnter={e=>e.currentTarget.style.opacity="0.78"} onMouseLeave={e=>e.currentTarget.style.opacity="1"}>Start for free <ArrowRight size={13}/></button>
+            <button onClick={()=>navigate("/battle")} data-cursor="FIGHT" style={{ height:50,padding:"0 26px",borderRadius:11,background:"rgba(0,0,0,0.09)",border:"1px solid rgba(0,0,0,0.14)",color:"rgba(0,0,0,0.46)",fontSize:12,fontWeight:700,letterSpacing:"0.08em",textTransform:"uppercase",display:"flex",alignItems:"center",gap:8,transition:"all 0.15s" }} onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,0,0,0.16)";e.currentTarget.style.color="rgba(0,0,0,0.76)";}} onMouseLeave={e=>{e.currentTarget.style.background="rgba(0,0,0,0.09)";e.currentTarget.style.color="rgba(0,0,0,0.46)";}}>
               <Swords size={12}/> Jump into a battle
             </button>
           </div>
@@ -1128,7 +1065,7 @@ function Footer() {
     <footer style={{ background:"#09090b",borderTop:"1px solid rgba(255,255,255,0.04)",overflow:"hidden" }}>
       <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:48,padding:"44px clamp(24px,5vw,72px) 36px",flexWrap:"wrap" }}>
         <div>
-          <div onClick={()=>navigate("/")} data-cursor="HOME" style={{ display:"flex",alignItems:"center",gap:10,cursor:"none",marginBottom:12 }}>
+          <div onClick={()=>navigate("/")} data-cursor="HOME" style={{ display:"flex",alignItems:"center",gap:10,marginBottom:12 }}>
             <Logo size={26} style={{ borderRadius: 6 }} />
             <span style={{ fontFamily:HOME_TYPO.monumentFontFamily,fontWeight:900,fontSize:14,color:"#fff",letterSpacing:HOME_TYPO.letterSpacing.logo }}>VANTAGE</span>
           </div>
@@ -1143,7 +1080,7 @@ function Footer() {
               <div style={{ fontSize:8,fontWeight:900,letterSpacing:"0.26em",textTransform:"uppercase",color:"rgba(255,255,255,0.16)",marginBottom:14 }}>{g.t}</div>
               <div style={{ display:"flex",flexDirection:"column",gap:9 }}>
                 {g.items.map(([n,p])=>(
-                  <button key={n} onClick={()=>navigate(p)} style={{ background:"none",border:"none",cursor:"none",padding:0,textAlign:"left",fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.28)",transition:"color 0.15s" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.28)"}>{n}</button>
+                  <button key={n} onClick={()=>navigate(p)} style={{ background:"none",border:"none",padding:0,textAlign:"left",fontSize:12,fontWeight:500,color:"rgba(255,255,255,0.28)",transition:"color 0.15s" }} onMouseEnter={e=>e.currentTarget.style.color="#fff"} onMouseLeave={e=>e.currentTarget.style.color="rgba(255,255,255,0.28)"}>{n}</button>
                 ))}
               </div>
             </div>
@@ -1177,8 +1114,7 @@ export default function HomePage() {
   }, [location.hash]);
 
   return (
-    <main style={{ background:"#09090b",width:"100vw",overflowX:"hidden",cursor:"none" }}>
-      <Cursor />
+    <main style={{ background:"#09090b",width:"100vw",overflowX:"hidden" }}>
       <Hero />
       <VizShowcase />
       <Features />
