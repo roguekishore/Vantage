@@ -14,6 +14,7 @@ import {
 } from "@/services/leaderboardApi";
 import CustomCursor from "@/components/common/CustomCursor";
 import { MONUMENT_TYPO } from "@/components/common/MonumentTypography";
+import { FONT_MONO } from "@/styles/typeScale";
 
 const MF = MONUMENT_TYPO.fontFamily;
 const ML = MONUMENT_TYPO.letterSpacing;
@@ -171,7 +172,7 @@ function PodiumSlot({ entry, rank }) {
 
       {/* name */}
       <div style={{
-        fontFamily: "'Inter', sans-serif", fontSize: rank === 1 ? 13 : 11, fontWeight: 700,
+        fontFamily: FONT_MONO, fontSize: rank === 1 ? 13 : 11, fontWeight: 700,
         color: rank === 1 ? "#fff" : "rgba(255,255,255,0.55)",
         letterSpacing: "-0.01em", textAlign: "center",
         maxWidth: 100,
@@ -181,7 +182,7 @@ function PodiumSlot({ entry, rank }) {
 
       {/* score */}
       <div style={{
-        fontFamily: "'Inter', sans-serif", fontWeight: 800,
+        fontFamily: FONT_MONO, fontWeight: 800,
         fontSize: rank === 1 ? 21 : 16,
         letterSpacing: "-0.03em",
         color: cfg.medalColor,
@@ -414,7 +415,7 @@ function LBRow({ entry, isMe, vl, tabColor, tabGlow, idx }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
           <span style={{
-            fontFamily: "'Inter', sans-serif", fontSize: 12, fontWeight: 700,
+            fontFamily: FONT_MONO, fontSize: 12, fontWeight: 700,
             color: isMe ? tabColor : rc ? rc.color : "#fff",
             letterSpacing: "-0.01em",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
@@ -439,7 +440,7 @@ function LBRow({ entry, isMe, vl, tabColor, tabGlow, idx }) {
 
       <div style={{ textAlign: "right", flexShrink: 0 }}>
         <div style={{
-          fontFamily: "'Inter', sans-serif", fontSize: 15, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1,
+          fontFamily: FONT_MONO, fontSize: 15, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1,
           color: rc ? rc.color : isMe ? tabColor : "#fff",
           textShadow: rc ? `0 0 18px ${rc.color}40` : isMe ? `0 0 14px ${tabGlow}50` : "none",
         }}>{entry.value?.toLocaleString()}</div>

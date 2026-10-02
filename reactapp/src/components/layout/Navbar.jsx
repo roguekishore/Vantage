@@ -14,6 +14,7 @@ import useAchievementStore from "@/stores/useAchievementStore";
 import useFriendsStore from "@/stores/useFriendsStore";
 import AppToast from "@/components/ui/app-toast";
 import BrandLogo from "@/components/common/Logo";
+import { FONT_MONO } from "@/styles/typeScale";
 
 /* ─────────────────────────────────────────────────────────
    CONFIG
@@ -34,8 +35,8 @@ const EXTENSION_ZIP_DEMO_URL = "https://github.com/roguekishore/Vantage/releases
 const GLITCH = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijklmnpqrstuvwxyz0123456789!@#%^&*";
 
 const NAV_TYPO = {
-  fontFamily: "'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-  canvasFontFamily: "'Inter'",
+  fontFamily: FONT_MONO,
+  canvasFontFamily: "'JetBrains Mono'",
   letterSpacing: {
     monument: "0.02em",
     displayTight: "-0.015em",
@@ -698,7 +699,6 @@ const Navbar = ({ controls, allowTransparency = false }) => {
         dismissButtonClassName="w-6 h-6 rounded-md border border-[#EDFF66]/35 bg-[#EDFF66]/[0.07] text-[#EDFF66]/80 hover:text-[#EDFF66] hover:border-[#EDFF66]/60 inline-flex items-center justify-center transition-colors" />
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
         .nb-desktop { display:none !important; }
         .nb-mobile  { display:flex  !important; }
         @media(min-width:1024px){

@@ -24,13 +24,11 @@ module.exports = {
   theme: {
     extend: {
       // font-mono: JetBrains Mono (body/UI), font-display: Monument Extended.
-      // @font-face rules ship with the fonts unit (1.2).
+      // @font-face rules: src/styles/fonts.css. The legacy inter / general /
+      // zentry families were removed (no usages left).
       fontFamily: {
         mono: typeScale.fonts.mono,
         display: typeScale.fonts.display,
-        inter: ["Inter", "sans-serif"],
-        general: ["general", "sans-serif"],
-        zentry: ["zentry", "sans-serif"],
       },
       // Type steps: text-display | text-h1 | text-h2 | text-h3 | text-body |
       // text-small | text-label | text-micro (no text below 10px).

@@ -158,11 +158,11 @@ function RadarXPCanvas({ pct, level, color, glow }) {
       ctx.strokeStyle = color; ctx.lineWidth = 7; ctx.lineCap = "round";
       ctx.shadowColor = glow; ctx.shadowBlur = 18; ctx.stroke(); ctx.shadowBlur = 0; ctx.lineCap = "butt";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillStyle = "#fff"; ctx.font = `900 ${Math.round(R * .44)}px ${MF}`;
+      ctx.fillStyle = "#fff"; ctx.font = `400 ${Math.round(R * .44)}px ${MF}`; // Monument ships 400 only
       ctx.fillText(level, cx, cy - R * 0.06);
-      ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.font = `700 ${Math.round(R * .11)}px 'Syne',monospace`;
+      ctx.fillStyle = "rgba(255,255,255,0.22)"; ctx.font = `700 ${Math.round(R * .11)}px 'JetBrains Mono',monospace`;
       ctx.fillText("LEVEL", cx, cy + R * 0.25);
-      ctx.fillStyle = color; ctx.font = `700 ${Math.round(R * .1)}px 'Syne',monospace`;
+      ctx.fillStyle = color; ctx.font = `700 ${Math.round(R * .1)}px 'JetBrains Mono',monospace`;
       ctx.fillText(`${Math.round(cur)}%`, cx, cy + R * 0.44);
       animId = requestAnimationFrame(draw);
     };
@@ -582,7 +582,7 @@ const ProfilePage = () => {
               <div style={{ height: 1, width: 48, background: `${color}45` }} />
               <span style={{
                 fontSize: 9, fontWeight: 900, letterSpacing: "0.18em",
-                textTransform: "uppercase", color: `${color}90`, fontFamily: "'Syne',monospace"
+                textTransform: "uppercase", color: `${color}90`, fontFamily: "'JetBrains Mono',monospace"
               }}>
                 {tierLabel}
               </span>
@@ -904,7 +904,6 @@ const ProfilePage = () => {
       </div>
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700;800;900&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
         html{scroll-behavior:smooth;}
         ::-webkit-scrollbar{width:0;height:0;}
