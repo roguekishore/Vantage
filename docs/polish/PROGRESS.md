@@ -2,11 +2,11 @@
 
 ## Status
 
-- Phase: 1 Foundation (in progress)
-- Units: 0 approved / 0 escalated (plus setup unit 0.1, baseline build repair)
-- Last green commit: (pending first commit)
-- Bundle: main 524.2 kB gzip at baseline
-- Blockers: `git push` returns 403 for the local GitHub account (see Owner decisions needed); work is committed locally
+- Phase: 1 Foundation (in progress, next 1.2 fonts)
+- Units: 1 approved / 0 escalated
+- Last green commit: 3a2fe3e
+- Bundle: main 524.4 kB gzip (baseline 524.2)
+- Blockers: push 403 (owner decision 1)
 
 ## Baseline
 
@@ -29,6 +29,7 @@ Screenshot tooling: Playwright 1.63.0 lives in the orchestrator scratchpad (outs
 ## Owner decisions needed
 
 1. **Push access.** `git push origin polish` fails with `403 Permission to roguekishore/Vantage.git denied to aswinlegarcon`. Every commit is kept locally on `polish` in this clone. Push them yourself, or grant this account access and re-run the push.
+2. **Root `components.json`.** POLISH_PLAN §3.8 says to delete the duplicate repo-root `components.json`, but the launch prompt allows changes only under `reactapp/` and `docs/polish/`, so it was left in place. Delete it by hand if you agree.
 
 ## Needs logic change
 
@@ -43,3 +44,4 @@ Screenshot tooling: Playwright 1.63.0 lives in the orchestrator scratchpad (outs
 | When (UTC+5:30) | Unit | Result | Commit | Gates | Notes |
 |---|---|---|---|---|---|
 | 2026-10-02 07:35 | 0.1 Baseline build repair | applied by orchestrator (setup) | see git log | build PASS (warnings), tests 109/109 | Added `eslintConfig` to `reactapp/package.json`, defining only the `react-hooks` plugin with `exhaustive-deps: warn`. Tried extending `react-app` first: that surfaced 3 `rules-of-hooks` errors (`useFailedAsTestCase` called in callbacks), which would need logic changes, so it was rejected. |
+| 2026-10-02 08:48 | 1.1 Tokens + Tailwind + radius reset | approved | 3a2fe3e | build PASS, tests 109/109, main 524.4 kB | Reviewer APPROVED. lazyVisualizer() wraps all 142 visualizer routes (+2 judge drawer) in display:contents [data-legacy-viz] unless static isVisualizerV2. 31 legacy shadcn vars bridged to tokens. Nits for page units: 7 legacy border-radius !important rules (GroupLobbyPage:655, GroupResultPage:226) beat the reset; border-border/NN classes generate nothing (pre-existing). |
