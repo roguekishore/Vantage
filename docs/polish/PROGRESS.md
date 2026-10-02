@@ -2,10 +2,10 @@
 
 ## Status
 
-- Phase: 1 Foundation (in progress, next 1.2 fonts)
-- Units: 1 approved / 0 escalated
-- Last green commit: 3a2fe3e
-- Bundle: main 524.4 kB gzip (baseline 524.2)
+- Phase: 1 Foundation (in progress, next 1.4a ds part 1)
+- Units: 3 approved-or-pending / 0 escalated
+- Last green commit: f78cbea
+- Bundle: main 525.5 kB gzip (baseline 524.2)
 - Blockers: push 403 (owner decision 1)
 
 ## Baseline
@@ -45,3 +45,6 @@ Screenshot tooling: Playwright 1.63.0 lives in the orchestrator scratchpad (outs
 |---|---|---|---|---|---|
 | 2026-10-02 07:35 | 0.1 Baseline build repair | applied by orchestrator (setup) | see git log | build PASS (warnings), tests 109/109 | Added `eslintConfig` to `reactapp/package.json`, defining only the `react-hooks` plugin with `exhaustive-deps: warn`. Tried extending `react-app` first: that surfaced 3 `rules-of-hooks` errors (`useFailedAsTestCase` called in callbacks), which would need logic changes, so it was rejected. |
 | 2026-10-02 08:48 | 1.1 Tokens + Tailwind + radius reset | approved | 3a2fe3e | build PASS, tests 109/109, main 524.4 kB | Reviewer APPROVED. lazyVisualizer() wraps all 142 visualizer routes (+2 judge drawer) in display:contents [data-legacy-viz] unless static isVisualizerV2. 31 legacy shadcn vars bridged to tokens. Nits for page units: 7 legacy border-radius !important rules (GroupLobbyPage:655, GroupResultPage:226) beat the reset; border-border/NN classes generate nothing (pre-existing). |
+| 2026-10-02 09:43 | process | change | - | - | Owner asked to finish as fast as possible ("continue and complete asap", "continuenow"). From unit 1.2 on the loop is pipelined: the orchestrator commits a unit as soon as its gates pass, the reviewer reviews that commit in an isolated snapshot build (git archive into the scratchpad, no refs touched) while the next unit's implementer starts, and a rejection is fixed by a follow-up commit (no history rewrite). Escalation still reverts the unit with git revert. |
+| 2026-10-02 09:43 | 1.2 Fonts | approved | 5d0f0bf | build PASS, tests 109/109, main 524.5 kB | JetBrains Mono 400/500/700 (latin + latin-ext) + Monument 400 from src/assets/fonts, font-synthesis none, temporary [style*=Monument] weight shim, legacy fonts deleted, 3 canvas Monument font strings set to 400. Side effect: font-synthesis none also disables faux italics (italic mono renders upright). Reviewer APPROVED; nits for page units: ProfilePage.jsx:163,165,585 hard-code the mono stack; var(--font-mono|body|heading) in AlgoCards.jsx/HomePage.css were already undefined. |
+| 2026-10-02 10:00 | 1.3 Theme mechanics | committed, review pending | f78cbea | build PASS, tests 109/109, main 525.5 kB | System default + matchMedia listener, pre-paint script, theme-color metas, useThemeTokens, canvasTheme (99 rgba white literals + 8 #fff fg ends in Home/Complex helpers → fg triplet), monacoThemes (not wired; Phase 4 Judge), useReducedMotion + global reduced-motion CSS. Home cards keep dark inline backgrounds in light mode until Phase 4. |
