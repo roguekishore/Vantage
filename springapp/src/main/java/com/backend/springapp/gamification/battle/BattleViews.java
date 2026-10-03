@@ -82,7 +82,8 @@ public class BattleViews {
         Battle battle = battleRepo.findById(battleId)
                 .orElseThrow(() -> new NoSuchElementException("Battle not found"));
 
-        if (battle.getState() != BattleState.COMPLETED) {
+        boolean cancelled = battle.getState() == BattleState.CANCELLED;
+        if (battle.getState() != BattleState.COMPLETED && !cancelled) {
             throw new IllegalStateException("Battle not yet completed");
         }
 
@@ -92,7 +93,18 @@ public class BattleViews {
                 .orElseThrow(() -> new IllegalStateException("Not in this battle"));
         BattleParticipant opp = participants.stream()
                 .filter(p -> !p.getUserId().equals(userId)).findFirst()
-                .orElseThrow();
+                .orElse(null);
+
+        if (cancelled) {
+            // 200 with state=CANCELLED (B1): no winner, no rewards, no rating change.
+            return new BattleResultDTO(
+                    battleId, battle.getMode().name(), battle.getProblemCount(),
+                    "CANCELLED", null,
+                    toResultStats(me), opp != null ? toResultStats(opp) : null,
+                    0, 0, me.getRatingBefore(), me.getRatingBefore(),
+                    BattleState.CANCELLED.name());
+        }
+        if (opp == null) throw new IllegalStateException("Opponent not found");
 
         String outcome;
         if (battle.getWinnerId() == null) outcome = "DRAW";
@@ -115,7 +127,8 @@ public class BattleViews {
                 toResultStats(opp),
                 coins, xp,
                 me.getRatingBefore(),
-                me.getRatingAfter() != null ? me.getRatingAfter() : me.getRatingBefore()
+                me.getRatingAfter() != null ? me.getRatingAfter() : me.getRatingBefore(),
+                BattleState.COMPLETED.name()
         );
     }
 

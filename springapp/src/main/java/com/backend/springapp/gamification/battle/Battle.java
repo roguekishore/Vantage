@@ -67,6 +67,10 @@ public class Battle {
 
     private LocalDateTime completedAt;
 
+    /** Why the battle reached its terminal state (ALL_SOLVED, TIMEOUT, FORFEIT, ABANDONED, LOBBY_TIMEOUT...). Nullable. */
+    @Column(name = "ended_reason", length = 24)
+    private String endedReason;
+
     @PrePersist
     void onCreate() {
         createdAt = LocalDateTime.now();

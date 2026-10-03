@@ -50,8 +50,21 @@ public class BattleLifecycleService {
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
+    private static final Set<BattleState> ACTIVE_ONLY = Set.of(BattleState.ACTIVE);
+    private static final Set<BattleState> OPEN_STATES = Set.of(BattleState.WAITING, BattleState.ACTIVE);
+
+    /** Completes a 1v1 because the players solved everything (or the first finisher ended it). */
     @Transactional
     public void completeBattle(Long battleId) {
+        completeBattle(battleId, "ALL_SOLVED");
+    }
+
+    /**
+     * Completes a 1v1 battle. The conditional UPDATE runs first; ELO, rewards and broadcasts happen only for the
+     * single caller whose UPDATE affected a row.
+     */
+    @Transactional
+    public void completeBattle(Long battleId, String reason) {
         Battle battle = battleRepo.findById(battleId).orElse(null);
         if (battle == null || battle.getState() == BattleState.COMPLETED
                          || battle.getState() == BattleState.CANCELLED) return;
@@ -62,33 +75,42 @@ public class BattleLifecycleService {
             return;
         }
 
-        battle.setState(BattleState.COMPLETED);
-        battle.setCompletedAt(LocalDateTime.now());
-
         List<BattleParticipant> participants = participantRepo.findByBattleId(battleId);
         if (participants.size() != 2) {
-            battle.setState(BattleState.CANCELLED);
-            battleRepo.saveAndFlush(battle);
+            battleRepo.transition(battleId, OPEN_STATES, BattleState.CANCELLED, LocalDateTime.now(), null, "NO_OPPONENT");
             return;
         }
 
+        // Determine winner using tiebreaker chain (null = draw)
+        Long winnerId = determineWinner(participants.get(0), participants.get(1));
+        if (battleRepo.transition(battleId, ACTIVE_ONLY, BattleState.COMPLETED, LocalDateTime.now(), winnerId, reason) != 1) {
+            return; // another terminal path won the race
+        }
+
+        // We own the transition. Re-read participants (the UPDATE cleared the persistence context).
+        participants = participantRepo.findByBattleId(battleId);
         BattleParticipant p1 = participants.get(0);
         BattleParticipant p2 = participants.get(1);
 
-        // Determine winner using tiebreaker chain
-        Long winnerId = determineWinner(p1, p2);
-        battle.setWinnerId(winnerId);
-        battleRepo.saveAndFlush(battle);
-
-        // Calculate and apply rating changes + rewards
         boolean isRanked = battle.getMode() == BattleMode.RANKED_1V1;
         applyBattleOutcome(p1, p2, winnerId, isRanked);
 
-        log.info("⚔️ Battle {} completed. Winner: {}", battleId,
+        log.info("Battle {} completed ({}). Winner: {}", battleId, reason,
                 winnerId != null ? winnerId : "DRAW");
 
-        // ── WebSocket: broadcast completion + result to both players ──
+        // WebSocket: broadcast completion + result to both players
         broadcastBattleCompletion(battleId, participants);
+    }
+
+    /** Completes an ACTIVE 1v1 only when both players have solved every problem. */
+    @Transactional
+    public void completeIfAllFinished(Long battleId) {
+        Battle battle = battleRepo.findById(battleId).orElse(null);
+        if (battle == null || battle.getState() != BattleState.ACTIVE || battle.getMode() == BattleMode.GROUP_FFA) return;
+        List<BattleParticipant> ps = participantRepo.findByBattleId(battleId);
+        if (ps.size() == 2 && ps.stream().allMatch(p -> p.getProblemsSolved() >= battle.getProblemCount())) {
+            completeBattle(battleId, "ALL_SOLVED");
+        }
     }
 
     /**
@@ -150,7 +172,7 @@ public class BattleLifecycleService {
         }
     }
 
-    private void applyElo(BattleParticipant p1, BattleParticipant p2, Long winnerId) {
+    void applyElo(BattleParticipant p1, BattleParticipant p2, Long winnerId) {
         long p1Battles = participantRepo.countCompletedRankedBattles(p1.getUserId());
         long p2Battles = participantRepo.countCompletedRankedBattles(p2.getUserId());
 
@@ -308,11 +330,15 @@ public class BattleLifecycleService {
                 .findFirst()
                 .orElseThrow();
 
-        // Set winner as opponent
-        battle.setWinnerId(opponent.getUserId());
-        battle.setState(BattleState.COMPLETED);
-        battle.setCompletedAt(LocalDateTime.now());
-        battleRepo.saveAndFlush(battle);
+        // Conditional UPDATE first: only the winner of the race applies ELO / rewards / broadcasts
+        if (battleRepo.transition(battleId, ACTIVE_ONLY, BattleState.COMPLETED, LocalDateTime.now(),
+                opponent.getUserId(), "FORFEIT") != 1) {
+            log.info("Forfeit for battle {} by user {} lost the race - ignoring", battleId, userId);
+            return;
+        }
+        participants = participantRepo.findByBattleId(battleId);
+        forfeiter = participants.stream().filter(p -> p.getUserId().equals(userId)).findFirst().orElseThrow();
+        opponent = participants.stream().filter(p -> !p.getUserId().equals(userId)).findFirst().orElseThrow();
 
         boolean isRanked = battle.getMode() == BattleMode.RANKED_1V1;
 
@@ -339,17 +365,22 @@ public class BattleLifecycleService {
     @Transactional
     public void checkExpiredBattles() {
         List<Battle> expired = battleRepo.findExpiredActiveBattles();
+        List<Battle> allFinished = battleRepo.findActiveBattlesWithAllFinished();
         for (Battle b : expired) {
-            log.info("⏰ Battle {} timer expired, resolving...", b.getId());
+            log.info("Battle {} timer expired, resolving...", b.getId());
             incrementMetric("battle.complete.trigger", "reason", "timer", "mode", b.getMode().name());
             completeTimedOutBattle(b.getId());
+        }
+        // Safety net: both players finished but nobody triggered completion (B1).
+        for (Battle b : allFinished) {
+            incrementMetric("battle.complete.trigger", "reason", "all_players_finished", "mode", b.getMode().name());
+            completeBattle(b.getId(), "ALL_SOLVED");
         }
     }
 
     /**
-     * Timer-expired handling:
-     * - 1v1: cancel with no winner and no result payload / no ELO movement.
-     * - Group FFA: keep existing completion behavior.
+     * Timer-expired handling: a 1v1 completes via determineWinner (null winner = draw, ELO at 0.5 each),
+     * never a silent CANCELLED. Group FFA keeps its own completion.
      */
     @Transactional
     public void completeTimedOutBattle(Long battleId) {
@@ -361,21 +392,7 @@ public class BattleLifecycleService {
             completeGroupBattle(battleId);
             return;
         }
-
-        battle.setState(BattleState.CANCELLED);
-        battle.setWinnerId(null);
-        battle.setCompletedAt(LocalDateTime.now());
-        battleRepo.saveAndFlush(battle);
-
-        List<BattleParticipant> participants = participantRepo.findByBattleId(battleId);
-        for (BattleParticipant p : participants) {
-            try {
-                BattleStateDTO stateDTO = battleViews.getBattleState(battleId, p.getUserId());
-                realtimePublisher.toTopic("/topic/battle/" + battleId + "/state/" + p.getUserId(), stateDTO);
-            } catch (Exception e) {
-                log.warn("Failed to broadcast timeout-cancel state to user {}: {}", p.getUserId(), e.getMessage());
-            }
-        }
+        completeBattle(battleId, "TIMEOUT");
     }
 
     /** Called by lobby timeout check - cancel 1v1 waiting battles past 60s. Group rooms have no auto-cancel. */
@@ -386,10 +403,11 @@ public class BattleLifecycleService {
             // Group rooms stay open until creator starts - never auto-cancel
             if (b.getMode() == BattleMode.GROUP_FFA) continue;
 
-            b.setState(BattleState.CANCELLED);
-            b.setCompletedAt(LocalDateTime.now());
-            battleRepo.saveAndFlush(b);
-            log.info("⏰ Battle {} lobby expired, cancelled.", b.getId());
+            if (battleRepo.transition(b.getId(), Set.of(BattleState.WAITING), BattleState.CANCELLED,
+                    LocalDateTime.now(), null, "LOBBY_TIMEOUT") != 1) {
+                continue; // someone started or cancelled it first
+            }
+            log.info("Battle {} lobby expired, cancelled.", b.getId());
 
             // ── WebSocket: notify players the lobby was cancelled ──
             List<BattleParticipant> lobbyParticipants = participantRepo.findByBattleId(b.getId());
@@ -453,11 +471,12 @@ public class BattleLifecycleService {
 
         // If WAITING (lobby) - just cancel
         if (battle.getState() == BattleState.WAITING) {
-            battle.setState(BattleState.CANCELLED);
-            battle.setCompletedAt(LocalDateTime.now());
-            battleRepo.saveAndFlush(battle);
-            log.info("⚔️ Battle {} abandoned (was WAITING) by user {}", battleId, userId);
-            return;
+            if (battleRepo.transition(battleId, Set.of(BattleState.WAITING), BattleState.CANCELLED,
+                    LocalDateTime.now(), null, "ABANDONED") == 1) {
+                log.info("Battle {} abandoned (was WAITING) by user {}", battleId, userId);
+                return;
+            }
+            // Lost the race (it just started or ended): fall through to forfeit, which no-ops if terminal.
         }
 
         // ACTIVE - treat as forfeit by this user
@@ -471,14 +490,9 @@ public class BattleLifecycleService {
         if (battle == null || battle.getState() == BattleState.COMPLETED
                          || battle.getState() == BattleState.CANCELLED) return;
 
-        battle.setState(BattleState.COMPLETED);
-        battle.setCompletedAt(LocalDateTime.now());
-        battleRepo.saveAndFlush(battle);
-
         List<BattleParticipant> participants = participantRepo.findByBattleId(battleId);
         if (participants.isEmpty()) {
-            battle.setState(BattleState.CANCELLED);
-            battleRepo.saveAndFlush(battle);
+            battleRepo.transition(battleId, OPEN_STATES, BattleState.CANCELLED, LocalDateTime.now(), null, "NO_PLAYERS");
             return;
         }
 
@@ -488,7 +502,15 @@ public class BattleLifecycleService {
             .thenComparingInt(p -> -p.getGroupScore())
             .thenComparingInt(p -> -p.getProblemsSolved())
                 .thenComparingInt(BattleParticipant::getTotalSubmissions));
+        List<Long> ranking = participants.stream().map(BattleParticipant::getUserId).toList();
 
+        // Conditional UPDATE first: only one caller finalises placements and pays rewards
+        if (battleRepo.transition(battleId, ACTIVE_ONLY, BattleState.COMPLETED, LocalDateTime.now(), null, "COMPLETED") != 1) {
+            return;
+        }
+
+        participants = participantRepo.findByBattleId(battleId);
+        participants.sort(Comparator.comparingInt(p -> ranking.indexOf(p.getUserId())));
         for (int i = 0; i < participants.size(); i++) {
             participants.get(i).setPlacement(i + 1);
             participantRepo.saveAndFlush(participants.get(i));

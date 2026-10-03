@@ -14,7 +14,8 @@ public record BattleResultDTO(
         int coinsEarned,
         int xpEarned,
         int ratingBefore,
-        int ratingAfter
+        int ratingAfter,
+        String state          // "COMPLETED" or "CANCELLED" (nullable for old clients)
 ) {
     public record ResultStats(
             Long userId,
