@@ -115,6 +115,14 @@ public class ProgressEventService {
         }
     }
 
+    /**
+     * Deliver to this instance's emitters immediately, never deferring to a transaction. Only for callers that
+     * are already inside afterCommit (where a new synchronization could not be registered and would never fire).
+     */
+    public void deliverLocalNow(Long userId, ProgressEvent event) {
+        doPublish(userId, event);
+    }
+
     private void doPublish(Long userId, ProgressEvent event) {
         List<SseEmitter> list = emitters.get(userId);
         if (list == null || list.isEmpty()) {

@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
  *
  * - CONNECT: authenticates user from Authorization header (Bearer) or
  *   handshake session attribute populated from auth cookie.
+ * - SEND: always rejected (the server defines no application destinations).
  * - SUBSCRIBE: enforces that user-scoped /topic destinations can only be
  *   subscribed by that same authenticated user.
  */
@@ -52,6 +53,12 @@ public class StompAuthChannelInterceptor implements ChannelInterceptor {
                 attrs.put(JwtAuthFilter.JWT_USER_ID_ATTR, uid);
             }
             return message;
+        }
+
+        // S5: the app has no @MessageMapping handlers, so clients must never SEND anything. Without this a
+        // client could publish straight to /topic/** and spoof battle/friend events to other users.
+        if (StompCommand.SEND.equals(command)) {
+            throw new IllegalArgumentException("Client SEND is not permitted");
         }
 
         if (StompCommand.SUBSCRIBE.equals(command)) {
