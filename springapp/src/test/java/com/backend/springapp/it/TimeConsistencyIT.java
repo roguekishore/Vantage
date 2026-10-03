@@ -47,7 +47,7 @@ class TimeConsistencyIT {
 				"--spring.datasource.url=" + MYSQL.getJdbcUrl(),
 				"--spring.datasource.username=" + MYSQL.getUsername(),
 				"--spring.datasource.password=" + MYSQL.getPassword(),
-				"--spring.jpa.hibernate.ddl-auto=none",
+				"--spring.jpa.hibernate.ddl-auto=update",
 				"--spring.main.banner-mode=off"));
 		a.addAll(java.util.List.of(extra));
 		return a.toArray(String[]::new);

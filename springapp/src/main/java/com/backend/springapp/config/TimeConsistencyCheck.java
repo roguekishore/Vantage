@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 @Component
+@Order(Ordered.HIGHEST_PRECEDENCE) // before any runner that writes data (seeders), so a bad clock stops the boot first
 public class TimeConsistencyCheck implements ApplicationRunner {
 
     private final DataSource dataSource;
