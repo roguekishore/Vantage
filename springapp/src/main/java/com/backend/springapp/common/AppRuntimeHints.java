@@ -7,7 +7,8 @@ import org.springframework.context.annotation.ClassPathScanningCandidateComponen
 import org.springframework.core.type.filter.AssignableTypeFilter;
 
 /**
- * Registers every Java record in com.backend.springapp for GraalVM native-image reflection.
+ * Registers every Java record in com.backend.springapp for GraalVM native-image reflection, plus the classpath
+ * resources read at runtime (cbe.csv).
  *
  * Jackson's RecordUtil calls Class.getRecordComponents() at serialization time, which
  * requires all record accessor methods to be in the reflection config. Rather than
@@ -20,6 +21,8 @@ public class AppRuntimeHints implements RuntimeHintsRegistrar {
 
     @Override
     public void registerHints(RuntimeHints hints, ClassLoader classLoader) {
+        // Read at startup by InstitutionDataInitializer on an empty database; native-image drops unreferenced resources.
+        hints.resources().registerPattern("cbe.csv");
         ClassPathScanningCandidateComponentProvider scanner =
                 new ClassPathScanningCandidateComponentProvider(false);
         scanner.addIncludeFilter(new AssignableTypeFilter(Record.class));
