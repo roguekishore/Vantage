@@ -1,6 +1,8 @@
 package com.backend.springapp.gamification.battle;
 
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +15,15 @@ import java.util.Set;
 
 @Repository
 public interface BattleRepository extends JpaRepository<Battle, Long> {
+
+    /**
+     * The battle row with a write lock (SELECT ... FOR UPDATE). Used where two requests decide something from each
+     * other's committed rows: it must be the first statement of the transaction, so the plain reads that follow
+     * take their snapshot only after the other request has committed.
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT b FROM Battle b WHERE b.id = :id")
+    Optional<Battle> findByIdForUpdate(@Param("id") Long id);
 
     /** Find all battles by state. */
     List<Battle> findByState(BattleState state);

@@ -239,7 +239,9 @@ public class BattleService {
 
     @Transactional
     public BattleLobbyDTO readyUp(Long battleId, Long userId, String language) {
-        Battle battle = battleRepo.findById(battleId)
+        // Row lock first: both players ready up the instant they are matched. Without it each transaction reads the
+        // participants before the other commits, sees "not everyone ready", and the battle never starts.
+        Battle battle = battleRepo.findByIdForUpdate(battleId)
                 .orElseThrow(() -> new NoSuchElementException("Battle not found"));
 
         if (battle.getState() != BattleState.WAITING) {
