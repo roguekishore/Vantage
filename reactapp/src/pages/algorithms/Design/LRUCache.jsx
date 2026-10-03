@@ -1,463 +1,377 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useModeHistorySwitch } from "../../../hooks/useModeHistorySwitch";
-import {
-  Clock,
-  Hash,
-  Link2,
-  ArrowRight,
-  CheckCircle,
-  Code,
-} from "lucide-react";
+import { defineVisualizer, fieldError } from "@/components/visualizer";
 
-// Main Visualizer Component
-const LRUCacheVisualizer = () => {
-  const [mode, setMode] = useState("optimal");
-  const [history, setHistory] = useState([]);
-  const [currentStep, setCurrentStep] = useState(-1);
-  const [operationsInput, setOperationsInput] = useState(
-    `LRUCache(2)\nput(1, 1)\nput(2, 2)\nget(1)\nput(3, 3)\nget(2)\nput(4, 4)\nget(1)\nget(3)\nget(4)`
-  );
-  const [isLoaded, setIsLoaded] = useState(false);
+// ── model ──
+const OP_RE = /([A-Za-z_]\w*)\s*\(([^)]*)\)/g;
 
-  const parseOperations = (input) => {
-    const lines = input.split("\n").map((line) => line.trim()).filter(Boolean);
-    let capacity = 0;
-    const commands = [];
-    const capMatch = lines[0].match(/LRUCache\((\d+)\)/);
-    if (capMatch) capacity = parseInt(capMatch[1], 10);
+function parseInput(raw) {
+  const calls = [];
+  let m;
+  OP_RE.lastIndex = 0;
+  while ((m = OP_RE.exec(raw.ops))) calls.push({ name: m[1], args: m[2].split(",").map((a) => parseInt(a, 10)) });
+  if (!calls.length || calls[0].name !== "LRUCache") throw fieldError("ops", "Start with LRUCache(capacity).");
+  const capacity = calls[0].args[0];
+  if (!(capacity > 0)) throw fieldError("ops", "Capacity must be at least 1.");
+  const commands = calls.slice(1).map((c) => {
+    if (c.name === "LRUCache") throw fieldError("ops", "LRUCache(capacity) may only appear once, first.");
+    return c.name === "put" ? { op: "put", key: c.args[0], value: c.args[1] } : { op: "get", key: c.args[0] };
+  });
+  if (commands.length === 0) throw fieldError("ops", "Add at least one put or get.");
+  const ops = [`LRUCache(${capacity})`, ...commands.map((c) => (c.op === "put" ? `put(${c.key}, ${c.value})` : `get(${c.key})`))];
+  return { capacity, commands, ops };
+}
 
-    for (let i = 1; i < lines.length; i++) {
-      const putMatch = lines[i].match(/put\((\d+),\s*(\d+)\)/);
-      if (putMatch) {
-        commands.push({ op: "put", key: parseInt(putMatch[1], 10), value: parseInt(putMatch[2], 10) });
-        continue;
-      }
-      const getMatch = lines[i].match(/get\((\d+)\)/);
-      if (getMatch) commands.push({ op: "get", key: parseInt(getMatch[1], 10) });
+function generateOptimal({ capacity, commands }) {
+  const newHistory = [];
+  const cache = new Map();
+  const head = { key: -1, val: -1, next: null, prev: null };
+  const tail = { key: -1, val: -1, next: null, prev: null };
+  head.next = tail;
+  tail.prev = head;
+  const outputLog = [];
+
+  const getList = () => {
+    const list = [];
+    let curr = head.next;
+    while (curr !== tail) {
+      list.push({ key: curr.key, val: curr.val });
+      curr = curr.next;
     }
-    return { capacity, commands };
+    return list;
   };
+  const getMap = () => {
+    const mapObject = {};
+    for (const [key, node] of cache.entries()) mapObject[key] = node.val;
+    return mapObject;
+  };
+  const addState = (props) => newHistory.push({ cache: getMap(), list: getList(), outputLog: [...outputLog], ...props });
 
-  const generateOptimalHistory = useCallback((capacity, commands) => {
-    if (capacity <= 0) return;
-    const newHistory = [];
-    let cache = new Map();
-    let head = { key: -1, val: -1, next: null, prev: null };
-    let tail = { key: -1, val: -1, next: null, prev: null };
-    head.next = tail;
-    tail.prev = head;
-    let outputLog = [];
+  addState({ commandIndex: -1, line: 12, msg: `LRU Cache initialized with capacity ${capacity}.` });
 
-    const getList = () => {
-      const list = [];
-      let curr = head.next;
-      while (curr !== tail) {
-        list.push({ key: curr.key, val: curr.val });
-        curr = curr.next;
+  commands.forEach((command, commandIndex) => {
+    if (command.op === "put") {
+      const { key, value } = command;
+      addState({ commandIndex, line: 24, msg: `Executing put(${key}, ${value}). Checking if key exists in hash map.` });
+
+      if (cache.has(key)) {
+        const node = cache.get(key);
+        const oldVal = node.val;
+        addState({ commandIndex, line: 26, msg: `Key ${key} found in hash map. Updating its value.` });
+        node.val = value;
+        addState({ commandIndex, line: 27, msg: `Value for key ${key} updated from ${oldVal} to ${value}. Now moving node to front.` });
+
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        addState({ commandIndex, line: 28, movedKey: key, msg: `Unlinked node from its current position in the list.` });
+
+        node.next = head.next;
+        node.prev = head;
+        head.next.prev = node;
+        head.next = node;
+        addState({ commandIndex, line: 29, movedKey: key, msg: `Moved node to the front of the list to mark it as most recently used.` });
+      } else {
+        addState({ commandIndex, line: 31, msg: `Key ${key} not in hash map. Checking if cache is full.` });
+        if (cache.size === capacity) {
+          addState({ commandIndex, line: 31, msg: `Cache is full (size=${capacity}). Eviction is necessary.` });
+          const lru = tail.prev;
+          addState({ commandIndex, line: 32, msg: `Identified least recently used item: key ${lru.key}.` });
+
+          cache.delete(lru.key);
+          addState({ commandIndex, line: 33, evictedKey: lru.key, msg: `Removed key ${lru.key} from the hash map.` });
+
+          lru.prev.next = tail;
+          tail.prev = lru.prev;
+          addState({ commandIndex, line: 34, evictedKey: lru.key, msg: `Removed the LRU node from the end of the linked list.` });
+        }
+        const newNode = { key, val: value, prev: head, next: head.next };
+        addState({ commandIndex, line: 37, msg: `Creating new node for key ${key} with value ${value}.` });
+
+        head.next.prev = newNode;
+        head.next = newNode;
+        addState({ commandIndex, line: 38, newKey: key, msg: `Inserted new node at the front of the linked list.` });
+
+        cache.set(key, newNode);
+        addState({ commandIndex, line: 39, newKey: key, msg: `Added key ${key} with its node reference to the hash map.` });
       }
-      return list;
-    };
-    const getMap = () => {
-      const mapObject = {};
-      for (let [key, node] of cache.entries()) mapObject[key] = node.val;
-      return mapObject;
-    };
-    const addState = (props) => newHistory.push({ cache: getMap(), list: getList(), outputLog: [...outputLog], explanation: "", ...props });
+    } else if (command.op === "get") {
+      const { key } = command;
+      addState({ commandIndex, line: 17, msg: `Executing get(${key}). Checking for key in hash map.` });
+      if (cache.has(key)) {
+        const node = cache.get(key);
+        outputLog.push(node.val);
+        addState({ commandIndex, line: 19, getResult: node.val, msg: `Key ${key} found. Returning value ${node.val}. Now moving node to front.` });
 
-    addState({ commandIndex: -1, explanation: `LRU Cache initialized with capacity ${capacity}.` });
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        addState({ commandIndex, line: 20, movedKey: key, getResult: node.val, msg: `Unlinked node from its current position in the list.` });
 
-    commands.forEach((command, commandIndex) => {
-      if (command.op === "put") {
-        const { key, value } = command;
-        addState({ commandIndex, explanation: `Executing put(${key}, ${value}). Checking if key exists in hash map.` });
-
-        if (cache.has(key)) {
-          const node = cache.get(key);
-          const oldVal = node.val;
-          addState({ commandIndex, explanation: `Key ${key} found in hash map. Updating its value.` });
-          node.val = value;
-          addState({ commandIndex, explanation: `Value for key ${key} updated from ${oldVal} to ${value}. Now moving node to front.` });
-          
-          // Unlink
-          node.prev.next = node.next;
-          node.next.prev = node.prev;
-          addState({ commandIndex, movedKey: key, explanation: `Unlinked node from its current position in the list.` });
-
-          // Move to front
-          node.next = head.next;
-          node.prev = head;
-          head.next.prev = node;
-          head.next = node;
-          addState({ commandIndex, movedKey: key, explanation: `Moved node to the front of the list to mark it as most recently used.` });
-
-        } else {
-          addState({ commandIndex, explanation: `Key ${key} not in hash map. Checking if cache is full.` });
-          if (cache.size === capacity) {
-            addState({ commandIndex, explanation: `Cache is full (size=${capacity}). Eviction is necessary.` });
-            const lru = tail.prev;
-            addState({ commandIndex, explanation: `Identified least recently used item: key ${lru.key}.` });
-            
-            // Evict from map
-            cache.delete(lru.key);
-            addState({ commandIndex, evictedKey: lru.key, explanation: `Removed key ${lru.key} from the hash map.` });
-            
-            // Evict from list
-            lru.prev.next = tail;
-            tail.prev = lru.prev;
-            addState({ commandIndex, evictedKey: lru.key, explanation: `Removed the LRU node from the end of the linked list.` });
-          }
-          const newNode = { key, val: value, prev: head, next: head.next };
-          addState({ commandIndex, explanation: `Creating new node for key ${key} with value ${value}.` });
-
-          // Add to list
-          head.next.prev = newNode;
-          head.next = newNode;
-          addState({ commandIndex, newKey: key, explanation: `Inserted new node at the front of the linked list.` });
-          
-          // Add to map
-          cache.set(key, newNode);
-          addState({ commandIndex, newKey: key, explanation: `Added key ${key} with its node reference to the hash map.` });
-        }
-      } else if (command.op === "get") {
-        const { key } = command;
-        addState({ commandIndex, explanation: `Executing get(${key}). Checking for key in hash map.` });
-        if (cache.has(key)) {
-          const node = cache.get(key);
-          outputLog.push(node.val);
-          addState({ commandIndex, getResult: node.val, explanation: `Key ${key} found. Returning value ${node.val}. Now moving node to front.` });
-
-          // Unlink
-          node.prev.next = node.next;
-          node.next.prev = node.prev;
-          addState({ commandIndex, movedKey: key, getResult: node.val, explanation: `Unlinked node from its current position in the list.` });
-          
-          // Move to front
-          node.next = head.next;
-          node.prev = head;
-          head.next.prev = node;
-          head.next = node;
-          addState({ commandIndex, movedKey: key, getResult: node.val, explanation: `Moved node to the front of the list to mark it as most recently used.` });
-        } else {
-          outputLog.push(-1);
-          addState({ commandIndex, getResult: -1, explanation: `Key ${key} not found in hash map. Returning -1.` });
-        }
+        node.next = head.next;
+        node.prev = head;
+        head.next.prev = node;
+        head.next = node;
+        addState({ commandIndex, line: 21, movedKey: key, getResult: node.val, msg: `Moved node to the front of the list to mark it as most recently used.` });
+      } else {
+        outputLog.push(-1);
+        addState({ commandIndex, line: 18, getResult: -1, msg: `Key ${key} not found in hash map. Returning -1.` });
       }
-    });
-
-    addState({ finished: true, explanation: "All operations completed." });
-    setHistory(newHistory);
-    setCurrentStep(0);
-  }, []);
-
-  const generateBruteForceHistory = useCallback((capacity, commands) => {
-    const newHistory = [];
-    let cache = new Map();
-    let usage = [];
-    let outputLog = [];
-
-    const getList = () => usage.map((key) => ({ key, val: cache.get(key) }));
-    const getMap = () => Object.fromEntries(cache.entries());
-    const addState = (props) => newHistory.push({ cache: getMap(), list: getList(), outputLog: [...outputLog], explanation: "", ...props });
-
-    addState({ commandIndex: -1, explanation: `Cache initialized with capacity ${capacity} using a vector.` });
-
-    commands.forEach((command, commandIndex) => {
-      if (command.op === "put") {
-        const { key, value } = command;
-        addState({ commandIndex, explanation: `Executing put(${key}, ${value}). Checking if key exists.` });
-        if (cache.has(key)) {
-          addState({ commandIndex, explanation: `Key ${key} exists. Updating its value in the hash map.` });
-          cache.set(key, value);
-          addState({ commandIndex, explanation: `Value updated. Now updating recency in the usage vector.` });
-          usage = usage.filter((k) => k !== key);
-          addState({ commandIndex, movedKey: key, explanation: `Removed key ${key} from its current position in the vector (O(N) search).` });
-          usage.unshift(key);
-          addState({ commandIndex, movedKey: key, explanation: `Added key ${key} to the front of the vector to mark it as most recent.` });
-        } else {
-          addState({ commandIndex, explanation: `Key ${key} is new. Checking if cache is full.` });
-          if (cache.size === capacity) {
-            addState({ commandIndex, explanation: `Cache is full. Evicting the LRU item.` });
-            const lruKey = usage.pop();
-            addState({ commandIndex, evictedKey: lruKey, explanation: `Removed LRU key ${lruKey} from the back of the usage vector.` });
-            cache.delete(lruKey);
-            addState({ commandIndex, evictedKey: lruKey, explanation: `Removed evicted key ${lruKey} from the hash map.` });
-          }
-          cache.set(key, value);
-          addState({ commandIndex, newKey: key, explanation: `Added new key ${key} with value ${value} to the hash map.` });
-          usage.unshift(key);
-          addState({ commandIndex, newKey: key, explanation: `Added new key ${key} to the front of the usage vector.` });
-        }
-      } else if (command.op === "get") {
-        const { key } = command;
-        addState({ commandIndex, explanation: `Executing get(${key}). Checking for key.` });
-        if (cache.has(key)) {
-          const val = cache.get(key);
-          outputLog.push(val);
-          addState({ commandIndex, getResult: val, explanation: `Key ${key} found, returning ${val}. Now updating recency.` });
-          usage = usage.filter((k) => k !== key);
-          addState({ commandIndex, getResult: val, movedKey: key, explanation: `Removed key ${key} from the usage vector (O(N) search).` });
-          usage.unshift(key);
-          addState({ commandIndex, getResult: val, movedKey: key, explanation: `Added key ${key} to the front of the vector.` });
-        } else {
-          outputLog.push(-1);
-          addState({ commandIndex, getResult: -1, explanation: `Key ${key} not found. Returning -1.` });
-        }
-      }
-    });
-    addState({ finished: true, explanation: "All operations completed." });
-    setHistory(newHistory);
-    setCurrentStep(0);
-  }, []);
-
-  const loadOps = () => {
-    const { capacity, commands } = parseOperations(operationsInput);
-    if (capacity <= 0 || commands.length === 0) {
-      alert("Please provide a valid capacity and at least one operation.");
-      return;
     }
-    setIsLoaded(true);
-    if (mode === "optimal") generateOptimalHistory(capacity, commands);
-    else generateBruteForceHistory(capacity, commands);
-  };
-
-  const reset = () => {
-    setIsLoaded(false);
-    setHistory([]);
-    setCurrentStep(-1);
-  };
-
-  const parseInput = useCallback(() => {
-    const { capacity, commands } = parseOperations(operationsInput);
-    if (capacity <= 0 || commands.length === 0) throw new Error("Invalid operations");
-    return { capacity, commands };
-  }, [operationsInput]);
-
-  const handleModeChange = useModeHistorySwitch({
-    mode, setMode, isLoaded, parseInput,
-    generators: {
-      "brute-force": ({ capacity, commands }) => generateBruteForceHistory(capacity, commands),
-      optimal: ({ capacity, commands }) => generateOptimalHistory(capacity, commands),
-    },
-    setCurrentStep, onError: () => {},
   });
 
-  const stepForward = useCallback(() => setCurrentStep((prev) => Math.min(prev + 1, history.length - 1)), [history.length]);
-  const stepBackward = useCallback(() => setCurrentStep((prev) => Math.max(prev - 1, 0)), []);
+  addState({ finished: true, line: 42, msg: "All operations completed." });
+  return newHistory;
+}
 
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (isLoaded) {
-        if (e.key === "ArrowLeft") stepBackward();
-        if (e.key === "ArrowRight") stepForward();
+function generateBruteForce({ capacity, commands }) {
+  const newHistory = [];
+  const cache = new Map();
+  let usage = [];
+  const outputLog = [];
+
+  const getList = () => usage.map((key) => ({ key, val: cache.get(key) }));
+  const getMap = () => Object.fromEntries(cache.entries());
+  const addState = (props) => newHistory.push({ cache: getMap(), list: getList(), outputLog: [...outputLog], ...props });
+
+  addState({ commandIndex: -1, line: 6, msg: `Cache initialized with capacity ${capacity} using a vector.` });
+
+  commands.forEach((command, commandIndex) => {
+    if (command.op === "put") {
+      const { key, value } = command;
+      addState({ commandIndex, line: 13, msg: `Executing put(${key}, ${value}). Checking if key exists.` });
+      if (cache.has(key)) {
+        addState({ commandIndex, line: 14, msg: `Key ${key} exists. Updating its value in the hash map.` });
+        cache.set(key, value);
+        addState({ commandIndex, line: 15, msg: `Value updated. Now updating recency in the usage vector.` });
+        usage = usage.filter((k) => k !== key);
+        addState({ commandIndex, line: 16, movedKey: key, msg: `Removed key ${key} from its current position in the vector (O(N) search).` });
+        usage.unshift(key);
+        addState({ commandIndex, line: 17, movedKey: key, msg: `Added key ${key} to the front of the vector to mark it as most recent.` });
+      } else {
+        addState({ commandIndex, line: 19, msg: `Key ${key} is new. Checking if cache is full.` });
+        if (cache.size === capacity) {
+          addState({ commandIndex, line: 19, msg: `Cache is full. Evicting the LRU item.` });
+          const lruKey = usage.pop();
+          addState({ commandIndex, line: 21, evictedKey: lruKey, msg: `Removed LRU key ${lruKey} from the back of the usage vector.` });
+          cache.delete(lruKey);
+          addState({ commandIndex, line: 22, evictedKey: lruKey, msg: `Removed evicted key ${lruKey} from the hash map.` });
+        }
+        cache.set(key, value);
+        addState({ commandIndex, line: 24, newKey: key, msg: `Added new key ${key} with value ${value} to the hash map.` });
+        usage.unshift(key);
+        addState({ commandIndex, line: 25, newKey: key, msg: `Added new key ${key} to the front of the usage vector.` });
       }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isLoaded, stepForward, stepBackward]);
+    } else if (command.op === "get") {
+      const { key } = command;
+      addState({ commandIndex, line: 7, msg: `Executing get(${key}). Checking for key.` });
+      if (cache.has(key)) {
+        const val = cache.get(key);
+        outputLog.push(val);
+        addState({ commandIndex, line: 9, getResult: val, msg: `Key ${key} found, returning ${val}. Now updating recency.` });
+        usage = usage.filter((k) => k !== key);
+        addState({ commandIndex, line: 9, getResult: val, movedKey: key, msg: `Removed key ${key} from the usage vector (O(N) search).` });
+        usage.unshift(key);
+        addState({ commandIndex, line: 10, getResult: val, movedKey: key, msg: `Added key ${key} to the front of the vector.` });
+      } else {
+        outputLog.push(-1);
+        addState({ commandIndex, line: 8, getResult: -1, msg: `Key ${key} not found. Returning -1.` });
+      }
+    }
+  });
+  addState({ finished: true, line: 28, msg: "All operations completed." });
+  return newHistory;
+}
 
-  const state = history[currentStep] || {};
-  const { cache = {}, list = [], outputLog = [] } = state;
+// ── C++ listings ──
+const OPTIMAL_CODE = [
+  "class LRUCache {",
+  "  struct Node { int key, val; Node *prev, *next; };",
+  "  unordered_map<int, Node*> mp;",
+  "  Node *head, *tail;",
+  "  int cap;",
+  "  void remove(Node* n) { n->prev->next = n->next; n->next->prev = n->prev; }",
+  "  void insertFront(Node* n) {",
+  "    n->next = head->next; n->prev = head;",
+  "    head->next->prev = n; head->next = n;",
+  "  }",
+  "public:",
+  "  LRUCache(int capacity) {",
+  "    cap = capacity;",
+  "    head = new Node(); tail = new Node();",
+  "    head->next = tail; tail->prev = head;",
+  "  }",
+  "  int get(int key) {",
+  "    if (!mp.count(key)) return -1;",
+  "    Node* n = mp[key];",
+  "    remove(n);",
+  "    insertFront(n);",
+  "    return n->val;",
+  "  }",
+  "  void put(int key, int value) {",
+  "    if (mp.count(key)) {",
+  "      Node* n = mp[key];",
+  "      n->val = value;",
+  "      remove(n);",
+  "      insertFront(n);",
+  "    } else {",
+  "      if (mp.size() == cap) {",
+  "        Node* lru = tail->prev;",
+  "        mp.erase(lru->key);",
+  "        remove(lru);",
+  "        delete lru;",
+  "      }",
+  "      Node* n = new Node{key, value};",
+  "      insertFront(n);",
+  "      mp[key] = n;",
+  "    }",
+  "  }",
+  "};",
+];
 
-  return (
-    <div className="min-h-screen bg-theme-secondary text-theme-secondary p-4">
-      <div className="max-w-7xl mx-auto flex flex-col gap-6">
-        <header className="text-center">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-orange400 to-danger500 bg-clip-text text-transparent mb-1">
-            LRU Cache Visualizer
-          </h1>
-          <p className="text-sm text-theme-tertiary">
-            Visualizing LeetCode 146: Comparing O(1) and O(N) solutions
-          </p>
-        </header>
+const BRUTE_CODE = [
+  "class LRUCache {",
+  "  unordered_map<int, int> mp;",
+  "  vector<int> usage;  // front = most recent",
+  "  int cap;",
+  "public:",
+  "  LRUCache(int capacity) { cap = capacity; }",
+  "  int get(int key) {",
+  "    if (!mp.count(key)) return -1;",
+  "    usage.erase(find(usage.begin(), usage.end(), key));",
+  "    usage.insert(usage.begin(), key);",
+  "    return mp[key];",
+  "  }",
+  "  void put(int key, int value) {",
+  "    if (mp.count(key)) {",
+  "      mp[key] = value;",
+  "      usage.erase(find(usage.begin(), usage.end(), key));",
+  "      usage.insert(usage.begin(), key);",
+  "    } else {",
+  "      if (mp.size() == cap) {",
+  "        int lru = usage.back();",
+  "        usage.pop_back();",
+  "        mp.erase(lru);",
+  "      }",
+  "      mp[key] = value;",
+  "      usage.insert(usage.begin(), key);",
+  "    }",
+  "  }",
+  "};",
+];
 
-        {/* Top Control Bar */}
-        <div className="bg-theme-tertiary p-4 rounded-lg border border-theme-primary w-full">
-          <div className="flex flex-col gap-3">
-            {/* Input Section */}
-            <div className="w-full">
-              <label className="block text-xs font-semibold text-theme-secondary mb-2">Enter Operations (one per line or comma-separated):</label>
-              <div className="bg-theme-secondary rounded-lg border border-theme-primary focus-within:border-orange transition-colors p-3 max-h-32 overflow-y-auto">
-                <input
-                  type="text"
-                  placeholder="LRUCache(2), put(1,1), put(2,2), get(1), put(3,3), get(2), put(4,4), get(1), get(3), get(4)"
-                  value={operationsInput.replace(/\n/g, ', ')}
-                  onChange={(e) => setOperationsInput(e.target.value.replace(/, /g, '\n').replace(/,/g, '\n'))}
-                  disabled={isLoaded}
-                  className="w-full bg-transparent font-mono text-xs text-theme-secondary focus:outline-none disabled:opacity-50"
-                />
-              </div>
-            </div>
+// ── view helpers (read `input` defensively: it may be absent) ──
+const touched = (s, key) => s.movedKey === key || s.newKey === key;
 
-            {/* Controls Section */}
-            <div className="flex flex-wrap items-center gap-3 justify-between">
-              {/* Mode Selection */}
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-theme-tertiary font-semibold">Mode:</span>
-                <div className="flex gap-1 bg-theme-secondary/50 p-1 rounded-lg border border-theme-primary">
-                  <button onClick={() => handleModeChange("brute-force")} className={`px-4 py-1.5 rounded-md font-semibold cursor-pointer transition-all text-xs ${mode === "brute-force" ? "bg-gradient-to-r from-orange500 to-danger500 text-theme-primary shadow-md" : "text-theme-tertiary hover:bg-theme-elevated"}`}>
-                    Brute Force O(N)
-                  </button>
-                  <button onClick={() => handleModeChange("optimal")} className={`px-4 py-1.5 rounded-md font-semibold cursor-pointer transition-all text-xs ${mode === "optimal" ? "bg-gradient-to-r from-orange500 to-danger500 text-theme-primary shadow-md" : "text-theme-tertiary hover:bg-theme-elevated"}`}>
-                    Optimal O(1)
-                  </button>
-                </div>
-              </div>
+function opsView(s, input) {
+  const ops = input && Array.isArray(input.ops) ? input.ops : [];
+  const commands = input && Array.isArray(input.commands) ? input.commands : [];
+  const results = ops.map(() => "");
+  let k = 0;
+  commands.forEach((c, i) => {
+    if (c.op === "get" && k < (s.outputLog || []).length) results[i + 1] = String(s.outputLog[k++]);
+  });
+  return { ops, active: s.finished ? ops.length : (s.commandIndex ?? -1) + 1, results };
+}
 
-              {/* Action Buttons */}
-              <div className="flex items-center gap-2">
-                {!isLoaded ? (
-                  <button onClick={loadOps} className="bg-gradient-to-r from-orange500 to-danger500 cursor-pointer hover:from-orange600 hover:to-danger600 text-theme-primary font-bold py-2 px-6 rounded-md shadow-md transform hover:scale-105 transition-all flex items-center gap-2">
-                    <CheckCircle size={16} /> Visualize
-                  </button>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-2 bg-theme-secondary/50 p-1.5 rounded-md border border-theme-primary">
-                      <button onClick={stepBackward} disabled={currentStep <= 0} className="bg-theme-elevated hover:bg-theme-elevated p-2 rounded disabled:opacity-30 transition-all" title="Previous Step (←)">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
-                      </button>
-                      <div className="bg-theme-tertiary px-3 py-1 rounded border border-theme-primary">
-                        <span className="font-mono text-sm font-bold text-orange">{currentStep >= 0 ? currentStep + 1 : 0}</span>
-                        <span className="text-theme-muted mx-1">/</span>
-                        <span className="font-mono text-xs text-theme-tertiary">{history.length}</span>
-                      </div>
-                      <button onClick={stepForward} disabled={currentStep >= history.length - 1} className="bg-theme-elevated hover:bg-theme-elevated p-2 rounded disabled:opacity-30 transition-all" title="Next Step (→)">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
-                      </button>
-                    </div>
-                    <button onClick={reset} className="bg-danger-hover/80 cursor-pointer hover:bg-danger-hover font-bold py-2 px-4 rounded-md shadow-md transition-all text-sm">
-                      Reset
-                    </button>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Visualization Area */}
-        {isLoaded ? (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="lg:col-span-2 bg-theme-tertiary p-4 rounded-lg border border-theme-primary">
-              <div className="flex items-center gap-3 mb-2">
-                <Clock size={18} className="text-accent-primary" />
-                <h3 className="font-bold text-md text-accent-primary">Current Step Explanation</h3>
-              </div>
-              <div className="bg-theme-secondary/70 p-3 rounded-md border border-theme-primary min-h-[50px]">
-                <p className="text-sm text-theme-secondary">{state.explanation}</p>
-              </div>
-            </div>
-
-            <div className="lg:col-span-2 bg-theme-tertiary p-4 rounded-lg border border-theme-primary">
-              <div className="flex items-center gap-3 mb-2">
-                <CheckCircle size={18} className="text-teal" />
-                <div>
-                  <h3 className="font-bold text-md text-teal300">Output Log</h3>
-                  <p className="text-xs text-theme-muted">Results from get() operations</p>
-                </div>
-              </div>
-              <div className="bg-theme-secondary/70 p-3 rounded-md border border-theme-primary min-h-[50px]">
-                <div className="flex flex-wrap gap-2">
-                  {outputLog.length === 0 ? <p className="text-theme-muted text-xs italic">No output yet</p>
-                    : outputLog.map((out, i) => (
-                      <div key={i} className={`font-mono px-3 py-1 rounded-md font-bold text-md border transition-all ${state.commandIndex === i && state.getResult !== undefined ? "bg-orange/30 border-orange scale-110" : out === -1 ? "bg-danger900/30 border-danger600 text-danger" : "bg-success900/30 border-success600 text-success"}`}>{out}</div>
-                    ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-theme-tertiary p-4 rounded-lg border border-theme-primary">
-              <div className="flex items-center gap-3 mb-2">
-                <Hash size={18} className="text-purple" />
-                <div>
-                  <h3 className="font-bold text-md text-purple">Hash Map</h3>
-                  <p className="text-xs text-theme-muted font-mono">{mode === 'optimal' ? 'Map<Int, Node*>' : 'Map<Int, Int>'}</p>
-                </div>
-              </div>
-              <div className="bg-theme-secondary/70 p-3 rounded-md border border-theme-primary min-h-[150px]">
-                <div className="flex flex-wrap gap-3">
-                  {Object.entries(cache).length === 0 ? <p className="text-theme-muted text-xs italic">Cache is empty</p>
-                    : Object.entries(cache).map(([key, value]) => (
-                      <div key={key} className={`p-2 rounded-lg bg-theme-elevated/50 border shadow-md transform transition-all flex items-center gap-2 ${state.newKey == key || state.movedKey == key ? "border-orange scale-110" : "border-theme-primary"}`}>
-                        <div className="w-8 h-8 flex items-center justify-center bg-orange rounded font-mono text-sm font-bold">{key}</div>
-                        <ArrowRight size={14} className="text-theme-muted" />
-                        <div className="w-8 h-8 flex items-center justify-center bg-accent-primary rounded font-mono text-sm font-bold">{value}</div>
-                      </div>
-                    ))}
-                  {state.evictedKey && (<div className="p-2 rounded-lg bg-danger900/30 border border-danger shadow-md"><div className="w-8 h-8 flex items-center justify-center bg-danger800 rounded font-mono text-sm font-bold">{state.evictedKey}</div></div>)}
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-theme-tertiary p-4 rounded-lg border border-theme-primary">
-              <div className="flex items-center gap-3 mb-2">
-                <Link2 size={18} className="text-success" />
-                <div>
-                  <h3 className="font-bold text-md text-success">Usage Order</h3>
-                  <p className="text-xs text-theme-muted">{mode === "optimal" ? "Doubly Linked List: Node {key, val, ...}" : "Vector<Integer>"}</p>
-                </div>
-              </div>
-              <div className="bg-theme-secondary/70 p-3 rounded-md border border-theme-primary min-h-[150px]">
-                <div className="flex items-center gap-2 mb-3 text-xs font-bold text-success">
-                  {mode === "optimal" && <span className="bg-success900/30 px-2 py-1 rounded border border-success600">HEAD</span>}
-                  MOST RECENT →
-                </div>
-                <div className="flex gap-2 items-center overflow-x-auto pb-2">
-                  {list.length === 0 ? <p className="text-theme-muted text-xs italic">No items yet</p>
-                    : list.map((node, idx) => (
-                      <div key={`${node.key}-${idx}`} className="flex items-center gap-2">
-                        <div className={`flex-shrink-0 w-20 p-2 rounded-lg flex flex-col justify-center items-center font-mono border transition-all shadow-md ${state.movedKey == node.key || state.newKey == node.key ? "bg-orangelight border-orange scale-110" : "bg-theme-elevated/50 border-theme-primary"}`}>
-                          <span className="text-xs text-theme-tertiary">Key: <span className="font-bold text-lg text-orange">{node.key}</span></span>
-                          <div className="w-full h-px bg-theme-elevated my-1"></div>
-                          <span className="text-xs text-theme-tertiary">Val: <span className="font-bold text-md text-accent-primary">{node.val}</span></span>
-                        </div>
-                        {idx < list.length - 1 && <ArrowRight size={14} className="text-theme-muted flex-shrink-0" />}
-                      </div>
-                   ))}
-                </div>
-                <div className="flex items-center gap-2 mt-3 text-xs font-bold text-danger">
-                  ← LEAST RECENT
-                  {mode === "optimal" && <span className="bg-danger900/30 px-2 py-1 rounded border border-danger600">TAIL</span>}
-                </div>
-              </div>
-            </div>
-            
-            <div className="lg:col-span-2 bg-theme-tertiary p-4 rounded-lg border border-theme-primary">
-              <h3 className="font-bold text-md text-purple mb-3 pb-2 border-b border-theme-primary flex items-center gap-3"><Clock size={18} /> Complexity Analysis</h3>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                {mode === "optimal" ? (<>
-                  <div className="bg-theme-secondary/50 p-3 rounded-md border border-theme-primary">
-                    <h4 className="font-bold text-success mb-1">Time: <span className="font-mono text-teal300">O(1)</span></h4>
-                    <p className="text-theme-tertiary text-xs">Both <code className="text-orange">get()</code> and <code className="text-orange">put()</code> run in constant time due to hash map lookups and linked list pointer updates.</p>
-                  </div>
-                  <div className="bg-theme-secondary/50 p-3 rounded-md border border-theme-primary">
-                    <h4 className="font-bold text-accent-primary mb-1">Space: <span className="font-mono text-teal300">O(capacity)</span></h4>
-                    <p className="text-theme-tertiary text-xs">Space is proportional to the cache capacity for storing items in the hash map and linked list.</p>
-                  </div>
-                </> ) : ( <>
-                  <div className="bg-theme-secondary/50 p-3 rounded-md border border-theme-primary">
-                    <h4 className="font-bold text-orange mb-1">Time: <span className="font-mono text-danger">O(N)</span></h4>
-                    <p className="text-theme-tertiary text-xs">Operations take linear time due to searching and moving elements within the usage vector (where N is current cache size).</p>
-                  </div>
-                  <div className="bg-theme-secondary/50 p-3 rounded-md border border-theme-primary">
-                    <h4 className="font-bold text-accent-primary mb-1">Space: <span className="font-mono text-teal300">O(capacity)</span></h4>
-                    <p className="text-theme-tertiary text-xs">Space is proportional to capacity for storing items in the hash map and the usage vector.</p>
-                  </div>
-                </>)}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="text-center py-10">
-            <div className="bg-theme-tertiary p-8 rounded-lg border border-dashed border-theme-primary max-w-md mx-auto">
-              <div className="bg-orangelight w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4"><Code size={32} className="text-orange" /></div>
-              <h2 className="text-xl font-bold text-theme-secondary mb-2">Ready to Visualize</h2>
-              <p className="text-theme-tertiary text-sm">Enter operations above and click "Visualize" to see how the LRU Cache works.</p>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default LRUCacheVisualizer;
+// ── config ──
+export default defineVisualizer({
+  meta: {
+    title: "LRU Cache",
+    category: "Design",
+    difficulty: "medium",
+    summary: "Compare an O(1) hash map plus doubly linked list against an O(N) usage vector for least-recently-used eviction.",
+    leetcode: 146,
+  },
+  inputs: [
+    {
+      key: "ops",
+      kind: "ops",
+      label: "Operations",
+      grammar: [
+        { name: "LRUCache", args: ["int"] },
+        { name: "put", args: ["int", "int"] },
+        { name: "get", args: ["int"] },
+      ],
+      default: "LRUCache(2)\nput(1, 1)\nput(2, 2)\nget(1)\nput(3, 3)\nget(2)\nput(4, 4)\nget(1)\nget(3)\nget(4)",
+    },
+  ],
+  examples: [
+    { label: "Classic", values: { ops: "LRUCache(2)\nput(1, 1)\nput(2, 2)\nget(1)\nput(3, 3)\nget(2)\nput(4, 4)\nget(1)\nget(3)\nget(4)" } },
+    { label: "Update existing key", values: { ops: "LRUCache(2)\nput(1, 1)\nput(1, 10)\nput(2, 2)\nget(1)\nput(3, 3)\nget(2)" } },
+    { label: "Capacity 1", values: { ops: "LRUCache(1)\nput(1, 1)\nput(2, 2)\nget(1)\nget(2)" } },
+    { label: "Misses only", values: { ops: "LRUCache(3)\nget(5)\nput(1, 1)\nget(2)" } },
+  ],
+  parse: parseInput,
+  modes: {
+    "brute-force": {
+      label: "Brute force O(N)",
+      generate: generateBruteForce,
+      code: { lang: "cpp", lines: BRUTE_CODE },
+      complexity: {
+        time: { avg: "O(N)" },
+        space: "O(capacity)",
+        note: "Searching and moving elements within the usage vector costs linear time (N is the current cache size).",
+      },
+    },
+    optimal: {
+      label: "Optimal O(1)",
+      generate: generateOptimal,
+      code: { lang: "cpp", lines: OPTIMAL_CODE },
+      complexity: {
+        time: { avg: "O(1)" },
+        space: "O(capacity)",
+        note: "get() and put() are constant time: hash map lookups plus linked list pointer updates.",
+      },
+    },
+  },
+  defaultMode: "optimal",
+  legend: [
+    { tone: "active", label: "new or moved key" },
+    { tone: "error", label: "evicted key" },
+  ],
+  view: {
+    stage: "list",
+    map: (s, input, mode) => {
+      const list = s.list || [];
+      const doubly = mode !== "brute-force";
+      const edges = [];
+      for (let i = 0; i + 1 < list.length; i++) {
+        edges.push({ from: list[i].key, to: list[i + 1].key });
+        if (doubly) edges.push({ from: list[i + 1].key, to: list[i].key });
+      }
+      const pointers = [];
+      if (list.length) {
+        pointers.push({ nodeId: list[0].key, label: "MRU", role: 1 });
+        pointers.push({ nodeId: list[list.length - 1].key, label: "LRU", role: 2 });
+      }
+      return {
+        nodes: list.map((n) => ({
+          id: n.key,
+          value: `${n.key}:${n.val}`,
+          tone: s.evictedKey === n.key ? "error" : touched(s, n.key) ? "active" : "idle",
+        })),
+        edges,
+        pointers,
+      };
+    },
+    aux: [
+      {
+        kind: "table",
+        title: "Hash map",
+        map: (s) => {
+          const entries = Object.entries(s.cache || {}).map(([k, v]) => ({
+            key: k,
+            value: v,
+            tone: String(s.evictedKey) === k ? "error" : touched(s, Number(k)) ? "active" : "idle",
+          }));
+          if (s.evictedKey != null && !entries.some((e) => String(s.evictedKey) === e.key)) {
+            entries.push({ key: s.evictedKey, value: "evicted", tone: "error" });
+          }
+          return { entries };
+        },
+      },
+      { kind: "ops", title: "Operations", map: (s, input) => opsView(s, input) },
+    ],
+  },
+  stats: (s) => [
+    { label: "size", value: Object.keys(s.cache || {}).length },
+    { label: "results", value: (s.outputLog || []).length },
+  ],
+});

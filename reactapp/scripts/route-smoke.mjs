@@ -189,9 +189,21 @@ async function loadChromium() {
   return chromium;
 }
 
+// Runs in the page. Legacy root, or the v2 shell: <main data-visualizer> with
+// at least one rendered stage element (inside [data-stage-frame], or the
+// narrow layout's tabbed stage).
+function hasVizRoot() {
+  if (document.querySelector("[data-legacy-viz], [data-viz-stage]")) return true;
+  const root = document.querySelector("main[data-visualizer]");
+  if (!root) return false;
+  const frame = root.querySelector("[data-stage-frame]");
+  return !!(frame && frame.firstElementChild && frame.querySelector("svg, canvas, [data-stage-placeholder], [class]"));
+}
+
 // Runs in the page: returns the list of failed assertions.
-function pageProbe({ theme, isViz }) {
+function pageProbe({ theme, isViz, rootSrc }) {
   const out = [];
+  const vizRoot = new Function(`return (${rootSrc})()`);
   const html = document.documentElement;
   if (!html.classList.contains(theme)) out.push(`no-theme-class (html class="${html.className}")`);
   const h1s = [...document.querySelectorAll("h1")];
@@ -201,7 +213,7 @@ function pageProbe({ theme, isViz }) {
     return r.width > 0 && r.height > 0 && cs.visibility !== "hidden" && cs.display !== "none" && Number(cs.opacity) !== 0;
   });
   if (!visible) out.push(h1s.length ? `h1-not-visible (${h1s.length} h1)` : "no-h1");
-  if (isViz && !document.querySelector("[data-legacy-viz], [data-viz-stage]")) out.push("no-viz-root");
+  if (isViz && !vizRoot()) out.push("no-viz-root");
   return out;
 }
 
@@ -220,11 +232,11 @@ async function runCheck(browser, base, entry, theme) {
     const work = (async () => {
       await page.goto(base + entry.route, { waitUntil: "load", timeout: CHECK_TIMEOUT });
       await page.waitForLoadState("networkidle", { timeout: IDLE_TIMEOUT }).catch(() => {});
-      const arg = { theme, isViz: entry.kind === "visualizer" };
+      const arg = { theme, isViz: entry.kind === "visualizer", rootSrc: hasVizRoot.toString() };
       await page.waitForFunction((a) => {
         const html = document.documentElement;
         if (!html.classList.contains(a.theme)) return false;
-        if (a.isViz && !document.querySelector("[data-legacy-viz], [data-viz-stage]")) return false;
+        if (a.isViz && !new Function(`return (${a.rootSrc})()`)()) return false;
         return [...document.querySelectorAll("h1")].some((el) => el.getBoundingClientRect().width > 0);
       }, arg, { timeout: SETTLE_TIMEOUT, polling: 100 }).catch(() => {});
       result.finalUrl = page.url().replace(base, "");

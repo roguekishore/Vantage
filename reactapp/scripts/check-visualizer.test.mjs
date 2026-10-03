@@ -1,8 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { checkFile } from "./check-visualizer.mjs";
+import { checkFile, extractLegacy } from "./check-visualizer.mjs";
 
 const FX = path.join(path.dirname(fileURLToPath(import.meta.url)), "__fixtures__/visualizer");
 const fx = (n) => path.join(FX, n);
@@ -36,7 +37,7 @@ test("missing legacy source is MANUAL, not FAIL", () => {
 });
 test("ESCALATE line is reported escalated", () => assert.equal(status(checkFile(fx("escalate.jsx"), base), 10), "ESCALATED"));
 test("unmigrated legacy page fails 2-4 cleanly", () => {
-  const r = checkFile(path.resolve(FX, "../../../src/pages/algorithms/Sorting/BubbleSort.jsx"), { ...base, noManifest: true });
+  const r = checkFile(fx("legacy-good.jsx"), { ...base, noManifest: true });
   for (const id of [2, 3, 4]) assert.equal(status(r, id), "FAIL");
 });
 
@@ -64,4 +65,43 @@ test("sandbox temp dirs are not leaked", async () => {
   checkFile(fx("good.jsx"), base);
   checkFile(fx("loop.jsx"), { ...base, timeoutMs: 1000 });
   assert.equal(count(), before);
+});
+
+const parity = (r) => r.checks.find((c) => c.id === 8);
+test("view.map is called as map(step, input, mode); stats as (step, index, total)", () => {
+  assert.equal(status(checkFile(fx("mapsig.jsx"), base), 7), "PASS");
+  assert.equal(status(checkFile(fx("stats.jsx"), base), 7), "PASS");
+});
+test("multi-mode parity is per mode (name match, msg aliases ignored)", () => {
+  const c = parity(checkFile(fx("multi.jsx"), { ...base, legacyFile: fx("legacy-multi.jsx") }));
+  assert.equal(c.status, "PASS");
+  assert.match(c.reason, /\[brute\].*\[optimal\]/);
+});
+test("multi-mode parity FAILs only the differing mode and names it", () => {
+  const c = parity(checkFile(fx("multi.jsx"), { ...base, legacyFile: fx("legacy-multi-diff.jsx") }));
+  assert.equal(c.status, "FAIL");
+  assert.match(c.reason, /PASS \[brute\]/);
+  assert.match(c.reason, /FAIL \[optimal\]/);
+});
+test("a mode with no legacy generator is MANUAL, not FAIL", () => {
+  const c = parity(checkFile(fx("multi.jsx"), { ...base, legacyFile: fx("legacy-multi-brute-only.jsx") }));
+  assert.equal(c.status, "MANUAL");
+  assert.match(c.reason, /MANUAL \[/);
+});
+test("explanation/message/desc/description are aliases of msg for single-mode parity too", () => {
+  assert.equal(status(checkFile(fx("good.jsx"), { ...base, legacyFile: fx("legacy-alias.jsx") }), 8), "PASS");
+});
+test("legacy extraction: component-state closure (useState stubbed from examples, useCallback unwrapped, window.BigInt, alert)", () => {
+  const c = parity(checkFile(fx("state.jsx"), { ...base, legacyFile: fx("legacy-state.jsx") }));
+  assert.equal(c.status, "PASS", c.reason);
+});
+test("legacy extraction: ops-script input is passed as parsed (capacity, commands)", () => {
+  const c = parity(checkFile(fx("ops.jsx"), { ...base, legacyFile: fx("legacy-ops.jsx") }));
+  assert.equal(c.status, "PASS", c.reason);
+});
+
+test("check 8 vm exposes no host process (constructor escape yields undefined)", () => {
+  const src = fs.readFileSync(fx("legacy-escape.jsx"), "utf8");
+  const gens = extractLegacy(src, { nums: [1, 2, 3] }, undefined);
+  assert.deepEqual(gens[0].results[0], [{ probe: ["undefined", "undefined", "undefined", "undefined", "undefined"], n: 3 }]);
 });

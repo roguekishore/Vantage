@@ -26,6 +26,11 @@
  * `extractLegacy` below); extraction failure is MANUAL, not FAIL. Check 9 is the orchestrator's build.
  * Check 10: a file that is a single `ESCALATE:` line is reported ESCALATED (counts as a failure for exit).
  *
+ * SECURITY: check 8 executes TRUSTED legacy code from git history (or --legacy-file) in a node:vm context. It is
+ * NOT a security sandbox (node:vm never is). The context gets its own realm builtins and only JSON strings cross
+ * the boundary, so `Array.constructor("return typeof process")()` is "undefined" inside it, but do not point
+ * --rev / --legacy-file at untrusted source.
+ *
  * Output per file: one line per check (PASS / FAIL / MANUAL / SKIP) + a summary. Exit 1 on any FAIL/ESCALATED.
  */
 import fs from "node:fs";
@@ -473,7 +478,7 @@ function runExecution(cfg, sb, entry) {
         const check = (kind, fn) => {
           let out;
           try {
-            out = fn(st, k, s1.length);
+            out = fn(st, clone(input), mode || "default");
           } catch (err) {
             const msg = `${tag}: ${kind} map threw ${err.message}`;
             if (!seen.has(msg)) p.push(`${msg} (first at step ${k})`);
@@ -486,8 +491,24 @@ function runExecution(cfg, sb, entry) {
             seen.add(msg);
           }
         };
+        // Same call as the shell (StageView): view.map(step, input, mode), aux.map(step, input, mode).
         check(stage, (...a) => cfg.view.map(...a));
         auxes.forEach((a) => check(a.kind, (...x) => a.map(...x)));
+        // Same call as defineVisualizer: stats(step, index, total).
+        if (typeof cfg.stats === "function") {
+          try {
+            const sv = cfg.stats(st, k, s1.length);
+            if (sv != null && !Array.isArray(sv)) {
+              const msg = `${tag}: stats must return an array or null (got ${typeof sv})`;
+              if (!seen.has(msg)) p.push(`${msg} (first at step ${k})`);
+              seen.add(msg);
+            }
+          } catch (err) {
+            const msg = `${tag}: stats threw ${err.message}`;
+            if (!seen.has(msg)) p.push(`${msg} (first at step ${k})`);
+            seen.add(msg);
+          }
+        }
       });
     }
   });
@@ -508,16 +529,101 @@ function runExecution(cfg, sb, entry) {
  *     value wrapped as [{value,id}]; the values object; all values as args). The first call that
  *     captures a non-empty array wins; --legacy-input overrides.
  *  Any failure in 1-3 -> parity: "manual".
- * Comparison ignores msg, explanation-free by default only for: msg, line (with renumber), layout
+ * Comparison ignores msg and its aliases (explanation, message, desc, description), line (with renumber), layout
  * fields (x, y, left, top, pos, position(s), width, height). Everything else must deep-equal, so a legacy
  * field rename shows as FAIL with the diff; the reviewer then decides. If several candidate inputs ran,
  * PASS if any matches, otherwise the diff of the first.
  */
+const MSG_ALIASES = ["explanation", "message", "desc", "description"];
 const LAYOUT_KEYS = ["x", "y", "left", "top", "pos", "position", "positions", "width", "height"];
 
+function fnName(fnPath) {
+  const n = fnPath.node;
+  if (n.id && n.id.name) return n.id.name;
+  let q = fnPath.parentPath;
+  if (q && q.isCallExpression()) q = q.parentPath; // useCallback(fn, deps)
+  if (q && q.isVariableDeclarator() && q.node.id.type === "Identifier") return q.node.id.name;
+  if (q && (q.isObjectProperty() || q.isClassProperty()) && q.node.key && q.node.key.name) return q.node.key.name;
+  return "";
+}
+
+/* Component-scope extraction support (check 8). */
+const nodeHasJsx = (n) => {
+  let has = false;
+  traverse({ type: "File", program: { type: "Program", body: [{ type: "ExpressionStatement", expression: n }], directives: [], sourceType: "module" } }, { JSXElement() { has = true; }, JSXFragment() { has = true; } });
+  return has;
+};
+const hookName = (call) => (call && call.type === "CallExpression" && call.callee.type === "Identifier" ? call.callee.name : (call && call.type === "CallExpression" && call.callee.type === "MemberExpression" && call.callee.property.name) || "");
+
+/* Example leaf entries: top-level keys plus one level of plain-object children. */
+function exampleEntries(example0) {
+  const out = [];
+  for (const [k, v] of Object.entries(example0 || {})) {
+    out.push({ path: k, key: k, value: v });
+    if (isObj(v) && !Array.isArray(v)) for (const [k2, v2] of Object.entries(v)) out.push({ path: `${k}.${k2}`, key: k2, value: v2 });
+  }
+  return out;
+}
+const commonPrefix = (a, b) => { let i = 0; while (i < a.length && i < b.length && a[i] === b[i]) i++; return i; };
+function stateMatchScore(stateName, key) {
+  const l = normName(stateName), m = normName(key);
+  if (!l || !m) return 0;
+  if (l === m) return 100;
+  if (l.includes(m) && m.length >= 3) return 50 + m.length;
+  if (m.includes(l) && l.length >= 3) return 40 + l.length;
+  const cp = commonPrefix(l, m);
+  return cp >= 3 ? cp : 0;
+}
+/* Convert an example value so it has the same shape as the legacy state's initial value. */
+function coerceState(init, v) {
+  if (typeof init === "string") {
+    if (Array.isArray(v)) return v.every(Array.isArray) ? v.map((e) => e.join("-")).join(",") : v.map((e) => (e === null ? "null" : e)).join(",");
+    if (typeof v === "string" || typeof v === "number") return String(v);
+    return undefined;
+  }
+  if (typeof init === "number") { const n = Number(v); return (typeof v === "number" || (typeof v === "string" && v.trim() !== "" && !Number.isNaN(n))) ? n : undefined; }
+  if (typeof init === "boolean") return typeof v === "boolean" ? v : undefined;
+  if (Array.isArray(init)) return Array.isArray(v) ? clone(v) : undefined;
+  if (init === null || init === undefined) return clone(v);
+  if (typeof init === "object") return isObj(v) ? clone(v) : undefined;
+  return undefined;
+}
+/* state name -> raw example value. Name similarity first, then the unused string/array example for input-looking strings. */
+function assignStates(stateNames, example0) {
+  const entries = exampleEntries(example0);
+  const used = new Set();
+  const map = {};
+  const pairs = [];
+  for (const s of stateNames) for (const e of entries) { const sc = stateMatchScore(s, e.key); if (sc) pairs.push({ s, e, sc }); }
+  pairs.sort((a, b) => b.sc - a.sc);
+  for (const { s, e } of pairs) {
+    if (s in map || used.has(e.path)) continue;
+    map[s] = e.value;
+    used.add(e.path);
+  }
+  for (const s of stateNames) {
+    if (s in map || !/input|text|str|data|ops|expr|source|values|nums|arr/i.test(s)) continue;
+    const e = entries.find((x) => !used.has(x.path) && (Array.isArray(x.value) || typeof x.value === "string"));
+    if (e) { map[s] = e.value; used.add(e.path); }
+  }
+  return map;
+}
+/* Ops-script string -> { head: [numbers], commands: [{op, key, value, args}] }. */
+function parseOpsScript(str) {
+  const lines = String(str).split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const call = (l) => { const m = l.match(/^([A-Za-z_]\w*)\((.*)\)\s*;?$/); return m ? { op: m[1], args: m[2].split(",").map((a) => a.trim()).filter(Boolean).map((a) => (a !== "" && !Number.isNaN(Number(a)) ? Number(a) : a.replace(/^["']|["']$/g, ""))) } : null; };
+  const parsed = lines.map(call);
+  if (parsed.length < 2 || parsed.some((x) => !x)) return null;
+  const head = parsed[0].args;
+  const commands = parsed.slice(1).map(({ op, args }) => ({ op, key: args[0], value: args[1], args }));
+  return { head, commands };
+}
+
+/* Returns [{ name, results }]: one entry per legacy generator (every innermost function that calls
+ * setHistory/setSteps with a steps array), results = captured step arrays per candidate input. */
 function extractLegacy(src, example0, legacyInput) {
   const ast = parseCode(src, "legacy.jsx");
-  let best = null;
+  const found = new Map(); // fn start -> { fn, size }
   traverse(ast, {
     CallExpression(p) {
       const c = p.node.callee;
@@ -527,16 +633,10 @@ function extractLegacy(src, example0, legacyInput) {
       if (a.type === "ArrayExpression" && !a.elements.length) return;
       const fn = p.getFunctionParent();
       if (!fn) return;
-      const size = fn.node.end - fn.node.start;
-      if (!best || size > best.size) best = { fn, size };
+      found.set(fn.node.start, { fn, size: fn.node.end - fn.node.start });
     },
   });
-  if (!best) throw new Error("no setHistory/setSteps(<steps>) call found");
-  let fnNode = best.fn.node;
-  const wrap = best.fn.parentPath;
-  // unwrap useCallback(fn, deps)
-  if (wrap && wrap.isCallExpression() && wrap.node.callee.name === "useCallback") fnNode = wrap.node.arguments[0];
-  const fnSrc = src.slice(fnNode.start, fnNode.end);
+  if (!found.size) throw new Error("no setHistory/setSteps(<steps>) call found");
 
   const helpers = [];
   const importNames = new Set();
@@ -552,49 +652,130 @@ function extractLegacy(src, example0, legacyInput) {
     );
     if (!hasJsx && src.slice(n.start, n.end).indexOf("useState") < 0) helpers.push(src.slice(n.start, n.end));
   }
-  const captured = [];
   const noop = () => undefined;
   const permissive = () => new Proxy(function () {}, { get: (t, k) => (k === Symbol.toPrimitive ? () => "" : permissive()), apply: () => permissive() });
-  const sandbox = {
-    __captured: captured, __out: {},
-    setHistory: (v) => captured.push(v),
-    setSteps: (v) => captured.push(v),
-    JSON, Math, Array, Object, Number, String, Set, Map, Infinity, NaN, console: { log: noop, warn: noop, error: noop },
-  };
-  for (const n of importNames) sandbox[n] = permissive();
-  const script = `${helpers.join("\n")}\n;__out.gen = (${fnSrc});`;
-  const ctx = vm.createContext(new Proxy(sandbox, {
-    has: () => true,
-    get: (t, k) => (k in t ? t[k] : typeof k === "string" && /^set[A-Z]/.test(k) ? noop : undefined),
-    set: (t, k, v) => { t[k] = v; return true; },
-  }));
-  const compiled = transpile(script, "legacy-extract.js").replace(/^"use strict";?/, "");
-  try {
-    vm.runInContext(compiled, ctx, { timeout: 5000 });
-  } catch (err) {
-    throw new Error(`legacy helpers did not evaluate: ${err.message}`);
-  }
-  const gen = sandbox.__out.gen;
-  if (typeof gen !== "function") throw new Error("generator did not evaluate to a function");
-
   const vals = Object.values(example0 || {});
   const wrapObj = (a) => (Array.isArray(a) ? a.map((value, id) => ({ value, id })) : a);
+  const leafVals = exampleEntries(example0).filter((e) => !(isObj(e.value) && !Array.isArray(e.value))).map((e) => e.value);
   const candidates = legacyInput !== undefined
     ? [[legacyInput]]
     : [[vals[0]], [wrapObj(vals[0])], [example0], vals, vals.map(wrapObj)];
-  const results = [];
-  for (const args of candidates) {
-    captured.length = 0;
+  if (legacyInput === undefined) {
+    for (const v of vals) {
+      const ops = typeof v === "string" ? parseOpsScript(v) : null;
+      if (ops) candidates.push([...ops.head, ops.commands], [ops.commands], [v, ops.commands], [v]);
+    }
+    if (leafVals.length !== vals.length) candidates.push(leafVals);
+    const numify = (v) => (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v)) ? Number(v) : v);
+    candidates.push(vals.map(numify), leafVals.map(numify));
+    candidates.push([]); // closure over component state (stubbed useState)
+  }
+
+  const gens = [];
+  const errors = [];
+  for (const { fn, size } of [...found.values()].sort((x, y) => x.fn.node.start - y.fn.node.start)) {
+    let fnNode = fn.node;
+    const wrap = fn.parentPath;
+    if (wrap && wrap.isCallExpression() && wrap.node.callee.name === "useCallback") fnNode = wrap.node.arguments[0];
+    const fnSrc = src.slice(fnNode.start, fnNode.end);
+    const name = fnName(fn);
+    // component scope: the outermost enclosing function (React component), minus JSX/effects
+    let outer = null;
+    for (let q = fn.parentPath; q; q = q.parentPath) if (q.isFunction()) outer = q;
+    const scopeLines = [];
+    const stateNames = [];
+    if (outer && outer.node.body && outer.node.body.type === "BlockStatement") {
+      for (const st of outer.node.body.body) {
+        const text = src.slice(st.start, st.end);
+        if (st.type === "FunctionDeclaration") { if (!nodeHasJsx(st)) scopeLines.push(text); continue; }
+        if (st.type !== "VariableDeclaration" || st.declarations.length !== 1) continue;
+        const d = st.declarations[0];
+        const init = d.init;
+        const hk = hookName(init);
+        if (hk === "useState" && d.id.type === "ArrayPattern" && d.id.elements[0] && d.id.elements[0].type === "Identifier") {
+          const sn = d.id.elements[0].name;
+          stateNames.push(sn);
+          const arg = init.arguments[0];
+          scopeLines.push(`const [${sn}] = [__state(${JSON.stringify(sn)}, ${arg ? src.slice(arg.start, arg.end) : "undefined"}), __noop];`);
+        } else if ((hk === "useCallback" || hk === "useMemo") && d.id.type === "Identifier" && init.arguments[0] && !nodeHasJsx(init.arguments[0])) {
+          const a = src.slice(init.arguments[0].start, init.arguments[0].end);
+          scopeLines.push(hk === "useCallback" ? `const ${d.id.name} = ${a};` : `let ${d.id.name}; try { ${d.id.name} = (${a})(); } catch (e) {}`);
+        } else if (init && (init.type === "ArrowFunctionExpression" || init.type === "FunctionExpression") && d.id.type === "Identifier" && !nodeHasJsx(init)) {
+          scopeLines.push(`const ${d.id.name} = ${src.slice(init.start, init.end)};`);
+        } else if (init && d.id.type === "Identifier" && !hk && !/\buse[A-Z]/.test(src.slice(init.start, init.end)) && !nodeHasJsx(init)) {
+          // plain component-level constants (radius, center, ...); failures leave them undefined
+          scopeLines.push(`let ${d.id.name}; try { ${d.id.name} = (${src.slice(init.start, init.end)}); } catch (e) {}`);
+        }
+      }
+    }
+    const stateRaw = assignStates(stateNames, example0);
+    const captured = [];
+    // The vm realm supplies its own Array/Object/Function/etc. Only two host functions cross the boundary and
+    // both exchange JSON strings, so no host object (and no host Function constructor) is reachable from legacy code.
+    const sandbox = {
+      __hCap: (s) => { try { captured.push(JSON.parse(s)); } catch { /* not JSON-able */ } },
+      __hState: (sn, init) => {
+        if (!(sn in stateRaw)) return undefined;
+        const c = coerceState(init, stateRaw[sn]);
+        if (c === undefined) return undefined;
+        try { return JSON.stringify(c); } catch { return undefined; }
+      },
+    };
+    const script = `${helpers.join("\n")}\n;__out.gen = (function () {\n${scopeLines.join("\n")}\nreturn (${fnSrc});\n})();`;
+    const setNames = [...new Set(script.match(/\bset[A-Z]\w*/g) || [])].filter((n) => n !== "setHistory" && n !== "setSteps");
+    const prelude = `(function (g) {
+      var hCap = g.__hCap, hState = g.__hState;
+      delete g.__hCap; delete g.__hState;
+      var noop = function () {};
+      var permissive = function () { return new Proxy(function () {}, { get: function (t, k) { return k === Symbol.toPrimitive ? function () { return ""; } : permissive(); }, apply: function () { return permissive(); } }); };
+      g.__out = {};
+      g.__noop = noop;
+      g.setHistory = g.setSteps = function (v) { var s; try { s = JSON.stringify(v); } catch (e) { return; } if (s !== undefined) hCap(s); };
+      g.console = { log: noop, warn: noop, error: noop, info: noop };
+      g.alert = noop; g.confirm = function () { return true; }; g.prompt = function () { return null; };
+      g.setTimeout = g.setInterval = g.clearTimeout = g.clearInterval = g.requestAnimationFrame = noop;
+      g.window = g; g.document = permissive(); g.localStorage = permissive();
+      g.__state = function (sn, init) { var r = hState(sn, init); return r === undefined ? init : JSON.parse(r); };
+      g.__call = function (s) { return g.__out.gen.apply(undefined, JSON.parse(s)); };
+      ${JSON.stringify(setNames)}.forEach(function (n) { g[n] = noop; });
+      ${JSON.stringify([...importNames])}.forEach(function (n) { g[n] = permissive(); });
+    })(globalThis);`;
+    const ctx = vm.createContext(sandbox);
     try {
-      gen(...clone(args));
-    } catch {
+      vm.runInContext(prelude, ctx, { timeout: 5000 });
+      const compiled = transpile(script, "legacy-extract.js").replace(/^"use strict";?/, "");
+      vm.runInContext(compiled, ctx, { timeout: 5000 });
+    } catch (err) {
+      errors.push(`${name || "(anonymous)"}: legacy helpers did not evaluate: ${err.message}`);
       continue;
     }
-    const steps = captured.filter((c) => Array.isArray(c) && c.length).pop();
-    if (steps) results.push(JSON.parse(JSON.stringify(steps)));
+    const gen = vm.runInContext("typeof __out.gen", ctx);
+    if (gen !== "function") { errors.push(`${name || "(anonymous)"}: generator did not evaluate to a function`); continue; }
+    const results = [];
+    const inputs = [];
+    for (const args of candidates) {
+      captured.length = 0;
+      try {
+        vm.runInContext(`__call(${JSON.stringify(JSON.stringify(args))})`, ctx, { timeout: 5000 });
+      } catch (e) { if (process.env.CV_DEBUG) console.error("legacy call:", e.message);
+        continue;
+      }
+      const steps = captured.filter((c) => Array.isArray(c) && c.length).pop();
+      if (steps) { results.push(JSON.parse(JSON.stringify(steps))); inputs.push(describeArgs(args)); }
+    }
+    if (results.length) gens.push({ name, size, results, inputs });
+    else errors.push(`${name || "(anonymous)"}: produced no steps for any guessed input (pass --legacy-input)`);
   }
-  if (!results.length) throw new Error("legacy generator produced no steps for any guessed input (pass --legacy-input)");
-  return results;
+  if (!gens.length) throw new Error(errors[0] || "legacy generator produced no steps for any guessed input (pass --legacy-input)");
+  gens.errors = errors;
+  return gens;
+}
+
+function describeArgs(args) {
+  let t;
+  try { t = JSON.stringify(args); } catch { t = String(args); }
+  if (t === undefined) t = String(args);
+  return `args=${t.length > 60 ? t.slice(0, 57) + "..." : t}`;
 }
 
 function stripFor(step, ignore) {
@@ -624,6 +805,19 @@ function firstDiff(a, b, p = "") {
   return `${p || "root"}: legacy ${f(a)} vs new ${f(b)}`;
 }
 
+const normName = (x) => String(x || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+function nameScore(legacyName, key, label) {
+  const l = normName(legacyName);
+  if (!l) return 0;
+  let best = 0;
+  for (const m of [normName(key), normName(label)]) {
+    if (!m) continue;
+    if (l.includes(m) || m.includes(l)) best = Math.max(best, 2);
+    else for (const tok of String(m === normName(key) ? key : label).toLowerCase().split(/[^a-z0-9]+/)) if (tok.length > 2 && l.includes(tok)) best = Math.max(best, 1);
+  }
+  return best;
+}
+
 function checkParity(cfg, im, relFile, opts, entry) {
   let src;
   try {
@@ -631,30 +825,83 @@ function checkParity(cfg, im, relFile, opts, entry) {
   } catch (err) {
     return { parity: "manual", ...MANUAL(`parity: "manual" - legacy source not available (${opts.legacyFile ? "unreadable" : `git show ${opts.rev}:${relFile} failed`})`) };
   }
-  let candidates;
+  let gens;
   const ex0 = cfg.examples && cfg.examples[0] ? { ...im.defaultValues(cfg.inputs), ...cfg.examples[0].values } : {};
   try {
-    candidates = extractLegacy(src, ex0, opts.legacyInput);
+    gens = extractLegacy(src, ex0, opts.legacyInput);
   } catch (err) {
     return { parity: "manual", ...MANUAL(`parity: "manual" - legacy extraction failed: ${err.message}; route to strong review`) };
   }
-  const firstMode = isObj(cfg.modes) ? cfg.modes[cfg.defaultMode || Object.keys(cfg.modes)[0]] : cfg;
-  let steps;
-  try {
-    steps = firstMode.generate(clone(cfg.parse(clone(ex0))));
-  } catch (err) {
-    return { parity: "fail", ...FAIL(`new generator threw on examples[0]: ${err.message}`) };
-  }
+  const multi = isObj(cfg.modes);
+  const modeKeys = multi ? Object.keys(cfg.modes) : [null];
+  const defKey = multi ? (cfg.modes[cfg.defaultMode] ? cfg.defaultMode : modeKeys[0]) : null;
   const renumber = opts.allowRenumber || /renumber/i.test(`${entry && entry.notes ? entry.notes : ""}`);
-  const ignore = new Set(["msg", ...(renumber ? ["line"] : []), ...LAYOUT_KEYS, ...opts.ignore]);
-  const nw = JSON.parse(JSON.stringify(stripFor(steps, ignore)));
-  const diffs = [];
-  for (const c of candidates) {
-    const d = firstDiff(stripFor(c, ignore), nw);
-    if (!d) return { parity: "pass", ...PASS(`${steps.length} steps identical to legacy on examples[0] (ignoring ${[...ignore].join(", ")})`) };
-    diffs.push(d);
+  const ignore = new Set(["msg", ...MSG_ALIASES, ...(renumber ? ["line"] : []), ...LAYOUT_KEYS, ...opts.ignore]);
+
+  // new steps per mode on examples[0]
+  const newSteps = {};
+  const genErr = {};
+  for (const k of modeKeys) {
+    const spec = k === null ? cfg : cfg.modes[k];
+    try {
+      newSteps[k] = spec.generate(clone(cfg.parse(clone(ex0))));
+    } catch (err) {
+      genErr[k] = err.message;
+    }
   }
-  return { parity: "fail", ...FAIL(`legacy vs new differ: ${diffs[0]}${renumber ? "" : " (use --allow-renumber if lines changed)"}`) };
+  const stripped = (steps) => JSON.parse(JSON.stringify(stripFor(steps, ignore)));
+
+  // pairing: single mode -> the largest legacy generator (old behaviour); modes -> name, then step count
+  const pairs = new Map(); // mode key -> gen
+  if (!multi) {
+    pairs.set(null, gens.slice().sort((a, b) => b.size - a.size)[0]);
+  } else {
+    const used = new Set();
+    const cand = [];
+    for (const k of modeKeys) for (const g of gens) cand.push({ k, g, sc: nameScore(g.name, k, cfg.modes[k].label) });
+    cand.filter((c) => c.sc > 0).sort((a, b) => b.sc - a.sc).forEach((c) => {
+      if (pairs.has(c.k) || used.has(c.g)) return;
+      pairs.set(c.k, c.g);
+      used.add(c.g);
+    });
+    // step count on examples[0]
+    for (const k of modeKeys) {
+      if (pairs.has(k) || !newSteps[k]) continue;
+      const g = gens.find((x) => !used.has(x) && x.results.some((r) => r.length === newSteps[k].length));
+      if (g) { pairs.set(k, g); used.add(g); }
+    }
+    // a lone legacy generator with nothing else claiming it compares to the default mode
+    if (gens.length === 1 && !used.size && !pairs.has(defKey)) pairs.set(defKey, gens[0]);
+  }
+
+  const perMode = [];
+  for (const k of modeKeys) {
+    const label = k === null ? "" : `[${k}] `;
+    if (genErr[k] !== undefined) { perMode.push({ k, status: "FAIL", text: `${label}new generator threw on examples[0]: ${genErr[k]}` }); continue; }
+    const g = pairs.get(k);
+    if (!g) { perMode.push({ k, status: "MANUAL", text: `${label}no legacy generator matched this mode (legacy: ${gens.map((x) => x.name || "anonymous").join(", ")})` }); continue; }
+    const nw = stripped(newSteps[k]);
+    const diffs = [];
+    let ok = false;
+    let matched = "";
+    for (const [ci, c] of g.results.entries()) {
+      const d = firstDiff(stripFor(c, ignore), nw);
+      if (!d) { ok = true; matched = g.inputs[ci]; break; }
+      diffs.push(d);
+    }
+    const via = multi ? ` vs legacy ${g.name || "anonymous"}` : "";
+    perMode.push(ok
+      ? { k, status: "PASS", text: `${label}${newSteps[k].length} steps identical${via}, matched legacy input ${matched}` }
+      : { k, status: "FAIL", text: `${label}legacy${via} differs: ${diffs[0]}` });
+  }
+  const anyFail = perMode.some((m) => m.status === "FAIL");
+  const anyManual = perMode.some((m) => m.status === "MANUAL");
+  const ign = `ignoring ${[...ignore].join(", ")}`;
+  const detail = multi ? perMode.map((m) => `${m.status} ${m.text}`).join("; ") : perMode[0].text;
+  const hint = anyFail && !renumber ? " (use --allow-renumber if lines changed)" : "";
+  if (anyFail) return { parity: "fail", perMode, ...FAIL(`${detail}${hint}`) };
+  if (anyManual) return { parity: "manual", perMode, ...MANUAL(`parity: "manual" - ${detail}; route to strong review`) };
+  return { parity: "pass", perMode, ...PASS(`${detail} on examples[0] (${ign})`) };
 }
 
 /* Check 7 runs in a child process so a looping generate cannot hang the checker. */
@@ -818,4 +1065,4 @@ function main(argv) {
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1]).href) process.exitCode = main(process.argv.slice(2));
-export { checkFile, validateShape, firstDiff };
+export { checkFile, validateShape, firstDiff, extractLegacy };
