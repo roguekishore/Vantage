@@ -20,5 +20,6 @@ COPY --from=build /app/target/app.jar app.jar
 RUN chown -R appuser:appuser /app
 USER appuser
 EXPOSE 8080
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
+ENV TZ=UTC
+ENV JAVA_OPTS="-Duser.timezone=UTC -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -Djava.security.egd=file:/dev/./urandom"
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

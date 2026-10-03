@@ -1,13 +1,20 @@
 package com.backend.springapp.gamification.battle;
 
 import com.backend.springapp.common.CurrentUser;
+import com.backend.springapp.judge.JudgeUnavailableException;
+import com.backend.springapp.judge.queue.JudgeJobReader;
+import com.backend.springapp.judge.queue.JudgeJobStatusDTO;
+import com.backend.springapp.judge.queue.JudgeJobSubmitter;
+import com.backend.springapp.judge.queue.JudgeQueueSettings;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * REST API for 1-v-1 battles.
@@ -21,6 +28,11 @@ public class BattleController {
     private final MatchmakingService matchmakingService;
     private final BattleJudgingService judgingService;
     private final BattleLifecycleService lifecycleService;
+    private final JudgeQueueSettings queueSettings;
+    private final JudgeJobSubmitter jobSubmitter;
+    private final JudgeJobReader jobReader;
+
+    private static final Pattern IDEMPOTENCY_KEY = Pattern.compile("^[A-Za-z0-9-]{8,64}$");
 
     /* ── Matchmaking Queue ── */
 
@@ -77,13 +89,38 @@ public class BattleController {
         return ResponseEntity.ok(battleService.getBattleState(id, userId));
     }
 
+    /**
+     * Queue off: judges inline and returns 200 + SubmitResultDTO. Queue on: needs an Idempotency-Key header and returns
+     * 202 + JudgeJobStatusDTO (poll GET /{id}/submissions/{jobId}); a repeated key returns the same job.
+     */
     @PostMapping("/{id}/submit")
-    public ResponseEntity<SubmitResultDTO> submitCode(@PathVariable Long id,
-                                                       @RequestBody SubmitCodeRequest req,
-                                                       HttpServletRequest request) {
+    public ResponseEntity<?> submitCode(@PathVariable Long id,
+                                        @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey,
+                                        @RequestBody SubmitCodeRequest req,
+                                        HttpServletRequest request) {
         Long uid = CurrentUser.requireSelf(request, req.userId());
-        return ResponseEntity.ok(judgingService.submitCode(
-                id, uid, req.problemIndex(), req.language(), req.code()));
+        try {
+            if (!queueSettings.isEnabled()) {
+                return ResponseEntity.ok(judgingService.submitCode(
+                        id, uid, req.problemIndex(), req.language(), req.code()));
+            }
+            if (idempotencyKey == null || !IDEMPOTENCY_KEY.matcher(idempotencyKey).matches()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "Idempotency-Key header required"));
+            }
+            return ResponseEntity.status(HttpStatus.ACCEPTED).body(jobSubmitter.submit(
+                    id, uid, req.problemIndex(), req.language(), req.code(), idempotencyKey));
+        } catch (JudgeUnavailableException e) {
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(Map.of("error", "Judge unavailable"));
+        }
+    }
+
+    /** Poll one queued submission. Only the submitting user can read it. */
+    @GetMapping("/{id}/submissions/{jobId}")
+    public ResponseEntity<JudgeJobStatusDTO> getSubmission(@PathVariable Long id, @PathVariable Long jobId,
+                                                           HttpServletRequest request) {
+        Long uid = CurrentUser.requireSelfParam(request);
+        return jobReader.find(jobId, id, uid).map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     /* ── Results ── */

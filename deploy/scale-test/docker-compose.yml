@@ -21,6 +21,7 @@ x-springapp: &springapp
     stub-judge:
       condition: service_started
   environment: &springapp-env
+    TZ: UTC
     SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/vantage?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
     SPRING_DATASOURCE_USERNAME: root
     SPRING_DATASOURCE_PASSWORD: local-only-change-me
@@ -51,7 +52,7 @@ x-springapp: &springapp
 services:
   mysql:
     image: mysql:8.0.40
-    command: ["--max-connections=500", "--character-set-server=utf8mb4"]
+    command: ["--max-connections=500", "--character-set-server=utf8mb4", "--default-time-zone=+00:00"]
     environment:
       MYSQL_ROOT_PASSWORD: local-only-change-me
       MYSQL_DATABASE: vantage

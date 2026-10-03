@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpServerErrorException;
+import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.client.RestTemplate;
 
@@ -76,7 +78,11 @@ public class JudgeProxyService {
             return Map.of("error", "Problem not found or has no test cases");
         }
         Map<String, Object> body = Map.of("language", language, "code", code, "testCases", cases);
-        return postToJudge("/api/submit", body);
+        Map<String, Object> result = postToJudge("/api/submit", body);
+        if (result.isEmpty()) {
+            throw new JudgeUnavailableException("Judge returned an empty body", null);
+        }
+        return result;
     }
 
     /**
@@ -96,6 +102,8 @@ public class JudgeProxyService {
                     new HttpEntity<>(headers), new ParameterizedTypeReference<>() {});
             Map<String, Object> body = res.getBody();
             return body != null ? body.get("testCases") : null;
+        } catch (HttpServerErrorException | ResourceAccessException e) {
+            throw new JudgeUnavailableException("Catalog unavailable while fetching test cases for " + problemId, e);
         } catch (RestClientResponseException e) {
             // 403 here almost always means JUDGE_TOKEN is missing or mismatched
             // on the catalog container.
@@ -114,9 +122,15 @@ public class JudgeProxyService {
         if (judgeToken != null && !judgeToken.isBlank()) {
             headers.set("x-judge-token", judgeToken);
         }
-        ResponseEntity<Map<String, Object>> res = judgeRestTemplate.exchange(
-                judge(path), HttpMethod.POST, new HttpEntity<>(body, headers),
-                new ParameterizedTypeReference<>() {});
+        ResponseEntity<Map<String, Object>> res;
+        try {
+            res = judgeRestTemplate.exchange(
+                    judge(path), HttpMethod.POST, new HttpEntity<>(body, headers),
+                    new ParameterizedTypeReference<>() {});
+        } catch (HttpServerErrorException | ResourceAccessException e) {
+            // Timeout, connection error or 5xx: infrastructure failure, not a verdict.
+            throw new JudgeUnavailableException("Judge unavailable: " + e.getMessage(), e);
+        }
         return res.getBody() != null ? res.getBody() : Map.of();
     }
 

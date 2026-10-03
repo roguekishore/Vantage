@@ -22,4 +22,5 @@ WORKDIR /app
 COPY --from=build --chown=app:app --chmod=755 /app/target/vantage app
 USER app
 EXPOSE 8080
+ENV TZ=UTC
 ENTRYPOINT ["./app"]

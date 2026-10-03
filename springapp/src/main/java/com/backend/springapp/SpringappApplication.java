@@ -13,6 +13,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class SpringappApplication {
 
 	public static void main(String[] args) {
+		// One clock: LocalDateTime.now() must match the UTC database session (see vantage-time.properties).
+		// Runs at start-up, not in a static block, so a native image reads it at run time.
+		java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("UTC"));
 		SpringApplication.run(SpringappApplication.class, args);
 	}
 
