@@ -38,3 +38,6 @@ export { default as ArrayBox } from "./ArrayBox";
 export { default as GraphNode } from "./GraphNode";
 export { default as TreeNode } from "./TreeNode";
 export { default as IdleState } from "./IdleState";
+
+// ── v2: config-driven visualizers ──
+export { defineVisualizer, fieldError } from "./v2";
