@@ -9,7 +9,7 @@ class BattleServiceQueueGuardTest {
 
     private MatchmakingService newService() {
         return new MatchmakingService(
-                null, null, null, null, null
+                null, null, null, null, null, null
         );
     }
 

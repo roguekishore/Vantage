@@ -46,6 +46,7 @@ public class MatchmakingService {
     private final GamificationService gamificationService;
     private final BattleService battleService;
     private final RealtimePublisher realtimePublisher;
+    private final com.backend.springapp.experiments.ExperimentService experimentService;
     @Value("${battle.customTimer1v1.enabled:true}")
     private boolean customTimer1v1Enabled = true;
     @Value("${vantage.matchmaking.batch-size:200}")
@@ -272,6 +273,8 @@ public class MatchmakingService {
         // Select problems
         battleService.selectProblems(battle.getId(), a.getDifficulty(), problemCount,
                 List.of(a.getUserId(), b.getUserId()));
+
+        experimentService.assignOnCreate(battle.getId(), battle.getMode());
 
         // Remove both from queue
         queueRepo.deleteByIds(List.of(a.getId(), b.getId()));

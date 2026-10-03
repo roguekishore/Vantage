@@ -1,4 +1,6 @@
 [
+  {"name":"com.backend.springapp.experiments.ExperimentReportDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
+  {"name":"com.backend.springapp.experiments.VariantStatsDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.common.DataInitializer$ProblemSeed","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.friend.challenge.dto.ChallengeMuteRequestDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.friend.challenge.dto.ChallengeMuteStatusDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},

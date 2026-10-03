@@ -49,6 +49,7 @@ public class BattleJudgingService {
     private final BattleViews battleViews;
     private final BattleLifecycleService lifecycleService;
     private final RealtimePublisher realtimePublisher;
+    private final com.backend.springapp.experiments.ExperimentService experimentService;
     @Value("${battle.continueAfterFirstFinisher.enabled:true}")
     private boolean continueAfterFirstFinisherEnabled = true;
     @Autowired(required = false)
@@ -147,7 +148,7 @@ public class BattleJudgingService {
                 if (me.getProblemsSolved() >= battle.getProblemCount()) {
                     allSolved = true;
                     incrementMetric("battle.firstFinisher", "mode", battle.getMode().name());
-                    if (!continueAfterFirstFinisherEnabled) {
+                    if (!continueAfterFirstFinisherEnabled || experimentService.isTreatment(battleId)) {
                         incrementMetric("battle.complete.trigger", "reason", "all_solved", "mode", battle.getMode().name());
                         lifecycleService.completeBattle(battleId);
                     }

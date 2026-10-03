@@ -15,7 +15,7 @@ class MatchmakingPairingTest {
 
     private static final LocalDateTime NOW = LocalDateTime.of(2026, 10, 4, 12, 0, 0);
 
-    private final MatchmakingService service = new MatchmakingService(null, null, null, null, null);
+    private final MatchmakingService service = new MatchmakingService(null, null, null, null, null, null);
 
     private static MatchmakingQueue entry(long uid, BattleMode mode, int rating, long waitSec, int minutes) {
         MatchmakingQueue q = new MatchmakingQueue();
