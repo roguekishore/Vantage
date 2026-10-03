@@ -18,7 +18,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.core.ParameterizedTypeReference;
@@ -46,6 +48,10 @@ public class MatchmakingService {
     private final RealtimePublisher realtimePublisher;
     @Value("${battle.customTimer1v1.enabled:true}")
     private boolean customTimer1v1Enabled = true;
+    @Value("${vantage.matchmaking.batch-size:200}")
+    private int batchSize = 200;
+    @Autowired(required = false)
+    private PlatformTransactionManager txManager;
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
@@ -118,7 +124,13 @@ public class MatchmakingService {
 
     @Transactional
     public void leaveQueue(Long userId) {
-        queueRepo.deleteByUserId(userId);
+        List<Long> ids = queueRepo.lockIdsByUserIdSkipLocked(userId);
+        if (ids.isEmpty()) {
+            // Either not queued, or a matcher's open claim holds the row: the user is being matched, leave is a no-op.
+            log.info("User {} leave: nothing to remove (not queued or currently being matched)", userId);
+            return;
+        }
+        queueRepo.deleteByIds(ids);
         log.info("User {} left matchmaking queue", userId);
     }
 
@@ -126,71 +138,116 @@ public class MatchmakingService {
      * MATCHMAKING (called by scheduled job)
      * ═══════════════════════════════════════════════════════════ */
 
-    @Transactional
+    /** Each instance runs this every 5 s; correctness comes from FOR UPDATE SKIP LOCKED, not from a lock. */
     public void processMatchmaking() {
-        // Group queue entries by mode + difficulty
-        List<MatchmakingQueue> all = queueRepo.findAll();
-        Map<String, List<MatchmakingQueue>> groups = all.stream()
-                .collect(Collectors.groupingBy(e -> e.getMode() + ":" + e.getDifficulty()));
+        processPairs(true);
+    }
 
-        for (var group : groups.values()) {
-            if (group.size() < 2) continue;
+    /** Same pass, but rethrows the first per-pair failure (e.g. a deadlock). Used by the concurrency IT. */
+    public void processMatchmakingStrict() {
+        processPairs(false);
+    }
 
-            // Sort by join time
-            group.sort(Comparator.comparing(MatchmakingQueue::getJoinedAt));
-
-            Set<Long> matched = new HashSet<>();
-            for (int i = 0; i < group.size(); i++) {
-                if (matched.contains(group.get(i).getId())) continue;
-                MatchmakingQueue a = group.get(i);
-
-                for (int j = i + 1; j < group.size(); j++) {
-                    if (matched.contains(group.get(j).getId())) continue;
-                    MatchmakingQueue b = group.get(j);
-
-                    if (isRatingCompatible(a, b) && isDurationCompatible(a, b)) {
-                        // Use the smaller problem count (both must agree on count)
-                        int count = Math.min(a.getProblemCount(), b.getProblemCount());
-                        Battle battle = createBattle(a, b, count, a.getDurationMinutes());
-                        matched.add(a.getId());
-                        matched.add(b.getId());
-
-                        // ── WebSocket: notify both users AFTER transaction commits ──
-                        // This prevents clients from fetching a battle that isn't committed yet
-                        final Long userA = a.getUserId();
-                        final Long userB = b.getUserId();
-                        final Long bId = battle.getId();
-                        TransactionSynchronizationManager.registerSynchronization(
-                                new TransactionSynchronization() {
-                                    @Override
-                                    public void afterCommit() {
-                                        Map<String, Object> matchPayload = Map.of(
-                                                "status", "MATCHED", "battleId", bId);
-                                        realtimePublisher.toTopic("/topic/queue/" + userA + "/matched", matchPayload);
-                                        realtimePublisher.toTopic("/topic/queue/" + userB + "/matched", matchPayload);
-                                    }
-                                });
-                        break;
-                    }
-                }
+    private void processPairs(boolean swallow) {
+        for (Object[] pair : queueRepo.findQueuedPairs()) {
+            BattleMode mode = (BattleMode) pair[0];
+            Tag difficulty = (Tag) pair[1];
+            try {
+                inTransaction(() -> matchPair(mode, difficulty));
+            } catch (RuntimeException e) {
+                if (!swallow) throw e;
+                log.warn("Matchmaking for {}:{} failed, will retry next tick: {}", mode, difficulty, e.getMessage());
             }
         }
     }
 
-    private boolean isRatingCompatible(MatchmakingQueue a, MatchmakingQueue b) {
+    private void inTransaction(Runnable work) {
+        if (txManager == null) {
+            work.run();
+            return;
+        }
+        new TransactionTemplate(txManager).executeWithoutResult(status -> work.run());
+    }
+
+    /** One transaction: claim a rating-sorted batch (skipping rows other instances hold), pair, create, delete. */
+    private void matchPair(BattleMode mode, Tag difficulty) {
+        List<MatchmakingQueue> claimed = queueRepo.claimBatch(mode.name(), difficulty.name(), batchSize);
+        for (MatchmakingQueue[] pair : findPairs(claimed, LocalDateTime.now())) {
+            MatchmakingQueue a = pair[0];
+            MatchmakingQueue b = pair[1];
+            // Use the smaller problem count (both must agree on count)
+            int count = Math.min(a.getProblemCount(), b.getProblemCount());
+            Battle battle = createBattle(a, b, count, a.getDurationMinutes());
+
+            // Notify both users AFTER the transaction commits, so clients never fetch an uncommitted battle.
+            final Long userA = a.getUserId();
+            final Long userB = b.getUserId();
+            final Long bId = battle.getId();
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    Map<String, Object> matchPayload = Map.of("status", "MATCHED", "battleId", bId);
+                    realtimePublisher.toTopic("/topic/queue/" + userA + "/matched", matchPayload);
+                    realtimePublisher.toTopic("/topic/queue/" + userB + "/matched", matchPayload);
+                }
+            });
+        }
+    }
+
+    /**
+     * Pure pairing over a claimed batch. Sorts by rating then join time, then for each unmatched entry scans only
+     * rating-adjacent successors while the rating gap is inside the widest possible band, pairing with the first
+     * one that passes the unchanged compatibility rules.
+     */
+    List<MatchmakingQueue[]> findPairs(List<MatchmakingQueue> claimed, LocalDateTime now) {
+        List<MatchmakingQueue> sorted = new ArrayList<>(claimed);
+        sorted.sort(Comparator.comparingInt(MatchmakingQueue::getBattleRating)
+                .thenComparing(MatchmakingQueue::getJoinedAt));
+        List<MatchmakingQueue[]> pairs = new ArrayList<>();
+        if (sorted.size() < 2) return pairs;
+
+        // Widest band any pair in this batch could be allowed (ranked widens with the longest wait).
+        long longestWait = 0;
+        for (MatchmakingQueue e : sorted) {
+            longestWait = Math.max(longestWait, Duration.between(e.getJoinedAt(), now).getSeconds());
+        }
+        int widest = sorted.get(0).getMode() == BattleMode.CASUAL_1V1 ? 300 : rankedBand(longestWait);
+
+        boolean[] used = new boolean[sorted.size()];
+        for (int i = 0; i < sorted.size(); i++) {
+            if (used[i]) continue;
+            MatchmakingQueue a = sorted.get(i);
+            for (int j = i + 1; j < sorted.size(); j++) {
+                if (used[j]) continue;
+                MatchmakingQueue b = sorted.get(j);
+                if (b.getBattleRating() - a.getBattleRating() > widest) break;
+                if (isRatingCompatible(a, b, now) && isDurationCompatible(a, b)) {
+                    used[i] = true;
+                    used[j] = true;
+                    pairs.add(new MatchmakingQueue[]{a, b});
+                    break;
+                }
+            }
+        }
+        return pairs;
+    }
+
+    static int rankedBand(long maxWaitSec) {
+        return 200 + (int) (maxWaitSec / 30) * 50;
+    }
+
+    boolean isRatingCompatible(MatchmakingQueue a, MatchmakingQueue b, LocalDateTime now) {
         int diff = Math.abs(a.getBattleRating() - b.getBattleRating());
         if (a.getMode() == BattleMode.CASUAL_1V1) {
             return diff <= 300;
         }
-        // Ranked: base ±200, widens by 50 every 30 seconds
-        long aWaitSec = Duration.between(a.getJoinedAt(), LocalDateTime.now()).getSeconds();
-        long bWaitSec = Duration.between(b.getJoinedAt(), LocalDateTime.now()).getSeconds();
-        long maxWait = Math.max(aWaitSec, bWaitSec);
-        int widening = (int) (maxWait / 30) * 50;
-        return diff <= (200 + widening);
+        // Ranked: base +-200, widens by 50 every 30 seconds of the longer wait
+        long aWaitSec = Duration.between(a.getJoinedAt(), now).getSeconds();
+        long bWaitSec = Duration.between(b.getJoinedAt(), now).getSeconds();
+        return diff <= rankedBand(Math.max(aWaitSec, bWaitSec));
     }
 
-    private boolean isDurationCompatible(MatchmakingQueue a, MatchmakingQueue b) {
+    boolean isDurationCompatible(MatchmakingQueue a, MatchmakingQueue b) {
         if (!customTimer1v1Enabled) {
             return true;
         }
@@ -217,8 +274,7 @@ public class MatchmakingService {
                 List.of(a.getUserId(), b.getUserId()));
 
         // Remove both from queue
-        queueRepo.deleteByUserId(a.getUserId());
-        queueRepo.deleteByUserId(b.getUserId());
+        queueRepo.deleteByIds(List.of(a.getId(), b.getId()));
 
         log.info("⚔️ Battle {} created: user {} vs user {} (mode={}, diff={}, problems={})",
                 battle.getId(), a.getUserId(), b.getUserId(),
