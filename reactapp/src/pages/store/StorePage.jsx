@@ -178,6 +178,13 @@ const StorePage = () => {
     <PageShell>
       {header}
 
+      {/* ── Summary strip ── */}
+      <Panel as="section" aria-label="Store summary" padded={false} className="mb-6 grid grid-cols-3 divide-x divide-border">
+        <Stat label="Items" className="p-4" value={<span className="tabular-nums">{items.length}</span>} />
+        <Stat label="Owned" className="p-4" value={<span className="tabular-nums">{items.filter(i => i.owned > 0).length}</span>} />
+        <Stat label="Affordable" className="p-4" value={<span className="tabular-nums">{items.filter(i => coins >= i.cost && !(i.maxOwnable > 0 && i.owned + 1 > i.maxOwnable)).length}</span>} />
+      </Panel>
+
       <Tabs value={activeCategory} onValueChange={setActiveCategory} variant="segmented" className="grid gap-6">
         {/* ── Category tabs ── */}
         <TabsList aria-label="Item category" className="justify-self-start">

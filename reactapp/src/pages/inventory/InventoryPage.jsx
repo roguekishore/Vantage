@@ -135,6 +135,11 @@ const InventoryPage = () => {
           }
         />
       ) : (
+        <>
+        <Panel as="section" aria-label="Inventory summary" padded={false} className="mb-6 grid grid-cols-2 divide-x divide-border">
+          <Stat label="Distinct items" className="p-4" value={<span className="tabular-nums">{inventory.length}</span>} />
+          <Stat label="Total units" className="p-4" value={<span className="tabular-nums">{inventory.reduce((n, i) => n + (i.quantity || 0), 0)}</span>} />
+        </Panel>
         <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {inventory.map(item => {
             const meta = TYPE_META[item.type] || TYPE_META.COSMETIC;
@@ -180,6 +185,7 @@ const InventoryPage = () => {
             );
           })}
         </ul>
+        </>
       )}
     </PageShell>
   );
