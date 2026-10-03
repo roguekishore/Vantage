@@ -1,5 +1,7 @@
 package com.backend.springapp.gamification.leaderboard;
 
+import com.backend.springapp.common.AdminTokenGuard;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +21,7 @@ import java.util.List;
 public class InstitutionController {
 
     private final InstitutionRepository institutionRepository;
+    private final AdminTokenGuard adminGuard;
 
     /** List all institutions - used by frontend dropdowns. */
     @GetMapping
@@ -46,7 +49,9 @@ public class InstitutionController {
 
     /** Create a new institution. */
     @PostMapping
-    public ResponseEntity<InstitutionSummaryDTO> create(@RequestBody InstitutionSummaryDTO dto) {
+    public ResponseEntity<InstitutionSummaryDTO> create(@RequestBody InstitutionSummaryDTO dto,
+                                                        HttpServletRequest request) {
+        adminGuard.requireAdmin(request);
         Institution institution = new Institution();
         institution.setName(dto.name());
         Institution saved = institutionRepository.save(institution);

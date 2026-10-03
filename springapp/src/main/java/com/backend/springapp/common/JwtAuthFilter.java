@@ -133,12 +133,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (!path.startsWith("/api/")) return false;
 
         // ── Always public (no JWT needed) ──
-        if (path.startsWith("/api/auth/"))         return false;
-        if (path.startsWith("/api/problems"))       return false;
+        if (path.equals("/api/auth/login") || path.equals("/api/auth/signup")
+                || path.equals("/api/auth/logout")) return false;   // /me and /extension/token need a JWT
+        if (path.startsWith("/api/problems"))       return false;   // writes are admin-checked in the controller
         if (path.startsWith("/api/judge/problems")) return false;
         if (path.startsWith("/api/stages"))         return false;
-        if (path.startsWith("/api/users/"))         return false;
-        if (path.startsWith("/api/institutions"))   return false;
+        // /api/users and /api/users/{id} are decided in UserController (self or X-Admin-Token); the
+        // /api/users/{id}/stats and /achievements sub-routes need a JWT.
+        if (path.matches("/api/users/?|/api/users/\\d+/?")) return false;
+        if (path.startsWith("/api/experiments"))    return false;   // admin-token guarded in the controller (403 otherwise)
+        if (path.startsWith("/api/institutions"))   return false;   // create is admin-checked in the controller
 
         // Public leaderboards - except the /me rank endpoint
         if (path.startsWith("/api/gamification/leaderboard/")
@@ -188,6 +192,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         JwtRequestWrapper(HttpServletRequest request, Long jwtUserId) {
             super(request);
             this.jwtUserId = jwtUserId;
+            // Keep what the client really sent so controllers can reject a mismatch instead of silently ignoring it.
+            request.setAttribute(CurrentUser.RAW_USER_ID_ATTR, request.getParameter("userId"));
+            request.setAttribute(CurrentUser.RAW_KICKER_ID_ATTR, request.getParameter("kickerId"));
         }
 
         @Override

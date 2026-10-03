@@ -4,7 +4,6 @@ import com.backend.springapp.common.CurrentUser;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,14 +25,17 @@ public class BattleController {
     /* ── Matchmaking Queue ── */
 
     @PostMapping("/queue")
-    public ResponseEntity<?> joinQueue(@Valid @RequestBody JoinQueueRequest req) {
+    public ResponseEntity<?> joinQueue(@Valid @RequestBody JoinQueueRequest req,
+                                       HttpServletRequest request) {
+        Long uid = CurrentUser.requireSelf(request, req.userId());
         Map<String, Object> result = matchmakingService.joinQueue(
-                req.userId(), req.mode(), req.difficulty(), req.problemCount(), req.durationMinutes());
+                uid, req.mode(), req.difficulty(), req.problemCount(), req.durationMinutes());
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/queue/status")
-    public ResponseEntity<QueueStatusResponse> getQueueStatus(@RequestParam Long userId) {
+    public ResponseEntity<QueueStatusResponse> getQueueStatus(HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(matchmakingService.getQueueStatus(userId));
     }
 
@@ -43,7 +45,8 @@ public class BattleController {
     }
 
     @DeleteMapping("/queue")
-    public ResponseEntity<Void> leaveQueue(@RequestParam Long userId) {
+    public ResponseEntity<Void> leaveQueue(HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         matchmakingService.leaveQueue(userId);
         return ResponseEntity.noContent().build();
     }
@@ -52,43 +55,51 @@ public class BattleController {
 
     @GetMapping("/{id}")
     public ResponseEntity<BattleLobbyDTO> getBattle(@PathVariable Long id,
-                                                      @RequestParam Long userId) {
+                                                      HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.getBattle(id, userId));
     }
 
     @PostMapping("/{id}/ready")
     public ResponseEntity<BattleLobbyDTO> readyUp(@PathVariable Long id,
-                                                    @RequestBody ReadyUpRequest req) {
-        return ResponseEntity.ok(battleService.readyUp(id, req.userId(), req.language()));
+                                                    @RequestBody ReadyUpRequest req,
+                                                    HttpServletRequest request) {
+        Long uid = CurrentUser.requireSelf(request, req.userId());
+        return ResponseEntity.ok(battleService.readyUp(id, uid, req.language()));
     }
 
     /* ── Active Battle ── */
 
     @GetMapping("/{id}/state")
     public ResponseEntity<BattleStateDTO> getBattleState(@PathVariable Long id,
-                                                          @RequestParam Long userId) {
+                                                          HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.getBattleState(id, userId));
     }
 
     @PostMapping("/{id}/submit")
     public ResponseEntity<SubmitResultDTO> submitCode(@PathVariable Long id,
-                                                       @RequestBody SubmitCodeRequest req) {
+                                                       @RequestBody SubmitCodeRequest req,
+                                                       HttpServletRequest request) {
+        Long uid = CurrentUser.requireSelf(request, req.userId());
         return ResponseEntity.ok(judgingService.submitCode(
-                id, req.userId(), req.problemIndex(), req.language(), req.code()));
+                id, uid, req.problemIndex(), req.language(), req.code()));
     }
 
     /* ── Results ── */
 
     @GetMapping("/{id}/result")
     public ResponseEntity<BattleResultDTO> getBattleResult(@PathVariable Long id,
-                                                            @RequestParam Long userId) {
+                                                            HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.getBattleResult(id, userId));
     }
 
     /* ── Forfeit ── */
 
     @PostMapping("/{id}/forfeit")
-    public ResponseEntity<Void> forfeit(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<Void> forfeit(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         lifecycleService.forfeit(id, userId);
         return ResponseEntity.noContent().build();
     }
@@ -96,7 +107,8 @@ public class BattleController {
     /* ── Abandon (force-complete stuck battle) ── */
 
     @PostMapping("/{id}/abandon")
-    public ResponseEntity<Void> abandonBattle(@PathVariable Long id, @RequestParam Long userId) {
+    public ResponseEntity<Void> abandonBattle(@PathVariable Long id, HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         lifecycleService.abandonBattle(id, userId);
         return ResponseEntity.noContent().build();
     }
@@ -105,9 +117,10 @@ public class BattleController {
 
     @GetMapping("/history")
     public ResponseEntity<java.util.List<BattleHistoryDTO>> getBattleHistory(
-            @RequestParam Long userId,
+            HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.getBattleHistory(userId, page, size));
     }
 
@@ -117,8 +130,9 @@ public class BattleController {
 
     /** Create a new group room. */
     @PostMapping("/room")
-    public ResponseEntity<RoomLobbyDTO> createRoom(@RequestParam Long userId,
+    public ResponseEntity<RoomLobbyDTO> createRoom(HttpServletRequest request,
                                                     @RequestBody CreateRoomRequest req) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.createRoom(userId, req));
     }
 
@@ -131,14 +145,16 @@ public class BattleController {
     /** Join a room by code. */
     @PostMapping("/room/{code}/join")
     public ResponseEntity<RoomLobbyDTO> joinRoom(@PathVariable String code,
-                                                  @RequestParam Long userId) {
+                                                  HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.joinRoom(code, userId));
     }
 
     /** Leave a room. */
     @PostMapping("/room/{code}/leave")
     public ResponseEntity<RoomLobbyDTO> leaveRoom(@PathVariable String code,
-                                                   @RequestParam Long userId) {
+                                                   HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         RoomLobbyDTO lobby = battleService.leaveRoom(code, userId);
         return lobby != null ? ResponseEntity.ok(lobby) : ResponseEntity.noContent().build();
     }
@@ -146,29 +162,32 @@ public class BattleController {
     /** Creator kicks a player from the room. */
     @PostMapping("/room/{code}/kick/{targetUserId}")
     public ResponseEntity<RoomLobbyDTO> kickFromRoom(@PathVariable String code,
-                                                      @RequestParam Long kickerId,
+                                                      HttpServletRequest request,
                                                       @PathVariable Long targetUserId) {
-        return ResponseEntity.ok(battleService.kickFromRoom(code, kickerId, targetUserId));
+        return ResponseEntity.ok(battleService.kickFromRoom(code, CurrentUser.requireSelfKickerParam(request), targetUserId));
     }
 
     /** Creator starts the group battle. */
     @PostMapping("/room/{code}/start")
     public ResponseEntity<RoomLobbyDTO> startGroupBattle(@PathVariable String code,
-                                                          @RequestParam Long userId) {
+                                                          HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.startGroupBattle(code, userId));
     }
 
     /** Get live group battle state (scoreboard). */
     @GetMapping("/{id}/group-state")
     public ResponseEntity<GroupBattleStateDTO> getGroupBattleState(@PathVariable Long id,
-                                                                    @RequestParam Long userId) {
+                                                                    HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.getGroupBattleState(id, userId));
     }
 
     /** Get group battle result (final placement). */
     @GetMapping("/{id}/group-result")
     public ResponseEntity<GroupBattleResultDTO> getGroupBattleResult(@PathVariable Long id,
-                                                                      @RequestParam Long userId) {
+                                                                      HttpServletRequest request) {
+        Long userId = CurrentUser.requireSelfParam(request);
         return ResponseEntity.ok(battleService.getGroupBattleResult(id, userId));
     }
 
@@ -176,12 +195,7 @@ public class BattleController {
 
     @GetMapping("/active")
     public ResponseEntity<?> getActiveBattle(HttpServletRequest request) {
-        Long userId = CurrentUser.resolve(request);
-        if (userId == null) {
-            // Return 401 if user cannot be resolved, but don't error.
-            // It just means they are not logged in.
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
+        Long userId = CurrentUser.require(request);
         return battleService.checkForActiveBattle(userId)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.noContent().build());

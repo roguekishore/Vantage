@@ -22,6 +22,7 @@
 
         BACKEND_SYNC_URL: `${BACKEND_ORIGIN}/api/sync`,
         BACKEND_ATTEMPT_URL: `${BACKEND_ORIGIN}/api/sync/attempt`,
+        BACKEND_PROFILE_URL: `${BACKEND_ORIGIN}/api/sync/profile`,
         BACKEND_USERS_URL: `${BACKEND_ORIGIN}/api/users`,
         BACKEND_EXTENSION_TOKEN_URL: `${BACKEND_ORIGIN}/api/auth/extension/token`,
 

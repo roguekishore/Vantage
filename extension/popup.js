@@ -1,6 +1,6 @@
 ﻿const cfg = globalThis.VANTAGE_CONFIG || {};
 const SPRING_BOOT_URL = cfg.BACKEND_SYNC_URL;
-const SPRING_BOOT_USER = cfg.BACKEND_USERS_URL;
+const PROFILE_URL = cfg.BACKEND_PROFILE_URL;
 const LC_GRAPHQL = cfg.LEETCODE_GRAPHQL_URL;
 const APP_TAB_QUERY = cfg.APP_TAB_QUERY;
 const APP_TAB_QUERIES = cfg.APP_TAB_QUERIES || [APP_TAB_QUERY];
@@ -123,14 +123,21 @@ function applyAppLinks() {
 // ── Auth status (runs on popup open) ─────────────────────────────────────────
 
 /**
- * Fetch the user profile from the backend by uid.
- * Returns the UserResponseDTO (which contains the latest lcusername)
- * or null if the user doesn't exist / backend is offline.
+ * Fetch the signed-in user's linked-account summary with the scoped extension token.
+ * GET /api/users/{id} needs a web login and the extension token cannot reach it, so this uses /api/sync/profile.
+ * Resolves to one of:
+ *   { state: 'ok', profile }   profile = { uid, username, lcusername }
+ *   { state: 'gone' }          404: the account was deleted, safe to clear local state
+ *   { state: 'unknown' }       no token, or 401/403/5xx: cannot tell, so keep local state
+ * Rejects on a network failure (caller treats that as backend offline).
  */
-async function fetchLinkedProfile(uid) {
-    const res = await fetch(`${SPRING_BOOT_USER}/${uid}`);
-    if (!res.ok) return null;
-    return res.json();          // { uid, username, email, lcusername, ... }
+async function fetchLinkedProfile() {
+    const { extensionToken } = await chrome.storage.local.get(['extensionToken']);
+    if (!extensionToken) return { state: 'unknown' };
+    const res = await fetch(PROFILE_URL, { headers: { Authorization: `Bearer ${extensionToken}` } });
+    if (res.status === 404) return { state: 'gone' };
+    if (!res.ok) return { state: 'unknown' };
+    return { state: 'ok', profile: await res.json() };
 }
 
 /**
@@ -220,8 +227,11 @@ async function checkAuthStatus() {
 
     if (storedUid != null) {
         try {
-            const profile = await fetchLinkedProfile(storedUid);
-            if (profile) {
+            const { state, profile } = await fetchLinkedProfile();
+            if (state === 'unknown') {
+                // No usable token or a 401/403: do not wipe the saved login, trust the cached link.
+                linked = storedLc || null;
+            } else if (state === 'ok') {
                 if (profile.lcusername) {
                     linked = profile.lcusername;
 
@@ -235,7 +245,7 @@ async function checkAuthStatus() {
                     if (storedLc) chrome.storage.local.remove(['lcusername']);
                 }
             } else {
-                // User doesn't exist in backend (deleted?) - clear everything
+                // 404: user doesn't exist in backend (deleted) - clear everything
                 chrome.storage.local.remove(['lcusername', 'uid', 'extensionToken', 'extensionTokenExpiresAt']);
             }
         } catch {

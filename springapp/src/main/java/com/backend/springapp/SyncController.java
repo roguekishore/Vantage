@@ -26,6 +26,26 @@ public class SyncController {
     // ── Endpoints ────────────────────────────────────────────────────────────
 
     /**
+     * The caller's own linked-account summary for the browser extension popup. The extension token is scoped to
+     * /api/sync, so it cannot read GET /api/users/{id}; this is the narrow read it is allowed. Identity comes only
+     * from the verified token. 401 without one, 404 if the account no longer exists.
+     */
+    @GetMapping("/profile")
+    public ResponseEntity<?> profile(HttpServletRequest request) {
+        Long jwtUid = CurrentUser.require(request);
+        try {
+            User caller = userService.getUserEntityById(jwtUid);
+            Map<String, Object> body = new java.util.LinkedHashMap<>();
+            body.put("uid", caller.getUid());
+            body.put("username", caller.getUsername());
+            body.put("lcusername", caller.getLcusername());
+            return ResponseEntity.ok(body);
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.status(404).body(Map.of("error", ex.getMessage()));
+        }
+    }
+
+    /**
      * Called by the browser extension after the user clicks "Sync".
      * Body: { "lcusername": "john_doe", "leetcodeSlugs": ["two-sum", "..."] }
      * Requires authenticated cookie/JWT (web token or extension-scoped token).

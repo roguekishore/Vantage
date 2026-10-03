@@ -1,6 +1,8 @@
 package com.backend.springapp.problem;
 
+import com.backend.springapp.common.AdminTokenGuard;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProblemController {
 
     private final ProblemService problemService;
+    private final AdminTokenGuard adminGuard;
 
     /**
      * Get paginated problems with optional filters.
@@ -56,7 +59,9 @@ public class ProblemController {
      * Create a new problem.
      */
     @PostMapping
-    public ResponseEntity<ProblemResponseDTO> createProblem(@Valid @RequestBody ProblemRequestDTO dto) {
+    public ResponseEntity<ProblemResponseDTO> createProblem(@Valid @RequestBody ProblemRequestDTO dto,
+                                                          HttpServletRequest request) {
+        adminGuard.requireAdmin(request);
         try {
             ProblemResponseDTO created = problemService.createProblem(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(created);
@@ -72,7 +77,9 @@ public class ProblemController {
     @PutMapping("/{id}")
     public ResponseEntity<ProblemResponseDTO> updateProblem(
             @PathVariable Long id,
-            @Valid @RequestBody ProblemRequestDTO dto) {
+            @Valid @RequestBody ProblemRequestDTO dto,
+            HttpServletRequest request) {
+        adminGuard.requireAdmin(request);
         try {
             ProblemResponseDTO updated = problemService.updateProblem(id, dto);
             return ResponseEntity.ok(updated);
@@ -88,7 +95,8 @@ public class ProblemController {
      * Delete a problem by ID.
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProblem(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProblem(@PathVariable Long id, HttpServletRequest request) {
+        adminGuard.requireAdmin(request);
         try {
             problemService.deleteProblem(id);
             return ResponseEntity.noContent().build();

@@ -1,46 +1,64 @@
 package com.backend.springapp.common;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 
 /**
- * Phase 2 - Bridge helper to extract the current user ID.
- *
- * <p>Checks (in order):</p>
- * <ol>
- *   <li>JWT-derived {@code jwtUserId} request attribute (set by {@link JwtAuthFilter})</li>
- *   <li>Legacy {@code ?userId=} query parameter (existing frontend behaviour)</li>
- * </ol>
- *
- * <p>Controllers can start using {@code CurrentUser.resolve(request)} today.
- * In <b>Phase 3</b>, once all frontends send JWTs, the query-param fallback
- * will be removed.</p>
+ * Extracts the authenticated user from the request. Only the JWT-derived {@code jwtUserId} attribute (set by
+ * {@link JwtAuthFilter}) counts; a {@code ?userId=} query parameter is never an identity.
  */
 public final class CurrentUser {
 
+    /** Raw client-sent {@code userId} param, kept by the filter before it overwrites the visible one. */
+    static final String RAW_USER_ID_ATTR = "rawUserIdParam";
+    static final String RAW_KICKER_ID_ATTR = "rawKickerIdParam";
+
     private CurrentUser() {} // utility class
 
-    /**
-     * Resolve the current user's ID from the request.
-     *
-     * @return the user ID, or {@code null} if neither JWT nor query param is present
-     */
+    /** @return the authenticated user ID, or {@code null} when the request carries no valid JWT */
     public static Long resolve(HttpServletRequest request) {
-        // 1. Prefer JWT-authenticated user
         Object jwtUid = request.getAttribute(JwtAuthFilter.JWT_USER_ID_ATTR);
-        if (jwtUid instanceof Long id) {
-            return id;
-        }
+        return jwtUid instanceof Long id ? id : null;
+    }
 
-        // 2. Fallback to query param (backward compat - Phase 2 bridge)
-        String param = request.getParameter("userId");
-        if (param != null && !param.isBlank()) {
-            try {
-                return Long.parseLong(param);
-            } catch (NumberFormatException ignored) {
-                // bad param - return null
-            }
+    /** The authenticated user, or 401. */
+    public static Long require(HttpServletRequest request) {
+        Long uid = resolve(request);
+        if (uid == null) {
+            throw new ApiAuthException(HttpStatus.UNAUTHORIZED, "Authentication required");
         }
+        return uid;
+    }
 
-        return null;
+    /**
+     * The authenticated user, after checking that the id the client claims (param or body field) is the same
+     * person. Null claim means the client did not send one. A different id is 403.
+     */
+    public static Long requireSelf(HttpServletRequest request, Long claimed) {
+        Long uid = require(request);
+        if (claimed != null && !claimed.equals(uid)) {
+            throw new ApiAuthException(HttpStatus.FORBIDDEN, "Not allowed to act for another user");
+        }
+        return uid;
+    }
+
+    /** {@link #requireSelf} for the {@code userId} query parameter the frontend still sends. */
+    public static Long requireSelfParam(HttpServletRequest request) {
+        return requireSelf(request, rawParam(request, RAW_USER_ID_ATTR));
+    }
+
+    /** {@link #requireSelf} for the legacy {@code kickerId} query parameter. */
+    public static Long requireSelfKickerParam(HttpServletRequest request) {
+        return requireSelf(request, rawParam(request, RAW_KICKER_ID_ATTR));
+    }
+
+    private static Long rawParam(HttpServletRequest request, String attr) {
+        Object raw = request.getAttribute(attr);
+        if (!(raw instanceof String s) || s.isBlank()) return null;
+        try {
+            return Long.parseLong(s.trim());
+        } catch (NumberFormatException e) {
+            return -1L; // never equals a real uid, so it is rejected as someone else
+        }
     }
 }
