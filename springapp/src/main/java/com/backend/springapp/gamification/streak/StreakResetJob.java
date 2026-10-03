@@ -10,6 +10,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import net.javacrumbs.shedlock.core.LockConfiguration;
+import net.javacrumbs.shedlock.core.LockingTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -30,6 +37,8 @@ public class StreakResetJob {
     private final PlayerStatsRepository statsRepository;
     private final StoreService storeService;
     private final StoreItemRepository storeItemRepository;
+    private final LockingTaskExecutor lockExecutor;
+    private final PlatformTransactionManager txManager;
 
     /**
      * Runs every day at midnight server time.
@@ -38,6 +47,16 @@ public class StreakResetJob {
      * streak is preserved.
      */
     @Scheduled(cron = "0 0 0 * * *")
+    public void scheduledReset() {
+        try {
+            lockExecutor.executeWithLock((Runnable) () ->
+                            new TransactionTemplate(txManager).executeWithoutResult(s -> resetBrokenStreaks()),
+                    new LockConfiguration(Instant.now(), "streak-reset", Duration.ofMinutes(30), Duration.ofMinutes(5)));
+        } catch (Exception e) {
+            log.error("StreakResetJob error: {}", e.getMessage(), e);
+        }
+    }
+
     @Transactional
     public void resetBrokenStreaks() {
         LocalDate yesterday = LocalDate.now().minusDays(1);

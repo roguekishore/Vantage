@@ -17,6 +17,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import net.javacrumbs.shedlock.core.LockConfiguration;
+import net.javacrumbs.shedlock.core.LockingTaskExecutor;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
@@ -37,6 +44,8 @@ public class FriendChallengeService {
     private final BattleRepository battleRepository;
     private final BattleService battleService;
     private final RealtimePublisher realtimePublisher;
+    private final LockingTaskExecutor lockExecutor;
+    private final PlatformTransactionManager txManager;
 
     @Transactional
     public FriendChallengeCreateResponseDTO createChallenge(Long challengerId, FriendChallengeCreateDTO req) {
@@ -298,6 +307,17 @@ public class FriendChallengeService {
     }
 
     @Scheduled(fixedRate = 30000)
+    public void scheduledExpireChallenges() {
+        try {
+            lockExecutor.executeWithLock((Runnable) () ->
+                            new TransactionTemplate(txManager).executeWithoutResult(s -> expireChallenges()),
+                    new LockConfiguration(Instant.now(), "friend-challenge-expiry",
+                            Duration.ofSeconds(60), Duration.ofSeconds(5)));
+        } catch (Exception e) {
+            log.error("Friend challenge expiry error: {}", e.getMessage(), e);
+        }
+    }
+
     @Transactional
     public void expireChallenges() {
         List<FriendChallenge> expired = challengeRepository

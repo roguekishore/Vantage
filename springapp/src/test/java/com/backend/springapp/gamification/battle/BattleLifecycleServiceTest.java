@@ -7,6 +7,8 @@ import com.backend.springapp.gamification.achievement.AchievementService;
 import com.backend.springapp.realtime.RealtimePublisher;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.SimpleTransactionStatus;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -38,9 +40,11 @@ class BattleLifecycleServiceTest {
         participantRepo = mock(BattleParticipantRepository.class);
         gamification = mock(GamificationService.class);
         PlayerStatsRepository statsRepo = mock(PlayerStatsRepository.class);
+        PlatformTransactionManager txManager = mock(PlatformTransactionManager.class);
+        when(txManager.getTransaction(any())).thenReturn(new SimpleTransactionStatus());
         service = new BattleLifecycleService(battleRepo, participantRepo, statsRepo, gamification,
                 mock(AchievementService.class), mock(BattleService.class), mock(BattleViews.class),
-                mock(RealtimePublisher.class));
+                mock(RealtimePublisher.class), txManager);
 
         battle = new Battle();
         battle.setMode(BattleMode.RANKED_1V1);

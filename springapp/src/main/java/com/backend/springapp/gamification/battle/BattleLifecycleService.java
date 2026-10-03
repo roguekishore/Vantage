@@ -18,7 +18,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.core.ParameterizedTypeReference;
@@ -47,6 +50,7 @@ public class BattleLifecycleService {
     private final BattleService battleService;
     private final BattleViews battleViews;
     private final RealtimePublisher realtimePublisher;
+    private final PlatformTransactionManager txManager;
     @Autowired(required = false)
     private MeterRegistry meterRegistry;
 
@@ -361,20 +365,37 @@ public class BattleLifecycleService {
      * SCHEDULED JOB HELPERS
      * ═══════════════════════════════════════════════════════════ */
 
-    /** Called by BattleTimerJob every 5s - complete expired active battles. */
-    @Transactional
+    /**
+     * Runs one battle's work in its own REQUIRES_NEW transaction and swallows its failure, so one bad battle
+     * rolls back only itself and never the rest of the batch (B15).
+     */
+    private void isolated(Long battleId, Runnable work) {
+        try {
+            TransactionTemplate tt = new TransactionTemplate(txManager);
+            tt.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            tt.executeWithoutResult(status -> work.run());
+        } catch (Exception e) {
+            log.error("Battle {} expiry processing failed, skipping: {}", battleId, e.getMessage(), e);
+        }
+    }
+
+    /** Called by BattleTimerJob every 5s - complete expired active battles, each in its own transaction. */
     public void checkExpiredBattles() {
         List<Battle> expired = battleRepo.findExpiredActiveBattles();
         List<Battle> allFinished = battleRepo.findActiveBattlesWithAllFinished();
         for (Battle b : expired) {
-            log.info("Battle {} timer expired, resolving...", b.getId());
-            incrementMetric("battle.complete.trigger", "reason", "timer", "mode", b.getMode().name());
-            completeTimedOutBattle(b.getId());
+            isolated(b.getId(), () -> {
+                log.info("Battle {} timer expired, resolving...", b.getId());
+                incrementMetric("battle.complete.trigger", "reason", "timer", "mode", b.getMode().name());
+                completeTimedOutBattle(b.getId());
+            });
         }
         // Safety net: both players finished but nobody triggered completion (B1).
         for (Battle b : allFinished) {
-            incrementMetric("battle.complete.trigger", "reason", "all_players_finished", "mode", b.getMode().name());
-            completeBattle(b.getId(), "ALL_SOLVED");
+            isolated(b.getId(), () -> {
+                incrementMetric("battle.complete.trigger", "reason", "all_players_finished", "mode", b.getMode().name());
+                completeBattle(b.getId(), "ALL_SOLVED");
+            });
         }
     }
 
@@ -396,16 +417,20 @@ public class BattleLifecycleService {
     }
 
     /** Called by lobby timeout check - cancel 1v1 waiting battles past 60s. Group rooms have no auto-cancel. */
-    @Transactional
     public void cancelExpiredLobbies() {
         List<Battle> expired = battleRepo.findExpiredLobbyBattles();
         for (Battle b : expired) {
             // Group rooms stay open until creator starts - never auto-cancel
             if (b.getMode() == BattleMode.GROUP_FFA) continue;
+            isolated(b.getId(), () -> cancelLobby(b));
+        }
+    }
 
+    private void cancelLobby(Battle b) {
+        {
             if (battleRepo.transition(b.getId(), Set.of(BattleState.WAITING), BattleState.CANCELLED,
                     LocalDateTime.now(), null, "LOBBY_TIMEOUT") != 1) {
-                continue; // someone started or cancelled it first
+                return; // someone started or cancelled it first
             }
             log.info("Battle {} lobby expired, cancelled.", b.getId());
 
