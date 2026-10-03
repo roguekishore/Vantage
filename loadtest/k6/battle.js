@@ -18,7 +18,8 @@ export const timeToMatch = new Trend('time_to_match', true); // join queue -> ma
 export const unmatched = new Counter('users_left_unmatched');
 export const battlesCompleted = new Counter('battles_completed');
 
-const steps = SMOKE ? [10] : [25, 50, 100, 200, 400];
+// STEPS="50,100" runs just those steps (one clean summary per step); default is the full ladder.
+const steps = SMOKE ? [10] : (__ENV.STEPS ? __ENV.STEPS.split(',').map(Number) : [25, 50, 100, 200, 400]);
 const stages = [];
 steps.forEach((vus) => {
   stages.push({ duration: SMOKE ? '10s' : '30s', target: vus }); // ramp
