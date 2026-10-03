@@ -197,3 +197,16 @@ test("ArrayStage: tones, pointers by role, band, rows", () => {
   expect(m.q('[data-row="out"] [data-tone="success"]')).not.toBeNull();
   m.unmount();
 });
+
+test("stage frame and ancestors can shrink; frame scrolls horizontally", () => {
+  const m = mount(<Bubble />);
+  const frame = m.q("[data-stage-frame]");
+  expect(frame.className).toMatch(/\bmin-w-0\b/);
+  expect(frame.className).toMatch(/\bmax-w-full\b/);
+  expect(frame.className).toMatch(/\boverflow-x-auto\b/);
+  const block = frame.parentElement;
+  expect(block.className).toMatch(/\bmin-w-0\b/);
+  expect(block.className).toMatch(/grid-cols-\[minmax\(0,1fr\)\]/);
+  const inner = frame.firstElementChild;
+  expect(inner.className).toMatch(/\bmin-w-0\b/);
+});

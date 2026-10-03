@@ -35,6 +35,7 @@ import {
 } from '@/components/ds';
 import { cn } from '@/lib/utils';
 import { buildApiUrl } from '@/services/realtimeUrls';
+import { authFetch } from '@/services/api';
 import useUserStore from '@/stores/useUserStore';
 import './WorldMap.css';
 
@@ -147,7 +148,7 @@ const WorldMap = () => {
     async function init() {
       try {
         if (!user?.uid) return;
-        const res = await fetch(buildApiUrl(`/users/${user.uid}`));
+        const res = await authFetch(buildApiUrl(`/users/${user.uid}`));
         if (!res.ok) { setSyncError('error'); return; }
         setSyncError(null);
         loadProgress(user.uid);

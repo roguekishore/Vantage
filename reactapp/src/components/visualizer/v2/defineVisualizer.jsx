@@ -186,8 +186,8 @@ export function defineVisualizer(config) {
     );
     const inspector = <Inspector step={step} stats={stats} legend={spec.legend} strip={layout === "mid"} />;
     const stageBlock = (
-      <div className="grid min-w-0 content-start gap-3">
-        <div className="min-h-[200px] border border-border bg-bg p-3" data-stage-frame="">{stageNode}</div>
+      <div className="grid min-w-0 max-w-full grid-cols-[minmax(0,1fr)] content-start gap-3" data-stage-block="">
+        <div className="min-h-[200px] min-w-0 max-w-full overflow-x-auto border border-border bg-bg p-3" data-stage-frame="">{stageNode}</div>
         {caption}
         {layout === "narrow" ? null : <LogPanel steps={model.steps} index={player.index} onJump={player.scrub} />}
       </div>
@@ -227,7 +227,7 @@ export function defineVisualizer(config) {
       body = (
         <div className="grid grid-cols-[360px_minmax(0,1fr)] items-start gap-4">
           {code}
-          <div className="grid min-w-0 gap-3">
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3">
             {stageBlock}
             {inspector}
           </div>
@@ -235,7 +235,7 @@ export function defineVisualizer(config) {
       );
     } else {
       body = (
-        <div className="grid gap-3">
+        <div className="grid min-w-0 max-w-full grid-cols-[minmax(0,1fr)] gap-3">
           {stageBlock}
           <Tabs defaultValue="code" variant="segmented">
             <TabsList aria-label="Panels">
@@ -243,7 +243,7 @@ export function defineVisualizer(config) {
               <TabsTrigger value="inspector">Inspector</TabsTrigger>
               <TabsTrigger value="log">Log</TabsTrigger>
             </TabsList>
-            <div className="mt-3">
+            <div className="mt-3 min-w-0">
               <TabsContent value="code">{code}</TabsContent>
               <TabsContent value="inspector">{inspector}</TabsContent>
               <TabsContent value="log">
