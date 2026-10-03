@@ -51,5 +51,9 @@
   {"name":"com.backend.springapp.store.BuyItemResponse","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.store.InventoryItemDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
   {"name":"com.backend.springapp.store.StoreItemDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
-  {"name":"com.backend.springapp.judge.queue.JudgeJobStatusDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true}
+  {"name":"com.backend.springapp.judge.queue.JudgeJobStatusDTO","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
+  {"name":"com.backend.springapp.judge.queue.BattleSubmissionRecorder$Outcome","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
+  {"name":"com.backend.springapp.judge.queue.JudgeJobFinalizer$Result","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
+  {"name":"com.backend.springapp.judge.queue.JudgePrecheck$Passed","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true},
+  {"name":"com.backend.springapp.judge.queue.JudgeResult","allDeclaredConstructors":true,"allDeclaredMethods":true,"allPublicConstructors":true,"allPublicMethods":true,"allDeclaredFields":true}
 ]
