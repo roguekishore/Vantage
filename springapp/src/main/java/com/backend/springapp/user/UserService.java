@@ -139,12 +139,7 @@ public class UserService {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
-        if (passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            // Already BCrypt-hashed - good
-        } else if (user.getPassword().equals(dto.getPassword())) {
-            // Legacy plain-text password - hash it now (auto-migration)
-            user.setPassword(passwordEncoder.encode(dto.getPassword()));
-        } else {
+        if (dto.getPassword() == null || !passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Invalid email or password");
         }
 

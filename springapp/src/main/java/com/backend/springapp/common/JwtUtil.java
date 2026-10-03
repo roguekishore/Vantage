@@ -15,7 +15,7 @@ import java.util.Date;
  * Phase 2 - JWT utility: generate, validate, and parse tokens.
  *
  * <p>The secret and expiration are read from {@code application.properties}
- * (with sensible dev defaults so nothing breaks locally).</p>
+ * (no default; startup fails if it is blank or under 32 bytes).</p>
  */
 @Component
 public class JwtUtil {
@@ -24,10 +24,30 @@ public class JwtUtil {
     private final long expirationMs;
 
     public JwtUtil(
-            @Value("${jwt.secret:default-dev-secret-change-me-in-production-please-32chars!!}") String secret,
+            @Value("${jwt.secret:}") String secret,
             @Value("${jwt.expiration-ms:86400000}") long expirationMs) {
-        this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(requireValidSecret(secret));
         this.expirationMs = expirationMs;
+    }
+
+    /** Minimum HMAC-SHA256 key length in bytes (UTF-8). */
+    static final int MIN_SECRET_BYTES = 32;
+
+    /**
+     * Fails startup if {@code jwt.secret} is missing, blank or shorter than 32 UTF-8 bytes.
+     * There is deliberately no fallback value: set JWT_SECRET (or jwt.secret).
+     */
+    static byte[] requireValidSecret(String secret) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException(
+                    "jwt.secret is not set. Provide JWT_SECRET (at least 32 bytes); there is no default.");
+        }
+        byte[] bytes = secret.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length < MIN_SECRET_BYTES) {
+            throw new IllegalStateException("jwt.secret is too short (" + bytes.length
+                    + " bytes); at least " + MIN_SECRET_BYTES + " bytes are required.");
+        }
+        return bytes;
     }
 
     /** Generate a JWT containing the user's id, username, and email. */
