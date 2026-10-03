@@ -128,7 +128,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  false
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Arrays/TrappingRainWater.jsx",
@@ -155,7 +155,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  false
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/BitManipulation/SingleNumber.jsx",
@@ -182,7 +182,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  true
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Design/LRUCache.jsx",
@@ -210,7 +210,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  true
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/DynamicProgramming/EditDistance.jsx",
@@ -237,7 +237,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  true
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Graphs/Dijkstra.jsx",
@@ -264,7 +264,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  true
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/LinkedList/ReverseLinkedList.jsx",
@@ -291,7 +291,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  false
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Sorting/BubbleSort.jsx",
@@ -318,7 +318,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  false
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Stack/NextGreaterElement.jsx",
@@ -345,7 +345,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  false
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Trees/ValidateBST.jsx",
@@ -372,7 +372,7 @@
                                       "callsNavigate":  false,
                                       "titleInvisibleInProd":  false
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Sorting/BucketSort.jsx",
@@ -3426,7 +3426,7 @@
                                       "callsNavigate":  true,
                                       "titleInvisibleInProd":  true
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Arrays/FindMinElement.jsx",
@@ -3454,7 +3454,7 @@
                                       "callsNavigate":  true,
                                       "titleInvisibleInProd":  true
                                   },
-                      "status":  "todo"
+                      "status":  "done"
                   },
                   {
                       "file":  "reactapp/src/pages/algorithms/Arrays/MoveZeros.jsx",
