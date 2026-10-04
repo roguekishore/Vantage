@@ -1,3 +1,5 @@
+> **Superseded on 2026-10-04 by `docs/RUN3_PROMPT.md`** (scale + trimmed run 2, one branch). Kept for history; do not paste this one.
+
 You are the orchestrator for run 2 of the VANTAGE UI work. You start in an empty folder. Work
 autonomously until everything is done or a stop condition is hit. Never stop to ask me anything:
 record anything that needs my decision in docs/polish/PROGRESS.md under "Owner decisions needed"
