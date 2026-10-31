@@ -647,7 +647,7 @@ const SwapPairs = () => {
             ) : (
                 <div className="text-center py-12 bg-theme-tertiary rounded-xl border border-theme-primary">
                     <p className="text-theme-muted text-lg">
-                        Enter a comma-separated list of numbers (e.g., $\textbf{1,2,3,4,5}$) and click "Load & Visualize" to see how the swap process unfolds.
+                        Enter a comma-separated list of numbers (e.g., {"$\\textbf{1,2,3,4,5}$"}) and click "Load & Visualize" to see how the swap process unfolds.
                     </p>
                 </div>
             )}

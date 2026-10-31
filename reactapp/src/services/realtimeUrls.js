@@ -8,7 +8,7 @@ function getBrowserOrigin() {
 }
 
 function resolveBackendOrigin() {
-  const raw = process.env.REACT_APP_API_URL || getBrowserOrigin();
+  const raw = import.meta.env.REACT_APP_API_URL || getBrowserOrigin();
   let parsed;
 
   try {

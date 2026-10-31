@@ -9,7 +9,7 @@ import CustomCursor from "@/components/common/CustomCursor"
 import Logo from "@/components/common/Logo"
 import { MONUMENT_TYPO as T } from "@/components/common/MonumentTypography"
 
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080"
+const API_BASE = import.meta.env.REACT_APP_API_URL || "http://localhost:8080"
 
 /* ─────────────────────────────────────────────
    INPUT

@@ -66,11 +66,11 @@ function createMockEditorWithCollection() {
   };
 
   const editor = {
-    createDecorationsCollection: jest.fn((initial = []) => {
+    createDecorationsCollection: vi.fn((initial = []) => {
       state.decorations = initial;
       return collection;
     }),
-    revealLineInCenter: jest.fn((line) => {
+    revealLineInCenter: vi.fn((line) => {
       state.revealedLines.push(line);
     }),
   };
@@ -87,12 +87,12 @@ function createMockEditorWithDelta() {
   let nextId = 1;
 
   const editor = {
-    deltaDecorations: jest.fn((oldIds, newDecorations) => {
+    deltaDecorations: vi.fn((oldIds, newDecorations) => {
       // Apply replacing the full set, returning fresh ids for the new ones.
       state.decorations = newDecorations;
       return newDecorations.map(() => `dec-${nextId++}`);
     }),
-    revealLineInCenter: jest.fn((line) => {
+    revealLineInCenter: vi.fn((line) => {
       state.revealedLines.push(line);
     }),
   };

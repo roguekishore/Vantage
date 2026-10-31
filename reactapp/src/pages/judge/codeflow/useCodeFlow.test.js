@@ -8,8 +8,8 @@ import { traceCode } from "../../../services/judgeApi";
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
 // Mock the judge API so run() resolves with a controllable steps array.
-jest.mock("../../../services/judgeApi", () => ({
-  traceCode: jest.fn(),
+vi.mock("../../../services/judgeApi", () => ({
+  traceCode: vi.fn(),
 }));
 
 /**
@@ -182,7 +182,7 @@ describe("useCodeFlow playback edges", () => {
   });
 
   test("auto-play advances one step per interval and stops at the last step", async () => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     try {
       traceCode.mockResolvedValue(traceResult(3));
 
@@ -200,20 +200,20 @@ describe("useCodeFlow playback edges", () => {
 
       // First interval -> step 1.
       act(() => {
-        jest.advanceTimersByTime(speed);
+        vi.advanceTimersByTime(speed);
       });
       expect(result.current.step).toBe(1);
 
       // Second interval -> step 2 (last), playback stops.
       act(() => {
-        jest.advanceTimersByTime(speed);
+        vi.advanceTimersByTime(speed);
       });
       expect(result.current.step).toBe(2);
       expect(result.current.playing).toBe(false);
 
       unmount();
     } finally {
-      jest.useRealTimers();
+      vi.useRealTimers();
     }
   });
 });

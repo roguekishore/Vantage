@@ -1,7 +1,19 @@
 /* src/index.css */
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.js";
+
+/* Tailwind 4 backward compatibility styles */
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400, #9ca3af);
+  }
+}
 
 /* ============================================
    GLOBAL COLOR SYSTEM - EDIT COLORS HERE
@@ -67,8 +79,15 @@ html {
 
 /* ========== ZENTRY UTILITY CLASSES ========== */
 @layer utilities {
-  .border-hsla {
-    @apply border border-black/10 dark:border-white/20;
+  .border-hsla,
+  .bento-tilt_1 {
+    border-width: 1px;
+    border-style: solid;
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+  .dark .border-hsla,
+  .dark .bento-tilt_1 {
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .nav-hover-btn {
@@ -105,14 +124,14 @@ html {
   }
 
   .animated-word {
-    @apply special-font font-zentry font-black opacity-0;
+    @apply font-zentry font-black opacity-0;
     transform: translate3d(10px, 51px, -60px) rotateY(60deg) rotateX(-40deg);
     transform-origin: 50% 50% -150px !important;
     will-change: opacity, transform;
   }
 
   .bento-tilt_1 {
-    @apply relative border-hsla col-span-2 overflow-hidden rounded-md transition-transform duration-300 ease-out;
+    @apply relative col-span-2 overflow-hidden rounded-md transition-transform duration-300 ease-out;
   }
 
   .bento-tilt_2 {

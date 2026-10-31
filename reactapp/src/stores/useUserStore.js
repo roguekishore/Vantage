@@ -94,7 +94,7 @@ const useUserStore = create((set, get) => ({
    */
   clearUser: async () => {
     try {
-      const apiBase = process.env.REACT_APP_API_URL || "http://localhost:8080";
+      const apiBase = import.meta.env.REACT_APP_API_URL || "http://localhost:8080";
       await fetch(`${apiBase}/api/auth/logout`, {
         method: "POST",
         credentials: "include",
@@ -128,7 +128,7 @@ const useUserStore = create((set, get) => ({
     }
 
     try {
-      const apiBase = process.env.REACT_APP_API_URL || "http://localhost:8080";
+      const apiBase = import.meta.env.REACT_APP_API_URL || "http://localhost:8080";
       const cachedToken = get().user?.token ?? existing?.token ?? null;
       const headers = cachedToken
         ? { Authorization: `Bearer ${cachedToken}` }
