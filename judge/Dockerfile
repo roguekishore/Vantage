@@ -1,4 +1,4 @@
-FROM node:20-slim
+FROM node:24-slim
 
 # Install Docker CLI so the judge can manage worker pool containers.
 # The Docker *daemon* runs on the host - the judge talks to it via the Docker socket.
