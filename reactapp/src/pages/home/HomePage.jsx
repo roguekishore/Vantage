@@ -374,16 +374,16 @@ function Hero() {
           </div>
           <div style={{ position:"absolute",bottom:0,left:0,right:0,padding:"10px 18px",background:"rgba(9,9,11,0.82)",borderTop:"1px solid rgba(255,255,255,0.05)",display:"flex",justifyContent:"space-between",alignItems:"center" }}>
             <span style={{ fontSize:9,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"rgba(255,255,255,0.22)" }}>Same input - sorting race</span>
-            <span style={{ fontSize:9,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"#EDFF66" }}>O(n²) vs O(n log n)</span>
+            <span style={{ fontSize:9,fontWeight:700,letterSpacing:"0.14em",textTransform:"uppercase",color:"#EDFF66" }}>O(nÂ²) vs O(n log n)</span>
           </div>
         </div>
       </div>
       <div style={{ borderTop:"1px solid rgba(255,255,255,0.05)",padding:"9px 0",overflow:"hidden",position:"relative",zIndex:3,flexShrink:0 }}>
         <div style={{ display:"flex",gap:44,whiteSpace:"nowrap",animation:"ticker 26s linear infinite" }}>
           {[...Array(3)].flatMap(()=>[
-            "50+ Algorithm Visualizations","•","150+ Curated Problems","•","Real-time 1v1 Battles","•","ELO Ranked System","•","C++ & Java Support","•","Daily Streak Rewards","•",
+            "50+ Algorithm Visualizations","â€¢","150+ Curated Problems","â€¢","Real-time 1v1 Battles","â€¢","ELO Ranked System","â€¢","C++ & Java Support","â€¢","Daily Streak Rewards","â€¢",
           ]).map((item,i)=>(
-            <span key={i} style={{ fontSize:9,fontWeight:item==="•"?900:700,letterSpacing:item==="•"?0:"0.16em",textTransform:"uppercase",color:item==="•"?"#EDFF66":"rgba(255,255,255,0.18)" }}>{item}</span>
+            <span key={i} style={{ fontSize:9,fontWeight:item==="â€¢"?900:700,letterSpacing:item==="â€¢"?0:"0.16em",textTransform:"uppercase",color:item==="â€¢"?"#EDFF66":"rgba(255,255,255,0.18)" }}>{item}</span>
           ))}
         </div>
       </div>
@@ -413,7 +413,7 @@ function VizShowcase() {
     { key:"bfs",          label:"01", title:"BFS",            tag:"GRAPH",   color:"#60a5fa", complexity:"O(V+E)",    desc:"Level-by-level traversal. Queue-driven. Guarantees shortest path in unweighted graphs." },
     { key:"dfs",          label:"02", title:"DFS",            tag:"GRAPH",   color:"#c4b5fd", complexity:"O(V+E)",    desc:"Dives deep before backtracking. Powers cycle detection, topo sort, and maze solving." },
     { key:"dijkstra",     label:"03", title:"Dijkstra",       tag:"GRAPH",   color:"#fb923c", complexity:"O(E log V)", desc:"Greedy shortest-path. Relaxes edges via min-heap. Foundation of GPS routing." },
-    { key:"floydwarshall",label:"04", title:"Floyd-Warshall", tag:"GRAPH",   color:"#f43f5e", complexity:"O(V³)",      desc:"Dynamic programming for all-pairs shortest paths. Computes every route in one sweep." },
+    { key:"floydwarshall",label:"04", title:"Floyd-Warshall", tag:"GRAPH",   color:"#f43f5e", complexity:"O(VÂ³)",      desc:"Dynamic programming for all-pairs shortest paths. Computes every route in one sweep." },
     { key:"inorder",      label:"05", title:"Inorder BST",    tag:"TREE",    color:"#34d399", complexity:"O(n)",      desc:"Left ? Root ? Right yields sorted output. The elegance of recursive tree traversal." },
     { key:"slidingwindow",label:"06", title:"Sliding Window",  tag:"PATTERN", color:"#22d3ee", complexity:"O(n)",      desc:"A core interview pattern: move a fixed window and compute answers in linear time." },
     { key:"bsearch",      label:"07", title:"Binary Search",  tag:"ARRAY",   color:"#e879f9", complexity:"O(log n)",  desc:"Halves the search space every step. Finds a target in 50M sorted items in 26 steps." },
@@ -425,11 +425,11 @@ function VizShowcase() {
     { key:"nqueens",      label:"13", title:"N-Queens",       tag:"BACKTRACK", color:"#f59e0b", complexity:"O(N!)",       desc:"Classic recursive search: place queens row-by-row, reject conflicts, and backtrack toward a valid board." },
     { key:"sudoku",       label:"14", title:"Sudoku Solver",  tag:"BACKTRACK", color:"#22d3ee", complexity:"Exponential", desc:"Constraint-driven backtracking that fills each empty cell while preserving row, column, and box validity." },
     { key:"snakesladders",label:"15", title:"Snakes & Ladders",tag:"SIM", color:"#f43f5e", complexity:"O(T)", desc:"Dice-roll simulation on a 100-cell board with ladder climbs and snake slips." },
-    { key:"knightstour",  label:"16", title:"Knight's Tour",   tag:"BACKTRACK", color:"#8b5cf6", complexity:"O(8^(N²))", desc:"A knight visits every chessboard square exactly once using legal L-shaped jumps." },
+    { key:"knightstour",  label:"16", title:"Knight's Tour",   tag:"BACKTRACK", color:"#8b5cf6", complexity:"O(8^(NÂ²))", desc:"A knight visits every chessboard square exactly once using legal L-shaped jumps." },
     { key:"astar",        label:"17", title:"A* Pathfinding",  tag:"GRAPH", color:"#60a5fa", complexity:"O(E)", desc:"Heuristic best-first search combining g(n) and h(n) to efficiently find optimal routes." },
     { key:"unionfind",    label:"18", title:"Union-Find",      tag:"DSA", color:"#34d399", complexity:"~O(a(n))", desc:"Disjoint set operations with union by rank and path compression." },
     { key:"kmp",          label:"19", title:"KMP",             tag:"STRING", color:"#f59e0b", complexity:"O(n+m)", desc:"Linear-time substring search using LPS fallback jumps." },
-    { key:"palindrome",   label:"20", title:"Longest Palindrome", tag:"STRING", color:"#a78bfa", complexity:"O(n²)", desc:"Expand-around-center search for the longest palindromic substring." },
+    { key:"palindrome",   label:"20", title:"Longest Palindrome", tag:"STRING", color:"#a78bfa", complexity:"O(nÂ²)", desc:"Expand-around-center search for the longest palindromic substring." },
   ];
 
   return (
@@ -504,7 +504,7 @@ const FEAT_CARDS = [
   { num:"02",icon:Swords,   title:"1v1\nBattle Arena",      accent:"#f87171",tag:"COMPETE", stat:"ELO rated",      desc:"Real-time coding duels. Ranked or Casual. First to AC wins. Real pressure. Real improvement." },
   { num:"03",icon:Map,      title:"World\nConquest",        accent:"#fbbf24",tag:"EXPLORE", stat:"Global board",   desc:"An interactive world map. Every country = a problem. Solve it, claim the territory." },
   { num:"04",icon:Trophy,   title:"Ranks &\nAchievements",  accent:"#fb923c",tag:"GRIND",   stat:"Gamified XP",    desc:"Badges, coins, XP, streaks. Every session rewards you. Flex your progress on your profile." },
-  { num:"05",icon:Zap,      title:"Group\nBattles",         accent:"#EDFF66",tag:"DOMINATE",stat:"Up to 8 players",desc:"3–8 player coded showdowns. Host a room, invite your crew, destroy them publicly." },
+  { num:"05",icon:Zap,      title:"Group\nBattles",         accent:"#EDFF66",tag:"DOMINATE",stat:"Up to 8 players",desc:"3â€“8 player coded showdowns. Host a room, invite your crew, destroy them publicly." },
   { num:"06",icon:GitBranch,title:"Learning\nPaths",        accent:"#c4b5fd",tag:"LEARN",   stat:"Structured",     desc:"Curated topic-by-topic paths from arrays to advanced DP. Know exactly what to study next." },
 ];
 
@@ -695,7 +695,7 @@ function MatchSearchRadar({ active }) {
 }
 
 /* -------------------------------------------------------
-   BATTLE SECTION — rebuilt with proper alignment + GSAP
+   BATTLE SECTION â€” rebuilt with proper alignment + GSAP
 ------------------------------------------------------- */
 function BattleSection() {
   const navigate = useNavigate();
@@ -823,7 +823,7 @@ function BattleSection() {
 
         <div style={{ position:"relative",zIndex:1,display:"grid",gridTemplateColumns:"1fr 1px 1fr" }}>
 
-          {/* LEFT — copy */}
+          {/* LEFT â€” copy */}
           <div style={{ padding:"60px clamp(28px,5vw,64px)" }}>
             <div className="btl-left-item" style={{ marginBottom:20 }}>
               <div style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"5px 12px",borderRadius:8,background:"rgba(248,113,113,0.08)",border:"1px solid rgba(248,113,113,0.2)" }}>
@@ -848,7 +848,7 @@ function BattleSection() {
             </p>
 
             <div className="btl-left-item" style={{ display:"flex",gap:8,flexWrap:"wrap",marginBottom:32 }}>
-              {[{l:"Ranked",c:"#f87171"},{l:"Casual",c:"#c4b5fd"},{l:"Group 3–8",c:"#34d399"}].map(({l,c})=>(
+              {[{l:"Ranked",c:"#f87171"},{l:"Casual",c:"#c4b5fd"},{l:"Group 3â€“8",c:"#34d399"}].map(({l,c})=>(
                 <span key={l} style={{ padding:"5px 13px",borderRadius:8,fontSize:10,fontWeight:800,letterSpacing:"0.08em",textTransform:"uppercase",color:c,background:`${c}0f`,border:`1px solid ${c}22` }}>{l}</span>
               ))}
             </div>
@@ -866,7 +866,7 @@ function BattleSection() {
           {/* Divider */}
           <div style={{ background:"rgba(255,255,255,0.05)" }} />
 
-          {/* RIGHT — matchmaking widget */}
+          {/* RIGHT â€” matchmaking widget */}
           <div className="btl-right" style={{ padding:"60px clamp(28px,5vw,64px)",display:"flex",flexDirection:"column",justifyContent:"center",gap:0 }}>
 
             {/* Matchmaking card */}
@@ -909,11 +909,11 @@ function BattleSection() {
                   </div>
                   <div>
                     <div style={{ fontSize:13,fontWeight:900,color:found?"#fff":"rgba(255,255,255,0.25)",textAlign:"center",marginBottom:2,transition:"color 0.3s" }}>
-                      {finding ? (searchPreview || "Searching…") : (found || "Searching…")}
+                      {finding ? (searchPreview || "Searchingâ€¦") : (found || "Searchingâ€¦")}
                     </div>
                     {found
                       ? <div style={{ fontSize:10,color:"#34d399",textAlign:"center" }}>? 1198 ELO</div>
-                      : <div style={{ fontSize:10,color:"rgba(255,255,255,0.18)",textAlign:"center" }}>—</div>
+                      : <div style={{ fontSize:10,color:"rgba(255,255,255,0.18)",textAlign:"center" }}>â€”</div>
                     }
                   </div>
                 </div>
@@ -945,7 +945,7 @@ function BattleSection() {
                   </button>
                 : <button onClick={handleFind} data-cursor="MATCH" disabled={finding} style={{ width:"100%",height:46,borderRadius:11,border:"none",cursor:"none",background:finding?"rgba(255,255,255,0.05)":"#EDFF66",color:finding?"rgba(255,255,255,0.3)":"#09090b",fontSize:12,fontWeight:900,letterSpacing:"0.12em",textTransform:"uppercase",transition:"all 0.25s",display:"flex",alignItems:"center",justifyContent:"center",gap:8 }}>
                     {finding
-                      ? <><div style={{ display:"flex",gap:3 }}>{[0,1,2].map(i=><div key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(255,255,255,0.3)",animation:"blink 0.8s step-end infinite",animationDelay:`${i*0.22}s` }}/>)}</div> Matching…</>
+                      ? <><div style={{ display:"flex",gap:3 }}>{[0,1,2].map(i=><div key={i} style={{ width:4,height:4,borderRadius:"50%",background:"rgba(255,255,255,0.3)",animation:"blink 0.8s step-end infinite",animationDelay:`${i*0.22}s` }}/>)}</div> Matchingâ€¦</>
                       : "Find an Opponent"
                     }
                   </button>
@@ -954,7 +954,7 @@ function BattleSection() {
 
             {/* Match info tags */}
             <div style={{ display:"flex",gap:6,flexWrap:"wrap" }}>
-              {["Avg wait: 8s","Global matchmaking","ELO ±150 range"].map(tag=>(
+              {["Avg wait: 8s","Global matchmaking","ELO Â±150 range"].map(tag=>(
                 <span key={tag} style={{ fontSize:9,fontWeight:700,letterSpacing:"0.1em",textTransform:"uppercase",color:"rgba(255,255,255,0.2)",padding:"3px 8px",borderRadius:6,border:"1px solid rgba(255,255,255,0.07)" }}>{tag}</span>
               ))}
             </div>
@@ -1154,7 +1154,7 @@ function Footer() {
         <div style={{ fontFamily:HOME_TYPO.monumentFontFamily,fontSize:"clamp(4.5rem,13vw,12rem)",fontWeight:900,color:"rgba(255,255,255,0.028)",letterSpacing:HOME_TYPO.letterSpacing.displayWide,userSelect:"none" }}>VANTAGE</div>
       </div>
       <div style={{ display:"flex",justifyContent:"space-between",padding:"16px clamp(24px,5vw,72px) 24px",flexWrap:"wrap",gap:8 }}>
-        <span style={{ fontSize:10,color:"rgba(255,255,255,0.14)" }}>© 2026 Vantage. All rights reserved.</span>
+        <span style={{ fontSize:10,color:"rgba(255,255,255,0.14)" }}>Â© 2026 Vantage. All rights reserved.</span>
         <span style={{ fontSize:10,color:"rgba(255,255,255,0.14)" }}>Built for developers who want to win.</span>
       </div>
     </footer>

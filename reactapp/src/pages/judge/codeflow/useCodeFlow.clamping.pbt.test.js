@@ -12,8 +12,8 @@ import fc from "fast-check";
 
 // Mock the API service so `run()` produces a deterministic, controllable
 // `totalSteps` without any network access.
-jest.mock("../../../services/judgeApi", () => ({
-  traceCode: jest.fn(),
+vi.mock("../../../services/judgeApi", () => ({
+  traceCode: vi.fn(),
 }));
 
 import { traceCode } from "../../../services/judgeApi";
@@ -100,7 +100,7 @@ async function runScenario(totalSteps, actions, playAdvanceTicks) {
           case "play":
             api.current.togglePlay();
             // Let the auto-play timer fire a few times so playback advances.
-            jest.advanceTimersByTime(playAdvanceTicks);
+            vi.advanceTimersByTime(playAdvanceTicks);
             break;
           default:
             break;
@@ -118,13 +118,13 @@ async function runScenario(totalSteps, actions, playAdvanceTicks) {
 
 describe("useCodeFlow — Property 8: step clamping", () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    vi.useFakeTimers();
     traceCode.mockReset();
   });
 
   afterEach(() => {
-    jest.clearAllTimers();
-    jest.useRealTimers();
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it("keeps step within [0, max(0, totalSteps - 1)] after any action sequence", async () => {

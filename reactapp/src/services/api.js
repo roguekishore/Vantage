@@ -8,7 +8,7 @@
 import useUserStore from "../stores/useUserStore";
 
 export const API_BASE =
-  (process.env.REACT_APP_API_URL || "http://localhost:8080") + "/api";
+  (import.meta.env.REACT_APP_API_URL || "http://localhost:8080") + "/api";
 
 /** Read the JWT token from the stored user object. */
 export function getToken() {

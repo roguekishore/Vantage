@@ -11,7 +11,7 @@
 # and make don't ship. g++ DOES ship: it compiles submitted C++ at runtime.
 # ─────────────────────────────────────────────────────────────
 
-FROM public.ecr.aws/lambda/nodejs:20 AS build
+FROM public.ecr.aws/lambda/nodejs:24 AS build
 
 # node-gyp toolchain for the tree-sitter native addons
 RUN dnf install -y gcc-c++ make python3 tar findutils && dnf clean all
@@ -24,7 +24,7 @@ RUN npm ci --omit=dev
 
 # ─────────────────────────────────────────────────────────────
 
-FROM public.ecr.aws/lambda/nodejs:20
+FROM public.ecr.aws/lambda/nodejs:24
 
 # Runtime toolchains for submitted code:
 #   gcc-c++                          -> g++ for C++ submissions

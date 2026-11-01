@@ -7,12 +7,12 @@ import { traceCode } from "./judgeApi";
 
 describe("traceCode", () => {
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
     delete global.fetch;
   });
 
   function mockFetch(impl) {
-    global.fetch = jest.fn(impl);
+    global.fetch = vi.fn(impl);
   }
 
   test("POSTs to /api/trace with language, code, and input", async () => {
