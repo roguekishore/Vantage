@@ -1,5 +1,5 @@
 # ============================================================
-#  Multi-stage Dockerfile for Vantage API (Spring Boot 4 / Java 17)
+#  Multi-stage Dockerfile for Vantage API (Spring Boot 4 / Java 25)
 # ============================================================
 #
 #  BUILD (multi-arch):
@@ -21,7 +21,7 @@
 # ============================================================
 
 # ── Stage 1: Build ──────────────────────────────────────────
-FROM eclipse-temurin:17-jdk AS build
+FROM eclipse-temurin:25-jdk AS build
 
 WORKDIR /app
 
@@ -40,7 +40,7 @@ RUN ./mvnw package -DskipTests -B && \
     cp target/*.jar target/app.jar
 
 # ── Stage 2: Runtime ───────────────────────────────────────
-FROM eclipse-temurin:17-jre
+FROM eclipse-temurin:25-jre
 
 LABEL maintainer="roguekishore"
 LABEL description="Vantage - AlgoVisualizer Spring Boot backend API"
